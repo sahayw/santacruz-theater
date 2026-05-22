@@ -1146,7 +1146,7 @@ const { performances } = Astro.props
       <div class="card-show-title">${p.show}</div>
       <div class="card-meta">
         <div class="card-meta-item"><span class="card-meta-label">Time&nbsp;</span>${timeStr}</div>
-        <div class="card-meta-item"><span class="card-meta-label">Venue&nbsp;</span>${p.venue}</div>
+        <div class="card-meta-item"><span class="card-meta-label">Venue&nbsp;</span>${VENUE_NAMES[p.venue] || p.venue}</div>
         <div class="card-meta-item"><span class="card-meta-label">Price&nbsp;</span>${p.price}</div>
         <div class="card-meta-item"><span class="card-meta-label">Genre&nbsp;</span>${p.genre}</div>
       </div>

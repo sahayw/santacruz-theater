@@ -373,6 +373,8 @@ const { performances } = Astro.props
     display: none;
     max-width: 960px;
     margin: 0 auto;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
   }
 
   .scroll-month-label {
@@ -388,8 +390,6 @@ const { performances } = Astro.props
   }
 
   .week-table-wrap {
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
   }
 
   .week-grid {
@@ -1074,4 +1074,8 @@ const { performances } = Astro.props
   new ResizeObserver(() => {
     document.body.style.paddingBottom = footerEl.offsetHeight + 8 + 'px'
   }).observe(footerEl)
+
+  document.getElementById('scroll-view').addEventListener('scroll', function () {
+    document.getElementById('scrollColHeader').scrollLeft = this.scrollLeft
+  })
 </script>

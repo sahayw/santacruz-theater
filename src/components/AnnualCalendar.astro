@@ -68,6 +68,7 @@ const { performances } = Astro.props
 </div>
 
 <div class="fixed-legend-footer" id="fixedLegendFooter"></div>
+<div id="hoverPanel" class="day-hover-panel"></div>
 <div class="overlay" id="overlay"></div>
 <div class="bottom-sheet" id="bottomSheet">
   <div class="sheet-handle"></div>
@@ -694,12 +695,72 @@ const { performances } = Astro.props
     background: var(--border);
     border-radius: 2px;
   }
+
+  /* ── ANNUAL VIEW HOVER PANEL ── */
+  @media (hover: hover) {
+    .day-hover-panel {
+      display: none;
+      position: fixed;
+      z-index: 300;
+      width: 240px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
+      pointer-events: none;
+    }
+    .day-hover-panel.visible {
+      display: block;
+    }
+    .hover-panel-header {
+      font-family: 'Playfair Display', serif;
+      font-size: 13px;
+      font-weight: 600;
+      padding: 8px 12px;
+      border-bottom: 1px solid var(--border);
+    }
+    .hover-panel-row {
+      padding: 6px 12px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .hover-panel-row:last-child {
+      border-bottom: none;
+    }
+    .hover-panel-show {
+      font-size: 12px;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .hover-panel-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 2px;
+      flex-shrink: 0;
+    }
+    .hover-panel-meta {
+      font-size: 11px;
+      color: var(--ink-muted);
+      padding-left: 14px;
+    }
+  }
 </style>
 
 <script define:vars={{ performances }} is:inline>
   const PERFORMANCES = performances
   const TODAY = new Date().toISOString().slice(0, 10)
   const COMPANY_COLORS = { SCS: 'var(--col-scs)', AT: 'var(--col-at)', MCT: 'var(--col-mct)' }
+  const VENUE_NAMES = {
+    G: 'The Grove',
+    VMB: 'Veterans Memorial Building',
+    PH: 'Park Hall',
+    AT: "Actors' Theatre",
+    CCT: 'Cabrillo Crocker Theater',
+  }
   const MONTHS = [
     'January',
     'February',
@@ -729,6 +790,45 @@ const { performances } = Astro.props
   }
   function isMat(t) {
     return parseInt(t) < 17
+  }
+  function fmtTime(t) {
+    const [h, m] = t.split(':').map(Number)
+    const period = h < 12 ? 'am' : 'pm'
+    const h12 = h % 12 || 12
+    return m === 0 ? `${h12}${period}` : `${h12}:${String(m).padStart(2, '0')}${period}`
+  }
+  function showHoverPanel(ds, perfs, cellEl) {
+    const panel = document.getElementById('hoverPanel')
+    const [y, mo, d] = ds.split('-').map(Number)
+    const dateLabel = new Date(y, mo - 1, d).toLocaleDateString('en-US', {
+      weekday: 'long', month: 'long', day: 'numeric',
+    })
+    let html = `<div class="hover-panel-header">${dateLabel}</div>`
+    const sorted = [...perfs].sort((a, b) => a.time.localeCompare(b.time))
+    sorted.forEach((p) => {
+      const venue = VENUE_NAMES[p.venue] || p.venue
+      html += `<div class="hover-panel-row">
+        <div class="hover-panel-show">
+          <div class="hover-panel-dot" style="background:${companyColor(p.company)}"></div>
+          <span>${p.company} · ${p.showAbv}</span>
+        </div>
+        <div class="hover-panel-meta">${fmtTime(p.time)} · ${venue}</div>
+      </div>`
+    })
+    panel.innerHTML = html
+    const rect = cellEl.getBoundingClientRect()
+    const pw = 240
+    const ph = 34 + sorted.length * 46
+    let left = rect.left
+    let top = rect.bottom + 6
+    if (left + pw > window.innerWidth - 8) left = Math.max(8, rect.right - pw)
+    if (top + ph > window.innerHeight - 8) top = rect.top - ph - 6
+    panel.style.left = Math.max(8, left) + 'px'
+    panel.style.top = Math.max(8, top) + 'px'
+    panel.classList.add('visible')
+  }
+  function hideHoverPanel() {
+    document.getElementById('hoverPanel').classList.remove('visible')
   }
   function perfsByDate(perfs) {
     const m = {}
@@ -836,6 +936,8 @@ const { performances } = Astro.props
           const cos = [...new Set(perfs.map((p) => p.company))]
           if (cos.length > 1) el.classList.add('multi')
           else el.style.background = companyColor(cos[0])
+          el.addEventListener('mouseenter', () => showHoverPanel(ds, perfs, el))
+          el.addEventListener('mouseleave', hideHoverPanel)
         }
         body.appendChild(el)
       }
@@ -1074,6 +1176,8 @@ const { performances } = Astro.props
   new ResizeObserver(() => {
     document.body.style.paddingBottom = footerEl.offsetHeight + 8 + 'px'
   }).observe(footerEl)
+
+  document.addEventListener('scroll', hideHoverPanel, { passive: true })
 
   document.getElementById('scroll-view').addEventListener('scroll', function () {
     document.getElementById('scrollColHeader').scrollLeft = this.scrollLeft

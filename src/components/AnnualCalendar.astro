@@ -85,11 +85,11 @@ const { performances } = Astro.props
     --ink: #1a1612;
     --ink-muted: #6b6259;
     --border: #e0d9d0;
-    --col-scs: #c0392b;
-    --col-at: #1a6b9a;
-    --col-mct: #2e7d5e;
-    --col-other: #9e9e9e;
-    --col-multi: #6d4c7d;
+    --col-scs: #FFB3AF;
+    --col-at: #A8CFEE;
+    --col-mct: #A8DCBF;
+    --col-other: #C8C8D0;
+    --col-multi: #CBBDED;
     --pip-eve: #2c2c2c;
     --pip-mat: #8a8278;
     --radius: 6px;
@@ -330,7 +330,7 @@ const { performances } = Astro.props
     color: var(--ink-muted);
   }
   .mini-day.has-perf {
-    color: #fff;
+    color: rgba(0, 0, 0, 0.75);
     font-weight: 600;
   }
   .mini-day.has-perf.multi {
@@ -412,19 +412,17 @@ const { performances } = Astro.props
     border-bottom: 1px solid var(--border);
   }
   .show-chip {
-    height: var(--row-h);
+    height: calc(var(--row-h) - 2px);
+    margin: 1px 3px;
+    border-radius: 3px;
     display: flex;
     align-items: center;
     gap: 5px;
     padding: 0 6px;
-    font-size: 13px;
-    font-weight: 500;
+    font-size: 12px;
+    font-weight: 400;
     white-space: nowrap;
     overflow: hidden;
-    border-bottom: 1px solid var(--border);
-  }
-  .show-chip:last-child {
-    border-bottom: none;
   }
   .show-chip-bar {
     width: 4px;
@@ -480,10 +478,10 @@ const { performances } = Astro.props
 
   .pip-row {
     height: var(--row-h);
+    position: relative;
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 2px;
     border-bottom: 1px solid var(--border);
     flex-shrink: 0;
   }
@@ -491,25 +489,45 @@ const { performances } = Astro.props
     border-bottom: none;
   }
 
-  .perf-pip {
-    width: 24px;
-    height: 15px;
-    border-radius: 3px;
-    font-size: 8px;
-    font-weight: 700;
-    letter-spacing: 0.02em;
+  .perf-bar {
+    position: absolute;
+    top: 1px;
+    bottom: 1px;
+    z-index: 1;
     display: flex;
     align-items: center;
     justify-content: center;
-    color: #fff;
+    gap: 3px;
+  }
+  .perf-bar.bar-single {
+    left: 3px;
+    right: 3px;
+    border-radius: 3px;
+  }
+  .perf-bar.bar-start {
+    left: 3px;
+    right: 0;
+    border-radius: 3px 0 0 3px;
+  }
+  .perf-bar.bar-mid {
+    left: -1px;
+    right: 0;
+    border-radius: 0;
+  }
+  .perf-bar.bar-end {
+    left: -1px;
+    right: 3px;
+    border-radius: 0 3px 3px 0;
+  }
+
+  .perf-label {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    color: rgba(0, 0, 0, 0.75);
     cursor: pointer;
     -webkit-tap-highlight-color: transparent;
-  }
-  .perf-pip.pip-mat {
-    background: var(--pip-mat);
-  }
-  .perf-pip.pip-eve {
-    background: var(--pip-eve);
+    line-height: 1;
   }
 
   /* ── FIXED FOOTER LEGEND ── */
@@ -797,6 +815,15 @@ const { performances } = Astro.props
   function isMat(t) {
     return parseInt(t) < 17
   }
+  function getBarPos(flags, idx) {
+    if (!flags || !flags[idx]) return 'none'
+    const prev = idx > 0 && flags[idx - 1]
+    const next = idx < 6 && flags[idx + 1]
+    if (!prev && !next) return 'single'
+    if (!prev) return 'start'
+    if (!next) return 'end'
+    return 'mid'
+  }
   function fmtTime(t) {
     const [h, m] = t.split(':').map(Number)
     const period = h < 12 ? 'am' : 'pm'
@@ -882,7 +909,7 @@ const { performances } = Astro.props
     { color: 'var(--col-multi)', label: 'Multiple companies' }
   ]
 
-  function buildFixedFooter() {
+  function buildFixedFooter(includeMulti = true) {
     const footer = document.getElementById('fixedLegendFooter')
     footer.innerHTML = ''
     const title = document.createElement('span')
@@ -890,6 +917,7 @@ const { performances } = Astro.props
     title.textContent = 'COMPANIES'
     footer.appendChild(title)
     LEGEND_ENTRIES.forEach((e) => {
+      if (!includeMulti && e.color === 'var(--col-multi)') return
       const item = document.createElement('div')
       item.className = 'legend-item'
       item.style.cssText =
@@ -992,6 +1020,14 @@ const { performances } = Astro.props
       const weekShows = allShows.filter((s) => weekShowKeys.has(s.key))
       const nRows = Math.max(weekShows.length, 1)
 
+      const showDayCoverage = {}
+      weekShows.forEach((s) => {
+        showDayCoverage[s.key] = weekDays.map((day) => {
+          const ds = fmtDate(day)
+          return (byDate[ds] || []).some((p) => p.showAbv + '|' + p.company === s.key)
+        })
+      })
+
       const wrap = document.createElement('div')
       wrap.className = 'week-table-wrap'
 
@@ -1014,13 +1050,15 @@ const { performances } = Astro.props
         weekShows.forEach((s) => {
           const chip = document.createElement('div')
           chip.className = 'show-chip'
-          chip.innerHTML = `<div class="show-chip-bar" style="background:${companyColor(s.company)}"></div><span class="show-chip-name" title="${s.show}">${s.showAbv}</span>`
+          chip.style.background = companyColor(s.company)
+          chip.style.color = 'rgba(0,0,0,0.75)'
+          chip.innerHTML = `<span class="show-chip-name" title="${s.show}">${s.showAbv}</span>`
           showsCol.appendChild(chip)
         })
       }
       grid.appendChild(showsCol)
 
-      weekDays.forEach((day) => {
+      weekDays.forEach((day, dayIdx) => {
         const ds = fmtDate(day)
         const dayPerfs = byDate[ds] || []
         const inYear = day.getFullYear() === 2026
@@ -1044,13 +1082,13 @@ const { performances } = Astro.props
         }
         col.appendChild(numRow)
 
-        const dayShowPips = {}
+        const dayPipData = {}
         if (inYear) {
           dayPerfs.forEach((p) => {
             const k = p.showAbv + '|' + p.company
-            if (!dayShowPips[k]) dayShowPips[k] = { mat: false, eve: false }
-            if (isMat(p.time)) dayShowPips[k].mat = true
-            else dayShowPips[k].eve = true
+            if (!dayPipData[k]) dayPipData[k] = { mat: false, eve: false }
+            if (isMat(p.time)) dayPipData[k].mat = true
+            else dayPipData[k].eve = true
           })
         }
 
@@ -1058,27 +1096,20 @@ const { performances } = Astro.props
         rowsToRender.forEach((s) => {
           const pipRow = document.createElement('div')
           pipRow.className = 'pip-row'
-          if (s && inYear && dayShowPips[s.key]) {
-            const { mat, eve } = dayShowPips[s.key]
-            if (mat) {
-              const pip = document.createElement('div')
-              pip.className = 'perf-pip pip-mat'
-              pip.textContent = 'Mat'
-              pip.onclick = (e) => {
-                e.stopPropagation()
-                openSheet(ds)
-              }
-              pipRow.appendChild(pip)
-            }
-            if (eve) {
-              const pip = document.createElement('div')
-              pip.className = 'perf-pip pip-eve'
-              pip.textContent = 'Eve'
-              pip.onclick = (e) => {
-                e.stopPropagation()
-                openSheet(ds)
-              }
-              pipRow.appendChild(pip)
+          if (s && inYear) {
+            const pips = dayPipData[s.key]
+            const barPos = getBarPos(showDayCoverage[s.key], dayIdx)
+            if (pips && barPos !== 'none') {
+              const bar = document.createElement('div')
+              bar.className = 'perf-bar bar-' + barPos
+              bar.style.background = companyColor(s.company)
+              const labelText = pips.mat && pips.eve ? 'Mat / Eve' : pips.mat ? 'Mat' : 'Eve'
+              const label = document.createElement('span')
+              label.className = 'perf-label'
+              label.textContent = labelText
+              label.onclick = (e) => { e.stopPropagation(); openSheet(ds) }
+              bar.appendChild(label)
+              pipRow.appendChild(bar)
             }
           }
           col.appendChild(pipRow)
@@ -1102,6 +1133,7 @@ const { performances } = Astro.props
     document.getElementById('headerTitle').textContent = 'Calendar 2026'
     document.body.classList.remove('annual-mode')
     document.body.classList.add('scroll-mode')
+    buildFixedFooter(false)
     window.scrollTo(0, 0)
     requestAnimationFrame(() => {
       const el = document.getElementById(monthAnchorIds[m])
@@ -1121,6 +1153,7 @@ const { performances } = Astro.props
     document.getElementById('headerTitle').textContent = 'Santa Cruz Theater'
     document.body.classList.remove('scroll-mode')
     document.body.classList.add('annual-mode')
+    buildFixedFooter(true)
     window.scrollTo(0, 0)
   }
 

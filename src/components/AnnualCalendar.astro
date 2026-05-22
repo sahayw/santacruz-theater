@@ -219,6 +219,8 @@ const { performances } = Astro.props
     display: grid;
     grid-template-columns: var(--shows-col-w) repeat(7, 1fr);
     min-width: 520px;
+    max-width: 960px;
+    margin: 0 auto;
     height: 100%;
   }
   .col-head-cell {
@@ -249,6 +251,8 @@ const { performances } = Astro.props
   /* ── ANNUAL VIEW ── */
   #annual-view {
     padding: 12px;
+    max-width: 960px;
+    margin: 0 auto;
   }
   .year-title {
     font-family: 'Playfair Display', serif;
@@ -262,6 +266,12 @@ const { performances } = Astro.props
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 10px;
+  }
+  /* Landscape: 4 columns × 3 rows fits all 12 months without scrolling */
+  @media (min-aspect-ratio: 1/1) {
+    .months-grid {
+      grid-template-columns: repeat(4, 1fr);
+    }
   }
   @media (max-width: 480px) {
     .months-grid {
@@ -361,6 +371,8 @@ const { performances } = Astro.props
   /* ── SCROLL VIEW ── */
   #scroll-view {
     display: none;
+    max-width: 960px;
+    margin: 0 auto;
   }
 
   .scroll-month-label {

@@ -1,0 +1,1065 @@
+---
+import type { PerformanceEvent } from '../types.ts'
+
+interface Props {
+  performances: PerformanceEvent[]
+}
+
+const { performances } = Astro.props
+---
+
+<header class="app-header">
+  <button class="back-btn" id="backBtn">&#8592;</button>
+  <h1 id="headerTitle">Santa Cruz Theater 2026</h1>
+</header>
+
+<div class="filter-bar">
+  <label>Company</label>
+  <select id="filterCompany">
+    <option value="">All</option>
+    <option value="SCS">SCS</option>
+    <option value="AT">AT</option>
+    <option value="MCT">MCT</option>
+    <option value="Renegade">Renegade</option>
+    <option value="Cabrillo">Cabrillo</option>
+    <option value="ABT">ABT</option>
+  </select>
+  <span class="filter-sep">|</span>
+  <label>Genre</label>
+  <select id="filterGenre">
+    <option value="">All</option>
+    <option value="Drama">Drama</option>
+    <option value="Musical">Musical</option>
+    <option value="Comedy">Comedy</option>
+    <option value="Tragedy">Tragedy</option>
+  </select>
+  <span class="filter-sep">|</span>
+  <label>Time</label>
+  <select id="filterTime">
+    <option value="">All</option>
+    <option value="Mat">Matinee</option>
+    <option value="Eve">Evening</option>
+  </select>
+</div>
+
+<div class="scroll-col-header" id="scrollColHeader">
+  <div class="scroll-col-header-inner">
+    <div class="col-head-cell">Shows this week</div>
+    <div class="col-head-cell">Mon</div>
+    <div class="col-head-cell">Tue</div>
+    <div class="col-head-cell">Wed</div>
+    <div class="col-head-cell">Thu</div>
+    <div class="col-head-cell">Fri</div>
+    <div class="col-head-cell">Sat</div>
+    <div class="col-head-cell">Sun</div>
+  </div>
+</div>
+
+<div id="annual-view">
+  <div style="padding:12px">
+    <div class="year-title">2026</div>
+    <div class="months-grid" id="monthsGrid"></div>
+    <div style="height:24px"></div>
+  </div>
+</div>
+
+<div id="scroll-view">
+  <div id="scroll-weeks"></div>
+  <div style="height:24px"></div>
+</div>
+
+<div class="fixed-legend-footer" id="fixedLegendFooter"></div>
+<div class="overlay" id="overlay"></div>
+<div class="bottom-sheet" id="bottomSheet">
+  <div class="sheet-handle"></div>
+  <div class="sheet-date-header" id="sheetDateHeader"></div>
+  <div id="sheetCards"></div>
+</div>
+
+<style is:global>
+  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=DM+Sans:wght@300;400;500&display=swap');
+
+  :root {
+    --bg: #f7f4ef;
+    --surface: #ffffff;
+    --ink: #1a1612;
+    --ink-muted: #6b6259;
+    --border: #e0d9d0;
+    --col-scs: #c0392b;
+    --col-at: #1a6b9a;
+    --col-mct: #2e7d5e;
+    --col-other: #9e9e9e;
+    --col-multi: #6d4c7d;
+    --pip-eve: #2c2c2c;
+    --pip-mat: #8a8278;
+    --radius: 6px;
+    --header-h: 52px;
+    --filter-h: 40px;
+    --col-header-h: 28px;
+    --footer-h: 60px;
+    --shows-col-w: 160px;
+    --daynum-h: 16px;
+    --row-h: 22px;
+  }
+
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    min-height: 100vh;
+    font-size: 14px;
+    padding-top: calc(var(--header-h) + var(--filter-h));
+  }
+
+  /* ── FIXED HEADER ── */
+  .app-header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 110;
+    background: var(--ink);
+    color: #fff;
+    height: var(--header-h);
+    display: flex;
+    align-items: center;
+    padding: 0 16px;
+    gap: 12px;
+    -webkit-transform: translateZ(0);
+    transform: translateZ(0);
+  }
+  .app-header h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: 18px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    flex: 1;
+  }
+  .back-btn {
+    background: none;
+    border: none;
+    color: #fff;
+    font-size: 22px;
+    cursor: pointer;
+    padding: 4px 8px 4px 0;
+    display: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .back-btn.visible {
+    display: block;
+  }
+
+  /* ── FIXED FILTER BAR ── */
+  .filter-bar {
+    position: fixed;
+    top: var(--header-h);
+    left: 0;
+    right: 0;
+    z-index: 109;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    height: var(--filter-h);
+    padding: 0 12px;
+    display: flex;
+    gap: 6px;
+    align-items: center;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    -webkit-transform: translateZ(0);
+    transform: translateZ(0);
+  }
+  .filter-bar label {
+    font-size: 11px;
+    color: var(--ink-muted);
+    font-weight: 500;
+    white-space: nowrap;
+  }
+  .filter-bar select {
+    font-family: inherit;
+    font-size: 12px;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 3px 6px;
+    background: var(--bg);
+    color: var(--ink);
+    cursor: pointer;
+  }
+  .filter-sep {
+    color: var(--border);
+    margin: 0 2px;
+    flex-shrink: 0;
+  }
+
+  /* ── FIXED SCROLL-VIEW COLUMN HEADER ── */
+  .scroll-col-header {
+    display: none;
+    position: fixed;
+    top: calc(var(--header-h) + var(--filter-h));
+    left: 0;
+    right: 0;
+    z-index: 108;
+    background: var(--ink);
+    color: #fff;
+    height: var(--col-header-h);
+    -webkit-transform: translateZ(0);
+    transform: translateZ(0);
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  .scroll-col-header.visible {
+    display: block;
+  }
+  .scroll-col-header-inner {
+    display: grid;
+    grid-template-columns: var(--shows-col-w) repeat(7, 1fr);
+    min-width: 520px;
+    height: 100%;
+  }
+  .col-head-cell {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    font-weight: 500;
+    border-left: 1px solid rgba(255, 255, 255, 0.15);
+    padding: 0 3px;
+  }
+  .col-head-cell:first-child {
+    justify-content: flex-start;
+    padding-left: 8px;
+    border-left: none;
+    font-size: 10px;
+    color: rgba(255, 255, 255, 0.7);
+  }
+
+  body.scroll-mode {
+    padding-top: calc(var(--header-h) + var(--filter-h) + var(--col-header-h));
+    padding-bottom: calc(var(--footer-h) + 8px);
+  }
+  body.annual-mode {
+    padding-bottom: calc(var(--footer-h) + 8px);
+  }
+
+  /* ── ANNUAL VIEW ── */
+  #annual-view {
+    padding: 12px;
+  }
+  .year-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 28px;
+    font-weight: 700;
+    text-align: center;
+    margin-bottom: 16px;
+    letter-spacing: -0.02em;
+  }
+  .months-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+  }
+  @media (max-width: 480px) {
+    .months-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  .month-block {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    transition: box-shadow 0.15s;
+  }
+  .month-block:active {
+    opacity: 0.8;
+  }
+  .month-name {
+    font-family: 'Playfair Display', serif;
+    font-size: 13px;
+    font-weight: 600;
+    padding: 6px 8px 4px;
+    border-bottom: 1px solid var(--border);
+    letter-spacing: 0.02em;
+  }
+  .mini-cal {
+    padding: 4px;
+  }
+  .mini-cal-head {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    margin-bottom: 2px;
+  }
+  .mini-cal-head span {
+    text-align: center;
+    font-size: 10px;
+    font-weight: 500;
+    color: var(--ink-muted);
+  }
+  .mini-cal-body {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 1px;
+  }
+  .mini-day {
+    aspect-ratio: 1;
+    border-radius: 3px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    color: var(--ink-muted);
+  }
+  .mini-day.has-perf {
+    color: #fff;
+    font-weight: 600;
+  }
+  .mini-day.has-perf.multi {
+    background: var(--col-multi) !important;
+  }
+  .mini-day.empty {
+    opacity: 0;
+  }
+
+  /* ── LEGEND ── */
+  .legend {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 10px 14px;
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  .legend-title {
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--ink-muted);
+  }
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 11px;
+  }
+  .legend-dot {
+    width: 11px;
+    height: 11px;
+    border-radius: 3px;
+    flex-shrink: 0;
+  }
+
+
+  /* ── SCROLL VIEW ── */
+  #scroll-view {
+    display: none;
+  }
+
+  .scroll-month-label {
+    padding: 5px 12px 4px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--ink-muted);
+    background: var(--bg);
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .week-table-wrap {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .week-grid {
+    display: grid;
+    grid-template-columns: var(--shows-col-w) repeat(7, 1fr);
+    border-bottom: 2px solid var(--border);
+    min-width: 520px;
+    background: var(--surface);
+  }
+
+  .shows-col {
+    background: var(--bg);
+    border-right: 2px solid var(--border);
+    display: grid;
+    padding: 0;
+  }
+  .shows-col-spacer {
+    height: var(--daynum-h);
+    border-bottom: 1px solid var(--border);
+  }
+  .show-chip {
+    height: var(--row-h);
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 0 6px;
+    font-size: 13px;
+    font-weight: 500;
+    white-space: nowrap;
+    overflow: hidden;
+    border-bottom: 1px solid var(--border);
+  }
+  .show-chip:last-child {
+    border-bottom: none;
+  }
+  .show-chip-bar {
+    width: 4px;
+    height: 16px;
+    border-radius: 2px;
+    flex-shrink: 0;
+  }
+  .show-chip-name {
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .day-col {
+    border-left: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+  }
+  .day-col.other-month {
+    background: #f0ede8;
+  }
+  .day-col.has-perf {
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .day-col:active.has-perf {
+    background: rgba(0, 0, 0, 0.04);
+  }
+
+  .day-num-row {
+    height: var(--daynum-h);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+  .day-num {
+    font-size: 10px;
+    color: var(--ink-muted);
+    line-height: 1;
+  }
+  .day-num.today {
+    background: var(--ink);
+    color: #fff;
+    border-radius: 50%;
+    width: 14px;
+    height: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+  }
+
+  .pip-row {
+    height: var(--row-h);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+  .pip-row:last-child {
+    border-bottom: none;
+  }
+
+  .perf-pip {
+    width: 24px;
+    height: 15px;
+    border-radius: 3px;
+    font-size: 8px;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .perf-pip.pip-mat {
+    background: var(--pip-mat);
+  }
+  .perf-pip.pip-eve {
+    background: var(--pip-eve);
+  }
+
+  /* ── FIXED FOOTER LEGEND ── */
+  .fixed-legend-footer {
+    display: none;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 108;
+    background: var(--surface);
+    border-top: 1px solid var(--border);
+    min-height: var(--footer-h);
+    padding: 8px 14px;
+    padding-bottom: max(8px, env(safe-area-inset-bottom, 8px));
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px 12px;
+  }
+  .fixed-legend-footer.visible {
+    display: flex;
+  }
+  .fixed-legend-footer .legend-title {
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--ink-muted);
+    white-space: nowrap;
+  }
+  .fixed-legend-footer .legend-item {
+    font-size: 10px;
+    white-space: nowrap;
+    flex-shrink: 0;
+    gap: 4px;
+  }
+  .fixed-legend-footer .legend-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 2px;
+  }
+
+  /* ── BOTTOM SHEET ── */
+  .overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.4);
+    z-index: 200;
+  }
+  .overlay.open {
+    display: block;
+  }
+  .bottom-sheet {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: var(--surface);
+    border-radius: 16px 16px 0 0;
+    z-index: 201;
+    max-height: 80vh;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    transform: translateY(100%);
+    -webkit-transform: translateY(100%);
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    padding-bottom: env(safe-area-inset-bottom, 16px);
+  }
+  .bottom-sheet.open {
+    transform: translateY(0);
+    -webkit-transform: translateY(0);
+  }
+  .sheet-handle {
+    width: 36px;
+    height: 4px;
+    background: var(--border);
+    border-radius: 2px;
+    margin: 12px auto 0;
+  }
+  .sheet-date-header {
+    padding: 12px 20px 8px;
+    font-family: 'Playfair Display', serif;
+    font-size: 16px;
+    font-weight: 600;
+    border-bottom: 1px solid var(--border);
+  }
+  .perf-card {
+    padding: 14px 20px;
+    border-bottom: 1px solid var(--border);
+  }
+  .perf-card:last-child {
+    border-bottom: none;
+  }
+  .perf-card-company {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 4px;
+  }
+  .company-badge {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .company-name {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--ink-muted);
+  }
+  .perf-type-tag {
+    font-size: 10px;
+    padding: 1px 6px;
+    border-radius: 10px;
+    background: #f0ece6;
+    color: var(--ink-muted);
+    margin-left: auto;
+  }
+  .card-show-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 17px;
+    font-weight: 600;
+    margin-bottom: 6px;
+    line-height: 1.3;
+  }
+  .card-meta {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4px 12px;
+    font-size: 12px;
+    color: var(--ink-muted);
+    margin-bottom: 10px;
+  }
+  .card-meta-item {
+    display: flex;
+    gap: 4px;
+  }
+  .card-meta-label {
+    font-weight: 500;
+    color: var(--ink);
+  }
+  .card-discounts {
+    font-size: 11px;
+    color: var(--ink-muted);
+    margin-bottom: 10px;
+  }
+  .card-buttons {
+    display: flex;
+    gap: 8px;
+  }
+  .btn-info,
+  .btn-tickets {
+    flex: 1;
+    padding: 9px 12px;
+    border-radius: 6px;
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    text-decoration: none;
+    text-align: center;
+    border: none;
+  }
+  .btn-info {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    color: var(--ink);
+  }
+  .btn-tickets {
+    background: var(--ink);
+    color: #fff;
+  }
+
+  ::-webkit-scrollbar {
+    width: 4px;
+    height: 4px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: var(--border);
+    border-radius: 2px;
+  }
+</style>
+
+<script define:vars={{ performances }} is:inline>
+  const PERFORMANCES = performances
+  const TODAY = new Date().toISOString().slice(0, 10)
+  const COMPANY_COLORS = { SCS: 'var(--col-scs)', AT: 'var(--col-at)', MCT: 'var(--col-mct)' }
+  const MONTHS = [
+    'January',
+    'February',
+    'March',
+    'April',
+    'May',
+    'June',
+    'July',
+    'August',
+    'September',
+    'October',
+    'November',
+    'December'
+  ]
+  const DOW = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
+
+  let filteredPerfs = [...PERFORMANCES]
+
+  function companyColor(co) {
+    return COMPANY_COLORS[co] || 'var(--col-other)'
+  }
+  function dowMon(d) {
+    return (d.getDay() + 6) % 7
+  }
+  function fmtDate(d) {
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+  }
+  function isMat(t) {
+    return parseInt(t) < 17
+  }
+  function perfsByDate(perfs) {
+    const m = {}
+    perfs.forEach((p) => {
+      ;(m[p.date] = m[p.date] || []).push(p)
+    })
+    return m
+  }
+
+  function orderedShows(perfs) {
+    const seen = new Set()
+    const result = []
+    ;[...perfs]
+      .sort((a, b) => a.date.localeCompare(b.date))
+      .forEach((p) => {
+        const k = p.showAbv + '|' + p.company
+        if (!seen.has(k)) {
+          seen.add(k)
+          result.push({ showAbv: p.showAbv, company: p.company, show: p.show, key: k })
+        }
+      })
+    return result
+  }
+
+  function applyFilters() {
+    const co = document.getElementById('filterCompany').value
+    const ge = document.getElementById('filterGenre').value
+    const ti = document.getElementById('filterTime').value
+    filteredPerfs = PERFORMANCES.filter((p) => {
+      if (co && p.company !== co) return false
+      if (ge && p.genre !== ge) return false
+      if (ti === 'Mat' && !isMat(p.time)) return false
+      if (ti === 'Eve' && isMat(p.time)) return false
+      return true
+    })
+    renderAnnual()
+    buildScrollView()
+  }
+
+  const LEGEND_ENTRIES = [
+    { color: 'var(--col-scs)', label: 'Santa Cruz Shakespeare (SCS)' },
+    { color: 'var(--col-at)', label: "Actors' Theatre (AT)" },
+    { color: 'var(--col-mct)', label: 'Mountain Community Theater (MCT)' },
+    { color: 'var(--col-other)', label: 'Other companies' },
+    { color: 'var(--col-multi)', label: 'Multiple companies' }
+  ]
+
+  function buildFixedFooter() {
+    const footer = document.getElementById('fixedLegendFooter')
+    footer.innerHTML = ''
+    const title = document.createElement('span')
+    title.className = 'legend-title'
+    title.textContent = 'COMPANIES'
+    footer.appendChild(title)
+    LEGEND_ENTRIES.forEach((e) => {
+      const item = document.createElement('div')
+      item.className = 'legend-item'
+      item.style.cssText =
+        'display:flex;align-items:center;gap:4px;font-size:10px;white-space:nowrap;'
+      item.innerHTML = `<div class="legend-dot" style="background:${e.color};width:10px;height:10px;border-radius:2px;flex-shrink:0"></div><span>${e.label}</span>`
+      footer.appendChild(item)
+    })
+  }
+
+  function renderAnnual() {
+    const byDate = perfsByDate(filteredPerfs)
+    const grid = document.getElementById('monthsGrid')
+    grid.innerHTML = ''
+    for (let m = 0; m < 12; m++) {
+      const block = document.createElement('div')
+      block.className = 'month-block'
+      block.onclick = () => goToMonth(m)
+      const nameEl = document.createElement('div')
+      nameEl.className = 'month-name'
+      nameEl.textContent = MONTHS[m]
+      block.appendChild(nameEl)
+      const cal = document.createElement('div')
+      cal.className = 'mini-cal'
+      const head = document.createElement('div')
+      head.className = 'mini-cal-head'
+      DOW.forEach((d) => {
+        const s = document.createElement('span')
+        s.textContent = d[0]
+        head.appendChild(s)
+      })
+      cal.appendChild(head)
+      const body = document.createElement('div')
+      body.className = 'mini-cal-body'
+      const firstDay = new Date(2026, m, 1)
+      const daysInMonth = new Date(2026, m + 1, 0).getDate()
+      const startDow = dowMon(firstDay)
+      for (let i = 0; i < startDow; i++) {
+        const e = document.createElement('div')
+        e.className = 'mini-day empty'
+        body.appendChild(e)
+      }
+      for (let d = 1; d <= daysInMonth; d++) {
+        const ds = `2026-${String(m + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`
+        const perfs = byDate[ds] || []
+        const el = document.createElement('div')
+        el.className = 'mini-day'
+        el.textContent = d
+        if (perfs.length) {
+          el.classList.add('has-perf')
+          const cos = [...new Set(perfs.map((p) => p.company))]
+          if (cos.length > 1) el.classList.add('multi')
+          else el.style.background = companyColor(cos[0])
+        }
+        body.appendChild(el)
+      }
+      cal.appendChild(body)
+      block.appendChild(cal)
+      grid.appendChild(block)
+    }
+  }
+
+  const monthAnchorIds = {}
+
+  function buildScrollView() {
+    const container = document.getElementById('scroll-weeks')
+    container.innerHTML = ''
+    const byDate = perfsByDate(filteredPerfs)
+    const allShows = orderedShows(filteredPerfs)
+
+    let cursor = new Date(2026, 0, 1)
+    cursor.setDate(cursor.getDate() - dowMon(cursor))
+    const end = new Date(2026, 11, 31)
+    let currentMonth = -1
+
+    while (cursor <= end) {
+      const weekDays = Array.from({ length: 7 }, (_, i) => {
+        const d = new Date(cursor)
+        d.setDate(cursor.getDate() + i)
+        return d
+      })
+      const weekMonth = weekDays[3].getMonth()
+
+      if (weekMonth !== currentMonth) {
+        currentMonth = weekMonth
+        const anchorId = `month-anchor-${currentMonth}`
+        monthAnchorIds[currentMonth] = anchorId
+        const label = document.createElement('div')
+        label.className = 'scroll-month-label'
+        label.id = anchorId
+        label.textContent = MONTHS[currentMonth].toUpperCase()
+        container.appendChild(label)
+      }
+
+      const weekShowKeys = new Set()
+      weekDays.forEach((day) => {
+        ;(byDate[fmtDate(day)] || []).forEach((p) => weekShowKeys.add(p.showAbv + '|' + p.company))
+      })
+      const weekShows = allShows.filter((s) => weekShowKeys.has(s.key))
+      const nRows = Math.max(weekShows.length, 1)
+
+      const wrap = document.createElement('div')
+      wrap.className = 'week-table-wrap'
+
+      const grid = document.createElement('div')
+      grid.className = 'week-grid'
+      grid.style.gridTemplateRows = `var(--daynum-h) repeat(${nRows}, var(--row-h))`
+
+      const showsCol = document.createElement('div')
+      showsCol.className = 'shows-col'
+      showsCol.style.gridRow = `1 / span ${nRows + 1}`
+      const spacer = document.createElement('div')
+      spacer.className = 'shows-col-spacer'
+      showsCol.appendChild(spacer)
+      if (weekShows.length === 0) {
+        const empty = document.createElement('div')
+        empty.className = 'show-chip'
+        empty.innerHTML = '<span style="color:var(--ink-muted);font-size:11px">—</span>'
+        showsCol.appendChild(empty)
+      } else {
+        weekShows.forEach((s) => {
+          const chip = document.createElement('div')
+          chip.className = 'show-chip'
+          chip.innerHTML = `<div class="show-chip-bar" style="background:${companyColor(s.company)}"></div><span class="show-chip-name" title="${s.show}">${s.showAbv}</span>`
+          showsCol.appendChild(chip)
+        })
+      }
+      grid.appendChild(showsCol)
+
+      weekDays.forEach((day) => {
+        const ds = fmtDate(day)
+        const dayPerfs = byDate[ds] || []
+        const inYear = day.getFullYear() === 2026
+        const inMonth = day.getMonth() === weekMonth
+
+        const col = document.createElement('div')
+        col.className =
+          'day-col' +
+          (!inMonth ? ' other-month' : '') +
+          (dayPerfs.length && inYear ? ' has-perf' : '')
+        col.style.gridRow = `1 / span ${nRows + 1}`
+        if (dayPerfs.length && inYear) col.onclick = () => openSheet(ds)
+
+        const numRow = document.createElement('div')
+        numRow.className = 'day-num-row'
+        if (inYear) {
+          const num = document.createElement('div')
+          num.className = 'day-num' + (ds === TODAY ? ' today' : '')
+          num.textContent = day.getDate()
+          numRow.appendChild(num)
+        }
+        col.appendChild(numRow)
+
+        const dayShowPips = {}
+        if (inYear) {
+          dayPerfs.forEach((p) => {
+            const k = p.showAbv + '|' + p.company
+            if (!dayShowPips[k]) dayShowPips[k] = { mat: false, eve: false }
+            if (isMat(p.time)) dayShowPips[k].mat = true
+            else dayShowPips[k].eve = true
+          })
+        }
+
+        const rowsToRender = weekShows.length > 0 ? weekShows : [null]
+        rowsToRender.forEach((s) => {
+          const pipRow = document.createElement('div')
+          pipRow.className = 'pip-row'
+          if (s && inYear && dayShowPips[s.key]) {
+            const { mat, eve } = dayShowPips[s.key]
+            if (mat) {
+              const pip = document.createElement('div')
+              pip.className = 'perf-pip pip-mat'
+              pip.textContent = 'Mat'
+              pip.onclick = (e) => {
+                e.stopPropagation()
+                openSheet(ds)
+              }
+              pipRow.appendChild(pip)
+            }
+            if (eve) {
+              const pip = document.createElement('div')
+              pip.className = 'perf-pip pip-eve'
+              pip.textContent = 'Eve'
+              pip.onclick = (e) => {
+                e.stopPropagation()
+                openSheet(ds)
+              }
+              pipRow.appendChild(pip)
+            }
+          }
+          col.appendChild(pipRow)
+        })
+
+        grid.appendChild(col)
+      })
+
+      wrap.appendChild(grid)
+      container.appendChild(wrap)
+      cursor.setDate(cursor.getDate() + 7)
+    }
+  }
+
+  function goToMonth(m) {
+    document.getElementById('annual-view').style.display = 'none'
+    document.getElementById('scroll-view').style.display = 'block'
+    document.getElementById('scrollColHeader').classList.add('visible')
+    document.getElementById('fixedLegendFooter').classList.add('visible')
+    document.getElementById('backBtn').classList.add('visible')
+    document.getElementById('headerTitle').textContent = 'Calendar 2026'
+    document.body.classList.remove('annual-mode')
+    document.body.classList.add('scroll-mode')
+    window.scrollTo(0, 0)
+    requestAnimationFrame(() => {
+      const el = document.getElementById(monthAnchorIds[m])
+      if (el) {
+        const totalFixed = 52 + 40 + 28 // header + filter + col-header
+        const top = el.getBoundingClientRect().top + window.scrollY - totalFixed
+        window.scrollTo({ top, behavior: 'smooth' })
+      }
+    })
+  }
+
+  function showAnnual() {
+    document.getElementById('scroll-view').style.display = 'none'
+    document.getElementById('annual-view').style.display = 'block'
+    document.getElementById('scrollColHeader').classList.remove('visible')
+    document.getElementById('backBtn').classList.remove('visible')
+    document.getElementById('headerTitle').textContent = 'Santa Cruz Theater 2026'
+    document.body.classList.remove('scroll-mode')
+    document.body.classList.add('annual-mode')
+    window.scrollTo(0, 0)
+  }
+
+  function openSheet(dateStr) {
+    const perfs = perfsByDate(filteredPerfs)[dateStr] || []
+    if (!perfs.length) return
+    document.getElementById('sheetDateHeader').textContent = new Date(
+      dateStr + 'T12:00:00'
+    ).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })
+    const cards = document.getElementById('sheetCards')
+    cards.innerHTML = ''
+    perfs.forEach((p) => {
+      const card = document.createElement('div')
+      card.className = 'perf-card'
+      const [h, min] = p.time.split(':').map(Number)
+      const timeStr = `${h > 12 ? h - 12 : h || 12}:${String(min).padStart(2, '0')}${h >= 12 ? 'pm' : 'am'}`
+      card.innerHTML = `
+      <div class="perf-card-company">
+        <div class="company-badge" style="background:${companyColor(p.company)}"></div>
+        <span class="company-name">${p.company}</span>
+        ${p.perfType ? `<span class="perf-type-tag">${p.perfType}</span>` : ''}
+      </div>
+      <div class="card-show-title">${p.show}</div>
+      <div class="card-meta">
+        <div class="card-meta-item"><span class="card-meta-label">Time&nbsp;</span>${timeStr}</div>
+        <div class="card-meta-item"><span class="card-meta-label">Venue&nbsp;</span>${p.venue}</div>
+        <div class="card-meta-item"><span class="card-meta-label">Price&nbsp;</span>${p.price}</div>
+        <div class="card-meta-item"><span class="card-meta-label">Genre&nbsp;</span>${p.genre}</div>
+      </div>
+      ${p.discounts ? `<div class="card-discounts">Discounts: ${p.discounts}</div>` : ''}
+      <div class="card-buttons">
+        <a class="btn-info" href="${p.infoUrl}" target="_blank" rel="noopener">More info</a>
+        <a class="btn-tickets" href="${p.ticketsUrl}" target="_blank" rel="noopener">Get tickets</a>
+      </div>`
+      cards.appendChild(card)
+    })
+    document.getElementById('overlay').classList.add('open')
+    document.getElementById('bottomSheet').classList.add('open')
+  }
+
+  function closeSheet() {
+    document.getElementById('overlay').classList.remove('open')
+    document.getElementById('bottomSheet').classList.remove('open')
+  }
+
+  document.getElementById('backBtn').addEventListener('click', showAnnual)
+  document.getElementById('filterCompany').addEventListener('change', applyFilters)
+  document.getElementById('filterGenre').addEventListener('change', applyFilters)
+  document.getElementById('filterTime').addEventListener('change', applyFilters)
+  document.getElementById('overlay').addEventListener('click', closeSheet)
+
+  renderAnnual()
+  buildScrollView()
+  buildFixedFooter()
+  document.getElementById('fixedLegendFooter').classList.add('visible')
+  document.body.classList.add('annual-mode')
+
+  const footerEl = document.getElementById('fixedLegendFooter')
+  new ResizeObserver(() => {
+    document.body.style.paddingBottom = (footerEl.offsetHeight + 8) + 'px'
+  }).observe(footerEl)
+</script>

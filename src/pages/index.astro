@@ -1,0 +1,19 @@
+---
+import AnnualCalendar from '../components/AnnualCalendar.astro';
+import { getPerformances } from '../lib/data.ts';
+
+const performances = await getPerformances();
+---
+
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="generator" content={Astro.generator} />
+    <title>Santa Cruz Theater 2026</title>
+    <link rel="icon" href="/favicon.ico" />
+  </head>
+  <body>
+    <AnnualCalendar performances={performances} />
+  </body>
+</html>

@@ -1,0 +1,1157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SC Theater — Data Editor</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;500&display=swap');
+
+:root {
+  --ink:      #1c1a17;
+  --ink-mid:  #6b6359;
+  --ink-faint:#b0a898;
+  --bg:       #f5f2ed;
+  --surface:  #ffffff;
+  --border:   #ddd8cf;
+  --accent:   #c0392b;
+  --accent2:  #1a6b9a;
+  --green:    #2e7d5e;
+  --yellow:   #f0a500;
+  --row-h:    32px;
+  --sidebar-w:220px;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'IBM Plex Sans', sans-serif;
+  background: var(--bg);
+  color: var(--ink);
+  font-size: 13px;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* ── TOP BAR ── */
+.topbar {
+  background: var(--ink);
+  color: #fff;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  padding: 0 16px;
+  gap: 12px;
+  flex-shrink: 0;
+}
+.topbar-title {
+  font-family: 'Libre Baskerville', serif;
+  font-size: 15px;
+  letter-spacing: 0.01em;
+  flex: 1;
+}
+.topbar-title span { color: var(--accent); font-style: italic; }
+.btn {
+  font-family: 'IBM Plex Sans', sans-serif;
+  font-size: 11px; font-weight: 500;
+  padding: 5px 12px;
+  border-radius: 3px;
+  border: none;
+  cursor: pointer;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  transition: opacity 0.15s;
+}
+.btn:hover { opacity: 0.85; }
+.btn-ghost { background: transparent; border: 1px solid rgba(255,255,255,0.3); color: #fff; }
+.btn-accent { background: var(--accent); color: #fff; }
+.btn-green  { background: var(--green); color: #fff; }
+.btn-blue   { background: var(--accent2); color: #fff; }
+.btn-sm { font-size: 10px; padding: 3px 8px; }
+
+/* ── LAYOUT ── */
+.app-body {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+/* ── SIDEBAR ── */
+.sidebar {
+  width: var(--sidebar-w);
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+}
+.sidebar-header {
+  padding: 10px 12px 8px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.sidebar-label {
+  font-size: 10px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--ink-mid);
+}
+.run-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 4px 0;
+}
+.run-item {
+  padding: 7px 12px;
+  cursor: pointer;
+  border-left: 3px solid transparent;
+  transition: background 0.1s;
+}
+.run-item:hover { background: var(--bg); }
+.run-item.active {
+  background: var(--bg);
+  border-left-color: var(--accent);
+}
+.run-item-company {
+  font-size: 9px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--ink-faint);
+  margin-bottom: 1px;
+}
+.run-item-show {
+  font-size: 12px;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.run-item-count {
+  font-size: 10px;
+  color: var(--ink-faint);
+  font-family: 'IBM Plex Mono', monospace;
+}
+.sidebar-empty {
+  padding: 20px 12px;
+  font-size: 12px;
+  color: var(--ink-faint);
+  text-align: center;
+  line-height: 1.6;
+}
+
+/* ── MAIN PANEL ── */
+.main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.empty-state {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  color: var(--ink-mid);
+}
+.empty-state-icon {
+  font-size: 40px;
+  opacity: 0.2;
+}
+.empty-state h2 {
+  font-family: 'Libre Baskerville', serif;
+  font-size: 18px;
+  color: var(--ink);
+}
+.empty-state p { font-size: 13px; color: var(--ink-mid); }
+
+/* ── RUN EDITOR ── */
+.run-editor { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+
+.run-header {
+  padding: 10px 16px 8px;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+.run-header-title {
+  font-family: 'Libre Baskerville', serif;
+  font-size: 16px;
+  flex: 1;
+}
+.run-header-title small {
+  font-family: 'IBM Plex Sans', sans-serif;
+  font-size: 11px;
+  font-weight: 400;
+  color: var(--ink-mid);
+  margin-left: 6px;
+}
+
+/* Run-level fields */
+.run-fields {
+  padding: 10px 16px;
+  background: var(--bg);
+  border-bottom: 2px solid var(--border);
+  display: grid;
+  grid-template-columns: repeat(4, 1fr) 2fr 2fr;
+  gap: 8px;
+  flex-shrink: 0;
+}
+.field-group { display: flex; flex-direction: column; gap: 3px; }
+.field-label {
+  font-size: 9px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--ink-mid);
+}
+.field-input, .field-select {
+  font-family: 'IBM Plex Sans', sans-serif;
+  font-size: 12px;
+  padding: 4px 7px;
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  background: var(--surface);
+  color: var(--ink);
+  width: 100%;
+}
+.field-input:focus, .field-select:focus {
+  outline: none;
+  border-color: var(--accent2);
+}
+.field-input.mono { font-family: 'IBM Plex Mono', monospace; font-size: 11px; }
+
+/* ── PERFORMANCE TABLE ── */
+.perf-section {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.perf-toolbar {
+  padding: 7px 16px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+.perf-toolbar-label {
+  font-size: 10px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--ink-mid);
+  flex: 1;
+}
+
+/* Pattern generator panel */
+.pattern-panel {
+  background: #eef6f0;
+  border-bottom: 1px solid #c8e0d0;
+  padding: 8px 16px;
+  display: none;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  flex-shrink: 0;
+}
+.pattern-panel.open { display: flex; }
+.pattern-panel label {
+  font-size: 10px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--green);
+}
+.pattern-input {
+  font-family: 'IBM Plex Sans', sans-serif;
+  font-size: 12px;
+  padding: 4px 7px;
+  border: 1px solid #c8e0d0;
+  border-radius: 3px;
+  background: #fff;
+  color: var(--ink);
+}
+.pattern-days { display: flex; gap: 4px; }
+.day-toggle {
+  width: 28px; height: 24px;
+  border-radius: 3px;
+  border: 1px solid #c8e0d0;
+  background: #fff;
+  font-size: 10px; font-weight: 500;
+  cursor: pointer;
+  font-family: 'IBM Plex Sans', sans-serif;
+  transition: all 0.1s;
+}
+.day-toggle.on { background: var(--green); border-color: var(--green); color: #fff; }
+
+/* Paste panel */
+.paste-panel {
+  background: #eef3f8;
+  border-bottom: 1px solid #c8d8e8;
+  padding: 8px 16px;
+  display: none;
+  gap: 8px;
+  align-items: flex-start;
+  flex-shrink: 0;
+}
+.paste-panel.open { display: flex; }
+.paste-textarea {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  padding: 6px 8px;
+  border: 1px solid #c8d8e8;
+  border-radius: 3px;
+  width: 360px;
+  height: 72px;
+  resize: vertical;
+  background: #fff;
+}
+.paste-hint {
+  font-size: 11px;
+  color: var(--ink-mid);
+  line-height: 1.6;
+  max-width: 240px;
+}
+
+/* Table */
+.table-wrap {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: auto;
+}
+table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 700px;
+}
+thead th {
+  background: var(--ink);
+  color: #fff;
+  font-size: 9px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  padding: 5px 8px;
+  text-align: left;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  white-space: nowrap;
+}
+thead th.col-del { width: 32px; }
+thead th.col-date { width: 110px; }
+thead th.col-time { width: 80px; }
+thead th.col-type { width: 150px; }
+thead th.col-disc { min-width: 180px; }
+thead th.col-url  { min-width: 200px; }
+
+tbody tr { border-bottom: 1px solid var(--border); }
+tbody tr:hover { background: #faf8f5; }
+tbody tr.selected { background: #fff3e0; }
+
+tbody td {
+  padding: 2px 4px;
+  vertical-align: middle;
+}
+
+/* Editable cells */
+.cell-input {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  padding: 3px 5px;
+  border: 1px solid transparent;
+  border-radius: 2px;
+  background: transparent;
+  width: 100%;
+  color: var(--ink);
+}
+.cell-input:focus {
+  outline: none;
+  border-color: var(--accent2);
+  background: var(--surface);
+}
+.cell-select {
+  font-family: 'IBM Plex Sans', sans-serif;
+  font-size: 11px;
+  padding: 3px 4px;
+  border: 1px solid transparent;
+  border-radius: 2px;
+  background: transparent;
+  width: 100%;
+  color: var(--ink);
+}
+.cell-select:focus {
+  outline: none;
+  border-color: var(--accent2);
+  background: var(--surface);
+}
+
+.del-btn {
+  width: 22px; height: 22px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  color: var(--ink-faint);
+  font-size: 14px;
+  border-radius: 3px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.1s;
+}
+.del-btn:hover { background: #fde; color: var(--accent); }
+
+.type-badge {
+  display: inline-block;
+  font-size: 9px;
+  padding: 1px 5px;
+  border-radius: 2px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+}
+.type-Preview   { background: #fff3cd; color: #856404; }
+.type-Opening   { background: #d1e7dd; color: #0a3622; }
+.type-Closing   { background: #f8d7da; color: #58151c; }
+.type-Talk-back { background: #e2d9f3; color: #3d1f7a; }
+.type-Family    { background: #d1ecf1; color: #0c5460; }
+.type-Student   { background: #fde; color: #8b1a1a; }
+.type-Allages   { background: #e8f5e9; color: #1b5e20; }
+
+/* Status bar */
+.statusbar {
+  height: 26px;
+  background: var(--ink);
+  color: rgba(255,255,255,0.6);
+  font-size: 10px;
+  font-family: 'IBM Plex Mono', monospace;
+  display: flex;
+  align-items: center;
+  padding: 0 16px;
+  gap: 20px;
+  flex-shrink: 0;
+}
+.status-item { display: flex; gap: 6px; }
+.status-key { color: rgba(255,255,255,0.35); }
+
+/* Modal overlay for JSON export */
+.modal-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.5);
+  z-index: 1000;
+  align-items: center;
+  justify-content: center;
+}
+.modal-overlay.open { display: flex; }
+.modal {
+  background: var(--surface);
+  border-radius: 6px;
+  width: 680px;
+  max-width: 95vw;
+  max-height: 85vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+}
+.modal-header {
+  padding: 14px 18px 12px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.modal-title {
+  font-family: 'Libre Baskerville', serif;
+  font-size: 15px;
+  flex: 1;
+}
+.modal-body {
+  flex: 1;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  padding: 12px 18px;
+  gap: 10px;
+}
+.modal-tabs {
+  display: flex;
+  gap: 2px;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 8px;
+}
+.modal-tab {
+  font-family: 'IBM Plex Sans', sans-serif;
+  font-size: 11px; font-weight: 500;
+  padding: 4px 12px;
+  border: 1px solid var(--border);
+  border-radius: 3px 3px 0 0;
+  background: transparent;
+  cursor: pointer;
+  color: var(--ink-mid);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.modal-tab.active { background: var(--ink); color: #fff; border-color: var(--ink); }
+.json-output {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  flex: 1;
+  overflow-y: auto;
+  background: #1c1a17;
+  color: #e8e0d0;
+  padding: 12px;
+  border-radius: 4px;
+  white-space: pre;
+  min-height: 300px;
+}
+.modal-footer {
+  padding: 10px 18px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+</style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<div class="topbar">
+  <div class="topbar-title">Santa Cruz Theater <span>Data Editor</span></div>
+  <button class="btn btn-ghost btn-sm" onclick="importJSON()">Import JSON</button>
+  <button class="btn btn-accent btn-sm" onclick="openExport()">Export JSON</button>
+</div>
+
+<!-- APP BODY -->
+<div class="app-body">
+
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div class="sidebar-header">
+      <span class="sidebar-label">Runs</span>
+      <button class="btn btn-green btn-sm" onclick="newRun()">+ New</button>
+    </div>
+    <div class="run-list" id="runList"></div>
+  </div>
+
+  <!-- MAIN -->
+  <div class="main" id="mainPanel">
+    <div class="empty-state" id="emptyState">
+      <div class="empty-state-icon">🎭</div>
+      <h2>No run selected</h2>
+      <p>Select a run from the sidebar or create a new one.</p>
+    </div>
+    <div class="run-editor" id="runEditor" style="display:none">
+
+      <!-- Run header -->
+      <div class="run-header">
+        <div class="run-header-title" id="editorTitle">Run title <small id="editorSubtitle"></small></div>
+        <button class="btn btn-sm" style="background:#fde;color:var(--accent);border:1px solid #fcc" onclick="deleteRun()">Delete run</button>
+      </div>
+
+      <!-- Run-level fields -->
+      <div class="run-fields">
+        <div class="field-group">
+          <label class="field-label">Company *</label>
+          <select class="field-select" id="f-company" onchange="runFieldChanged()">
+            <option value="">— select —</option>
+            <option>SCS</option><option>AT</option><option>MCT</option>
+            <option>Renegade</option><option>Cabrillo</option><option>ABT</option>
+            <option>Other</option>
+          </select>
+        </div>
+        <div class="field-group">
+          <label class="field-label">Abbrev *</label>
+          <input class="field-input" id="f-showAbv" placeholder="Much Ado" maxlength="20" oninput="runFieldChanged()">
+        </div>
+        <div class="field-group">
+          <label class="field-label">Genre</label>
+          <select class="field-select" id="f-genre" onchange="runFieldChanged()">
+            <option value="">—</option>
+            <option>Drama</option><option>Musical</option><option>Comedy</option>
+            <option>Tragedy</option><option>Other</option>
+          </select>
+        </div>
+        <div class="field-group">
+          <label class="field-label">Venue *</label>
+          <select class="field-select" id="f-venue" onchange="runFieldChanged()">
+            <option value="">— select —</option>
+            <option value="G">G — The Grove (SCS)</option>
+            <option value="VMB">VMB — Veterans Memorial Building</option>
+            <option value="PH">PH — Park Hall (MCT)</option>
+            <option value="AT">AT — Actors' Theatre</option>
+            <option value="CCT">CCT — Cabrillo Crocker Theater</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
+        <div class="field-group" style="grid-column: span 1">
+          <label class="field-label">Full Show Title *</label>
+          <input class="field-input" id="f-show" placeholder="Much Ado About Nothing (Shakespeare)" oninput="runFieldChanged()">
+        </div>
+        <div class="field-group" style="grid-column: span 1">
+          <label class="field-label">Price</label>
+          <input class="field-input" id="f-price" placeholder="$72-$92" oninput="runFieldChanged()">
+        </div>
+        <div class="field-group" style="grid-column: span 2">
+          <label class="field-label">Discounts</label>
+          <input class="field-input" id="f-discounts" placeholder="Senior/Military $65, Student $25" oninput="runFieldChanged()">
+        </div>
+        <div class="field-group" style="grid-column: span 2">
+          <label class="field-label">Info URL</label>
+          <input class="field-input mono" id="f-infoUrl" placeholder="https://..." oninput="runFieldChanged()">
+        </div>
+        <div class="field-group" style="grid-column: span 2">
+          <label class="field-label">Default Tickets URL</label>
+          <input class="field-input mono" id="f-ticketsUrl" placeholder="https://..." oninput="runFieldChanged()">
+        </div>
+      </div>
+
+      <!-- Performances section -->
+      <div class="perf-section">
+        <div class="perf-toolbar">
+          <span class="perf-toolbar-label">Performances <span id="perfCount" style="color:var(--ink-faint);font-family:'IBM Plex Mono',monospace;font-size:10px"></span></span>
+          <button class="btn btn-sm btn-green" onclick="togglePattern()">⚡ Pattern</button>
+          <button class="btn btn-sm btn-blue"  onclick="togglePaste()">📋 Paste dates</button>
+          <button class="btn btn-sm" style="background:var(--bg);border:1px solid var(--border)" onclick="addRow()">+ Add row</button>
+        </div>
+
+        <!-- Pattern generator -->
+        <div class="pattern-panel" id="patternPanel">
+          <label>From</label>
+          <input type="date" class="pattern-input" id="pat-from" style="width:130px">
+          <label>To</label>
+          <input type="date" class="pattern-input" id="pat-to" style="width:130px">
+          <label>Days</label>
+          <div class="pattern-days" id="patternDays">
+            <button class="day-toggle" data-d="1">M</button>
+            <button class="day-toggle" data-d="2">Tu</button>
+            <button class="day-toggle" data-d="3">W</button>
+            <button class="day-toggle" data-d="4">Th</button>
+            <button class="day-toggle" data-d="5">F</button>
+            <button class="day-toggle" data-d="6">Sa</button>
+            <button class="day-toggle" data-d="0">Su</button>
+          </div>
+          <label>Time</label>
+          <input type="time" class="pattern-input" id="pat-time" value="19:30" style="width:90px">
+          <button class="btn btn-green btn-sm" onclick="generatePattern()">Generate</button>
+          <button class="btn btn-sm" style="background:transparent;border:1px solid #c8e0d0;color:var(--green)" onclick="togglePattern()">✕</button>
+        </div>
+
+        <!-- Paste panel -->
+        <div class="paste-panel" id="pastePanel">
+          <div style="display:flex;flex-direction:column;gap:6px">
+            <label style="font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.06em;color:var(--accent2)">Default time for pasted dates</label>
+            <input type="time" class="pattern-input" id="paste-time" value="19:30" style="width:100px;border-color:#c8d8e8">
+          </div>
+          <textarea class="paste-textarea" id="pasteArea" placeholder="Paste dates, one per line:&#10;July 11 2026&#10;July 12 2026&#10;2026-07-14&#10;Saturday, July 18, 2026 at 8:00 PM"></textarea>
+          <div style="display:flex;flex-direction:column;gap:6px">
+            <div class="paste-hint">Accepts most date formats. Time in line overrides default. SCS-format lines (e.g. <em>Saturday, July 18, 2026 at 8:00 PM</em>) parsed automatically.</div>
+            <button class="btn btn-blue btn-sm" onclick="parsePaste()">Import dates</button>
+            <button class="btn btn-sm" style="background:transparent;border:1px solid #c8d8e8;color:var(--accent2)" onclick="togglePaste()">Cancel</button>
+          </div>
+        </div>
+
+        <!-- Table -->
+        <div class="table-wrap">
+          <table id="perfTable">
+            <thead>
+              <tr>
+                <th class="col-del"></th>
+                <th class="col-date">Date</th>
+                <th class="col-time">Time</th>
+                <th class="col-type">Perf Type</th>
+                <th class="col-disc">Discount override</th>
+                <th class="col-url">Tickets URL override</th>
+              </tr>
+            </thead>
+            <tbody id="perfBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- STATUS BAR -->
+<div class="statusbar">
+  <span class="status-item"><span class="status-key">Runs</span><span id="st-runs">0</span></span>
+  <span class="status-item"><span class="status-key">Total perfs</span><span id="st-perfs">0</span></span>
+  <span class="status-item"><span class="status-key">Tab</span><span>next cell</span></span>
+  <span class="status-item"><span class="status-key">Enter</span><span>new row</span></span>
+  <span class="status-item"><span class="status-key">Unsaved</span><span id="st-saved" style="color:#f0a500">auto-saved to localStorage</span></span>
+</div>
+
+<!-- EXPORT MODAL -->
+<div class="modal-overlay" id="exportModal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Export JSON</div>
+      <button class="btn btn-sm btn-ghost" style="background:var(--bg);color:var(--ink);border:1px solid var(--border)" onclick="closeExport()">✕ Close</button>
+    </div>
+    <div class="modal-body">
+      <div class="json-output" id="jsonOutput"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-sm" style="background:var(--bg);border:1px solid var(--border);color:var(--ink)" onclick="copyJSON()">Copy to clipboard</button>
+      <button class="btn btn-sm btn-accent" onclick="downloadJSON()">Download .json</button>
+    </div>
+  </div>
+</div>
+
+<input type="file" id="importFile" accept=".json" style="display:none" onchange="handleImport(event)">
+
+<script>
+// ── DATA MODEL ──
+const PERF_TYPES = ['', 'Preview', 'Opening', 'Closing', 'Talk-back', 'Family Day', 'All-ages Matinee', 'Student Matinee'];
+const MONTH_MAP = {january:1,february:2,march:3,april:4,may:5,june:6,july:7,august:8,september:9,october:10,november:11,december:12};
+
+let runs = [];        // array of run objects
+let activeRunIdx = -1;
+
+// ── PERSISTENCE ──
+function save() {
+  localStorage.setItem('sc-theater-runs', JSON.stringify(runs));
+  updateStatus();
+}
+
+function load() {
+  const stored = localStorage.getItem('sc-theater-runs');
+  if (stored) {
+    try { runs = JSON.parse(stored); } catch(e) { runs = []; }
+  }
+  renderSidebar();
+  updateStatus();
+}
+
+// ── SIDEBAR ──
+function renderSidebar() {
+  const list = document.getElementById('runList');
+  if (!runs.length) {
+    list.innerHTML = '<div class="sidebar-empty">No runs yet.<br>Click + New to add one.</div>';
+    return;
+  }
+  list.innerHTML = runs.map((r,i) => `
+    <div class="run-item ${i===activeRunIdx?'active':''}" onclick="selectRun(${i})">
+      <div class="run-item-company">${r.company||'—'}</div>
+      <div class="run-item-show">${r.showAbv||r.show||'Untitled'}</div>
+      <div class="run-item-count">${r.performances.length} perf${r.performances.length!==1?'s':''}</div>
+    </div>`).join('');
+  updateStatus();
+}
+
+function updateStatus() {
+  document.getElementById('st-runs').textContent = runs.length;
+  document.getElementById('st-perfs').textContent = runs.reduce((s,r)=>s+r.performances.length,0);
+}
+
+// ── RUN SELECTION ──
+function selectRun(idx) {
+  activeRunIdx = idx;
+  renderSidebar();
+  loadRunEditor();
+}
+
+function loadRunEditor() {
+  if (activeRunIdx < 0 || activeRunIdx >= runs.length) {
+    document.getElementById('emptyState').style.display = '';
+    document.getElementById('runEditor').style.display = 'none';
+    return;
+  }
+  document.getElementById('emptyState').style.display = 'none';
+  const editor = document.getElementById('runEditor');
+  editor.style.display = '';
+  const r = runs[activeRunIdx];
+  document.getElementById('f-company').value   = r.company   || '';
+  document.getElementById('f-showAbv').value   = r.showAbv   || '';
+  document.getElementById('f-show').value      = r.show      || '';
+  document.getElementById('f-genre').value     = r.genre     || '';
+  document.getElementById('f-venue').value     = r.venue     || '';
+  document.getElementById('f-price').value     = r.price     || '';
+  document.getElementById('f-discounts').value = r.discounts || '';
+  document.getElementById('f-infoUrl').value   = r.infoUrl   || '';
+  document.getElementById('f-ticketsUrl').value= r.ticketsUrl|| '';
+  updateEditorTitle();
+  renderPerfTable();
+}
+
+function updateEditorTitle() {
+  const r = runs[activeRunIdx];
+  const title = document.getElementById('editorTitle');
+  const sub   = document.getElementById('editorSubtitle');
+  if (!title || !sub) return;
+  title.textContent = r.showAbv || r.show || 'Untitled';
+  sub.textContent   = r.company ? `· ${r.company}` : '';
+}
+
+function runFieldChanged() {
+  if (activeRunIdx < 0) return;
+  const r = runs[activeRunIdx];
+  r.company    = document.getElementById('f-company').value;
+  r.showAbv    = document.getElementById('f-showAbv').value;
+  r.show       = document.getElementById('f-show').value;
+  r.genre      = document.getElementById('f-genre').value;
+  r.venue      = document.getElementById('f-venue').value;
+  r.price      = document.getElementById('f-price').value;
+  r.discounts  = document.getElementById('f-discounts').value;
+  r.infoUrl    = document.getElementById('f-infoUrl').value;
+  r.ticketsUrl = document.getElementById('f-ticketsUrl').value;
+  updateEditorTitle();
+  renderSidebar();
+  save();
+}
+
+// ── RUN CRUD ──
+function newRun() {
+  const run = {
+    id: `run-${Date.now()}`,
+    company:'', showAbv:'', show:'', genre:'', venue:'',
+    price:'', discounts:'', infoUrl:'', ticketsUrl:'',
+    performances:[]
+  };
+  runs.push(run);
+  activeRunIdx = runs.length - 1;
+  renderSidebar();
+  loadRunEditor();
+  document.getElementById('f-company').focus();
+  save();
+}
+
+function deleteRun() {
+  if (activeRunIdx < 0) return;
+  const r = runs[activeRunIdx];
+  if (!confirm(`Delete "${r.showAbv || 'this run'}"? This cannot be undone.`)) return;
+  runs.splice(activeRunIdx, 1);
+  activeRunIdx = Math.min(activeRunIdx, runs.length - 1);
+  renderSidebar();
+  loadRunEditor();
+  save();
+}
+
+// ── PERFORMANCE TABLE ──
+function renderPerfTable() {
+  if (activeRunIdx < 0) return;
+  const perfs = runs[activeRunIdx].performances;
+  document.getElementById('perfCount').textContent = `(${perfs.length})`;
+  const tbody = document.getElementById('perfBody');
+  tbody.innerHTML = perfs.map((p,i) => `
+    <tr id="row-${i}">
+      <td><button class="del-btn" onclick="deleteRow(${i})" title="Delete">×</button></td>
+      <td><input class="cell-input" value="${p.date||''}" placeholder="2026-07-11"
+          onchange="cellChanged(${i},'date',this.value)"
+          onkeydown="cellKey(event,${i},'date')"
+          id="cell-${i}-date"></td>
+      <td><input class="cell-input" value="${p.time||''}" placeholder="19:30" style="width:64px"
+          onchange="cellChanged(${i},'time',this.value)"
+          onkeydown="cellKey(event,${i},'time')"
+          id="cell-${i}-time"></td>
+      <td>
+        <select class="cell-select" onchange="cellChanged(${i},'perfType',this.value)" id="cell-${i}-perfType">
+          ${PERF_TYPES.map(t=>`<option value="${t}" ${p.perfType===t?'selected':''}>${t||'—'}</option>`).join('')}
+        </select>
+      </td>
+      <td><input class="cell-input" value="${p.discounts||''}" placeholder="(uses run default)"
+          onchange="cellChanged(${i},'discounts',this.value)"
+          style="font-family:'IBM Plex Sans',sans-serif;font-size:11px"
+          id="cell-${i}-discounts"></td>
+      <td><input class="cell-input" value="${p.ticketsUrl||''}" placeholder="(uses run default)"
+          onchange="cellChanged(${i},'ticketsUrl',this.value)"
+          id="cell-${i}-ticketsUrl"></td>
+    </tr>`).join('');
+}
+
+function cellChanged(idx, field, value) {
+  runs[activeRunIdx].performances[idx][field] = value;
+  save();
+}
+
+function cellKey(event, rowIdx, field) {
+  const COLS = ['date','time','perfType','discounts','ticketsUrl'];
+  const colIdx = COLS.indexOf(field);
+  if (event.key === 'Tab') {
+    event.preventDefault();
+    const nextCol = event.shiftKey ? colIdx - 1 : colIdx + 1;
+    if (nextCol >= 0 && nextCol < COLS.length) {
+      const next = document.getElementById(`cell-${rowIdx}-${COLS[nextCol]}`);
+      if (next) { next.focus(); next.select && next.select(); }
+    } else if (!event.shiftKey && nextCol >= COLS.length) {
+      // Move to next row date
+      const next = document.getElementById(`cell-${rowIdx+1}-date`);
+      if (next) { next.focus(); next.select && next.select(); }
+      else { addRow(); }
+    }
+  } else if (event.key === 'Enter') {
+    event.preventDefault();
+    const next = document.getElementById(`cell-${rowIdx+1}-date`);
+    if (next) { next.focus(); next.select && next.select(); }
+    else { addRow(); }
+  }
+}
+
+function addRow() {
+  if (activeRunIdx < 0) return;
+  runs[activeRunIdx].performances.push({ date:'', time:'', perfType:'', discounts:'', ticketsUrl:'' });
+  renderPerfTable();
+  save();
+  // Focus new row
+  const rows = runs[activeRunIdx].performances;
+  const newIdx = rows.length - 1;
+  setTimeout(() => {
+    const el = document.getElementById(`cell-${newIdx}-date`);
+    if (el) { el.focus(); el.select && el.select(); }
+  }, 30);
+}
+
+function deleteRow(idx) {
+  runs[activeRunIdx].performances.splice(idx, 1);
+  renderPerfTable();
+  save();
+}
+
+// ── PATTERN GENERATOR ──
+function togglePattern() {
+  const p = document.getElementById('patternPanel');
+  p.classList.toggle('open');
+  document.getElementById('pastePanel').classList.remove('open');
+}
+
+document.getElementById('patternDays').addEventListener('click', e => {
+  if (e.target.classList.contains('day-toggle')) {
+    e.target.classList.toggle('on');
+  }
+});
+
+function generatePattern() {
+  const from  = document.getElementById('pat-from').value;
+  const to    = document.getElementById('pat-to').value;
+  const time  = document.getElementById('pat-time').value || '19:30';
+  const activeDays = [...document.querySelectorAll('.day-toggle.on')].map(b => parseInt(b.dataset.d));
+  if (!from || !to || !activeDays.length) {
+    alert('Please set From date, To date, and at least one day of week.');
+    return;
+  }
+  const start = new Date(from + 'T12:00:00');
+  const end   = new Date(to   + 'T12:00:00');
+  const perfs = [];
+  for (let d = new Date(start); d <= end; d.setDate(d.getDate()+1)) {
+    if (activeDays.includes(d.getDay())) {
+      const ds = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+      perfs.push({ date:ds, time, perfType:'', discounts:'', ticketsUrl:'' });
+    }
+  }
+  if (!perfs.length) { alert('No dates matched. Check your day selection.'); return; }
+  runs[activeRunIdx].performances.push(...perfs);
+  // Sort by date
+  runs[activeRunIdx].performances.sort((a,b)=>a.date.localeCompare(b.date));
+  renderPerfTable();
+  save();
+  togglePattern();
+}
+
+// ── PASTE PARSER ──
+function togglePaste() {
+  const p = document.getElementById('pastePanel');
+  p.classList.toggle('open');
+  document.getElementById('patternPanel').classList.remove('open');
+  if (p.classList.contains('open')) {
+    document.getElementById('pasteArea').focus();
+  }
+}
+
+function parseDate(str) {
+  str = str.trim();
+  // ISO
+  if (/^\d{4}-\d{2}-\d{2}$/.test(str)) return str;
+  // "Saturday, July 18, 2026 at 8:00 PM"  or  "July 18, 2026 at 8:00 PM"
+  const full = str.match(/(\w+)\s+(\d{1,2}),?\s+(\d{4})(?:\s+at\s+([\d:]+\s*[AP]M))?/i);
+  if (full) {
+    const m = MONTH_MAP[full[1].toLowerCase()];
+    if (m) {
+      const dateStr = `${full[3]}-${String(m).padStart(2,'0')}-${String(parseInt(full[2])).padStart(2,'0')}`;
+      const timeStr = full[4] ? parseTimeStr(full[4]) : null;
+      return { date: dateStr, time: timeStr };
+    }
+  }
+  // "18 July 2026"
+  const alt = str.match(/(\d{1,2})\s+(\w+)\s+(\d{4})/i);
+  if (alt) {
+    const m = MONTH_MAP[alt[2].toLowerCase()];
+    if (m) return `${alt[3]}-${String(m).padStart(2,'0')}-${String(parseInt(alt[1])).padStart(2,'0')}`;
+  }
+  return null;
+}
+
+function parseTimeStr(t) {
+  const m = t.trim().match(/(\d+):(\d+)\s*(AM|PM)/i);
+  if (!m) return null;
+  let h = parseInt(m[1]), mn = parseInt(m[2]);
+  if (m[3].toUpperCase()==='PM' && h!==12) h+=12;
+  if (m[3].toUpperCase()==='AM' && h===12) h=0;
+  return `${String(h).padStart(2,'0')}:${String(mn).padStart(2,'0')}`;
+}
+
+function parsePaste() {
+  const defaultTime = document.getElementById('paste-time').value || '19:30';
+  const lines = document.getElementById('pasteArea').value.split('\n').map(l=>l.trim()).filter(Boolean);
+  const perfs = [];
+  const failed = [];
+  lines.forEach(line => {
+    // Skip student matinees and lines with no ticket link (SCS-style)
+    if (/student matinee/i.test(line)) return;
+    const result = parseDate(line);
+    if (!result) { failed.push(line); return; }
+    if (typeof result === 'object') {
+      // Extracted time from line
+      const perfType = extractPerfType(line);
+      perfs.push({ date: result.date, time: result.time || defaultTime, perfType, discounts:'', ticketsUrl:'' });
+    } else {
+      perfs.push({ date: result, time: defaultTime, perfType:'', discounts:'', ticketsUrl:'' });
+    }
+  });
+  if (perfs.length) {
+    runs[activeRunIdx].performances.push(...perfs);
+    runs[activeRunIdx].performances.sort((a,b)=>a.date.localeCompare(b.date));
+    renderPerfTable();
+    save();
+  }
+  if (failed.length) {
+    alert(`Imported ${perfs.length} dates.\n\nCould not parse ${failed.length} line(s):\n${failed.join('\n')}`);
+  } else {
+    document.getElementById('pasteArea').value = '';
+    togglePaste();
+  }
+}
+
+function extractPerfType(line) {
+  const l = line.toLowerCase();
+  if (l.includes('preview'))        return 'Preview';
+  if (l.includes('opening'))        return 'Opening';
+  if (l.includes('closing'))        return 'Closing';
+  if (l.includes('talk-back') || l.includes('talkback')) return 'Talk-back';
+  if (l.includes('family day'))     return 'Family Day';
+  if (l.includes('all-ages'))       return 'All-ages Matinee';
+  if (l.includes('student matinee'))return 'Student Matinee';
+  return '';
+}
+
+// ── IMPORT / EXPORT ──
+function importJSON() {
+  document.getElementById('importFile').click();
+}
+
+function handleImport(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const data = JSON.parse(e.target.result);
+      // Accept two-tier { runs: [...] } or flat array
+      let imported = [];
+      if (data.runs) {
+        imported = data.runs;
+      } else if (Array.isArray(data)) {
+        // Flat format: group by company+showAbv into runs
+        const map = {};
+        data.forEach(p => {
+          const key = `${p.company}||${p.showAbv}`;
+          if (!map[key]) {
+            map[key] = {
+              id: `run-${Date.now()}-${Math.random()}`,
+              company: p.company, showAbv: p.showAbv, show: p.show,
+              genre: p.genre, venue: p.venue, price: String(p.price||''),
+              discounts: p.discounts||'', infoUrl: p.infoUrl||'',
+              ticketsUrl: p.ticketsUrl||'', performances:[]
+            };
+          }
+          map[key].performances.push({
+            date: p.date, time: p.time, perfType: p.perfType||'',
+            discounts:'', ticketsUrl:''
+          });
+        });
+        imported = Object.values(map);
+      }
+      if (!imported.length) { alert('No runs found in file.'); return; }
+      let added = 0, replaced = 0;
+      imported.forEach(imp => {
+        const idx = imp.id ? runs.findIndex(r => r.id === imp.id) : -1;
+        if (idx !== -1) { runs[idx] = imp; replaced++; }
+        else            { runs.push(imp); added++; }
+      });
+      renderSidebar();
+      save();
+      alert(`Import complete: ${replaced} run(s) updated, ${added} new run(s) added.`);
+    } catch(err) {
+      alert('Could not parse JSON: ' + err.message);
+    }
+    event.target.value = '';
+  };
+  reader.readAsText(file);
+}
+
+function openExport() {
+  document.getElementById('exportModal').classList.add('open');
+  renderExport();
+}
+
+function closeExport() {
+  document.getElementById('exportModal').classList.remove('open');
+}
+
+function renderExport() {
+  document.getElementById('jsonOutput').textContent = JSON.stringify({ runs }, null, 2);
+}
+
+function copyJSON() {
+  const text = document.getElementById('jsonOutput').textContent;
+  navigator.clipboard.writeText(text).then(() => {
+    const btn = event.target;
+    const orig = btn.textContent;
+    btn.textContent = '✓ Copied!';
+    setTimeout(() => btn.textContent = orig, 1500);
+  });
+}
+
+function downloadJSON() {
+  const text = document.getElementById('jsonOutput').textContent;
+  const blob = new Blob([text], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'sc-theater-runs.json';
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+// Close modal on overlay click
+document.getElementById('exportModal').addEventListener('click', e => {
+  if (e.target === document.getElementById('exportModal')) closeExport();
+});
+
+// ── INIT ──
+load();
+if (runs.length > 0) selectRun(0);
+</script>
+</body>
+</html>

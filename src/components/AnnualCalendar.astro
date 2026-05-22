@@ -683,6 +683,12 @@ const { performances } = Astro.props
     background: var(--ink);
     color: #fff;
   }
+  .btn-info[aria-disabled="true"],
+  .btn-tickets[aria-disabled="true"] {
+    opacity: 0.35;
+    cursor: default;
+    pointer-events: none;
+  }
 
   ::-webkit-scrollbar {
     width: 4px;
@@ -1146,8 +1152,12 @@ const { performances } = Astro.props
       </div>
       ${p.discounts ? `<div class="card-discounts">Discounts: ${p.discounts}</div>` : ''}
       <div class="card-buttons">
-        <a class="btn-info" href="${p.infoUrl}" target="_blank" rel="noopener">More info</a>
-        <a class="btn-tickets" href="${p.ticketsUrl}" target="_blank" rel="noopener">Get tickets</a>
+        ${p.infoUrl
+          ? `<a class="btn-info" href="${p.infoUrl}" target="_blank" rel="noopener">More info</a>`
+          : `<a class="btn-info" aria-disabled="true">More info</a>`}
+        ${p.ticketsUrl
+          ? `<a class="btn-tickets" href="${p.ticketsUrl}" target="_blank" rel="noopener">Get tickets</a>`
+          : `<a class="btn-tickets" aria-disabled="true">Get tickets</a>`}
       </div>`
       cards.appendChild(card)
     })

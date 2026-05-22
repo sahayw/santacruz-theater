@@ -10,7 +10,7 @@ const { performances } = Astro.props
 
 <header class="app-header">
   <button class="back-btn" id="backBtn">&#8592;</button>
-  <h1 id="headerTitle">Santa Cruz Theater 2026</h1>
+  <h1 id="headerTitle">Santa Cruz Theater</h1>
 </header>
 
 <div class="filter-bar">
@@ -22,7 +22,6 @@ const { performances } = Astro.props
     <option value="MCT">MCT</option>
     <option value="Renegade">Renegade</option>
     <option value="Cabrillo">Cabrillo</option>
-    <option value="ABT">ABT</option>
   </select>
   <span class="filter-sep">|</span>
   <label>Genre</label>
@@ -250,13 +249,13 @@ const { performances } = Astro.props
 
   /* ── ANNUAL VIEW ── */
   #annual-view {
-    padding: 12px;
+    padding: 2px;
     max-width: 960px;
     margin: 0 auto;
   }
   .year-title {
     font-family: 'Playfair Display', serif;
-    font-size: 28px;
+    font-size: 24px;
     font-weight: 700;
     text-align: center;
     margin-bottom: 16px;
@@ -295,17 +294,17 @@ const { performances } = Astro.props
     font-family: 'Playfair Display', serif;
     font-size: 13px;
     font-weight: 600;
-    padding: 6px 8px 4px;
+    padding: 4px 6px 3px;
     border-bottom: 1px solid var(--border);
     letter-spacing: 0.02em;
   }
   .mini-cal {
-    padding: 4px;
+    padding: 1px;
   }
   .mini-cal-head {
     display: grid;
     grid-template-columns: repeat(7, 1fr);
-    margin-bottom: 2px;
+    margin-bottom: 1px;
   }
   .mini-cal-head span {
     text-align: center;
@@ -317,9 +316,11 @@ const { performances } = Astro.props
     display: grid;
     grid-template-columns: repeat(7, 1fr);
     gap: 1px;
+    width: 100%;
   }
   .mini-day {
-    aspect-ratio: 1;
+    min-width: 0;
+    height: 22px;
     border-radius: 3px;
     display: flex;
     align-items: center;
@@ -366,7 +367,6 @@ const { performances } = Astro.props
     border-radius: 3px;
     flex-shrink: 0;
   }
-
 
   /* ── SCROLL VIEW ── */
   #scroll-view {
@@ -1010,7 +1010,7 @@ const { performances } = Astro.props
     document.getElementById('annual-view').style.display = 'block'
     document.getElementById('scrollColHeader').classList.remove('visible')
     document.getElementById('backBtn').classList.remove('visible')
-    document.getElementById('headerTitle').textContent = 'Santa Cruz Theater 2026'
+    document.getElementById('headerTitle').textContent = 'Santa Cruz Theater'
     document.body.classList.remove('scroll-mode')
     document.body.classList.add('annual-mode')
     window.scrollTo(0, 0)
@@ -1072,6 +1072,6 @@ const { performances } = Astro.props
 
   const footerEl = document.getElementById('fixedLegendFooter')
   new ResizeObserver(() => {
-    document.body.style.paddingBottom = (footerEl.offsetHeight + 8) + 'px'
+    document.body.style.paddingBottom = footerEl.offsetHeight + 8 + 'px'
   }).observe(footerEl)
 </script>

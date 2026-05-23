@@ -71,7 +71,10 @@ const { performances } = Astro.props
 <div id="hoverPanel" class="day-hover-panel"></div>
 <div class="overlay" id="overlay"></div>
 <div class="bottom-sheet" id="bottomSheet">
-  <div class="sheet-date-header" id="sheetDateHeader"></div>
+  <div class="sheet-date-header">
+    <span id="sheetDateHeader"></span>
+    <button class="sheet-close-btn" id="sheetCloseBtn" aria-label="Close">×</button>
+  </div>
   <div id="sheetCards"></div>
 </div>
 
@@ -440,14 +443,16 @@ const { performances } = Astro.props
     flex-direction: column;
   }
   .day-col.other-month {
-    background: #f0ede8;
+    background: #e8e4de;
   }
   .day-col.has-perf {
-    cursor: pointer;
     -webkit-tap-highlight-color: transparent;
   }
-  .day-col:active.has-perf {
-    background: rgba(0, 0, 0, 0.04);
+  .day-col.has-perf .day-num-row {
+    cursor: pointer;
+  }
+  .day-col.has-perf .day-num-row:active {
+    background: rgba(0, 0, 0, 0.06);
   }
 
   .day-num-row {
@@ -497,6 +502,8 @@ const { performances } = Astro.props
     align-items: center;
     justify-content: center;
     gap: 3px;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
   }
   .perf-bar.bar-single {
     left: 3px;
@@ -507,11 +514,13 @@ const { performances } = Astro.props
     left: 3px;
     right: 0;
     border-radius: 3px 0 0 3px;
+    border-right: 1px solid rgba(255, 255, 255, 0.5);
   }
   .perf-bar.bar-mid {
     left: -1px;
     right: 0;
     border-radius: 0;
+    border-right: 1px solid rgba(255, 255, 255, 0.5);
   }
   .perf-bar.bar-end {
     left: -1px;
@@ -600,11 +609,30 @@ const { performances } = Astro.props
     -webkit-transform: translateX(-50%) translateY(0);
   }
   .sheet-date-header {
-    padding: 12px 20px 8px;
+    display: flex;
+    align-items: center;
+    padding: 12px 12px 8px 20px;
+    border-bottom: 1px solid var(--border);
+  }
+  .sheet-date-header span {
     font-family: 'Playfair Display', serif;
     font-size: 16px;
     font-weight: 600;
-    border-bottom: 1px solid var(--border);
+    flex: 1;
+  }
+  .sheet-close-btn {
+    background: none;
+    border: none;
+    font-size: 22px;
+    line-height: 1;
+    color: var(--ink-muted);
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: 4px;
+  }
+  .sheet-close-btn:hover {
+    color: var(--ink);
+    background: rgba(0, 0, 0, 0.05);
   }
   .perf-card {
     padding: 14px 20px;
@@ -719,55 +747,79 @@ const { performances } = Astro.props
   }
 
   /* ── ANNUAL VIEW HOVER PANEL ── */
+  .day-hover-panel {
+    display: none;
+    position: fixed;
+    z-index: 300;
+    width: 240px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
+    pointer-events: none;
+  }
+  .day-hover-panel.visible {
+    display: block;
+  }
+  .day-hover-panel.touch-mode {
+    pointer-events: auto;
+    cursor: pointer;
+  }
+  .hover-panel-header {
+    font-family: 'Playfair Display', serif;
+    font-size: 13px;
+    font-weight: 600;
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--border);
+  }
+  .hover-panel-row {
+    padding: 6px 12px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .hover-panel-row:last-child {
+    border-bottom: none;
+  }
+  .hover-panel-show {
+    font-size: 12px;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .hover-panel-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 2px;
+    flex-shrink: 0;
+  }
+  .hover-panel-meta {
+    font-size: 11px;
+    color: var(--ink-muted);
+    padding-left: 14px;
+  }
+  .hover-panel-footer {
+    padding: 6px 12px;
+    font-size: 11px;
+    color: var(--ink-muted);
+    border-top: 1px solid var(--border);
+    text-align: right;
+  }
+
+  /* ── DRILL-DOWN HOVER HIGHLIGHT ── */
   @media (hover: hover) {
-    .day-hover-panel {
-      display: none;
-      position: fixed;
-      z-index: 300;
-      width: 240px;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
-      pointer-events: none;
+    /* Hovering the date cell: highlight it + all bars for that day */
+    .day-col.has-perf .day-num-row:hover {
+      background: rgba(180, 120, 40, 0.18);
     }
-    .day-hover-panel.visible {
-      display: block;
+    .day-col.has-perf:has(.day-num-row:hover) .perf-bar {
+      filter: brightness(0.88);
     }
-    .hover-panel-header {
-      font-family: 'Playfair Display', serif;
-      font-size: 13px;
-      font-weight: 600;
-      padding: 8px 12px;
-      border-bottom: 1px solid var(--border);
-    }
-    .hover-panel-row {
-      padding: 6px 12px;
-      border-bottom: 1px solid var(--border);
-      display: flex;
-      flex-direction: column;
-      gap: 2px;
-    }
-    .hover-panel-row:last-child {
-      border-bottom: none;
-    }
-    .hover-panel-show {
-      font-size: 12px;
-      font-weight: 500;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-    .hover-panel-dot {
-      width: 8px;
-      height: 8px;
-      border-radius: 2px;
-      flex-shrink: 0;
-    }
-    .hover-panel-meta {
-      font-size: 11px;
-      color: var(--ink-muted);
-      padding-left: 14px;
+    /* Hovering a specific bar: highlight only that bar */
+    .day-col.has-perf .perf-bar:hover {
+      filter: brightness(0.88);
     }
   }
 </style>
@@ -835,7 +887,11 @@ const { performances } = Astro.props
     const h12 = h % 12 || 12
     return m === 0 ? `${h12}${period}` : `${h12}:${String(m).padStart(2, '0')}${period}`
   }
-  function showHoverPanel(ds, perfs, cellEl) {
+  const isTouchDevice = !window.matchMedia('(hover: hover)').matches
+  let activePanelDate = null
+  let activePanelMonth = null
+
+  function showHoverPanel(ds, perfs, cellEl, month) {
     const panel = document.getElementById('hoverPanel')
     const [y, mo, d] = ds.split('-').map(Number)
     const dateLabel = new Date(y, mo - 1, d).toLocaleDateString('en-US', {
@@ -853,20 +909,27 @@ const { performances } = Astro.props
         <div class="hover-panel-meta">${fmtTime(p.time)} · ${venue}</div>
       </div>`
     })
+    if (isTouchDevice) html += `<div class="hover-panel-footer">Tap to view week →</div>`
     panel.innerHTML = html
     const rect = cellEl.getBoundingClientRect()
     const pw = 240
-    const ph = 34 + sorted.length * 46
+    const ph = 34 + sorted.length * 46 + (isTouchDevice ? 30 : 0)
     let left = rect.left
     let top = rect.bottom + 6
     if (left + pw > window.innerWidth - 8) left = Math.max(8, rect.right - pw)
     if (top + ph > window.innerHeight - 8) top = rect.top - ph - 6
     panel.style.left = Math.max(8, left) + 'px'
     panel.style.top = Math.max(8, top) + 'px'
+    activePanelDate = ds
+    activePanelMonth = month ?? null
     panel.classList.add('visible')
+    if (isTouchDevice) panel.classList.add('touch-mode')
   }
   function hideHoverPanel() {
-    document.getElementById('hoverPanel').classList.remove('visible')
+    const panel = document.getElementById('hoverPanel')
+    panel.classList.remove('visible', 'touch-mode')
+    activePanelDate = null
+    activePanelMonth = null
   }
   function perfsByDate(perfs) {
     const m = {}
@@ -975,8 +1038,19 @@ const { performances } = Astro.props
           const cos = [...new Set(perfs.map((p) => p.company))]
           if (cos.length > 1) el.classList.add('multi')
           else el.style.background = companyColor(cos[0])
-          el.addEventListener('mouseenter', () => showHoverPanel(ds, perfs, el))
+          el.addEventListener('mouseenter', () => showHoverPanel(ds, perfs, el, m))
           el.addEventListener('mouseleave', hideHoverPanel)
+          if (isTouchDevice) {
+            el.addEventListener('click', (e) => {
+              if (activePanelDate === ds) {
+                hideHoverPanel()
+                // propagation continues → block.onclick → goToMonth(m)
+              } else {
+                e.stopPropagation()
+                showHoverPanel(ds, perfs, el, m)
+              }
+            })
+          }
         }
         body.appendChild(el)
       }
@@ -1075,10 +1149,10 @@ const { performances } = Astro.props
           (!inMonth ? ' other-month' : '') +
           (dayPerfs.length && inYear ? ' has-perf' : '')
         col.style.gridRow = `1 / span ${nRows + 1}`
-        if (dayPerfs.length && inYear) col.onclick = () => openSheet(ds)
 
         const numRow = document.createElement('div')
         numRow.className = 'day-num-row'
+        if (dayPerfs.length && inYear) numRow.onclick = () => openSheet(ds)
         if (inYear) {
           const num = document.createElement('div')
           num.className = 'day-num' + (ds === TODAY ? ' today' : '')
@@ -1112,7 +1186,9 @@ const { performances } = Astro.props
               const label = document.createElement('span')
               label.className = 'perf-label'
               label.textContent = labelText
-              label.onclick = (e) => { e.stopPropagation(); openSheet(ds) }
+              const matchPerf = dayPerfs.find((p) => p.showAbv + '|' + p.company === s.key)
+              const runId = matchPerf ? matchPerf.runId : null
+              bar.onclick = (e) => { e.stopPropagation(); openSheet(ds, runId) }
               bar.appendChild(label)
               pipRow.appendChild(bar)
             }
@@ -1130,6 +1206,7 @@ const { performances } = Astro.props
   }
 
   function goToMonth(m) {
+    hideHoverPanel()
     document.getElementById('annual-view').style.display = 'none'
     document.getElementById('scroll-view').style.display = 'block'
     document.getElementById('scrollColHeader').classList.add('visible')
@@ -1162,8 +1239,9 @@ const { performances } = Astro.props
     window.scrollTo(0, 0)
   }
 
-  function openSheet(dateStr) {
-    const perfs = perfsByDate(filteredPerfs)[dateStr] || []
+  function openSheet(dateStr, runId = null) {
+    let perfs = perfsByDate(filteredPerfs)[dateStr] || []
+    if (runId) perfs = perfs.filter((p) => p.runId === runId)
     if (!perfs.length) return
     document.getElementById('sheetDateHeader').textContent = new Date(
       dateStr + 'T12:00:00'
@@ -1201,14 +1279,17 @@ const { performances } = Astro.props
     })
     document.getElementById('overlay').classList.add('open')
     document.getElementById('bottomSheet').classList.add('open')
+    document.documentElement.style.overflow = 'hidden'
   }
 
   function closeSheet() {
     document.getElementById('overlay').classList.remove('open')
     document.getElementById('bottomSheet').classList.remove('open')
+    document.documentElement.style.overflow = ''
   }
 
   document.getElementById('backBtn').addEventListener('click', showAnnual)
+  document.getElementById('sheetCloseBtn').addEventListener('click', closeSheet)
   document.getElementById('filterCompany').addEventListener('change', applyFilters)
   document.getElementById('filterGenre').addEventListener('change', applyFilters)
   document.getElementById('filterTime').addEventListener('change', applyFilters)
@@ -1226,6 +1307,20 @@ const { performances } = Astro.props
   }).observe(footerEl)
 
   document.addEventListener('scroll', hideHoverPanel, { passive: true })
+
+  document.getElementById('hoverPanel').addEventListener('click', () => {
+    if (isTouchDevice && activePanelMonth !== null) {
+      const m = activePanelMonth
+      hideHoverPanel()
+      goToMonth(m)
+    }
+  })
+
+  document.addEventListener('click', (e) => {
+    if (activePanelDate && !e.target.closest('#hoverPanel') && !e.target.closest('.mini-day')) {
+      hideHoverPanel()
+    }
+  })
 
   document.getElementById('scroll-view').addEventListener('scroll', function () {
     document.getElementById('scrollColHeader').scrollLeft = this.scrollLeft

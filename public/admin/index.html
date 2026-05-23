@@ -566,7 +566,7 @@ tbody td {
 
       <!-- Run header -->
       <div class="run-header">
-        <div class="run-header-title" id="editorTitle">Run title <small id="editorSubtitle"></small></div>
+        <div class="run-header-title" id="editorTitle"><span id="editorTitleText"></span> <small id="editorSubtitle"></small></div>
         <button class="btn btn-sm" style="background:#fde;color:var(--accent);border:1px solid #fcc" onclick="deleteRun()">Delete run</button>
       </div>
 
@@ -797,12 +797,12 @@ function loadRunEditor() {
 }
 
 function updateEditorTitle() {
-  const r = runs[activeRunIdx];
-  const title = document.getElementById('editorTitle');
-  const sub   = document.getElementById('editorSubtitle');
-  if (!title || !sub) return;
-  title.textContent = r.showAbv || r.show || 'Untitled';
-  sub.textContent   = r.company ? `· ${r.company}` : '';
+  const r    = runs[activeRunIdx];
+  const text = document.getElementById('editorTitleText');
+  const sub  = document.getElementById('editorSubtitle');
+  if (!text || !sub) return;
+  text.textContent = r.showAbv || r.show || 'Untitled';
+  sub.textContent  = r.company ? `· ${r.company}` : '';
 }
 
 function runFieldChanged() {

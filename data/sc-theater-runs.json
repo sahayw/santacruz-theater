@@ -1063,6 +1063,132 @@
           "ticketsUrl": ""
         }
       ]
+    },
+    {
+      "id": "run-1779528195974",
+      "company": "Cabrillo",
+      "showAbv": "Sister Act",
+      "show": "Sister Act",
+      "genre": "Musical",
+      "venue": "CCT",
+      "price": "$60-$65",
+      "discounts": "Senior $55-$60, Child (<12) $25",
+      "infoUrl": "https://www.cabrillostage.com/sisteract",
+      "ticketsUrl": "https://cabrillostage.universitytickets.com/w/default.aspx",
+      "performances": [
+        {
+          "date": "2026-07-09",
+          "time": "19:30",
+          "perfType": "Preview",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-07-10",
+          "time": "19:30",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-07-11",
+          "time": "19:30",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-07-12",
+          "time": "14:00",
+          "perfType": "Talk-back",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-07-16",
+          "time": "19:30",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-07-17",
+          "time": "19:30",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-07-18",
+          "time": "19:30",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-07-19",
+          "time": "14:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-07-23",
+          "time": "19:30",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-07-24",
+          "time": "19:30",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-07-25",
+          "time": "19:30",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-07-26",
+          "time": "14:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-07-30",
+          "time": "19:30",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-07-31",
+          "time": "19:30",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-08-01",
+          "time": "19:30",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-08-02",
+          "time": "14:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        }
+      ]
     }
   ]
 }

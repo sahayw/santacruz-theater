@@ -724,7 +724,7 @@ tbody td {
 
 <script>
 // ── DATA MODEL ──
-const PERF_TYPES = ['', 'Preview', 'Opening', 'Closing', 'Talk-back', 'Family Day', 'All-ages Matinee', 'Student Matinee'];
+const PERF_TYPES = ['', 'Preview', 'Opening', 'Closing', 'Talk-back'];
 const MONTH_MAP = {january:1,february:2,march:3,april:4,may:5,june:6,july:7,august:8,september:9,october:10,november:11,december:12};
 
 let runs = [];        // array of run objects
@@ -1049,9 +1049,6 @@ function extractPerfType(line) {
   if (l.includes('opening'))        return 'Opening';
   if (l.includes('closing'))        return 'Closing';
   if (l.includes('talk-back') || l.includes('talkback')) return 'Talk-back';
-  if (l.includes('family day'))     return 'Family Day';
-  if (l.includes('all-ages'))       return 'All-ages Matinee';
-  if (l.includes('student matinee'))return 'Student Matinee';
   return '';
 }
 

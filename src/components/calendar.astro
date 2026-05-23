@@ -71,7 +71,6 @@ const { performances } = Astro.props
 <div id="hoverPanel" class="day-hover-panel"></div>
 <div class="overlay" id="overlay"></div>
 <div class="bottom-sheet" id="bottomSheet">
-  <div class="sheet-handle"></div>
   <div class="sheet-date-header" id="sheetDateHeader"></div>
   <div id="sheetCards"></div>
 </div>
@@ -582,29 +581,23 @@ const { performances } = Astro.props
   .bottom-sheet {
     position: fixed;
     bottom: 0;
-    left: 0;
-    right: 0;
+    left: 50%;
+    width: 100%;
+    max-width: 500px;
     background: var(--surface);
     border-radius: 16px 16px 0 0;
     z-index: 201;
     max-height: 80vh;
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
-    transform: translateY(100%);
-    -webkit-transform: translateY(100%);
+    transform: translateX(-50%) translateY(100%);
+    -webkit-transform: translateX(-50%) translateY(100%);
     transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     padding-bottom: env(safe-area-inset-bottom, 16px);
   }
   .bottom-sheet.open {
-    transform: translateY(0);
-    -webkit-transform: translateY(0);
-  }
-  .sheet-handle {
-    width: 36px;
-    height: 4px;
-    background: var(--border);
-    border-radius: 2px;
-    margin: 12px auto 0;
+    transform: translateX(-50%) translateY(0);
+    -webkit-transform: translateX(-50%) translateY(0);
   }
   .sheet-date-header {
     padding: 12px 20px 8px;
@@ -640,13 +633,18 @@ const { performances } = Astro.props
     color: var(--ink-muted);
   }
   .perf-type-tag {
-    font-size: 10px;
-    padding: 1px 6px;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 2px 8px;
     border-radius: 10px;
     background: #f0ece6;
     color: var(--ink-muted);
     margin-left: auto;
   }
+  .perf-type-tag[data-type="Preview"]  { background: #FFF0CC; color: #7A5200; }
+  .perf-type-tag[data-type="Opening"]  { background: #C8F0DA; color: #1A5C35; }
+  .perf-type-tag[data-type="Closing"]  { background: #FFD4D4; color: #8C1E1E; }
+  .perf-type-tag[data-type="Talk-back"]{ background: #D4DDFF; color: #2035A0; }
   .card-show-title {
     font-family: 'Playfair Display', serif;
     font-size: 17px;
@@ -778,6 +776,13 @@ const { performances } = Astro.props
   const PERFORMANCES = performances
   const TODAY = new Date().toISOString().slice(0, 10)
   const COMPANY_COLORS = { SCS: 'var(--col-scs)', AT: 'var(--col-at)', MCT: 'var(--col-mct)' }
+  const COMPANY_NAMES = {
+    SCS: 'Santa Cruz Shakespeare',
+    AT: "Actors' Theatre",
+    MCT: 'Mountain Community Theater',
+    Renegade: 'Renegade Theatre',
+    Cabrillo: 'Cabrillo Stage',
+  }
   const VENUE_NAMES = {
     G: 'The Grove',
     VMB: 'Veterans Memorial Building',
@@ -1173,8 +1178,8 @@ const { performances } = Astro.props
       card.innerHTML = `
       <div class="perf-card-company">
         <div class="company-badge" style="background:${companyColor(p.company)}"></div>
-        <span class="company-name">${p.company}</span>
-        ${p.perfType ? `<span class="perf-type-tag">${p.perfType}</span>` : ''}
+        <span class="company-name">${COMPANY_NAMES[p.company] || p.company}</span>
+        ${p.perfType ? `<span class="perf-type-tag" data-type="${p.perfType}">${p.perfType}</span>` : ''}
       </div>
       <div class="card-show-title">${p.show}</div>
       <div class="card-meta">

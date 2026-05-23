@@ -260,7 +260,7 @@
         {
           "date": "2026-07-29",
           "time": "12:00",
-          "perfType": "Family Day",
+          "perfType": "",
           "discounts": "",
           "ticketsUrl": ""
         },
@@ -281,7 +281,7 @@
         {
           "date": "2026-08-05",
           "time": "12:00",
-          "perfType": "Family Day",
+          "perfType": "",
           "discounts": "",
           "ticketsUrl": ""
         },
@@ -337,7 +337,7 @@
         {
           "date": "2026-08-22",
           "time": "14:00",
-          "perfType": "All-ages Matinee",
+          "perfType": "",
           "discounts": "",
           "ticketsUrl": ""
         },
@@ -589,7 +589,7 @@
         {
           "date": "2026-08-16",
           "time": "14:00",
-          "perfType": "All-ages Matinee",
+          "perfType": "",
           "discounts": "",
           "ticketsUrl": ""
         },

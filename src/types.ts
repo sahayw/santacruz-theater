@@ -14,10 +14,7 @@ export type PerfType =
   | 'Preview'
   | 'Opening'
   | 'Closing'
-  | 'Talk-back'
-  | 'Family Day'
-  | 'All-ages Matinee'
-  | 'Student Matinee';
+  | 'Talk-back';
 
 /** One date/time slot within a run. */
 export interface Performance {

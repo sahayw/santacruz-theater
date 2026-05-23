@@ -99,7 +99,7 @@ const { performances } = Astro.props
     --filter-h: 40px;
     --col-header-h: 28px;
     --footer-h: 60px;
-    --shows-col-w: 160px;
+    --shows-col-w: 120px;
     --daynum-h: 16px;
     --row-h: 22px;
   }
@@ -220,7 +220,7 @@ const { performances } = Astro.props
   .scroll-col-header-inner {
     display: grid;
     grid-template-columns: var(--shows-col-w) repeat(7, 1fr);
-    min-width: 520px;
+    min-width: 440px;
     max-width: 960px;
     margin: 0 auto;
     height: 100%;
@@ -235,11 +235,15 @@ const { performances } = Astro.props
     padding: 0 3px;
   }
   .col-head-cell:first-child {
+    position: sticky;
+    left: 0;
+    z-index: 1;
     justify-content: flex-start;
     padding-left: 8px;
     border-left: none;
     font-size: 10px;
     color: rgba(255, 255, 255, 0.7);
+    background: var(--ink);
   }
 
   body.scroll-mode {
@@ -381,6 +385,8 @@ const { performances } = Astro.props
   }
 
   .scroll-month-label {
+    position: relative;
+    z-index: 3;
     padding: 5px 12px 4px;
     font-family: 'DM Sans', sans-serif;
     font-size: 13px;
@@ -390,6 +396,7 @@ const { performances } = Astro.props
     letter-spacing: 0.05em;
     text-transform: uppercase;
     border-bottom: 1px solid var(--border);
+    will-change: transform;
   }
 
   .week-table-wrap {
@@ -399,13 +406,17 @@ const { performances } = Astro.props
     display: grid;
     grid-template-columns: var(--shows-col-w) repeat(7, 1fr);
     border-bottom: 2px solid var(--border);
-    min-width: 520px;
+    min-width: 440px;
     background: var(--surface);
   }
 
   .shows-col {
+    position: sticky;
+    left: 0;
+    z-index: 2;
     background: var(--bg);
     border-right: 2px solid var(--border);
+    box-shadow: 2px 0 6px rgba(0, 0, 0, 0.06);
     display: grid;
     padding: 0;
   }
@@ -1218,6 +1229,8 @@ const { performances } = Astro.props
     buildFixedFooter(false)
     window.scrollTo(0, 0)
     requestAnimationFrame(() => {
+      const sv = document.getElementById('scroll-view')
+      sv.scrollLeft = sv.scrollWidth - sv.clientWidth
       const el = document.getElementById(monthAnchorIds[m])
       if (el) {
         const totalFixed = 52 + 40 + 28 // header + filter + col-header
@@ -1307,6 +1320,13 @@ const { performances } = Astro.props
   }).observe(footerEl)
 
   document.addEventListener('scroll', hideHoverPanel, { passive: true })
+
+  document.getElementById('scroll-view').addEventListener('scroll', function () {
+    const x = this.scrollLeft
+    document.querySelectorAll('.scroll-month-label').forEach((el) => {
+      el.style.transform = `translateX(${x}px)`
+    })
+  }, { passive: true })
 
   document.getElementById('hoverPanel').addEventListener('click', () => {
     if (isTouchDevice && activePanelMonth !== null) {

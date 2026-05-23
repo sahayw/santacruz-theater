@@ -1227,16 +1227,18 @@ const { performances } = Astro.props
     document.body.classList.remove('annual-mode')
     document.body.classList.add('scroll-mode')
     buildFixedFooter(false)
-    window.scrollTo(0, 0)
     requestAnimationFrame(() => {
       const sv = document.getElementById('scroll-view')
       sv.scrollLeft = sv.scrollWidth - sv.clientWidth
       const el = document.getElementById(monthAnchorIds[m])
+      const totalFixed = 52 + 40 + 28 // header + filter + col-header
+      let target = 0
       if (el) {
-        const totalFixed = 52 + 40 + 28 // header + filter + col-header
-        const top = el.getBoundingClientRect().top + window.scrollY - totalFixed
-        window.scrollTo({ top, behavior: 'smooth' })
+        let node = el
+        while (node) { target += node.offsetTop; node = node.offsetParent }
+        target -= totalFixed
       }
+      window.scrollTo({ top: Math.max(0, target), behavior: 'smooth' })
     })
   }
 

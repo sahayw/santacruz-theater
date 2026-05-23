@@ -900,7 +900,6 @@ const { performances } = Astro.props
   }
   const isTouchDevice = !window.matchMedia('(hover: hover)').matches
   let activePanelDate = null
-  let activePanelMonth = null
 
   function showHoverPanel(ds, perfs, cellEl, month) {
     const panel = document.getElementById('hoverPanel')
@@ -932,7 +931,7 @@ const { performances } = Astro.props
     panel.style.left = Math.max(8, left) + 'px'
     panel.style.top = Math.max(8, top) + 'px'
     activePanelDate = ds
-    activePanelMonth = month ?? null
+    panel.dataset.month = month ?? ''
     panel.classList.add('visible')
     if (isTouchDevice) panel.classList.add('touch-mode')
   }
@@ -940,7 +939,6 @@ const { performances } = Astro.props
     const panel = document.getElementById('hoverPanel')
     panel.classList.remove('visible', 'touch-mode')
     activePanelDate = null
-    activePanelMonth = null
   }
   function perfsByDate(perfs) {
     const m = {}
@@ -1330,11 +1328,13 @@ const { performances } = Astro.props
     })
   }, { passive: true })
 
-  document.getElementById('hoverPanel').addEventListener('click', () => {
-    if (isTouchDevice && activePanelMonth !== null) {
-      const m = activePanelMonth
-      hideHoverPanel()
-      goToMonth(m)
+  document.getElementById('hoverPanel').addEventListener('click', (e) => {
+    if (isTouchDevice) {
+      const m = parseInt(e.currentTarget.dataset.month, 10)
+      if (!isNaN(m)) {
+        hideHoverPanel()
+        goToMonth(m)
+      }
     }
   })
 

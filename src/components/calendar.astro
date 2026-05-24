@@ -79,7 +79,7 @@ const { performances } = Astro.props
 </div>
 
 <style is:global>
-  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=DM+Sans:wght@300;400;500&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=DM+Serif+Display&family=DM+Sans:wght@300;400;500&display=swap');
 
   :root {
     --bg: #f7f4ef;
@@ -261,9 +261,9 @@ const { performances } = Astro.props
     margin: 0 auto;
   }
   .year-title {
-    font-family: 'Playfair Display', serif;
+    font-family: 'DM Serif Display', serif;
     font-size: 24px;
-    font-weight: 700;
+    font-weight: 400;
     text-align: center;
     margin-bottom: 16px;
     letter-spacing: -0.02em;
@@ -298,9 +298,9 @@ const { performances } = Astro.props
     opacity: 0.8;
   }
   .month-name {
-    font-family: 'Playfair Display', serif;
+    font-family: 'DM Serif Display', serif;
     font-size: 13px;
-    font-weight: 600;
+    font-weight: 400;
     padding: 4px 6px 3px;
     border-bottom: 1px solid var(--border);
     letter-spacing: 0.02em;
@@ -399,13 +399,12 @@ const { performances } = Astro.props
     position: relative;
     z-index: 3;
     padding: 5px 12px 4px;
-    font-family: 'DM Sans', sans-serif;
-    font-size: 13px;
-    font-weight: 600;
-    color: var(--ink-muted);
+    font-family: 'DM Serif Display', serif;
+    font-size: 15px;
+    font-weight: 400;
+    color: #433c36;
     background: var(--bg);
-    letter-spacing: 0.05em;
-    text-transform: uppercase;
+    letter-spacing: 0.01em;
     border-bottom: 1px solid var(--border);
     will-change: transform;
   }
@@ -484,22 +483,29 @@ const { performances } = Astro.props
     justify-content: center;
     border-bottom: 1px solid var(--border);
     flex-shrink: 0;
+    background: var(--bg);
+  }
+  .day-col.other-month .day-num-row {
+    background: #e8e4de;
   }
   .day-num {
-    font-size: 10px;
-    color: var(--ink-muted);
-    line-height: 1;
+    font-size: 12px;
+    font-family: 'DM Serif Display', serif;
+    font-weight: 400;
+    color: #433c36;
+    line-height: 0;
   }
   .day-num.today {
     background: var(--ink);
     color: #fff;
     border-radius: 50%;
-    width: 14px;
-    height: 14px;
+    width: 15px;
+    height: 15px;
     display: flex;
     align-items: center;
     justify-content: center;
     font-size: 10px;
+    line-height: 1;
   }
 
   .pip-row {
@@ -637,9 +643,9 @@ const { performances } = Astro.props
     border-bottom: 1px solid var(--border);
   }
   .sheet-date-header span {
-    font-family: 'Playfair Display', serif;
+    font-family: 'DM Serif Display', serif;
     font-size: 16px;
-    font-weight: 600;
+    font-weight: 400;
     flex: 1;
   }
   .sheet-close-btn {
@@ -788,9 +794,9 @@ const { performances } = Astro.props
     cursor: pointer;
   }
   .hover-panel-header {
-    font-family: 'Playfair Display', serif;
+    font-family: 'DM Serif Display', serif;
     font-size: 13px;
-    font-weight: 600;
+    font-weight: 400;
     padding: 8px 12px;
     border-bottom: 1px solid var(--border);
   }
@@ -1122,7 +1128,7 @@ const { performances } = Astro.props
         const label = document.createElement('div')
         label.className = 'scroll-month-label'
         label.id = anchorId
-        label.textContent = MONTHS[currentMonth].toUpperCase()
+        label.textContent = MONTHS[currentMonth]
         container.appendChild(label)
       }
 

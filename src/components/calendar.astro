@@ -898,11 +898,10 @@ const { performances } = Astro.props
     const h12 = h % 12 || 12
     return m === 0 ? `${h12}${period}` : `${h12}:${String(m).padStart(2, '0')}${period}`
   }
-  const isTouchDevice = !window.matchMedia('(hover: hover)').matches
   let activePanelDate = null
   let panelShownAt = 0
 
-  function showHoverPanel(ds, perfs, cellEl, month) {
+  function showHoverPanel(ds, perfs, cellEl, month, isTouch = false) {
     const panel = document.getElementById('hoverPanel')
     const [y, mo, d] = ds.split('-').map(Number)
     const dateLabel = new Date(y, mo - 1, d).toLocaleDateString('en-US', {
@@ -920,11 +919,11 @@ const { performances } = Astro.props
         <div class="hover-panel-meta">${fmtTime(p.time)} · ${venue}</div>
       </div>`
     })
-    if (isTouchDevice) html += `<div class="hover-panel-footer">Tap to view week →</div>`
+    if (isTouch) html += `<div class="hover-panel-footer">Tap to view week →</div>`
     panel.innerHTML = html
     const rect = cellEl.getBoundingClientRect()
     const pw = 240
-    const ph = 34 + sorted.length * 46 + (isTouchDevice ? 30 : 0)
+    const ph = 34 + sorted.length * 46 + (isTouch ? 30 : 0)
     let left = rect.left
     let top = rect.bottom + 6
     if (left + pw > window.innerWidth - 8) left = Math.max(8, rect.right - pw)
@@ -935,7 +934,7 @@ const { performances } = Astro.props
     panel.dataset.month = month ?? ''
     panelShownAt = Date.now()
     panel.classList.add('visible')
-    if (isTouchDevice) panel.classList.add('touch-mode')
+    if (isTouch) panel.classList.add('touch-mode')
   }
   function hideHoverPanel() {
     const panel = document.getElementById('hoverPanel')
@@ -1049,19 +1048,25 @@ const { performances } = Astro.props
           const cos = [...new Set(perfs.map((p) => p.company))]
           if (cos.length > 1) el.classList.add('multi')
           else el.style.background = companyColor(cos[0])
-          el.addEventListener('mouseenter', () => showHoverPanel(ds, perfs, el, m))
-          el.addEventListener('mouseleave', hideHoverPanel)
-          if (isTouchDevice) {
-            el.addEventListener('click', (e) => {
+          el.addEventListener('pointerenter', (e) => {
+            if (e.pointerType === 'mouse') showHoverPanel(ds, perfs, el, m, false)
+          })
+          el.addEventListener('pointerleave', (e) => {
+            if (e.pointerType === 'mouse') hideHoverPanel()
+          })
+          el.addEventListener('click', (e) => {
+            e.stopPropagation()
+            if (e.pointerType === 'touch') {
               if (activePanelDate === ds) {
                 hideHoverPanel()
-                // propagation continues → block.onclick → goToMonth(m)
+                goToMonth(m)
               } else {
-                e.stopPropagation()
-                showHoverPanel(ds, perfs, el, m)
+                showHoverPanel(ds, perfs, el, m, true)
               }
-            })
-          }
+            } else {
+              goToMonth(m)
+            }
+          })
         }
         body.appendChild(el)
       }

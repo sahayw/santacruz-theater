@@ -2151,6 +2151,209 @@
     },
     {
       "id": "run-1779618248131",
+      "company": "Renegade",
+      "showAbv": "She Kills Monsters",
+      "show": "She Kills Monsters",
+      "genre": "Musical",
+      "venue": "Other",
+      "price": "",
+      "discounts": "",
+      "infoUrl": "",
+      "ticketsUrl": "",
+      "performances": [
+        {
+          "date": "2026-01-23",
+          "time": "19:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-01-24",
+          "time": "19:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-01-25",
+          "time": "14:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-01-30",
+          "time": "19:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-01-31",
+          "time": "19:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-05-22",
+          "time": "19:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-05-23",
+          "time": "19:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-05-29",
+          "time": "19:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-05-30",
+          "time": "19:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        }
+      ]
+    },
+    {
+      "id": "run-1779619078600",
+      "company": "Renegade",
+      "showAbv": "Reefer Madness",
+      "show": "Reefer Madness",
+      "genre": "Musical",
+      "venue": "VMB",
+      "price": "",
+      "discounts": "",
+      "infoUrl": "",
+      "ticketsUrl": "",
+      "performances": [
+        {
+          "date": "2026-04-03",
+          "time": "19:30",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-04-04",
+          "time": "19:30",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-04-05",
+          "time": "14:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-04-10",
+          "time": "19:30",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-04-11",
+          "time": "19:30",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-04-12",
+          "time": "14:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-04-17",
+          "time": "19:30",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-04-18",
+          "time": "19:30",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-04-19",
+          "time": "14:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        }
+      ]
+    },
+    {
+      "id": "run-1779619152098",
+      "company": "Renegade",
+      "showAbv": "The Prom",
+      "show": "The Prom",
+      "genre": "Musical",
+      "venue": "VMB",
+      "price": "",
+      "discounts": "",
+      "infoUrl": "",
+      "ticketsUrl": "",
+      "performances": [
+        {
+          "date": "2026-05-01",
+          "time": "19:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-05-02",
+          "time": "19:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-05-03",
+          "time": "14:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-05-08",
+          "time": "19:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-05-09",
+          "time": "19:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        }
+      ]
+    },
+    {
+      "id": "run-1779619220498",
       "company": "Other",
       "showAbv": "Whole Monkey Show",
       "show": "The Whole Monkey Show (Christopher Michael Palermo)",

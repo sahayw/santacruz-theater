@@ -79,7 +79,7 @@ const { performances } = Astro.props
 </div>
 
 <style is:global>
-  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=DM+Sans:wght@300;400;500&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=DM+Serif+Display&family=DM+Sans:wght@300;400;500&display=swap');
 
   :root {
     --bg: #f7f4ef;
@@ -87,20 +87,36 @@ const { performances } = Astro.props
     --ink: #1a1612;
     --ink-muted: #6b6259;
     --border: #e0d9d0;
-    --col-scs: #FFB3AF;
-    --col-at: #A8CFEE;
-    --col-mct: #A8DCBF;
-    --col-other: #C8C8D0;
-    --col-multi: #CBBDED;
+    /* bar fill colors — style B flat muted tints
+       SCS↔AT are near-complementary (rose 7° vs blue 225°) for max small-size contrast.
+ */
+    --col-scs: #e9c1be; /* Carnation   7°   SCS      */
+    --col-at: #afbfee; /* Dusk      225°   AT       */
+    --col-mct: #c9e6bf; /* Willow    116°   MCT      */
+    --col-renegade: #b7e8ec; /* Verdigris 188°   Renegade */
+    --col-other: #e0dcd6; /* warm grey — Cabrillo / ABT / unknown fallback */
+    --col-multi: #d4ccc2; /* deeper taupe — annual multi-company days */
+    /* legend dot colors — muted accent */
+    --dot-scs: #ce8481; /* dusty rose  */
+    --dot-at: #7080b8; /* soft indigo */
+    --dot-mct: #68c057; /* olive sage  */
+    --dot-renegade: #479aac; /* sea teal  */
+    --dot-other: #8f8579; /* warm stone  */
+    /* fully saturated accent colors — drill-down chip bars and show-card badge */
+    --acc-scs: #dc4343; /* vivid red-rose */
+    --acc-at: #4064c8; /* vivid blue     */
+    --acc-mct: #48ae31; /* vivid leaf green */
+    --acc-renegade: #21a4c8; /* vivid sea teal  */
+    --acc-other: #8b8076; /* warm stone accent */
     --pip-eve: #2c2c2c;
     --pip-mat: #8a8278;
     --radius: 6px;
     --header-h: 52px;
     --filter-h: 40px;
     --col-header-h: 28px;
-    --footer-h: 60px;
-    --shows-col-w: 120px;
-    --daynum-h: 16px;
+    --footer-h: 68px;
+    --shows-col-w: clamp(120px, 21vw, 160px);
+    --daynum-h: 24px;
     --row-h: 22px;
   }
 
@@ -221,7 +237,7 @@ const { performances } = Astro.props
     display: grid;
     grid-template-columns: var(--shows-col-w) repeat(7, 1fr);
     min-width: 440px;
-    max-width: 960px;
+    max-width: 600px;
     margin: 0 auto;
     height: 100%;
   }
@@ -229,7 +245,7 @@ const { performances } = Astro.props
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 10px;
+    font-size: 12px;
     font-weight: 500;
     border-left: 1px solid rgba(255, 255, 255, 0.15);
     padding: 0 3px;
@@ -241,7 +257,7 @@ const { performances } = Astro.props
     justify-content: flex-start;
     padding-left: 8px;
     border-left: none;
-    font-size: 10px;
+    font-size: 14px;
     color: rgba(255, 255, 255, 0.7);
     background: var(--ink);
   }
@@ -261,9 +277,9 @@ const { performances } = Astro.props
     margin: 0 auto;
   }
   .year-title {
-    font-family: 'Playfair Display', serif;
+    font-family: 'DM Serif Display', serif;
     font-size: 24px;
-    font-weight: 700;
+    font-weight: 400;
     text-align: center;
     margin-bottom: 16px;
     letter-spacing: -0.02em;
@@ -298,9 +314,9 @@ const { performances } = Astro.props
     opacity: 0.8;
   }
   .month-name {
-    font-family: 'Playfair Display', serif;
+    font-family: 'DM Serif Display', serif;
     font-size: 13px;
-    font-weight: 600;
+    font-weight: 400;
     padding: 4px 6px 3px;
     border-bottom: 1px solid var(--border);
     letter-spacing: 0.02em;
@@ -338,9 +354,20 @@ const { performances } = Astro.props
   .mini-day.has-perf {
     color: rgba(0, 0, 0, 0.75);
     font-weight: 600;
+    cursor: pointer;
   }
   .mini-day.has-perf.multi {
     background: var(--col-multi) !important;
+  }
+  .mini-day.has-perf.pip-active {
+    filter: brightness(0.8);
+    outline: 2px solid rgba(0, 0, 0, 0.2);
+    outline-offset: -1px;
+  }
+  @media (hover: hover) {
+    .mini-day.has-perf:hover {
+      filter: brightness(0.88);
+    }
   }
   .mini-day.empty {
     opacity: 0;
@@ -366,11 +393,11 @@ const { performances } = Astro.props
     display: flex;
     align-items: center;
     gap: 5px;
-    font-size: 11px;
+    font-size: 13px;
   }
   .legend-dot {
-    width: 11px;
-    height: 11px;
+    width: 13px;
+    height: 13px;
     border-radius: 3px;
     flex-shrink: 0;
   }
@@ -378,7 +405,7 @@ const { performances } = Astro.props
   /* ── SCROLL VIEW ── */
   #scroll-view {
     display: none;
-    max-width: 960px;
+    max-width: 600px;
     margin: 0 auto;
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
@@ -388,13 +415,12 @@ const { performances } = Astro.props
     position: relative;
     z-index: 3;
     padding: 5px 12px 4px;
-    font-family: 'DM Sans', sans-serif;
-    font-size: 13px;
-    font-weight: 600;
-    color: var(--ink-muted);
+    font-family: 'DM Serif Display', serif;
+    font-size: 20px;
+    font-weight: 400;
+    color: #433c36;
     background: var(--bg);
-    letter-spacing: 0.05em;
-    text-transform: uppercase;
+    letter-spacing: 0.01em;
     border-bottom: 1px solid var(--border);
     will-change: transform;
   }
@@ -473,22 +499,29 @@ const { performances } = Astro.props
     justify-content: center;
     border-bottom: 1px solid var(--border);
     flex-shrink: 0;
+    background: var(--bg);
+  }
+  .day-col.other-month .day-num-row {
+    background: #e8e4de;
   }
   .day-num {
-    font-size: 10px;
-    color: var(--ink-muted);
-    line-height: 1;
+    font-size: 13px;
+    font-family: 'DM Serif Display', serif;
+    font-weight: 400;
+    color: #433c36;
+    line-height: 0;
   }
   .day-num.today {
-    background: var(--ink);
+    background: var(--ink-muted);
     color: #fff;
     border-radius: 50%;
-    width: 14px;
-    height: 14px;
+    width: 20px;
+    height: 20px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 10px;
+    font-size: 13px;
+    line-height: 1;
   }
 
   .pip-row {
@@ -515,6 +548,7 @@ const { performances } = Astro.props
     gap: 3px;
     cursor: pointer;
     -webkit-tap-highlight-color: transparent;
+    filter: saturate(0.78) brightness(1.02);
   }
   .perf-bar.bar-single {
     left: 3px;
@@ -570,20 +604,20 @@ const { performances } = Astro.props
     display: flex;
   }
   .fixed-legend-footer .legend-title {
-    font-size: 10px;
+    font-size: 11px;
     font-weight: 600;
     color: var(--ink-muted);
     white-space: nowrap;
   }
   .fixed-legend-footer .legend-item {
-    font-size: 10px;
+    font-size: 11px;
     white-space: nowrap;
     flex-shrink: 0;
     gap: 4px;
   }
   .fixed-legend-footer .legend-dot {
-    width: 10px;
-    height: 10px;
+    width: 11px;
+    height: 11px;
     border-radius: 2px;
   }
 
@@ -626,9 +660,9 @@ const { performances } = Astro.props
     border-bottom: 1px solid var(--border);
   }
   .sheet-date-header span {
-    font-family: 'Playfair Display', serif;
+    font-family: 'DM Serif Display', serif;
     font-size: 16px;
-    font-weight: 600;
+    font-weight: 400;
     flex: 1;
   }
   .sheet-close-btn {
@@ -680,10 +714,22 @@ const { performances } = Astro.props
     color: var(--ink-muted);
     margin-left: auto;
   }
-  .perf-type-tag[data-type="Preview"]  { background: #FFF0CC; color: #7A5200; }
-  .perf-type-tag[data-type="Opening"]  { background: #C8F0DA; color: #1A5C35; }
-  .perf-type-tag[data-type="Closing"]  { background: #FFD4D4; color: #8C1E1E; }
-  .perf-type-tag[data-type="Talk-back"]{ background: #D4DDFF; color: #2035A0; }
+  .perf-type-tag[data-type='Preview'] {
+    background: #fff0cc;
+    color: #7a5200;
+  }
+  .perf-type-tag[data-type='Opening'] {
+    background: #c8f0da;
+    color: #1a5c35;
+  }
+  .perf-type-tag[data-type='Closing'] {
+    background: #ffd4d4;
+    color: #8c1e1e;
+  }
+  .perf-type-tag[data-type='Talk-back'] {
+    background: #d4ddff;
+    color: #2035a0;
+  }
   .card-show-title {
     font-family: 'Playfair Display', serif;
     font-size: 17px;
@@ -738,8 +784,8 @@ const { performances } = Astro.props
     background: var(--ink);
     color: #fff;
   }
-  .btn-info[aria-disabled="true"],
-  .btn-tickets[aria-disabled="true"] {
+  .btn-info[aria-disabled='true'],
+  .btn-tickets[aria-disabled='true'] {
     opacity: 0.35;
     cursor: default;
     pointer-events: none;
@@ -777,9 +823,9 @@ const { performances } = Astro.props
     cursor: pointer;
   }
   .hover-panel-header {
-    font-family: 'Playfair Display', serif;
+    font-family: 'DM Serif Display', serif;
     font-size: 13px;
-    font-weight: 600;
+    font-weight: 400;
     padding: 8px 12px;
     border-bottom: 1px solid var(--border);
   }
@@ -826,11 +872,11 @@ const { performances } = Astro.props
       background: rgba(180, 120, 40, 0.18);
     }
     .day-col.has-perf:has(.day-num-row:hover) .perf-bar {
-      filter: brightness(0.88);
+      filter: saturate(0.6) brightness(0.88);
     }
     /* Hovering a specific bar: highlight only that bar */
     .day-col.has-perf .perf-bar:hover {
-      filter: brightness(0.88);
+      filter: saturate(0.6) brightness(0.88);
     }
   }
 </style>
@@ -838,20 +884,25 @@ const { performances } = Astro.props
 <script define:vars={{ performances }} is:inline>
   const PERFORMANCES = performances
   const TODAY = new Date().toISOString().slice(0, 10)
-  const COMPANY_COLORS = { SCS: 'var(--col-scs)', AT: 'var(--col-at)', MCT: 'var(--col-mct)' }
+  const COMPANY_COLORS = {
+    SCS: 'var(--col-scs)',
+    AT: 'var(--col-at)',
+    MCT: 'var(--col-mct)',
+    Renegade: 'var(--col-renegade)'
+  }
   const COMPANY_NAMES = {
     SCS: 'Santa Cruz Shakespeare',
     AT: "Actors' Theatre",
     MCT: 'Mountain Community Theater',
     Renegade: 'Renegade Theatre',
-    Cabrillo: 'Cabrillo Stage',
+    Cabrillo: 'Cabrillo Stage'
   }
   const VENUE_NAMES = {
     G: 'The Grove',
     VMB: 'Veterans Memorial Building',
     PH: 'Park Hall',
     AT: "Actors' Theatre",
-    CCT: 'Cabrillo Crocker Theater',
+    CCT: 'Cabrillo Crocker Theater'
   }
   const MONTHS = [
     'January',
@@ -873,6 +924,24 @@ const { performances } = Astro.props
 
   function companyColor(co) {
     return COMPANY_COLORS[co] || 'var(--col-other)'
+  }
+  const COMPANY_DOTS = {
+    SCS: 'var(--dot-scs)',
+    AT: 'var(--dot-at)',
+    MCT: 'var(--dot-mct)',
+    Renegade: 'var(--dot-renegade)'
+  }
+  function dotColor(co) {
+    return COMPANY_DOTS[co] || 'var(--dot-other)'
+  }
+  const COMPANY_ACCS = {
+    SCS: 'var(--acc-scs)',
+    AT: 'var(--acc-at)',
+    MCT: 'var(--acc-mct)',
+    Renegade: 'var(--acc-renegade)'
+  }
+  function accentColor(co) {
+    return COMPANY_ACCS[co] || 'var(--acc-other)'
   }
   function dowMon(d) {
     return (d.getDay() + 6) % 7
@@ -898,14 +967,25 @@ const { performances } = Astro.props
     const h12 = h % 12 || 12
     return m === 0 ? `${h12}${period}` : `${h12}:${String(m).padStart(2, '0')}${period}`
   }
-  const isTouchDevice = !window.matchMedia('(hover: hover)').matches
   let activePanelDate = null
+  let activePanelCell = null
+  let panelShownAt = 0
+  let lastTouchTime = 0
+  document.addEventListener(
+    'touchstart',
+    () => {
+      lastTouchTime = Date.now()
+    },
+    { passive: true, capture: true }
+  )
 
-  function showHoverPanel(ds, perfs, cellEl, month) {
+  function showHoverPanel(ds, perfs, cellEl, month, isTouch = false) {
     const panel = document.getElementById('hoverPanel')
     const [y, mo, d] = ds.split('-').map(Number)
     const dateLabel = new Date(y, mo - 1, d).toLocaleDateString('en-US', {
-      weekday: 'long', month: 'long', day: 'numeric',
+      weekday: 'long',
+      month: 'long',
+      day: 'numeric'
     })
     let html = `<div class="hover-panel-header">${dateLabel}</div>`
     const sorted = [...perfs].sort((a, b) => a.time.localeCompare(b.time))
@@ -913,17 +993,17 @@ const { performances } = Astro.props
       const venue = VENUE_NAMES[p.venue] || p.venue
       html += `<div class="hover-panel-row">
         <div class="hover-panel-show">
-          <div class="hover-panel-dot" style="background:${companyColor(p.company)}"></div>
+          <div class="hover-panel-dot" style="background:${dotColor(p.company)}"></div>
           <span>${p.company} · ${p.showAbv}</span>
         </div>
         <div class="hover-panel-meta">${fmtTime(p.time)} · ${venue}</div>
       </div>`
     })
-    if (isTouchDevice) html += `<div class="hover-panel-footer">Tap to view week →</div>`
+    if (isTouch) html += `<div class="hover-panel-footer">Tap to view week →</div>`
     panel.innerHTML = html
     const rect = cellEl.getBoundingClientRect()
     const pw = 240
-    const ph = 34 + sorted.length * 46 + (isTouchDevice ? 30 : 0)
+    const ph = 34 + sorted.length * 46 + (isTouch ? 30 : 0)
     let left = rect.left
     let top = rect.bottom + 6
     if (left + pw > window.innerWidth - 8) left = Math.max(8, rect.right - pw)
@@ -931,14 +1011,22 @@ const { performances } = Astro.props
     panel.style.left = Math.max(8, left) + 'px'
     panel.style.top = Math.max(8, top) + 'px'
     activePanelDate = ds
+    if (activePanelCell) activePanelCell.classList.remove('pip-active')
+    activePanelCell = isTouch ? cellEl : null
+    if (isTouch) cellEl.classList.add('pip-active')
     panel.dataset.month = month ?? ''
+    panelShownAt = Date.now()
     panel.classList.add('visible')
-    if (isTouchDevice) panel.classList.add('touch-mode')
+    if (isTouch) panel.classList.add('touch-mode')
   }
   function hideHoverPanel() {
     const panel = document.getElementById('hoverPanel')
     panel.classList.remove('visible', 'touch-mode')
     activePanelDate = null
+    if (activePanelCell) {
+      activePanelCell.classList.remove('pip-active')
+      activePanelCell = null
+    }
   }
   function perfsByDate(perfs) {
     const m = {}
@@ -954,10 +1042,9 @@ const { performances } = Astro.props
     ;[...perfs]
       .sort((a, b) => a.date.localeCompare(b.date))
       .forEach((p) => {
-        const k = p.showAbv + '|' + p.company
-        if (!seen.has(k)) {
-          seen.add(k)
-          result.push({ showAbv: p.showAbv, company: p.company, show: p.show, key: k })
+        if (!seen.has(p.runId)) {
+          seen.add(p.runId)
+          result.push({ runId: p.runId, showAbv: p.showAbv, company: p.company, show: p.show })
         }
       })
     return result
@@ -979,10 +1066,10 @@ const { performances } = Astro.props
   }
 
   const LEGEND_ENTRIES = [
-    { color: 'var(--col-scs)', label: 'Santa Cruz Shakespeare (SCS)' },
-    { color: 'var(--col-at)', label: "Actors' Theatre (AT)" },
-    { color: 'var(--col-mct)', label: 'Mountain Community Theater (MCT)' },
-    { color: 'var(--col-other)', label: 'Other companies' },
+    { color: 'var(--dot-scs)', label: 'Santa Cruz Shakespeare' },
+    { color: 'var(--dot-at)', label: "Actors' Theatre" },
+    { color: 'var(--dot-mct)', label: 'Mountain Community Theater' },
+    { color: 'var(--dot-renegade)', label: 'Renegade Theatre' },
     { color: 'var(--col-multi)', label: 'Multiple companies' }
   ]
 
@@ -994,12 +1081,12 @@ const { performances } = Astro.props
     title.textContent = 'COMPANIES'
     footer.appendChild(title)
     LEGEND_ENTRIES.forEach((e) => {
-      if (!includeMulti && e.color === 'var(--col-multi)') return
+      if (!includeMulti && e.label === 'Multiple companies') return
       const item = document.createElement('div')
       item.className = 'legend-item'
       item.style.cssText =
-        'display:flex;align-items:center;gap:4px;font-size:10px;white-space:nowrap;'
-      item.innerHTML = `<div class="legend-dot" style="background:${e.color};width:10px;height:10px;border-radius:2px;flex-shrink:0"></div><span>${e.label}</span>`
+        'display:flex;align-items:center;gap:4px;font-size:11px;white-space:nowrap;'
+      item.innerHTML = `<div class="legend-dot" style="background:${e.color};width:11px;height:11px;border-radius:2px;flex-shrink:0"></div><span>${e.label}</span>`
       footer.appendChild(item)
     })
   }
@@ -1047,19 +1134,25 @@ const { performances } = Astro.props
           const cos = [...new Set(perfs.map((p) => p.company))]
           if (cos.length > 1) el.classList.add('multi')
           else el.style.background = companyColor(cos[0])
-          el.addEventListener('mouseenter', () => showHoverPanel(ds, perfs, el, m))
-          el.addEventListener('mouseleave', hideHoverPanel)
-          if (isTouchDevice) {
-            el.addEventListener('click', (e) => {
+          el.addEventListener('pointerenter', (e) => {
+            if (e.pointerType === 'mouse') showHoverPanel(ds, perfs, el, m, false)
+          })
+          el.addEventListener('pointerleave', (e) => {
+            if (e.pointerType === 'mouse') hideHoverPanel()
+          })
+          el.addEventListener('click', (e) => {
+            e.stopPropagation()
+            if (Date.now() - lastTouchTime < 500) {
               if (activePanelDate === ds) {
                 hideHoverPanel()
-                // propagation continues → block.onclick → goToMonth(m)
+                goToMonth(m)
               } else {
-                e.stopPropagation()
-                showHoverPanel(ds, perfs, el, m)
+                showHoverPanel(ds, perfs, el, m, true)
               }
-            })
-          }
+            } else {
+              goToMonth(m)
+            }
+          })
         }
         body.appendChild(el)
       }
@@ -1097,22 +1190,22 @@ const { performances } = Astro.props
         const label = document.createElement('div')
         label.className = 'scroll-month-label'
         label.id = anchorId
-        label.textContent = MONTHS[currentMonth].toUpperCase()
+        label.textContent = MONTHS[currentMonth]
         container.appendChild(label)
       }
 
-      const weekShowKeys = new Set()
+      const weekShowIds = new Set()
       weekDays.forEach((day) => {
-        ;(byDate[fmtDate(day)] || []).forEach((p) => weekShowKeys.add(p.showAbv + '|' + p.company))
+        ;(byDate[fmtDate(day)] || []).forEach((p) => weekShowIds.add(p.runId))
       })
-      const weekShows = allShows.filter((s) => weekShowKeys.has(s.key))
+      const weekShows = allShows.filter((s) => weekShowIds.has(s.runId))
       const nRows = Math.max(weekShows.length, 1)
 
       const showDayCoverage = {}
       weekShows.forEach((s) => {
-        showDayCoverage[s.key] = weekDays.map((day) => {
+        showDayCoverage[s.runId] = weekDays.map((day) => {
           const ds = fmtDate(day)
-          return (byDate[ds] || []).some((p) => p.showAbv + '|' + p.company === s.key)
+          return (byDate[ds] || []).some((p) => p.runId === s.runId)
         })
       })
 
@@ -1138,9 +1231,7 @@ const { performances } = Astro.props
         weekShows.forEach((s) => {
           const chip = document.createElement('div')
           chip.className = 'show-chip'
-          chip.style.background = companyColor(s.company)
-          chip.style.color = 'rgba(0,0,0,0.75)'
-          chip.innerHTML = `<span class="show-chip-name" title="${s.show}">${s.showAbv}</span>`
+          chip.innerHTML = `<span class="show-chip-bar" style="background:${accentColor(s.company)}"></span><span class="show-chip-name" title="${s.show}">${s.showAbv}</span>`
           showsCol.appendChild(chip)
         })
       }
@@ -1173,10 +1264,9 @@ const { performances } = Astro.props
         const dayPipData = {}
         if (inYear) {
           dayPerfs.forEach((p) => {
-            const k = p.showAbv + '|' + p.company
-            if (!dayPipData[k]) dayPipData[k] = { mat: false, eve: false }
-            if (isMat(p.time)) dayPipData[k].mat = true
-            else dayPipData[k].eve = true
+            if (!dayPipData[p.runId]) dayPipData[p.runId] = { mat: false, eve: false }
+            if (isMat(p.time)) dayPipData[p.runId].mat = true
+            else dayPipData[p.runId].eve = true
           })
         }
 
@@ -1185,8 +1275,8 @@ const { performances } = Astro.props
           const pipRow = document.createElement('div')
           pipRow.className = 'pip-row'
           if (s && inYear) {
-            const pips = dayPipData[s.key]
-            const barPos = getBarPos(showDayCoverage[s.key], dayIdx)
+            const pips = dayPipData[s.runId]
+            const barPos = getBarPos(showDayCoverage[s.runId], dayIdx)
             if (pips && barPos !== 'none') {
               const bar = document.createElement('div')
               bar.className = 'perf-bar bar-' + barPos
@@ -1195,9 +1285,10 @@ const { performances } = Astro.props
               const label = document.createElement('span')
               label.className = 'perf-label'
               label.textContent = labelText
-              const matchPerf = dayPerfs.find((p) => p.showAbv + '|' + p.company === s.key)
-              const runId = matchPerf ? matchPerf.runId : null
-              bar.onclick = (e) => { e.stopPropagation(); openSheet(ds, runId) }
+              bar.onclick = (e) => {
+                e.stopPropagation()
+                openSheet(ds, s.runId)
+              }
               bar.appendChild(label)
               pipRow.appendChild(bar)
             }
@@ -1233,7 +1324,10 @@ const { performances } = Astro.props
       let target = 0
       if (el) {
         let node = el
-        while (node) { target += node.offsetTop; node = node.offsetParent }
+        while (node) {
+          target += node.offsetTop
+          node = node.offsetParent
+        }
         target -= totalFixed
       }
       window.scrollTo({ top: Math.max(0, target), behavior: 'smooth' })
@@ -1268,7 +1362,7 @@ const { performances } = Astro.props
       const timeStr = `${h > 12 ? h - 12 : h || 12}:${String(min).padStart(2, '0')}${h >= 12 ? 'pm' : 'am'}`
       card.innerHTML = `
       <div class="perf-card-company">
-        <div class="company-badge" style="background:${companyColor(p.company)}"></div>
+        <div class="company-badge" style="background:${accentColor(p.company)}"></div>
         <span class="company-name">${COMPANY_NAMES[p.company] || p.company}</span>
         ${p.perfType ? `<span class="perf-type-tag" data-type="${p.perfType}">${p.perfType}</span>` : ''}
       </div>
@@ -1281,12 +1375,16 @@ const { performances } = Astro.props
       </div>
       ${p.discounts ? `<div class="card-discounts">Discounts: ${p.discounts}</div>` : ''}
       <div class="card-buttons">
-        ${p.infoUrl
-          ? `<a class="btn-info" href="${p.infoUrl}" target="_blank" rel="noopener">More info</a>`
-          : `<a class="btn-info" aria-disabled="true">More info</a>`}
-        ${p.ticketsUrl
-          ? `<a class="btn-tickets" href="${p.ticketsUrl}" target="_blank" rel="noopener">Get tickets</a>`
-          : `<a class="btn-tickets" aria-disabled="true">Get tickets</a>`}
+        ${
+          p.infoUrl
+            ? `<a class="btn-info" href="${p.infoUrl}" target="_blank" rel="noopener">More info</a>`
+            : `<a class="btn-info" aria-disabled="true">More info</a>`
+        }
+        ${
+          p.ticketsUrl
+            ? `<a class="btn-tickets" href="${p.ticketsUrl}" target="_blank" rel="noopener">Get tickets</a>`
+            : `<a class="btn-tickets" aria-disabled="true">Get tickets</a>`
+        }
       </div>`
       cards.appendChild(card)
     })
@@ -1321,20 +1419,24 @@ const { performances } = Astro.props
 
   document.addEventListener('scroll', hideHoverPanel, { passive: true })
 
-  document.getElementById('scroll-view').addEventListener('scroll', function () {
-    const x = this.scrollLeft
-    document.querySelectorAll('.scroll-month-label').forEach((el) => {
-      el.style.transform = `translateX(${x}px)`
-    })
-  }, { passive: true })
+  document.getElementById('scroll-view').addEventListener(
+    'scroll',
+    function () {
+      const x = this.scrollLeft
+      document.querySelectorAll('.scroll-month-label').forEach((el) => {
+        el.style.transform = `translateX(${x}px)`
+      })
+    },
+    { passive: true }
+  )
 
-  document.getElementById('hoverPanel').addEventListener('click', (e) => {
-    if (isTouchDevice) {
-      const m = parseInt(e.currentTarget.dataset.month, 10)
-      if (!isNaN(m)) {
-        hideHoverPanel()
-        goToMonth(m)
-      }
+  document.getElementById('hoverPanel').addEventListener('touchend', (e) => {
+    if (Date.now() - panelShownAt < 300) return // ghost touchend from the tap that showed the panel
+    const m = parseInt(e.currentTarget.dataset.month, 10)
+    if (!isNaN(m)) {
+      e.preventDefault()
+      hideHoverPanel()
+      goToMonth(m)
     }
   })
 

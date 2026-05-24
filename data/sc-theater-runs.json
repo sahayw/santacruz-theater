@@ -2148,6 +2148,48 @@
           "ticketsUrl": ""
         }
       ]
+    },
+    {
+      "id": "run-1779618248131",
+      "company": "Other",
+      "showAbv": "Whole Monkey Show",
+      "show": "The Whole Monkey Show (Christopher Michael Palermo)",
+      "genre": "Drama",
+      "venue": "AT",
+      "price": "$25",
+      "discounts": "",
+      "infoUrl": "https://www.santacruzactorstheatre.org/",
+      "ticketsUrl": "https://search.events.com/#/org/336338",
+      "performances": [
+        {
+          "date": "2026-05-22",
+          "time": "19:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-05-23",
+          "time": "19:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-05-29",
+          "time": "19:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-05-30",
+          "time": "19:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        }
+      ]
     }
   ]
 }

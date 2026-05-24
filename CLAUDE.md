@@ -25,6 +25,7 @@ TypeScript strict mode. No UI framework.
 - `data/`           — `sc-theater-runs.json` (canonical source, editor-managed)
 - `public/admin/`   — editor SPA at `/admin` (static HTML, no build step)
 - `scripts/`        — one-off Node scripts (run with `tsx`)
+- `docs/`           — design documentation (e.g. `color-system.md`)
 
 ## Data schema
 
@@ -59,7 +60,7 @@ TypeScript strict mode. No UI framework.
 | ------------ | ---------- | ----------------------------------------------- |
 | `date`       | `string`   | `YYYY-MM-DD`                                    |
 | `time`       | `string`   | `HH:MM` 24-hour                                 |
-| `perfType`   | `PerfType` | `"" \| Preview \| Opening \| Closing \| Talk-back \| Family Day \| All-ages Matinee \| Student Matinee` |
+| `perfType`   | `PerfType` | `"" \| Preview \| Opening \| Closing \| Talk-back`  |
 | `discounts`  | `string`   | Non-empty overrides `Run.discounts`             |
 | `ticketsUrl` | `string`   | Non-empty overrides `Run.ticketsUrl`            |
 

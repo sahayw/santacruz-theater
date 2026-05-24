@@ -10,7 +10,8 @@
     "build": "astro build",
     "preview": "astro preview",
     "astro": "astro",
-    "check-data": "tsx scripts/check-data.ts"
+    "check-data": "tsx scripts/check-data.ts",
+    "check-data-contract": "tsx scripts/check-data-contract.ts"
   },
   "dependencies": {
     "astro": "^6.3.7"

@@ -86,7 +86,7 @@ Accepts free-form date text pasted from a website or email (e.g. `Friday, June 5
 ### Import / Export
 
 - **Export JSON** — serialises all runs to the canonical `sc-theater-runs.json` format and offers a download. Paste the file into `data/` and rebuild to publish.
-- **Import JSON** — loads a previously exported file back into the editor. Runs with matching IDs are updated in place; new IDs are appended. Useful for continuing work across sessions or merging edits from another machine.
+- **Import JSON** — loads a previously exported two-tier `{ "runs": [...] }` file back into the editor. Runs with matching IDs are updated in place; new IDs are appended. Useful for continuing work across sessions or merging edits from another machine.
 
 ---
 
@@ -126,12 +126,13 @@ npm install
 npm run dev      # http://localhost:4321
 ```
 
-| Command              | Action                                    |
-| -------------------- | ----------------------------------------- |
-| `npm run dev`        | Dev server at localhost:4321              |
-| `npm run build`      | Production build to `dist/`               |
-| `npm run preview`    | Preview the production build locally      |
-| `npm run check-data` | Dry-run: prints show count and date range |
+| Command                       | Action                                                                    |
+| ----------------------------- | ------------------------------------------------------------------------- |
+| `npm run dev`                 | Dev server at localhost:4321                                              |
+| `npm run build`               | Production build to `dist/`                                               |
+| `npm run preview`             | Preview the production build locally                                      |
+| `npm run check-data`          | Dry-run: prints show count and date range                                 |
+| `npm run check-data-contract` | Validates the canonical two-tier JSON file and the display data transform |
 
 ## Build & deploy
 

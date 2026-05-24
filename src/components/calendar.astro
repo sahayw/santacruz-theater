@@ -1042,10 +1042,9 @@ const { performances } = Astro.props
     ;[...perfs]
       .sort((a, b) => a.date.localeCompare(b.date))
       .forEach((p) => {
-        const k = p.showAbv + '|' + p.company
-        if (!seen.has(k)) {
-          seen.add(k)
-          result.push({ showAbv: p.showAbv, company: p.company, show: p.show, key: k })
+        if (!seen.has(p.runId)) {
+          seen.add(p.runId)
+          result.push({ runId: p.runId, showAbv: p.showAbv, company: p.company, show: p.show })
         }
       })
     return result
@@ -1195,18 +1194,18 @@ const { performances } = Astro.props
         container.appendChild(label)
       }
 
-      const weekShowKeys = new Set()
+      const weekShowIds = new Set()
       weekDays.forEach((day) => {
-        ;(byDate[fmtDate(day)] || []).forEach((p) => weekShowKeys.add(p.showAbv + '|' + p.company))
+        ;(byDate[fmtDate(day)] || []).forEach((p) => weekShowIds.add(p.runId))
       })
-      const weekShows = allShows.filter((s) => weekShowKeys.has(s.key))
+      const weekShows = allShows.filter((s) => weekShowIds.has(s.runId))
       const nRows = Math.max(weekShows.length, 1)
 
       const showDayCoverage = {}
       weekShows.forEach((s) => {
-        showDayCoverage[s.key] = weekDays.map((day) => {
+        showDayCoverage[s.runId] = weekDays.map((day) => {
           const ds = fmtDate(day)
-          return (byDate[ds] || []).some((p) => p.showAbv + '|' + p.company === s.key)
+          return (byDate[ds] || []).some((p) => p.runId === s.runId)
         })
       })
 
@@ -1265,10 +1264,9 @@ const { performances } = Astro.props
         const dayPipData = {}
         if (inYear) {
           dayPerfs.forEach((p) => {
-            const k = p.showAbv + '|' + p.company
-            if (!dayPipData[k]) dayPipData[k] = { mat: false, eve: false }
-            if (isMat(p.time)) dayPipData[k].mat = true
-            else dayPipData[k].eve = true
+            if (!dayPipData[p.runId]) dayPipData[p.runId] = { mat: false, eve: false }
+            if (isMat(p.time)) dayPipData[p.runId].mat = true
+            else dayPipData[p.runId].eve = true
           })
         }
 
@@ -1277,8 +1275,8 @@ const { performances } = Astro.props
           const pipRow = document.createElement('div')
           pipRow.className = 'pip-row'
           if (s && inYear) {
-            const pips = dayPipData[s.key]
-            const barPos = getBarPos(showDayCoverage[s.key], dayIdx)
+            const pips = dayPipData[s.runId]
+            const barPos = getBarPos(showDayCoverage[s.runId], dayIdx)
             if (pips && barPos !== 'none') {
               const bar = document.createElement('div')
               bar.className = 'perf-bar bar-' + barPos
@@ -1287,11 +1285,9 @@ const { performances } = Astro.props
               const label = document.createElement('span')
               label.className = 'perf-label'
               label.textContent = labelText
-              const matchPerf = dayPerfs.find((p) => p.showAbv + '|' + p.company === s.key)
-              const runId = matchPerf ? matchPerf.runId : null
               bar.onclick = (e) => {
                 e.stopPropagation()
-                openSheet(ds, runId)
+                openSheet(ds, s.runId)
               }
               bar.appendChild(label)
               pipRow.appendChild(bar)

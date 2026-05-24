@@ -714,7 +714,6 @@ tbody td {
       <div class="json-output" id="jsonOutput"></div>
     </div>
     <div class="modal-footer">
-      <button class="btn btn-sm" style="background:var(--bg);border:1px solid var(--border);color:var(--ink)" onclick="copyJSON()">Copy to clipboard</button>
       <button class="btn btn-sm btn-accent" onclick="downloadJSON()">Download .json</button>
     </div>
   </div>
@@ -970,8 +969,7 @@ function generatePattern() {
   }
   if (!perfs.length) { alert('No dates matched. Check your day selection.'); return; }
   runs[activeRunIdx].performances.push(...perfs);
-  // Sort by date
-  runs[activeRunIdx].performances.sort((a,b)=>a.date.localeCompare(b.date));
+  runs[activeRunIdx].performances.sort(sortPerformances);
   renderPerfTable();
   save();
   togglePattern();
@@ -1019,6 +1017,10 @@ function parseTimeStr(t) {
   return `${String(h).padStart(2,'0')}:${String(mn).padStart(2,'0')}`;
 }
 
+function sortPerformances(a, b) {
+  return a.date !== b.date ? a.date.localeCompare(b.date) : a.time.localeCompare(b.time);
+}
+
 function parsePaste() {
   const defaultTime = document.getElementById('paste-time').value || '19:30';
   const lines = document.getElementById('pasteArea').value.split('\n').map(l=>l.trim()).filter(Boolean);
@@ -1039,7 +1041,7 @@ function parsePaste() {
   });
   if (perfs.length) {
     runs[activeRunIdx].performances.push(...perfs);
-    runs[activeRunIdx].performances.sort((a,b)=>a.date.localeCompare(b.date));
+    runs[activeRunIdx].performances.sort(sortPerformances);
     renderPerfTable();
     save();
   }
@@ -1072,31 +1074,10 @@ function handleImport(event) {
   reader.onload = e => {
     try {
       const data = JSON.parse(e.target.result);
-      // Accept two-tier { runs: [...] } or flat array
-      let imported = [];
-      if (data.runs) {
-        imported = data.runs;
-      } else if (Array.isArray(data)) {
-        // Flat format: group by company+showAbv into runs
-        const map = {};
-        data.forEach(p => {
-          const key = `${p.company}||${p.showAbv}`;
-          if (!map[key]) {
-            map[key] = {
-              id: `run-${Date.now()}-${Math.random()}`,
-              company: p.company, showAbv: p.showAbv, show: p.show,
-              genre: p.genre, venue: p.venue, price: String(p.price||''),
-              discounts: p.discounts||'', infoUrl: p.infoUrl||'',
-              ticketsUrl: p.ticketsUrl||'', performances:[]
-            };
-          }
-          map[key].performances.push({
-            date: p.date, time: p.time, perfType: p.perfType||'',
-            discounts:'', ticketsUrl:''
-          });
-        });
-        imported = Object.values(map);
+      if (!data || !Array.isArray(data.runs)) {
+        throw new Error('Expected a JSON object with a top-level "runs" array.');
       }
+      const imported = data.runs;
       if (!imported.length) { alert('No runs found in file.'); return; }
       let added = 0, replaced = 0;
       imported.forEach(imp => {
@@ -1126,16 +1107,6 @@ function closeExport() {
 
 function renderExport() {
   document.getElementById('jsonOutput').textContent = JSON.stringify({ runs }, null, 2);
-}
-
-function copyJSON() {
-  const text = document.getElementById('jsonOutput').textContent;
-  navigator.clipboard.writeText(text).then(() => {
-    const btn = event.target;
-    const orig = btn.textContent;
-    btn.textContent = '✓ Copied!';
-    setTimeout(() => btn.textContent = orig, 1500);
-  });
 }
 
 function downloadJSON() {

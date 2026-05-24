@@ -89,23 +89,25 @@ const { performances } = Astro.props
     --border: #e0d9d0;
     /* bar fill colors — style B flat muted tints
        SCS↔AT are near-complementary (rose 7° vs blue 225°) for max small-size contrast.
-       Cabrillo and ABT are treated as "other" (no distinct color). */
-    --col-scs:      #E9C1BE;   /* Carnation   7°   SCS      */
-    --col-at:       #AFBFEE;   /* Dusk      225°   AT       */
-    --col-mct:      #C1E1C6;   /* Willow    130°   MCT      */
-    --col-renegade: #AFE9E7;   /* Verdigris 178°   Renegade */
-    --col-other:    #E0DCD6;   /* warm grey — Cabrillo / ABT / unknown fallback */
-    --col-multi:    #E0DCD6;   /* warm grey M1 — annual multi-company days */
+ */
+    --col-scs: #e9c1be; /* Carnation   7°   SCS      */
+    --col-at: #afbfee; /* Dusk      225°   AT       */
+    --col-mct: #c9e6bf; /* Willow    116°   MCT      */
+    --col-renegade: #b7e8ec; /* Verdigris 188°   Renegade */
+    --col-other: #e0dcd6; /* warm grey — Cabrillo / ABT / unknown fallback */
+    --col-multi: #d4ccc2; /* deeper taupe — annual multi-company days */
     /* legend dot colors — muted accent */
-    --dot-scs:      #BA8A88;   /* dusty rose  */
-    --dot-at:       #7080B8;   /* soft indigo */
-    --dot-mct:      #5CAA72;   /* sage green  */
-    --dot-renegade: #40A0AA;   /* muted teal  */
+    --dot-scs: #ce8481; /* dusty rose  */
+    --dot-at: #7080b8; /* soft indigo */
+    --dot-mct: #68c057; /* olive sage  */
+    --dot-renegade: #479aac; /* sea teal  */
+    --dot-other: #8f8579; /* warm stone  */
     /* fully saturated accent colors — drill-down chip bars and show-card badge */
-    --acc-scs:      #D03C3C;   /* vivid red-rose */
-    --acc-at:       #4064C8;   /* vivid blue     */
-    --acc-mct:      #28A050;   /* vivid green    */
-    --acc-renegade: #1898A8;   /* vivid teal     */
+    --acc-scs: #dc4343; /* vivid red-rose */
+    --acc-at: #4064c8; /* vivid blue     */
+    --acc-mct: #48ae31; /* vivid leaf green */
+    --acc-renegade: #21a4c8; /* vivid sea teal  */
+    --acc-other: #8b8076; /* warm stone accent */
     --pip-eve: #2c2c2c;
     --pip-mat: #8a8278;
     --radius: 6px;
@@ -358,7 +360,7 @@ const { performances } = Astro.props
     background: var(--col-multi) !important;
   }
   .mini-day.has-perf.pip-active {
-    filter: brightness(0.80);
+    filter: brightness(0.8);
     outline: 2px solid rgba(0, 0, 0, 0.2);
     outline-offset: -1px;
   }
@@ -546,7 +548,7 @@ const { performances } = Astro.props
     gap: 3px;
     cursor: pointer;
     -webkit-tap-highlight-color: transparent;
-    filter: saturate(0.6);
+    filter: saturate(0.78) brightness(1.02);
   }
   .perf-bar.bar-single {
     left: 3px;
@@ -712,10 +714,22 @@ const { performances } = Astro.props
     color: var(--ink-muted);
     margin-left: auto;
   }
-  .perf-type-tag[data-type="Preview"]  { background: #FFF0CC; color: #7A5200; }
-  .perf-type-tag[data-type="Opening"]  { background: #C8F0DA; color: #1A5C35; }
-  .perf-type-tag[data-type="Closing"]  { background: #FFD4D4; color: #8C1E1E; }
-  .perf-type-tag[data-type="Talk-back"]{ background: #D4DDFF; color: #2035A0; }
+  .perf-type-tag[data-type='Preview'] {
+    background: #fff0cc;
+    color: #7a5200;
+  }
+  .perf-type-tag[data-type='Opening'] {
+    background: #c8f0da;
+    color: #1a5c35;
+  }
+  .perf-type-tag[data-type='Closing'] {
+    background: #ffd4d4;
+    color: #8c1e1e;
+  }
+  .perf-type-tag[data-type='Talk-back'] {
+    background: #d4ddff;
+    color: #2035a0;
+  }
   .card-show-title {
     font-family: 'Playfair Display', serif;
     font-size: 17px;
@@ -770,8 +784,8 @@ const { performances } = Astro.props
     background: var(--ink);
     color: #fff;
   }
-  .btn-info[aria-disabled="true"],
-  .btn-tickets[aria-disabled="true"] {
+  .btn-info[aria-disabled='true'],
+  .btn-tickets[aria-disabled='true'] {
     opacity: 0.35;
     cursor: default;
     pointer-events: none;
@@ -871,24 +885,24 @@ const { performances } = Astro.props
   const PERFORMANCES = performances
   const TODAY = new Date().toISOString().slice(0, 10)
   const COMPANY_COLORS = {
-    SCS:      'var(--col-scs)',
-    AT:       'var(--col-at)',
-    MCT:      'var(--col-mct)',
-    Renegade: 'var(--col-renegade)',
+    SCS: 'var(--col-scs)',
+    AT: 'var(--col-at)',
+    MCT: 'var(--col-mct)',
+    Renegade: 'var(--col-renegade)'
   }
   const COMPANY_NAMES = {
     SCS: 'Santa Cruz Shakespeare',
     AT: "Actors' Theatre",
     MCT: 'Mountain Community Theater',
     Renegade: 'Renegade Theatre',
-    Cabrillo: 'Cabrillo Stage',
+    Cabrillo: 'Cabrillo Stage'
   }
   const VENUE_NAMES = {
     G: 'The Grove',
     VMB: 'Veterans Memorial Building',
     PH: 'Park Hall',
     AT: "Actors' Theatre",
-    CCT: 'Cabrillo Crocker Theater',
+    CCT: 'Cabrillo Crocker Theater'
   }
   const MONTHS = [
     'January',
@@ -912,22 +926,22 @@ const { performances } = Astro.props
     return COMPANY_COLORS[co] || 'var(--col-other)'
   }
   const COMPANY_DOTS = {
-    SCS:      'var(--dot-scs)',
-    AT:       'var(--dot-at)',
-    MCT:      'var(--dot-mct)',
-    Renegade: 'var(--dot-renegade)',
+    SCS: 'var(--dot-scs)',
+    AT: 'var(--dot-at)',
+    MCT: 'var(--dot-mct)',
+    Renegade: 'var(--dot-renegade)'
   }
   function dotColor(co) {
-    return COMPANY_DOTS[co] || 'var(--ink-muted)'
+    return COMPANY_DOTS[co] || 'var(--dot-other)'
   }
   const COMPANY_ACCS = {
-    SCS:      'var(--acc-scs)',
-    AT:       'var(--acc-at)',
-    MCT:      'var(--acc-mct)',
-    Renegade: 'var(--acc-renegade)',
+    SCS: 'var(--acc-scs)',
+    AT: 'var(--acc-at)',
+    MCT: 'var(--acc-mct)',
+    Renegade: 'var(--acc-renegade)'
   }
   function accentColor(co) {
-    return COMPANY_ACCS[co] || 'var(--ink-muted)'
+    return COMPANY_ACCS[co] || 'var(--acc-other)'
   }
   function dowMon(d) {
     return (d.getDay() + 6) % 7
@@ -957,13 +971,21 @@ const { performances } = Astro.props
   let activePanelCell = null
   let panelShownAt = 0
   let lastTouchTime = 0
-  document.addEventListener('touchstart', () => { lastTouchTime = Date.now() }, { passive: true, capture: true })
+  document.addEventListener(
+    'touchstart',
+    () => {
+      lastTouchTime = Date.now()
+    },
+    { passive: true, capture: true }
+  )
 
   function showHoverPanel(ds, perfs, cellEl, month, isTouch = false) {
     const panel = document.getElementById('hoverPanel')
     const [y, mo, d] = ds.split('-').map(Number)
     const dateLabel = new Date(y, mo - 1, d).toLocaleDateString('en-US', {
-      weekday: 'long', month: 'long', day: 'numeric',
+      weekday: 'long',
+      month: 'long',
+      day: 'numeric'
     })
     let html = `<div class="hover-panel-header">${dateLabel}</div>`
     const sorted = [...perfs].sort((a, b) => a.time.localeCompare(b.time))
@@ -1001,7 +1023,10 @@ const { performances } = Astro.props
     const panel = document.getElementById('hoverPanel')
     panel.classList.remove('visible', 'touch-mode')
     activePanelDate = null
-    if (activePanelCell) { activePanelCell.classList.remove('pip-active'); activePanelCell = null }
+    if (activePanelCell) {
+      activePanelCell.classList.remove('pip-active')
+      activePanelCell = null
+    }
   }
   function perfsByDate(perfs) {
     const m = {}
@@ -1042,11 +1067,11 @@ const { performances } = Astro.props
   }
 
   const LEGEND_ENTRIES = [
-    { color: 'var(--dot-scs)',      label: 'Santa Cruz Shakespeare' },
-    { color: 'var(--dot-at)',       label: "Actors' Theatre" },
-    { color: 'var(--dot-mct)',      label: 'Mountain Community Theater' },
+    { color: 'var(--dot-scs)', label: 'Santa Cruz Shakespeare' },
+    { color: 'var(--dot-at)', label: "Actors' Theatre" },
+    { color: 'var(--dot-mct)', label: 'Mountain Community Theater' },
     { color: 'var(--dot-renegade)', label: 'Renegade Theatre' },
-    { color: 'var(--col-multi)',    label: 'Multiple companies' },
+    { color: 'var(--col-multi)', label: 'Multiple companies' }
   ]
 
   function buildFixedFooter(includeMulti = true) {
@@ -1264,7 +1289,10 @@ const { performances } = Astro.props
               label.textContent = labelText
               const matchPerf = dayPerfs.find((p) => p.showAbv + '|' + p.company === s.key)
               const runId = matchPerf ? matchPerf.runId : null
-              bar.onclick = (e) => { e.stopPropagation(); openSheet(ds, runId) }
+              bar.onclick = (e) => {
+                e.stopPropagation()
+                openSheet(ds, runId)
+              }
               bar.appendChild(label)
               pipRow.appendChild(bar)
             }
@@ -1300,7 +1328,10 @@ const { performances } = Astro.props
       let target = 0
       if (el) {
         let node = el
-        while (node) { target += node.offsetTop; node = node.offsetParent }
+        while (node) {
+          target += node.offsetTop
+          node = node.offsetParent
+        }
         target -= totalFixed
       }
       window.scrollTo({ top: Math.max(0, target), behavior: 'smooth' })
@@ -1348,12 +1379,16 @@ const { performances } = Astro.props
       </div>
       ${p.discounts ? `<div class="card-discounts">Discounts: ${p.discounts}</div>` : ''}
       <div class="card-buttons">
-        ${p.infoUrl
-          ? `<a class="btn-info" href="${p.infoUrl}" target="_blank" rel="noopener">More info</a>`
-          : `<a class="btn-info" aria-disabled="true">More info</a>`}
-        ${p.ticketsUrl
-          ? `<a class="btn-tickets" href="${p.ticketsUrl}" target="_blank" rel="noopener">Get tickets</a>`
-          : `<a class="btn-tickets" aria-disabled="true">Get tickets</a>`}
+        ${
+          p.infoUrl
+            ? `<a class="btn-info" href="${p.infoUrl}" target="_blank" rel="noopener">More info</a>`
+            : `<a class="btn-info" aria-disabled="true">More info</a>`
+        }
+        ${
+          p.ticketsUrl
+            ? `<a class="btn-tickets" href="${p.ticketsUrl}" target="_blank" rel="noopener">Get tickets</a>`
+            : `<a class="btn-tickets" aria-disabled="true">Get tickets</a>`
+        }
       </div>`
       cards.appendChild(card)
     })
@@ -1388,12 +1423,16 @@ const { performances } = Astro.props
 
   document.addEventListener('scroll', hideHoverPanel, { passive: true })
 
-  document.getElementById('scroll-view').addEventListener('scroll', function () {
-    const x = this.scrollLeft
-    document.querySelectorAll('.scroll-month-label').forEach((el) => {
-      el.style.transform = `translateX(${x}px)`
-    })
-  }, { passive: true })
+  document.getElementById('scroll-view').addEventListener(
+    'scroll',
+    function () {
+      const x = this.scrollLeft
+      document.querySelectorAll('.scroll-month-label').forEach((el) => {
+        el.style.transform = `translateX(${x}px)`
+      })
+    },
+    { passive: true }
+  )
 
   document.getElementById('hoverPanel').addEventListener('touchend', (e) => {
     if (Date.now() - panelShownAt < 300) return // ghost touchend from the tap that showed the panel

@@ -1328,13 +1328,12 @@ const { performances } = Astro.props
     })
   }, { passive: true })
 
-  document.getElementById('hoverPanel').addEventListener('click', (e) => {
-    if (isTouchDevice) {
-      const m = parseInt(e.currentTarget.dataset.month, 10)
-      if (!isNaN(m)) {
-        hideHoverPanel()
-        goToMonth(m)
-      }
+  document.getElementById('hoverPanel').addEventListener('touchend', (e) => {
+    const m = parseInt(e.currentTarget.dataset.month, 10)
+    if (!isNaN(m)) {
+      e.preventDefault() // cancel synthetic click events so underlying mini-days don't fire
+      hideHoverPanel()
+      goToMonth(m)
     }
   })
 

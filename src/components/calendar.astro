@@ -338,9 +338,20 @@ const { performances } = Astro.props
   .mini-day.has-perf {
     color: rgba(0, 0, 0, 0.75);
     font-weight: 600;
+    cursor: pointer;
   }
   .mini-day.has-perf.multi {
     background: var(--col-multi) !important;
+  }
+  .mini-day.has-perf.pip-active {
+    filter: brightness(0.80);
+    outline: 2px solid rgba(0, 0, 0, 0.2);
+    outline-offset: -1px;
+  }
+  @media (hover: hover) {
+    .mini-day.has-perf:hover {
+      filter: brightness(0.88);
+    }
   }
   .mini-day.empty {
     opacity: 0;
@@ -899,6 +910,7 @@ const { performances } = Astro.props
     return m === 0 ? `${h12}${period}` : `${h12}:${String(m).padStart(2, '0')}${period}`
   }
   let activePanelDate = null
+  let activePanelCell = null
   let panelShownAt = 0
   let lastTouchTime = 0
   document.addEventListener('touchstart', () => { lastTouchTime = Date.now() }, { passive: true, capture: true })
@@ -933,6 +945,9 @@ const { performances } = Astro.props
     panel.style.left = Math.max(8, left) + 'px'
     panel.style.top = Math.max(8, top) + 'px'
     activePanelDate = ds
+    if (activePanelCell) activePanelCell.classList.remove('pip-active')
+    activePanelCell = isTouch ? cellEl : null
+    if (isTouch) cellEl.classList.add('pip-active')
     panel.dataset.month = month ?? ''
     panelShownAt = Date.now()
     panel.classList.add('visible')
@@ -942,6 +957,7 @@ const { performances } = Astro.props
     const panel = document.getElementById('hoverPanel')
     panel.classList.remove('visible', 'touch-mode')
     activePanelDate = null
+    if (activePanelCell) { activePanelCell.classList.remove('pip-active'); activePanelCell = null }
   }
   function perfsByDate(perfs) {
     const m = {}

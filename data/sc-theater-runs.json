@@ -200,7 +200,7 @@
       "id": "run-1779381324149",
       "company": "SCS",
       "showAbv": "Much Ado",
-      "show": "Much Ado About Nothing (Shakespeare)",
+      "show": "Much Ado About Nothing",
       "genre": "Comedy",
       "venue": "G",
       "price": "$72-$92",
@@ -368,7 +368,7 @@
       "id": "run-1779381472331",
       "company": "SCS",
       "showAbv": "Macbeth",
-      "show": "Macbeth (Shakespeare)",
+      "show": "Macbeth",
       "genre": "Tragedy",
       "venue": "G",
       "price": "",
@@ -1183,6 +1183,965 @@
         },
         {
           "date": "2026-08-02",
+          "time": "14:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        }
+      ]
+    },
+    {
+      "id": "run-1779615489527",
+      "company": "AT",
+      "showAbv": "8x10s",
+      "show": "8 Tens @ 8 ",
+      "genre": "Drama",
+      "venue": "AT",
+      "price": "$35",
+      "discounts": "",
+      "infoUrl": "https://www.santacruzactorstheatre.org/8-tens-at-8-festival",
+      "ticketsUrl": "",
+      "performances": [
+        {
+          "date": "2026-01-16",
+          "time": "20:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-01-17",
+          "time": "20:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-01-18",
+          "time": "14:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-01-23",
+          "time": "20:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-01-24",
+          "time": "20:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-01-25",
+          "time": "14:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-01-30",
+          "time": "20:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-01-31",
+          "time": "20:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-02-01",
+          "time": "14:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-02-06",
+          "time": "20:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-02-07",
+          "time": "20:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-02-08",
+          "time": "14:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-02-13",
+          "time": "20:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-02-14",
+          "time": "20:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-02-15",
+          "time": "14:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        }
+      ]
+    },
+    {
+      "id": "run-1779615762058",
+      "company": "AT",
+      "showAbv": "8x10s (BOTR)",
+      "show": "8 Tens @ 8 (Best of the Rest)",
+      "genre": "Drama",
+      "venue": "AT",
+      "price": "$35",
+      "discounts": "",
+      "infoUrl": "https://www.santacruzactorstheatre.org/8-tens-at-8-festival",
+      "ticketsUrl": "",
+      "performances": [
+        {
+          "date": "2026-02-27",
+          "time": "20:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-02-28",
+          "time": "20:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-03-01",
+          "time": "14:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-03-06",
+          "time": "20:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-03-07",
+          "time": "20:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-03-08",
+          "time": "14:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        }
+      ]
+    },
+    {
+      "id": "run-1779615960772",
+      "company": "SCS",
+      "showAbv": "Vincent",
+      "show": "Vincent",
+      "genre": "Drama",
+      "venue": "VMB",
+      "price": "$60",
+      "discounts": "",
+      "infoUrl": "https://santacruzshakespeare.org/performances/vincent/",
+      "ticketsUrl": "",
+      "performances": [
+        {
+          "date": "2026-02-27",
+          "time": "20:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-02-28",
+          "time": "20:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-03-01",
+          "time": "14:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-03-06",
+          "time": "20:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-03-07",
+          "time": "20:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-03-08",
+          "time": "14:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-03-13",
+          "time": "20:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-03-14",
+          "time": "20:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-03-15",
+          "time": "14:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-03-20",
+          "time": "20:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-03-21",
+          "time": "20:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-03-22",
+          "time": "14:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-03-27",
+          "time": "20:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-03-28",
+          "time": "20:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-03-29",
+          "time": "14:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-04-03",
+          "time": "20:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-04-04",
+          "time": "20:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-04-05",
+          "time": "14:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-04-10",
+          "time": "20:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        }
+      ]
+    },
+    {
+      "id": "run-1779616158788",
+      "company": "SCS",
+      "showAbv": "Private Lives",
+      "show": "Private Lives (Noel Coward)",
+      "genre": "Comedy",
+      "venue": "G",
+      "price": "$69 - $82.50",
+      "discounts": "Senior/Military $62.10",
+      "infoUrl": "https://santacruzshakespeare.org/performances/private-lives/",
+      "ticketsUrl": "https://santacruzshakespeare.my.salesforce-sites.com/ticket/#/events/a0Scx000000gNEjEAM",
+      "performances": [
+        {
+          "date": "2026-09-04",
+          "time": "14:00",
+          "perfType": "Preview",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-09-05",
+          "time": "19:00",
+          "perfType": "Opening",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-09-06",
+          "time": "14:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-09-12",
+          "time": "14:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-09-13",
+          "time": "19:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-09-17",
+          "time": "19:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-09-19",
+          "time": "19:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-09-20",
+          "time": "14:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-09-23",
+          "time": "19:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-09-25",
+          "time": "19:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-09-26",
+          "time": "14:00",
+          "perfType": "Talk-back",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-09-27",
+          "time": "19:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-09-30",
+          "time": "19:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-10-02",
+          "time": "19:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-10-03",
+          "time": "14:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-10-04",
+          "time": "14:00",
+          "perfType": "Closing",
+          "discounts": "",
+          "ticketsUrl": ""
+        }
+      ]
+    },
+    {
+      "id": "run-1779616512534",
+      "company": "SCS",
+      "showAbv": "Last Five Years",
+      "show": "The Last Five Years (Jason Robert Brown)",
+      "genre": "Musical",
+      "venue": "G",
+      "price": "$69 - $86.25",
+      "discounts": "Senior/Military $62.10",
+      "infoUrl": "https://santacruzshakespeare.org/performances/the-last-five-years/",
+      "ticketsUrl": "https://santacruzshakespeare.my.salesforce-sites.com/ticket/#/events/a0Scx000000hE2vEAE",
+      "performances": [
+        {
+          "date": "2026-09-11",
+          "time": "14:00",
+          "perfType": "Preview",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-09-12",
+          "time": "19:00",
+          "perfType": "Opening",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-09-13",
+          "time": "14:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-09-18",
+          "time": "19:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-09-19",
+          "time": "14:00",
+          "perfType": "Talk-back",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-09-24",
+          "time": "19:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-09-26",
+          "time": "19:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-09-27",
+          "time": "14:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-10-01",
+          "time": "19:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-10-03",
+          "time": "19:00",
+          "perfType": "Closing",
+          "discounts": "",
+          "ticketsUrl": ""
+        }
+      ]
+    },
+    {
+      "id": "run-1779616903213",
+      "company": "SCS",
+      "showAbv": "Christmas Carol",
+      "show": "A Christmas Carol",
+      "genre": "Musical",
+      "venue": "VMB",
+      "price": "$31.35 - $62.70",
+      "discounts": "",
+      "infoUrl": "https://santacruzshakespeare.org/performances/christmascarol/",
+      "ticketsUrl": "https://santacruzshakespeare.my.salesforce-sites.com/ticket/#/events/a0Scx000000iUqPEAU",
+      "performances": [
+        {
+          "date": "2026-12-03",
+          "time": "14:00",
+          "perfType": "Preview",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-12-04",
+          "time": "19:00",
+          "perfType": "Opening",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-12-05",
+          "time": "14:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-12-05",
+          "time": "19:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-12-06",
+          "time": "14:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-12-10",
+          "time": "19:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-12-11",
+          "time": "19:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-12-12",
+          "time": "14:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-12-12",
+          "time": "19:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-12-13",
+          "time": "14:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-12-17",
+          "time": "19:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-12-18",
+          "time": "19:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-12-19",
+          "time": "14:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-12-19",
+          "time": "19:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-12-20",
+          "time": "14:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-12-20",
+          "time": "19:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-12-22",
+          "time": "14:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-12-22",
+          "time": "19:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-12-23",
+          "time": "14:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-12-23",
+          "time": "19:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-12-24",
+          "time": "11:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-12-24",
+          "time": "14:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-12-24",
+          "time": "18:00",
+          "perfType": "Closing",
+          "discounts": "",
+          "ticketsUrl": ""
+        }
+      ]
+    },
+    {
+      "id": "run-1779617218671",
+      "company": "MCT",
+      "showAbv": "Spitfire Grill",
+      "show": "The Spitfire Grill (Valcq/Alley)",
+      "genre": "",
+      "venue": "",
+      "price": "$40",
+      "discounts": "Senior/Student $30",
+      "infoUrl": "",
+      "ticketsUrl": "",
+      "performances": [
+        {
+          "date": "2026-03-06",
+          "time": "20:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-03-07",
+          "time": "20:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-03-08",
+          "time": "14:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-03-13",
+          "time": "20:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-03-14",
+          "time": "20:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-03-15",
+          "time": "14:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-03-20",
+          "time": "20:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-03-21",
+          "time": "20:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-03-22",
+          "time": "14:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-03-27",
+          "time": "20:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-03-28",
+          "time": "20:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-03-29",
+          "time": "14:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-04-03",
+          "time": "20:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-04-04",
+          "time": "20:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-04-05",
+          "time": "14:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        }
+      ]
+    },
+    {
+      "id": "run-1779617377368",
+      "company": "MCT",
+      "showAbv": "New Works Weekend",
+      "show": "New Works Weekend",
+      "genre": "Drama",
+      "venue": "PH",
+      "price": "",
+      "discounts": "",
+      "infoUrl": "",
+      "ticketsUrl": "",
+      "performances": [
+        {
+          "date": "2026-08-14",
+          "time": "20:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-08-15",
+          "time": "20:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-08-16",
+          "time": "14:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        }
+      ]
+    },
+    {
+      "id": "run-1779617466366",
+      "company": "MCT",
+      "showAbv": "Coney Island Ctmas",
+      "show": "Coney Island Christmas",
+      "genre": "Comedy",
+      "venue": "PH",
+      "price": "$30",
+      "discounts": "Senior/Student $25",
+      "infoUrl": "https://mctshows.org/season-subscription/",
+      "ticketsUrl": "",
+      "performances": [
+        {
+          "date": "2026-11-20",
+          "time": "20:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-11-21",
+          "time": "20:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-11-22",
+          "time": "14:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-11-27",
+          "time": "20:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-11-28",
+          "time": "20:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-11-29",
+          "time": "14:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-12-04",
+          "time": "20:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-12-05",
+          "time": "20:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-12-06",
+          "time": "14:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-12-11",
+          "time": "20:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-12-12",
+          "time": "20:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-12-13",
           "time": "14:00",
           "perfType": "",
           "discounts": "",

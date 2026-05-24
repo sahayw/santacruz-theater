@@ -942,6 +942,14 @@ document.getElementById('patternDays').addEventListener('click', e => {
   }
 });
 
+document.getElementById('pat-from').addEventListener('change', e => {
+  const toEl = document.getElementById('pat-to');
+  if (!e.target.value) return;
+  const next = new Date(e.target.value + 'T12:00:00');
+  next.setDate(next.getDate() + 1);
+  toEl.value = next.toISOString().slice(0, 10);
+});
+
 function generatePattern() {
   const from  = document.getElementById('pat-from').value;
   const to    = document.getElementById('pat-to').value;

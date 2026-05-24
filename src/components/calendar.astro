@@ -87,18 +87,32 @@ const { performances } = Astro.props
     --ink: #1a1612;
     --ink-muted: #6b6259;
     --border: #e0d9d0;
-    --col-scs: #FFB3AF;
-    --col-at: #A8CFEE;
-    --col-mct: #A8DCBF;
-    --col-other: #C8C8D0;
-    --col-multi: #CBBDED;
+    /* bar fill colors — style B flat muted tints
+       SCS↔AT are near-complementary (rose 7° vs blue 225°) for max small-size contrast.
+       Cabrillo and ABT are treated as "other" (no distinct color). */
+    --col-scs:      #E9C1BE;   /* Carnation   7°   SCS      */
+    --col-at:       #AFBFEE;   /* Dusk      225°   AT       */
+    --col-mct:      #C1E1C6;   /* Willow    130°   MCT      */
+    --col-renegade: #AFE9E7;   /* Verdigris 178°   Renegade */
+    --col-other:    #E0DCD6;   /* warm grey — Cabrillo / ABT / unknown fallback */
+    --col-multi:    #E0DCD6;   /* warm grey M1 — annual multi-company days */
+    /* legend dot colors — muted accent */
+    --dot-scs:      #BA8A88;   /* dusty rose  */
+    --dot-at:       #7080B8;   /* soft indigo */
+    --dot-mct:      #5CAA72;   /* sage green  */
+    --dot-renegade: #40A0AA;   /* muted teal  */
+    /* fully saturated accent colors — drill-down chip bars and show-card badge */
+    --acc-scs:      #D03C3C;   /* vivid red-rose */
+    --acc-at:       #4064C8;   /* vivid blue     */
+    --acc-mct:      #28A050;   /* vivid green    */
+    --acc-renegade: #1898A8;   /* vivid teal     */
     --pip-eve: #2c2c2c;
     --pip-mat: #8a8278;
     --radius: 6px;
     --header-h: 52px;
     --filter-h: 40px;
     --col-header-h: 28px;
-    --footer-h: 60px;
+    --footer-h: 68px;
     --shows-col-w: clamp(120px, 21vw, 160px);
     --daynum-h: 16px;
     --row-h: 22px;
@@ -377,11 +391,11 @@ const { performances } = Astro.props
     display: flex;
     align-items: center;
     gap: 5px;
-    font-size: 11px;
+    font-size: 13px;
   }
   .legend-dot {
-    width: 11px;
-    height: 11px;
+    width: 13px;
+    height: 13px;
     border-radius: 3px;
     flex-shrink: 0;
   }
@@ -532,6 +546,7 @@ const { performances } = Astro.props
     gap: 3px;
     cursor: pointer;
     -webkit-tap-highlight-color: transparent;
+    filter: saturate(0.6);
   }
   .perf-bar.bar-single {
     left: 3px;
@@ -587,20 +602,20 @@ const { performances } = Astro.props
     display: flex;
   }
   .fixed-legend-footer .legend-title {
-    font-size: 10px;
+    font-size: 11px;
     font-weight: 600;
     color: var(--ink-muted);
     white-space: nowrap;
   }
   .fixed-legend-footer .legend-item {
-    font-size: 10px;
+    font-size: 11px;
     white-space: nowrap;
     flex-shrink: 0;
     gap: 4px;
   }
   .fixed-legend-footer .legend-dot {
-    width: 10px;
-    height: 10px;
+    width: 11px;
+    height: 11px;
     border-radius: 2px;
   }
 
@@ -843,11 +858,11 @@ const { performances } = Astro.props
       background: rgba(180, 120, 40, 0.18);
     }
     .day-col.has-perf:has(.day-num-row:hover) .perf-bar {
-      filter: brightness(0.88);
+      filter: saturate(0.6) brightness(0.88);
     }
     /* Hovering a specific bar: highlight only that bar */
     .day-col.has-perf .perf-bar:hover {
-      filter: brightness(0.88);
+      filter: saturate(0.6) brightness(0.88);
     }
   }
 </style>
@@ -855,7 +870,12 @@ const { performances } = Astro.props
 <script define:vars={{ performances }} is:inline>
   const PERFORMANCES = performances
   const TODAY = new Date().toISOString().slice(0, 10)
-  const COMPANY_COLORS = { SCS: 'var(--col-scs)', AT: 'var(--col-at)', MCT: 'var(--col-mct)' }
+  const COMPANY_COLORS = {
+    SCS:      'var(--col-scs)',
+    AT:       'var(--col-at)',
+    MCT:      'var(--col-mct)',
+    Renegade: 'var(--col-renegade)',
+  }
   const COMPANY_NAMES = {
     SCS: 'Santa Cruz Shakespeare',
     AT: "Actors' Theatre",
@@ -890,6 +910,24 @@ const { performances } = Astro.props
 
   function companyColor(co) {
     return COMPANY_COLORS[co] || 'var(--col-other)'
+  }
+  const COMPANY_DOTS = {
+    SCS:      'var(--dot-scs)',
+    AT:       'var(--dot-at)',
+    MCT:      'var(--dot-mct)',
+    Renegade: 'var(--dot-renegade)',
+  }
+  function dotColor(co) {
+    return COMPANY_DOTS[co] || 'var(--ink-muted)'
+  }
+  const COMPANY_ACCS = {
+    SCS:      'var(--acc-scs)',
+    AT:       'var(--acc-at)',
+    MCT:      'var(--acc-mct)',
+    Renegade: 'var(--acc-renegade)',
+  }
+  function accentColor(co) {
+    return COMPANY_ACCS[co] || 'var(--ink-muted)'
   }
   function dowMon(d) {
     return (d.getDay() + 6) % 7
@@ -933,7 +971,7 @@ const { performances } = Astro.props
       const venue = VENUE_NAMES[p.venue] || p.venue
       html += `<div class="hover-panel-row">
         <div class="hover-panel-show">
-          <div class="hover-panel-dot" style="background:${companyColor(p.company)}"></div>
+          <div class="hover-panel-dot" style="background:${dotColor(p.company)}"></div>
           <span>${p.company} · ${p.showAbv}</span>
         </div>
         <div class="hover-panel-meta">${fmtTime(p.time)} · ${venue}</div>
@@ -1004,11 +1042,11 @@ const { performances } = Astro.props
   }
 
   const LEGEND_ENTRIES = [
-    { color: 'var(--col-scs)', label: 'Santa Cruz Shakespeare (SCS)' },
-    { color: 'var(--col-at)', label: "Actors' Theatre (AT)" },
-    { color: 'var(--col-mct)', label: 'Mountain Community Theater (MCT)' },
-    { color: 'var(--col-other)', label: 'Other companies' },
-    { color: 'var(--col-multi)', label: 'Multiple companies' }
+    { color: 'var(--dot-scs)',      label: 'Santa Cruz Shakespeare' },
+    { color: 'var(--dot-at)',       label: "Actors' Theatre" },
+    { color: 'var(--dot-mct)',      label: 'Mountain Community Theater' },
+    { color: 'var(--dot-renegade)', label: 'Renegade Theatre' },
+    { color: 'var(--col-multi)',    label: 'Multiple companies' },
   ]
 
   function buildFixedFooter(includeMulti = true) {
@@ -1019,12 +1057,12 @@ const { performances } = Astro.props
     title.textContent = 'COMPANIES'
     footer.appendChild(title)
     LEGEND_ENTRIES.forEach((e) => {
-      if (!includeMulti && e.color === 'var(--col-multi)') return
+      if (!includeMulti && e.label === 'Multiple companies') return
       const item = document.createElement('div')
       item.className = 'legend-item'
       item.style.cssText =
-        'display:flex;align-items:center;gap:4px;font-size:10px;white-space:nowrap;'
-      item.innerHTML = `<div class="legend-dot" style="background:${e.color};width:10px;height:10px;border-radius:2px;flex-shrink:0"></div><span>${e.label}</span>`
+        'display:flex;align-items:center;gap:4px;font-size:11px;white-space:nowrap;'
+      item.innerHTML = `<div class="legend-dot" style="background:${e.color};width:11px;height:11px;border-radius:2px;flex-shrink:0"></div><span>${e.label}</span>`
       footer.appendChild(item)
     })
   }
@@ -1169,9 +1207,7 @@ const { performances } = Astro.props
         weekShows.forEach((s) => {
           const chip = document.createElement('div')
           chip.className = 'show-chip'
-          chip.style.background = companyColor(s.company)
-          chip.style.color = 'rgba(0,0,0,0.75)'
-          chip.innerHTML = `<span class="show-chip-name" title="${s.show}">${s.showAbv}</span>`
+          chip.innerHTML = `<span class="show-chip-bar" style="background:${accentColor(s.company)}"></span><span class="show-chip-name" title="${s.show}">${s.showAbv}</span>`
           showsCol.appendChild(chip)
         })
       }
@@ -1299,7 +1335,7 @@ const { performances } = Astro.props
       const timeStr = `${h > 12 ? h - 12 : h || 12}:${String(min).padStart(2, '0')}${h >= 12 ? 'pm' : 'am'}`
       card.innerHTML = `
       <div class="perf-card-company">
-        <div class="company-badge" style="background:${companyColor(p.company)}"></div>
+        <div class="company-badge" style="background:${accentColor(p.company)}"></div>
         <span class="company-name">${COMPANY_NAMES[p.company] || p.company}</span>
         ${p.perfType ? `<span class="perf-type-tag" data-type="${p.perfType}">${p.perfType}</span>` : ''}
       </div>

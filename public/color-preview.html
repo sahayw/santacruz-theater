@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Color Palette Preview — Santa Cruz Theater</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f7f4ef;
+    --surface: #ffffff;
+    --ink: #1a1612;
+    --ink-muted: #6b6259;
+    --border: #e0d9d0;
+
+    /* ── 6-COLOR PALETTE — revised fills ──
+       Hues at ~60° wheel intervals, skipping yellow (60-90°).
+       Fill: S≈38%, L≈82%  —  noticeably tinted but not dominant.
+       Accent: S≈65%, L≈52% — used in chip bars and legend dots.
+       Grad: near-white tint (~L:96%) used as gradient right-edge.
+
+       Carnation  hue   7°  — SCS
+       Saffron    hue  36°  — AT
+       Willow     hue 130°  — MCT
+       Verdigris  hue 178°  — Renegade
+       Dusk       hue 225°  — Cabrillo
+       Orchid     hue 305°  — ABT                                   */
+
+    --c1-fill: #E9C1BE;   /* Carnation  — HSL(7,  38%, 82%) */
+    --c1-acc:  #C05248;   /* accent     — HSL(7,  44%, 52%) */
+    --c1-grad: #FBF2F1;   /* grad end   — HSL(7,  65%, 96%) */
+
+    --c2-fill: #EAD6B8;   /* Saffron    — HSL(36, 55%, 82%) */
+    --c2-acc:  #C08038;   /* accent     — HSL(36, 55%, 48%) */
+    --c2-grad: #FAF5EE;   /* grad end   — HSL(36, 70%, 96%) */
+
+    --c3-fill: #C1E1C6;   /* Willow     — HSL(130,35%, 82%) */
+    --c3-acc:  #38A062;   /* accent     — HSL(130,47%, 42%) */
+    --c3-grad: #F0F8F2;   /* grad end   — HSL(130,50%, 96%) */
+
+    --c4-fill: #AFE9E7;   /* Verdigris  — HSL(178,38%, 80%) */
+    --c4-acc:  #2490A0;   /* accent     — HSL(178,63%, 38%) */
+    --c4-grad: #EEF8F8;   /* grad end   — HSL(178,60%, 95%) */
+
+    --c5-fill: #AFBFEE;   /* Dusk       — HSL(225,40%, 81%) */
+    --c5-acc:  #4460B8;   /* accent     — HSL(225,46%, 49%) */
+    --c5-grad: #EEF1FA;   /* grad end   — HSL(225,65%, 96%) */
+
+    --c6-fill: #E9AFE4;   /* Orchid     — HSL(305,38%, 80%) */
+    --c6-acc:  #9034A0;   /* accent     — HSL(305,52%, 41%) */
+    --c6-grad: #FAF0FA;   /* grad end   — HSL(305,70%, 96%) */
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    font-size: 13px;
+    padding: 20px 16px 48px;
+    max-width: 860px;
+    margin: 0 auto;
+  }
+  h1 {
+    font-family: 'DM Serif Display', serif;
+    font-size: 20px;
+    font-weight: 400;
+    margin-bottom: 4px;
+  }
+  .intro { color: var(--ink-muted); font-size: 11px; margin-bottom: 20px; line-height: 1.6; }
+
+  /* ── PALETTE SWATCHES ── */
+  .palette-section { margin-bottom: 22px; }
+  .palette-section h2 {
+    font-size: 9px;
+    font-weight: 600;
+    color: var(--ink-muted);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-bottom: 9px;
+  }
+  .swatch-row { display: flex; gap: 8px; flex-wrap: wrap; }
+  .swatch { display: flex; flex-direction: column; align-items: center; gap: 3px; }
+  .swatch-block {
+    width: 56px; height: 36px;
+    border-radius: 5px;
+    border: 1px solid rgba(0,0,0,0.09);
+    position: relative;
+    overflow: hidden;
+    display: flex; align-items: flex-end;
+  }
+  .swatch-fill {
+    position: absolute; inset: 0;
+  }
+  .swatch-acc-strip {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 8px;
+  }
+  .swatch-label { font-size: 9px; color: var(--ink-muted); }
+  .swatch-name  { font-size: 8px; color: #b0a898; }
+
+  /* ── TWO-COLUMN GRID ── */
+  .col-pair {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    margin-bottom: 28px;
+  }
+  .mock-col { display: flex; flex-direction: column; }
+  .mock-col-title {
+    font-family: 'DM Serif Display', serif;
+    font-size: 14px;
+    font-weight: 400;
+    margin-bottom: 2px;
+  }
+  .mock-col-desc {
+    font-size: 10px;
+    color: var(--ink-muted);
+    line-height: 1.5;
+    margin-bottom: 9px;
+  }
+
+  /* ── DRILL-DOWN MOCK ── */
+  .mock-wrap {
+    border: 1px solid var(--border);
+    border-radius: 7px;
+    overflow: hidden;
+    background: var(--surface);
+  }
+  .mock-hdr {
+    display: grid;
+    grid-template-columns: 70px repeat(7, 1fr);
+    background: var(--ink);
+    height: 21px;
+  }
+  .mock-hdr span {
+    display: flex; align-items: center; justify-content: center;
+    font-size: 8px; font-weight: 500;
+    color: rgba(255,255,255,0.72);
+    border-left: 1px solid rgba(255,255,255,0.14);
+  }
+  .mock-hdr span:first-child {
+    color: rgba(255,255,255,0.42);
+    justify-content: flex-start;
+    padding-left: 7px;
+    border-left: none;
+  }
+  .mock-month {
+    font-family: 'DM Serif Display', serif;
+    font-size: 12px; font-weight: 400; color: #433c36;
+    padding: 3px 8px 2px;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg);
+  }
+  .mock-week {
+    display: grid;
+    grid-template-columns: 70px repeat(7, 1fr);
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+  }
+  .mock-week:last-of-type { border-bottom: none; }
+  .mock-shows {
+    border-right: 2px solid var(--border);
+    padding: 1px 0;
+    background: var(--bg);
+    display: flex; flex-direction: column;
+  }
+  .chip {
+    height: 17px;
+    margin: 1px 2px;
+    border-radius: 3px;
+    display: flex; align-items: center; gap: 3px;
+    padding: 0 4px;
+    font-size: 9px;
+  }
+  .chip-bar { width: 3px; height: 11px; border-radius: 2px; flex-shrink: 0; }
+  .chip-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .day {
+    border-left: 1px solid var(--border);
+    display: flex; flex-direction: column; min-width: 0;
+  }
+  .day.om { background: #e8e4de; }
+  .dn {
+    height: 13px;
+    display: flex; align-items: center; justify-content: center;
+    border-bottom: 1px solid var(--border);
+    font-size: 9px;
+    font-family: 'DM Serif Display', serif;
+    color: #433c36;
+    background: var(--bg);
+    flex-shrink: 0; line-height: 0;
+  }
+  .day.om .dn { background: #e8e4de; }
+  .pr {
+    height: 17px;
+    position: relative;
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+  .pr:last-child { border-bottom: none; }
+  .bar {
+    position: absolute;
+    top: 1px; bottom: 1px; left: 2px; right: 2px;
+    border-radius: 3px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .bl { font-size: 7px; font-weight: 700; color: rgba(0,0,0,0.55); letter-spacing: 0.03em; line-height: 1; }
+  .leg {
+    display: flex; gap: 7px; align-items: center;
+    padding: 6px 8px;
+    border-top: 1px solid var(--border);
+    background: var(--surface);
+    flex-wrap: wrap;
+  }
+  .li { display: flex; align-items: center; gap: 3px; font-size: 9px; color: var(--ink-muted); }
+  .ld { width: 9px; height: 9px; border-radius: 2px; flex-shrink: 0; }
+
+  hr { border: none; border-top: 1px solid var(--border); margin: 24px 0; }
+
+  /* ── MULTI-COMPANY ANNUAL TREATMENT ── */
+  .multi-row { display: flex; gap: 18px; flex-wrap: wrap; margin-top: 10px; }
+  .mini-opt { display: flex; flex-direction: column; align-items: center; gap: 5px; }
+  .mini-lbl { font-size: 9px; color: var(--ink-muted); text-align: center; max-width: 80px; line-height: 1.4; }
+  .mini-day {
+    width: 28px; height: 28px; border-radius: 4px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; font-family: 'DM Serif Display', serif;
+    color: rgba(0,0,0,0.65); font-weight: 400;
+  }
+  .hatch {
+    background-color: var(--bg);
+    background-image: repeating-linear-gradient(
+      45deg, rgba(0,0,0,0.09) 0px, rgba(0,0,0,0.09) 1px, transparent 1px, transparent 5px
+    );
+  }
+
+  /* helper: show same data in both columns with different bar style */
+  /* shared data: both columns use same week structure, bar colors defined per-column */
+</style>
+</head>
+<body>
+
+<h1>Color Palette — Revised</h1>
+<p class="intro">
+  Six hues at ≈60° intervals. Fills boosted to S≈38–55%, L≈80–82% (clearly tinted).
+  Legend dots and chip bars show the fully saturated accent. B = flat fill · C = gradient wash.
+</p>
+
+<!-- ── SWATCHES ── -->
+<div class="palette-section">
+  <h2>6-color palette — fill (body) / accent (bottom strip) / gradient end</h2>
+  <div class="swatch-row">
+    <div class="swatch">
+      <div class="swatch-block">
+        <div class="swatch-fill" style="background:var(--c1-fill)"></div>
+        <div class="swatch-acc-strip" style="background:var(--c1-acc)"></div>
+      </div>
+      <div class="swatch-label">SCS</div>
+      <div class="swatch-name">Carnation 7°</div>
+    </div>
+    <div class="swatch">
+      <div class="swatch-block">
+        <div class="swatch-fill" style="background:var(--c2-fill)"></div>
+        <div class="swatch-acc-strip" style="background:var(--c2-acc)"></div>
+      </div>
+      <div class="swatch-label">AT</div>
+      <div class="swatch-name">Saffron 36°</div>
+    </div>
+    <div class="swatch">
+      <div class="swatch-block">
+        <div class="swatch-fill" style="background:var(--c3-fill)"></div>
+        <div class="swatch-acc-strip" style="background:var(--c3-acc)"></div>
+      </div>
+      <div class="swatch-label">MCT</div>
+      <div class="swatch-name">Willow 130°</div>
+    </div>
+    <div class="swatch">
+      <div class="swatch-block">
+        <div class="swatch-fill" style="background:var(--c4-fill)"></div>
+        <div class="swatch-acc-strip" style="background:var(--c4-acc)"></div>
+      </div>
+      <div class="swatch-label">Renegade</div>
+      <div class="swatch-name">Verdigris 178°</div>
+    </div>
+    <div class="swatch">
+      <div class="swatch-block">
+        <div class="swatch-fill" style="background:var(--c5-fill)"></div>
+        <div class="swatch-acc-strip" style="background:var(--c5-acc)"></div>
+      </div>
+      <div class="swatch-label">Cabrillo</div>
+      <div class="swatch-name">Dusk 225°</div>
+    </div>
+    <div class="swatch">
+      <div class="swatch-block">
+        <div class="swatch-fill" style="background:var(--c6-fill)"></div>
+        <div class="swatch-acc-strip" style="background:var(--c6-acc)"></div>
+      </div>
+      <div class="swatch-label">ABT</div>
+      <div class="swatch-name">Orchid 305°</div>
+    </div>
+  </div>
+</div>
+
+<hr>
+
+<!-- ── SIDE-BY-SIDE ── -->
+<div class="col-pair">
+
+  <!-- ══ B — FLAT WARM-MIST ══ -->
+  <div class="mock-col">
+    <div class="mock-col-title">B — Flat fill</div>
+    <div class="mock-col-desc">Solid tinted fill. Clean, flat, easy to scan.
+      Legend dots use the saturated accent color.</div>
+    <div class="mock-wrap">
+      <div class="mock-hdr">
+        <span>Shows this week</span>
+        <span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span>
+      </div>
+      <div class="mock-month">May</div>
+
+      <!-- week 1 -->
+      <div class="mock-week">
+        <div class="mock-shows">
+          <div class="chip"><div class="chip-bar" style="background:var(--c1-acc)"></div><div class="chip-name">Lear</div></div>
+          <div class="chip"><div class="chip-bar" style="background:var(--c2-acc)"></div><div class="chip-name">Cabaret</div></div>
+          <div class="chip"><div class="chip-bar" style="background:var(--c3-acc)"></div><div class="chip-name">Much Ado</div></div>
+        </div>
+        <div class="day"><div class="dn">5</div>
+          <div class="pr"><div class="bar" style="background:var(--c1-fill)"><span class="bl">M</span></div></div>
+          <div class="pr"></div><div class="pr"></div>
+        </div>
+        <div class="day"><div class="dn">6</div><div class="pr"></div><div class="pr"></div><div class="pr"></div></div>
+        <div class="day"><div class="dn">7</div>
+          <div class="pr"><div class="bar" style="background:var(--c1-fill)"><span class="bl">E</span></div></div>
+          <div class="pr"><div class="bar" style="background:var(--c2-fill)"><span class="bl">E</span></div></div>
+          <div class="pr"></div>
+        </div>
+        <div class="day"><div class="dn">8</div>
+          <div class="pr"></div>
+          <div class="pr"><div class="bar" style="background:var(--c2-fill)"><span class="bl">E</span></div></div>
+          <div class="pr"></div>
+        </div>
+        <div class="day"><div class="dn">9</div>
+          <div class="pr"><div class="bar" style="background:var(--c1-fill)"><span class="bl">E</span></div></div>
+          <div class="pr"><div class="bar" style="background:var(--c2-fill)"><span class="bl">E</span></div></div>
+          <div class="pr"></div>
+        </div>
+        <div class="day"><div class="dn">10</div>
+          <div class="pr"><div class="bar" style="background:var(--c1-fill)"><span class="bl">M</span></div></div>
+          <div class="pr"><div class="bar" style="background:var(--c2-fill)"><span class="bl">M</span></div></div>
+          <div class="pr"><div class="bar" style="background:var(--c3-fill)"><span class="bl">M</span></div></div>
+        </div>
+        <div class="day"><div class="dn">11</div>
+          <div class="pr"><div class="bar" style="background:var(--c1-fill)"><span class="bl">M</span></div></div>
+          <div class="pr"></div>
+          <div class="pr"><div class="bar" style="background:var(--c3-fill)"><span class="bl">E</span></div></div>
+        </div>
+      </div>
+
+      <!-- week 2 -->
+      <div class="mock-week">
+        <div class="mock-shows">
+          <div class="chip"><div class="chip-bar" style="background:var(--c1-acc)"></div><div class="chip-name">Lear</div></div>
+          <div class="chip"><div class="chip-bar" style="background:var(--c4-acc)"></div><div class="chip-name">Tempest</div></div>
+          <div class="chip"><div class="chip-bar" style="background:var(--c3-acc)"></div><div class="chip-name">Much Ado</div></div>
+        </div>
+        <div class="day om"><div class="dn">12</div><div class="pr"></div><div class="pr"></div><div class="pr"></div></div>
+        <div class="day"><div class="dn">13</div><div class="pr"></div><div class="pr"></div><div class="pr"></div></div>
+        <div class="day"><div class="dn">14</div>
+          <div class="pr"><div class="bar" style="background:var(--c1-fill)"><span class="bl">E</span></div></div>
+          <div class="pr"></div><div class="pr"></div>
+        </div>
+        <div class="day"><div class="dn">15</div>
+          <div class="pr"><div class="bar" style="background:var(--c1-fill)"><span class="bl">E</span></div></div>
+          <div class="pr"><div class="bar" style="background:var(--c4-fill)"><span class="bl">E</span></div></div>
+          <div class="pr"></div>
+        </div>
+        <div class="day"><div class="dn">16</div>
+          <div class="pr"><div class="bar" style="background:var(--c1-fill)"><span class="bl">E</span></div></div>
+          <div class="pr"><div class="bar" style="background:var(--c4-fill)"><span class="bl">E</span></div></div>
+          <div class="pr"></div>
+        </div>
+        <div class="day"><div class="dn">17</div>
+          <div class="pr"><div class="bar" style="background:var(--c1-fill)"><span class="bl">M</span></div></div>
+          <div class="pr"></div>
+          <div class="pr"><div class="bar" style="background:var(--c3-fill)"><span class="bl">M</span></div></div>
+        </div>
+        <div class="day"><div class="dn">18</div>
+          <div class="pr"><div class="bar" style="background:var(--c1-fill)"><span class="bl">M</span></div></div>
+          <div class="pr"></div>
+          <div class="pr"><div class="bar" style="background:var(--c3-fill)"><span class="bl">E</span></div></div>
+        </div>
+      </div>
+
+      <div class="leg">
+        <div class="li"><div class="ld" style="background:var(--c1-acc)"></div>SCS</div>
+        <div class="li"><div class="ld" style="background:var(--c2-acc)"></div>AT</div>
+        <div class="li"><div class="ld" style="background:var(--c3-acc)"></div>MCT</div>
+        <div class="li"><div class="ld" style="background:var(--c4-acc)"></div>Renegade</div>
+        <div class="li"><div class="ld" style="background:var(--c5-acc)"></div>Cabrillo</div>
+        <div class="li"><div class="ld" style="background:var(--c6-acc)"></div>ABT</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ C — GRADIENT WASH ══ -->
+  <div class="mock-col">
+    <div class="mock-col-title">C — Gradient wash</div>
+    <div class="mock-col-desc">Same fills fading right to near-white. Visual weight is concentrated
+      at the left edge; the grid reads lighter overall.</div>
+    <div class="mock-wrap">
+      <div class="mock-hdr">
+        <span>Shows this week</span>
+        <span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span>
+      </div>
+      <div class="mock-month">May</div>
+
+      <!-- week 1 -->
+      <div class="mock-week">
+        <div class="mock-shows">
+          <div class="chip"><div class="chip-bar" style="background:var(--c1-acc)"></div><div class="chip-name">Lear</div></div>
+          <div class="chip"><div class="chip-bar" style="background:var(--c2-acc)"></div><div class="chip-name">Cabaret</div></div>
+          <div class="chip"><div class="chip-bar" style="background:var(--c3-acc)"></div><div class="chip-name">Much Ado</div></div>
+        </div>
+        <div class="day"><div class="dn">5</div>
+          <div class="pr"><div class="bar" style="background:linear-gradient(90deg,var(--c1-fill),var(--c1-grad))"><span class="bl">M</span></div></div>
+          <div class="pr"></div><div class="pr"></div>
+        </div>
+        <div class="day"><div class="dn">6</div><div class="pr"></div><div class="pr"></div><div class="pr"></div></div>
+        <div class="day"><div class="dn">7</div>
+          <div class="pr"><div class="bar" style="background:linear-gradient(90deg,var(--c1-fill),var(--c1-grad))"><span class="bl">E</span></div></div>
+          <div class="pr"><div class="bar" style="background:linear-gradient(90deg,var(--c2-fill),var(--c2-grad))"><span class="bl">E</span></div></div>
+          <div class="pr"></div>
+        </div>
+        <div class="day"><div class="dn">8</div>
+          <div class="pr"></div>
+          <div class="pr"><div class="bar" style="background:linear-gradient(90deg,var(--c2-fill),var(--c2-grad))"><span class="bl">E</span></div></div>
+          <div class="pr"></div>
+        </div>
+        <div class="day"><div class="dn">9</div>
+          <div class="pr"><div class="bar" style="background:linear-gradient(90deg,var(--c1-fill),var(--c1-grad))"><span class="bl">E</span></div></div>
+          <div class="pr"><div class="bar" style="background:linear-gradient(90deg,var(--c2-fill),var(--c2-grad))"><span class="bl">E</span></div></div>
+          <div class="pr"></div>
+        </div>
+        <div class="day"><div class="dn">10</div>
+          <div class="pr"><div class="bar" style="background:linear-gradient(90deg,var(--c1-fill),var(--c1-grad))"><span class="bl">M</span></div></div>
+          <div class="pr"><div class="bar" style="background:linear-gradient(90deg,var(--c2-fill),var(--c2-grad))"><span class="bl">M</span></div></div>
+          <div class="pr"><div class="bar" style="background:linear-gradient(90deg,var(--c3-fill),var(--c3-grad))"><span class="bl">M</span></div></div>
+        </div>
+        <div class="day"><div class="dn">11</div>
+          <div class="pr"><div class="bar" style="background:linear-gradient(90deg,var(--c1-fill),var(--c1-grad))"><span class="bl">M</span></div></div>
+          <div class="pr"></div>
+          <div class="pr"><div class="bar" style="background:linear-gradient(90deg,var(--c3-fill),var(--c3-grad))"><span class="bl">E</span></div></div>
+        </div>
+      </div>
+
+      <!-- week 2 -->
+      <div class="mock-week">
+        <div class="mock-shows">
+          <div class="chip"><div class="chip-bar" style="background:var(--c1-acc)"></div><div class="chip-name">Lear</div></div>
+          <div class="chip"><div class="chip-bar" style="background:var(--c4-acc)"></div><div class="chip-name">Tempest</div></div>
+          <div class="chip"><div class="chip-bar" style="background:var(--c3-acc)"></div><div class="chip-name">Much Ado</div></div>
+        </div>
+        <div class="day om"><div class="dn">12</div><div class="pr"></div><div class="pr"></div><div class="pr"></div></div>
+        <div class="day"><div class="dn">13</div><div class="pr"></div><div class="pr"></div><div class="pr"></div></div>
+        <div class="day"><div class="dn">14</div>
+          <div class="pr"><div class="bar" style="background:linear-gradient(90deg,var(--c1-fill),var(--c1-grad))"><span class="bl">E</span></div></div>
+          <div class="pr"></div><div class="pr"></div>
+        </div>
+        <div class="day"><div class="dn">15</div>
+          <div class="pr"><div class="bar" style="background:linear-gradient(90deg,var(--c1-fill),var(--c1-grad))"><span class="bl">E</span></div></div>
+          <div class="pr"><div class="bar" style="background:linear-gradient(90deg,var(--c4-fill),var(--c4-grad))"><span class="bl">E</span></div></div>
+          <div class="pr"></div>
+        </div>
+        <div class="day"><div class="dn">16</div>
+          <div class="pr"><div class="bar" style="background:linear-gradient(90deg,var(--c1-fill),var(--c1-grad))"><span class="bl">E</span></div></div>
+          <div class="pr"><div class="bar" style="background:linear-gradient(90deg,var(--c4-fill),var(--c4-grad))"><span class="bl">E</span></div></div>
+          <div class="pr"></div>
+        </div>
+        <div class="day"><div class="dn">17</div>
+          <div class="pr"><div class="bar" style="background:linear-gradient(90deg,var(--c1-fill),var(--c1-grad))"><span class="bl">M</span></div></div>
+          <div class="pr"></div>
+          <div class="pr"><div class="bar" style="background:linear-gradient(90deg,var(--c3-fill),var(--c3-grad))"><span class="bl">M</span></div></div>
+        </div>
+        <div class="day"><div class="dn">18</div>
+          <div class="pr"><div class="bar" style="background:linear-gradient(90deg,var(--c1-fill),var(--c1-grad))"><span class="bl">M</span></div></div>
+          <div class="pr"></div>
+          <div class="pr"><div class="bar" style="background:linear-gradient(90deg,var(--c3-fill),var(--c3-grad))"><span class="bl">E</span></div></div>
+        </div>
+      </div>
+
+      <div class="leg">
+        <div class="li"><div class="ld" style="background:var(--c1-acc)"></div>SCS</div>
+        <div class="li"><div class="ld" style="background:var(--c2-acc)"></div>AT</div>
+        <div class="li"><div class="ld" style="background:var(--c3-acc)"></div>MCT</div>
+        <div class="li"><div class="ld" style="background:var(--c4-acc)"></div>Renegade</div>
+        <div class="li"><div class="ld" style="background:var(--c5-acc)"></div>Cabrillo</div>
+        <div class="li"><div class="ld" style="background:var(--c6-acc)"></div>ABT</div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /col-pair -->
+
+<hr>
+
+<!-- ── MULTI-COMPANY ANNUAL TREATMENT ── -->
+<p style="font-family:'DM Serif Display',serif;font-size:14px;font-weight:400;margin-bottom:3px">Multi-company — annual view mini-days only</p>
+<p style="font-size:10px;color:var(--ink-muted);line-height:1.6;margin-bottom:12px">
+  Dates shared by more than one company can't show a single hue.
+  Three practical options — goal is "this day is busy" without adding a competing colour to decode.
+</p>
+<div class="multi-row">
+  <div class="mini-opt">
+    <div class="mini-day" style="background:#E0DCD6; border:1px solid rgba(0,0,0,0.1)">14</div>
+    <div class="mini-lbl">M1 — warm grey fill</div>
+  </div>
+  <div class="mini-opt">
+    <div class="mini-day" style="background:transparent; border:2px solid #8A847C; border-radius:4px">14</div>
+    <div class="mini-lbl">M2 — outline only</div>
+  </div>
+  <div class="mini-opt">
+    <div class="mini-day hatch" style="border:1px solid rgba(0,0,0,0.1)">14</div>
+    <div class="mini-lbl">M3 — diagonal hatch</div>
+  </div>
+</div>
+<p style="margin-top:10px;font-size:10px;color:var(--ink-muted)">
+  Recommendation: <strong>M1</strong> or <strong>M2</strong> — clear signal, no extra hue to decode.
+</p>
+
+</body>
+</html>

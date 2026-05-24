@@ -900,6 +900,8 @@ const { performances } = Astro.props
   }
   let activePanelDate = null
   let panelShownAt = 0
+  let lastTouchTime = 0
+  document.addEventListener('touchstart', () => { lastTouchTime = Date.now() }, { passive: true, capture: true })
 
   function showHoverPanel(ds, perfs, cellEl, month, isTouch = false) {
     const panel = document.getElementById('hoverPanel')
@@ -1056,7 +1058,7 @@ const { performances } = Astro.props
           })
           el.addEventListener('click', (e) => {
             e.stopPropagation()
-            if (e.pointerType === 'touch') {
+            if (Date.now() - lastTouchTime < 500) {
               if (activePanelDate === ds) {
                 hideHoverPanel()
                 goToMonth(m)

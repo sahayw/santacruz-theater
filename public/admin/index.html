@@ -232,6 +232,97 @@ body {
 }
 .field-input.mono { font-family: 'IBM Plex Mono', monospace; font-size: 11px; }
 
+/* ── DESCRIPTION SECTION ── */
+.desc-section {
+  padding: 6px 16px 8px;
+  background: var(--bg);
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.desc-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.desc-fmt-btns {
+  display: flex;
+  gap: 3px;
+}
+.desc-fmt-btn {
+  font-family: 'IBM Plex Sans', sans-serif;
+  font-size: 11px;
+  width: 22px;
+  height: 20px;
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  background: var(--surface);
+  color: var(--ink);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  line-height: 1;
+}
+.desc-fmt-btn:hover { background: var(--bg); border-color: var(--ink-mid); }
+.desc-expand-btn {
+  margin-left: auto;
+  font-size: 13px;
+  width: 22px;
+  height: 20px;
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  background: var(--surface);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  line-height: 1;
+  color: var(--ink-mid);
+}
+.desc-expand-btn:hover { background: var(--bg); border-color: var(--ink-mid); }
+.desc-fetch-btn {
+  font-family: 'IBM Plex Sans', sans-serif;
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.03em;
+  padding: 0 7px;
+  height: 20px;
+  border: 1px solid var(--accent2);
+  border-radius: 2px;
+  background: var(--surface);
+  color: var(--accent2);
+  cursor: pointer;
+  white-space: nowrap;
+}
+.desc-fetch-btn:hover { background: #eef3f8; }
+.desc-fetch-btn:disabled { opacity: 0.45; cursor: default; }
+.desc-textarea {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 12px;
+  padding: 4px 7px;
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  background: var(--surface);
+  color: var(--ink);
+  width: 100%;
+  resize: none;
+  overflow: hidden;
+  line-height: 1.5;
+  height: 26px;
+  transition: height 0.15s;
+}
+.desc-textarea:focus { outline: none; border-color: var(--accent2); }
+.desc-textarea.expanded {
+  height: 90px;
+  overflow-y: auto;
+  resize: vertical;
+}
+
 /* ── PERFORMANCE TABLE ── */
 .perf-section {
   flex: 1;
@@ -627,6 +718,24 @@ tbody td {
         </div>
       </div>
 
+      <!-- Description section -->
+      <div class="desc-section">
+        <div class="desc-toolbar">
+          <label class="field-label" style="margin-bottom:0">Description</label>
+          <div class="desc-fmt-btns">
+            <button class="desc-fmt-btn" onclick="fmtDesc('bold')" title="Bold"><strong>B</strong></button>
+            <button class="desc-fmt-btn" onclick="fmtDesc('italic')" title="Italic"><em>I</em></button>
+          </div>
+          <!-- Fetch button hidden for initial launch — re-enable if auto-fetch proves worthwhile
+          <button class="desc-fetch-btn" id="fetchDescBtn" onclick="fetchDescription()" title="Fetch description from Info URL" disabled>↓ Fetch</button>
+          -->
+          <button class="desc-expand-btn" id="descExpandBtn" onclick="toggleDescExpand()" title="Expand / collapse">↕</button>
+        </div>
+        <textarea class="field-input desc-textarea" id="f-description" rows="1"
+          placeholder="Brief narrative shown on hover — supports **bold** and *italic*"
+          oninput="runFieldChanged()"></textarea>
+      </div>
+
       <!-- Performances section -->
       <div class="perf-section">
         <div class="perf-toolbar">
@@ -751,7 +860,9 @@ function renderSidebar() {
     list.innerHTML = '<div class="sidebar-empty">No runs yet.<br>Click + New to add one.</div>';
     return;
   }
-  list.innerHTML = runs.map((r,i) => `
+  const openingDate = r => r.performances.length ? r.performances.map(p => p.date).sort()[0] : '9999-99-99';
+  const sorted = runs.map((r, i) => ({ r, i })).sort((a, b) => openingDate(a.r).localeCompare(openingDate(b.r)));
+  list.innerHTML = sorted.map(({ r, i }) => `
     <div class="run-item ${i===activeRunIdx?'active':''}" onclick="selectRun(${i})">
       <div class="run-item-company">${r.company||'—'}</div>
       <div class="run-item-show">${r.showAbv||r.show||'Untitled'}</div>
@@ -782,15 +893,20 @@ function loadRunEditor() {
   const editor = document.getElementById('runEditor');
   editor.style.display = '';
   const r = runs[activeRunIdx];
-  document.getElementById('f-company').value   = r.company   || '';
-  document.getElementById('f-showAbv').value   = r.showAbv   || '';
-  document.getElementById('f-show').value      = r.show      || '';
-  document.getElementById('f-genre').value     = r.genre     || '';
-  document.getElementById('f-venue').value     = r.venue     || '';
-  document.getElementById('f-price').value     = r.price     || '';
-  document.getElementById('f-discounts').value = r.discounts || '';
-  document.getElementById('f-infoUrl').value   = r.infoUrl   || '';
-  document.getElementById('f-ticketsUrl').value= r.ticketsUrl|| '';
+  document.getElementById('f-company').value     = r.company     || '';
+  document.getElementById('f-showAbv').value     = r.showAbv     || '';
+  document.getElementById('f-show').value        = r.show        || '';
+  document.getElementById('f-genre').value       = r.genre       || '';
+  document.getElementById('f-venue').value       = r.venue       || '';
+  document.getElementById('f-price').value       = r.price       || '';
+  document.getElementById('f-discounts').value   = r.discounts   || '';
+  document.getElementById('f-infoUrl').value     = r.infoUrl     || '';
+  document.getElementById('f-ticketsUrl').value  = r.ticketsUrl  || '';
+  const descTa = document.getElementById('f-description');
+  descTa.value = r.description || '';
+  descTa.classList.remove('expanded');
+  document.getElementById('descExpandBtn').textContent = '↕';
+  updateFetchBtn();
   updateEditorTitle();
   renderPerfTable();
 }
@@ -807,25 +923,145 @@ function updateEditorTitle() {
 function runFieldChanged() {
   if (activeRunIdx < 0) return;
   const r = runs[activeRunIdx];
-  r.company    = document.getElementById('f-company').value;
-  r.showAbv    = document.getElementById('f-showAbv').value;
-  r.show       = document.getElementById('f-show').value;
-  r.genre      = document.getElementById('f-genre').value;
-  r.venue      = document.getElementById('f-venue').value;
-  r.price      = document.getElementById('f-price').value;
-  r.discounts  = document.getElementById('f-discounts').value;
-  r.infoUrl    = document.getElementById('f-infoUrl').value;
-  r.ticketsUrl = document.getElementById('f-ticketsUrl').value;
+  r.company     = document.getElementById('f-company').value;
+  r.showAbv     = document.getElementById('f-showAbv').value;
+  r.show        = document.getElementById('f-show').value;
+  r.genre       = document.getElementById('f-genre').value;
+  r.venue       = document.getElementById('f-venue').value;
+  r.price       = document.getElementById('f-price').value;
+  r.discounts   = document.getElementById('f-discounts').value;
+  r.infoUrl     = document.getElementById('f-infoUrl').value;
+  r.ticketsUrl  = document.getElementById('f-ticketsUrl').value;
+  r.description = document.getElementById('f-description').value;
+  updateFetchBtn();
   updateEditorTitle();
   renderSidebar();
   save();
+}
+
+// ── FETCH DESCRIPTION ──
+async function fetchDescription() {
+  const url = document.getElementById('f-infoUrl').value.trim();
+  if (!url) return;
+  const btn = document.getElementById('fetchDescBtn');
+  btn.disabled = true;
+  btn.textContent = '…';
+  try {
+    const resp = await fetch(`/.netlify/functions/fetch-page?url=${encodeURIComponent(url)}`);
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+    const html = await resp.text();
+    const doc = new DOMParser().parseFromString(html, 'text/html');
+
+    // 1. Try og:description or meta description
+    const meta = (
+      doc.querySelector('meta[property="og:description"]')?.getAttribute('content') ||
+      doc.querySelector('meta[name="description"]')?.getAttribute('content') || ''
+    ).trim();
+
+    // 2. Heading-guided extraction: find Synopsis/Story/About/Description heading → paragraphs after it
+    let bodyText = '';
+    const headingRe = /\b(synopsis|story|about|description|overview)\b/i;
+    const storyHeading = [...doc.querySelectorAll('h2, h3')].find(h => headingRe.test(h.textContent));
+    if (storyHeading) {
+      const storyParas = [];
+      let el = storyHeading.nextElementSibling;
+      while (el && storyParas.length < 3) {
+        if (el.tagName === 'P') {
+          const t = el.textContent.trim();
+          if (t.length > 40) storyParas.push(t);
+        } else if (/^H[23]$/.test(el.tagName)) break;
+        el = el.nextElementSibling;
+      }
+      bodyText = storyParas.join(' ').slice(0, 600);
+    }
+
+    // 3. Fallback: prose paragraphs from main content areas (skip schedule-like text)
+    if (!bodyText) {
+      const looksLikeSchedule = t => (t.match(/\b\d{1,2}:\d{2}\b/g) || []).length >= 2 || (t.match(/\b(Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday)\b/gi) || []).length >= 2;
+      const selectors = ['main', 'article', '[class*="content"]', '[class*="about"]', '[class*="show"]', 'body'];
+      let paras = [];
+      for (const sel of selectors) {
+        const container = doc.querySelector(sel);
+        if (!container) continue;
+        paras = [...container.querySelectorAll('p')].filter(p => {
+          const t = p.textContent.trim();
+          return t.length > 60 && !p.closest('nav, footer, header') && !looksLikeSchedule(t);
+        });
+        if (paras.length) break;
+      }
+      bodyText = paras.slice(0, 2).map(p => p.textContent.trim()).join(' ').slice(0, 600);
+    }
+
+    // Prefer body text when substantially longer — meta may be site-wide boilerplate
+    let desc = '';
+    if (bodyText.length > meta.length * 1.3 && bodyText.length > 80) {
+      desc = bodyText;
+    } else if (meta.length > 40) {
+      desc = meta;
+    } else if (bodyText.length > 40) {
+      desc = bodyText;
+    } else {
+      throw new Error('No description found on page');
+    }
+    applyFetchedDesc(desc);
+  } catch(e) {
+    btn.textContent = '↓ Fetch';
+    btn.disabled = false;
+    const orig = btn.title;
+    btn.title = `Failed: ${e.message}`;
+    setTimeout(() => { btn.title = orig; }, 4000);
+  }
+}
+
+function applyFetchedDesc(text) {
+  const ta = document.getElementById('f-description');
+  ta.value = text;
+  runFieldChanged();
+  if (!ta.classList.contains('expanded')) toggleDescExpand();
+  const btn = document.getElementById('fetchDescBtn');
+  btn.textContent = '↓ Fetch';
+  btn.disabled = !document.getElementById('f-infoUrl').value.trim();
+}
+
+function updateFetchBtn() {
+  const btn = document.getElementById('fetchDescBtn');
+  if (btn) btn.disabled = !document.getElementById('f-infoUrl').value.trim();
+}
+
+// ── DESCRIPTION HELPERS ──
+function toggleDescExpand() {
+  const ta  = document.getElementById('f-description');
+  const btn = document.getElementById('descExpandBtn');
+  ta.classList.toggle('expanded');
+  btn.textContent = ta.classList.contains('expanded') ? '↑' : '↕';
+}
+
+function fmtDesc(type) {
+  const ta = document.getElementById('f-description');
+  const s = ta.selectionStart;
+  const e = ta.selectionEnd;
+  const sel = ta.value.slice(s, e);
+  const m = type === 'bold' ? '**' : '*';
+  let newVal, ns, ne;
+  if (sel) {
+    newVal = ta.value.slice(0, s) + m + sel + m + ta.value.slice(e);
+    ns = s + m.length;
+    ne = e + m.length;
+  } else {
+    newVal = ta.value.slice(0, s) + m + m + ta.value.slice(e);
+    ns = ne = s + m.length;
+  }
+  ta.value = newVal;
+  ta.setSelectionRange(ns, ne);
+  ta.focus();
+  runFieldChanged();
 }
 
 // ── RUN CRUD ──
 function newRun() {
   const run = {
     id: `run-${Date.now()}`,
-    company:'', showAbv:'', show:'', genre:'', venue:'',
+    company:'', showAbv:'', show:'', description:'', genre:'', venue:'',
     price:'', discounts:'', infoUrl:'', ticketsUrl:'',
     performances:[]
   };

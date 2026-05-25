@@ -1,8 +1,14 @@
 # Santa Cruz Theater
 
-A performance calendar for Santa Cruz theater companies — built as an Astro 6 static site, deployed to Netlify.
+A resource for theater-goers and theater companies, currently targeting Santa Cruz, CA — built as an Astro 6 static site, deployed to Netlify.
 
-The site displays the full 2026 season across six local companies in two complementary views: an **annual overview** that shows the whole year at a glance, and a **weekly drill-down** that reveals individual performance slots. A companion **data editor** at `/admin` manages all show and performance data without requiring a build or deploy.
+Intended to provide three sets of information:
+
+1. A calendar of performances
+2. Information about upcoming auditions
+3. Theater services for shows
+
+Current implementation includes #1 only. An annual season is displayed with two complementary views: an **annual overview** that shows the whole year at a glance, and a **weekly listing** that reveals individual performances by day. A companion **data editor** at `/admin` manages all show and performance data without requiring a build or deploy. Currently supports a single year (2026).
 
 ---
 
@@ -16,7 +22,7 @@ A full-year grid of months, each showing mini day cells. Days with performances 
 
 A scrollable grid of week columns. Each week has:
 
-- **Shows column** — one chip per production running that week, with a coloured accent bar stripe and the show abbreviation
+- **Shows column** — one chip per production running that week, with a coloured accent bar stripe and the show abbreviation. Hovering a chip (or tapping on mobile) opens a floating description panel when a description is set for that run.
 - **Day columns (Mon–Sun)** — coloured performance bars stacked within each day; clicking a bar opens the show card
 
 Filters at the top of the page narrow by **company**, **genre**, and **time of day** (matinee / evening). The header back-arrow returns to the annual view.
@@ -35,21 +41,20 @@ A persistent footer identifies each company by a coloured square and full name. 
 
 All show data lives in `data/sc-theater-runs.json`, which the editor writes via its Export button. The structure is two-tier:
 
-- **Run** — one production: company, full title, short abbreviation, genre, venue, price, discount text, info URL, ticket URL, and an ordered list of performances
+- **Run** — one production: company, full title, short abbreviation, optional description paragraph, genre, venue, price, discount text, info URL, ticket URL, and an ordered list of performances
 - **Performance** — one date/time slot: date (`YYYY-MM-DD`), time (`HH:MM` 24 h), optional performance type (Preview / Opening / Closing / Talk-back), and optional per-slot overrides for discounts and ticket URL
 
 `src/lib/data.ts` flattens runs into a sorted `PerformanceEvent[]` at build time, resolving per-slot overrides. The calendar component receives this flat array as a prop.
 
 ### Companies
 
-| Key        | Full name                  | Color identity |
-| ---------- | -------------------------- | -------------- |
-| `SCS`      | Santa Cruz Shakespeare     | Rose           |
-| `AT`       | Actors' Theatre            | Blue           |
-| `MCT`      | Mountain Community Theater | Green          |
-| `Renegade` | Renegade Theatre           | Teal           |
-| `Cabrillo` | Cabrillo Stage             | None (grey)    |
-| `ABT`      | Actors Beyond Theater      | None (grey)    |
+| Key        | Full name                   | Color identity |
+| ---------- | --------------------------- | -------------- |
+| `SCS`      | Santa Cruz Shakespeare      | Rose           |
+| `AT`       | Actors' Theatre             | Blue           |
+| `MCT`      | Mountain Community Theater  | Green          |
+| `Renegade` | Renegade Theatre            | Teal           |
+| `Other`    | not individually identified | None (grey)    |
 
 ### Venues
 
@@ -69,7 +74,7 @@ A self-contained single-page editor served statically from `public/admin/index.h
 
 ### Runs sidebar
 
-Lists all production runs. Click a run to open it in the editor panel; click **+ New** to create one. Each run has fields for company, full title, short abbreviation, genre, venue, price, default discounts, info URL, and default ticket URL.
+Lists all production runs. Click a run to open it in the editor panel; click **+ New** to create one. Each run has fields for company, full title, short abbreviation, genre, venue, price, default discounts, info URL, and default ticket URL, plus an optional **Description** field. The description textarea provides **B** and **I** buttons which wrap the current selection in `**bold**` or `*italic*` markers, and a ↕ toggle expands the textarea for longer entries.
 
 ### Performances table
 
@@ -110,10 +115,13 @@ data/
   sc-theater-runs.json        # canonical data; written by the editor's Export button
 public/
   admin/index.html            # data editor SPA
+netlify/
+  functions/fetch-page.mjs    # server-side proxy for fetching external pages, not currently used (CORS bypass)
 scripts/
   check-data.ts               # dry-run: prints show count and date range (tsx)
 docs/
   color-system.md             # colour variable reference
+  description-feature.md      # show description field — editor UI, panel behaviour, fetch proxy
 ```
 
 ---
@@ -141,4 +149,4 @@ npm run build    # outputs to dist/
 npm run preview  # verify locally before pushing
 ```
 
-Netlify CI watches `main` and deploys on every push, using the config in `netlify.toml`. The site is fully static — no server-side runtime required.
+Netlify CI watches `main` and deploys on every push, using the config in `netlify.toml`. The calendar itself is fully static. The `netlify/functions/fetch-page.mjs` serverless function is deployed alongside it and is only called from the `/admin` editor UI. Not currently in use.

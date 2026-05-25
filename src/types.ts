@@ -31,6 +31,7 @@ export interface Run {
   company: Company;
   showAbv: string;    // short display label, e.g. "Much Ado"
   show: string;       // full title, e.g. "Much Ado About Nothing (Shakespeare)"
+  description?: string; // optional narrative paragraph; supports **bold** and *italic*
   genre: Genre;
   venue: Venue;
   price: string;
@@ -55,6 +56,7 @@ export interface PerformanceEvent {
   company: Company;
   showAbv: string;
   show: string;
+  description: string;
   genre: Genre;
   venue: Venue;
   price: string;

@@ -69,6 +69,7 @@ const { performances } = Astro.props
 
 <div class="fixed-legend-footer" id="fixedLegendFooter"></div>
 <div id="hoverPanel" class="day-hover-panel"></div>
+<div id="showDescPanel" class="show-desc-panel"></div>
 <div class="overlay" id="overlay"></div>
 <div class="bottom-sheet" id="bottomSheet">
   <div class="sheet-date-header">
@@ -82,39 +83,38 @@ const { performances } = Astro.props
   @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=DM+Serif+Display&family=DM+Sans:wght@300;400;500&display=swap');
 
   :root {
+    --page-bg: #f0ede8;
     --bg: #f7f4ef;
     --surface: #ffffff;
     --ink: #1a1612;
     --ink-muted: #6b6259;
     --border: #e0d9d0;
-    /* bar fill colors — style B flat muted tints
-       SCS↔AT are near-complementary (rose 7° vs blue 225°) for max small-size contrast.
- */
+    --month-header-bg: #fffcf2;
+    /* day fill colors — flat muted tints */
     --col-scs: #e9c1be; /* Carnation   7°   SCS      */
     --col-at: #afbfee; /* Dusk      225°   AT       */
     --col-mct: #c9e6bf; /* Willow    116°   MCT      */
     --col-renegade: #b7e8ec; /* Verdigris 188°   Renegade */
-    --col-other: #e0dcd6; /* warm grey — Cabrillo / ABT / unknown fallback */
-    --col-multi: #d4ccc2; /* deeper taupe — annual multi-company days */
-    /* legend dot colors — muted accent */
+    --col-other: #d6d6d6; /* grey — Other / unknown fallback (drill down only) */
+    --col-multi: #d4ccc2; /* deeper taupe — multi-company days (annual only) */
+    /* legend dot colors — muted accent, provides increased contrast */
     --dot-scs: #ce8481; /* dusty rose  */
-    --dot-at: #7080b8; /* soft indigo */
-    --dot-mct: #68c057; /* olive sage  */
-    --dot-renegade: #479aac; /* sea teal  */
-    --dot-other: #8f8579; /* warm stone  */
-    /* fully saturated accent colors — drill-down chip bars and show-card badge */
+    --dot-at: #7b8bc4; /* soft indigo */
+    --dot-mct: #71c75f; /* olive sage  */
+    --dot-renegade: #5dadbe; /* sea teal  */
+    --dot-other: #cbcbcb; /* grey - other (drill down only) */
+    --dot-multi: #ccc3b8; /* deeper taupe — multi-company (annual only) */
+    /* fully saturated accent colors — drill-down chip bars and Show-card badge */
     --acc-scs: #dc4343; /* vivid red-rose */
-    --acc-at: #4064c8; /* vivid blue     */
+    --acc-at: #4f5ce0; /* vivid blue     */
     --acc-mct: #48ae31; /* vivid leaf green */
     --acc-renegade: #21a4c8; /* vivid sea teal  */
-    --acc-other: #8b8076; /* warm stone accent */
-    --pip-eve: #2c2c2c;
-    --pip-mat: #8a8278;
+    --acc-other: #8f8a85; /* warm grey accent */
     --radius: 6px;
     --header-h: 52px;
     --filter-h: 40px;
     --col-header-h: 28px;
-    --footer-h: 68px;
+    --footer-h: 48px;
     --shows-col-w: clamp(120px, 21vw, 160px);
     --daynum-h: 24px;
     --row-h: 22px;
@@ -128,7 +128,7 @@ const { performances } = Astro.props
 
   body {
     font-family: 'DM Sans', sans-serif;
-    background: var(--bg);
+    background: var(--page-bg);
     color: var(--ink);
     min-height: 100vh;
     font-size: 14px;
@@ -275,6 +275,7 @@ const { performances } = Astro.props
     padding: 2px;
     max-width: 960px;
     margin: 0 auto;
+    background: var(--bg);
   }
   .year-title {
     font-family: 'DM Serif Display', serif;
@@ -407,6 +408,7 @@ const { performances } = Astro.props
     display: none;
     max-width: 600px;
     margin: 0 auto;
+    padding-right: 5px;
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
   }
@@ -414,12 +416,18 @@ const { performances } = Astro.props
   .scroll-month-label {
     position: relative;
     z-index: 3;
-    padding: 5px 12px 4px;
+    padding: 7px 12px 6px;
     font-family: 'DM Serif Display', serif;
-    font-size: 20px;
+    font-size: 18px;
     font-weight: 400;
     color: #433c36;
-    background: var(--bg);
+    background: linear-gradient(
+      to bottom,
+      #f1eee8 0%,
+      var(--month-header-bg) 25%,
+      var(--month-header-bg) 85%,
+      #f1eee8 100%
+    );
     letter-spacing: 0.01em;
     border-bottom: 1px solid var(--border);
     will-change: transform;
@@ -432,6 +440,7 @@ const { performances } = Astro.props
     display: grid;
     grid-template-columns: var(--shows-col-w) repeat(7, 1fr);
     border-bottom: 2px solid var(--border);
+    border-right: 2px solid var(--border);
     min-width: 440px;
     background: var(--surface);
   }
@@ -865,6 +874,66 @@ const { performances } = Astro.props
     text-align: right;
   }
 
+  /* ── SHOW DESCRIPTION PANEL ── */
+  .show-desc-panel {
+    display: none;
+    position: fixed;
+    z-index: 300;
+    width: 290px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
+    pointer-events: none;
+  }
+  .show-desc-panel.visible {
+    display: block;
+  }
+  .show-desc-panel.touch-mode {
+    pointer-events: auto;
+    cursor: pointer;
+  }
+  .desc-panel-header {
+    padding: 8px 12px 6px;
+    border-bottom: 1px solid var(--border);
+  }
+  .desc-panel-company {
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    color: var(--ink-muted);
+    margin-bottom: 2px;
+  }
+  .desc-panel-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 1.3;
+    color: var(--ink);
+  }
+  .desc-panel-body {
+    padding: 8px 12px;
+    font-size: 12px;
+    line-height: 1.65;
+    color: var(--ink);
+  }
+  .desc-panel-footer {
+    padding: 5px 12px;
+    font-size: 11px;
+    color: var(--ink-muted);
+    border-top: 1px solid var(--border);
+    text-align: right;
+  }
+
+  @media (hover: hover) {
+    .show-chip.has-desc:hover {
+      background: rgba(0, 0, 0, 0.05);
+      border-radius: 3px;
+      cursor: default;
+    }
+  }
+
   /* ── DRILL-DOWN HOVER HIGHLIGHT ── */
   @media (hover: hover) {
     /* Hovering the date cell: highlight it + all bars for that day */
@@ -1028,6 +1097,51 @@ const { performances } = Astro.props
       activePanelCell = null
     }
   }
+  let activeDescRunId = null
+  let descPanelShownAt = 0
+
+  function renderMd(text) {
+    return text
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+      .replace(/\*(.+?)\*/g, '<em>$1</em>')
+  }
+
+  function showDescPanel(s, chipEl, isTouch = false) {
+    const panel = document.getElementById('showDescPanel')
+    let html = `<div class="desc-panel-header">
+      <div class="desc-panel-company">${COMPANY_NAMES[s.company] || s.company}</div>
+      <div class="desc-panel-title">${s.show}</div>
+    </div>
+    <div class="desc-panel-body">${renderMd(s.description)}</div>`
+    if (isTouch) html += `<div class="desc-panel-footer">Tap to dismiss</div>`
+    panel.innerHTML = html
+    const rect = chipEl.getBoundingClientRect()
+    const pw = 290
+    const ph = 80 + Math.ceil(s.description.length / 50) * 20
+    let left = rect.right + 8
+    let top = Math.round(rect.top + (rect.height - ph) / 2)
+    if (left + pw > window.innerWidth - 8) left = Math.max(8, rect.left - pw - 8)
+    if (top + ph > window.innerHeight - 8) top = Math.max(8, window.innerHeight - ph - 8)
+    if (top < 8) top = 8
+    panel.style.left = left + 'px'
+    panel.style.top = top + 'px'
+    activeDescRunId = s.runId
+    panel.classList.add('visible')
+    if (isTouch) {
+      panel.classList.add('touch-mode')
+      descPanelShownAt = Date.now()
+    }
+  }
+
+  function hideDescPanel() {
+    const panel = document.getElementById('showDescPanel')
+    panel.classList.remove('visible', 'touch-mode')
+    activeDescRunId = null
+  }
+
   function perfsByDate(perfs) {
     const m = {}
     perfs.forEach((p) => {
@@ -1044,7 +1158,7 @@ const { performances } = Astro.props
       .forEach((p) => {
         if (!seen.has(p.runId)) {
           seen.add(p.runId)
-          result.push({ runId: p.runId, showAbv: p.showAbv, company: p.company, show: p.show })
+          result.push({ runId: p.runId, showAbv: p.showAbv, company: p.company, show: p.show, description: p.description || '' })
         }
       })
     return result
@@ -1070,10 +1184,11 @@ const { performances } = Astro.props
     { color: 'var(--dot-at)', label: "Actors' Theatre" },
     { color: 'var(--dot-mct)', label: 'Mountain Community Theater' },
     { color: 'var(--dot-renegade)', label: 'Renegade Theatre' },
-    { color: 'var(--col-multi)', label: 'Multiple companies' }
+    { color: 'var(--dot-other)', label: 'Other', view: 'drill' },
+    { color: 'var(--dot-multi)', label: 'Multiple companies', view: 'annual' }
   ]
 
-  function buildFixedFooter(includeMulti = true) {
+  function buildFixedFooter(view = 'annual') {
     const footer = document.getElementById('fixedLegendFooter')
     footer.innerHTML = ''
     const title = document.createElement('span')
@@ -1081,7 +1196,7 @@ const { performances } = Astro.props
     title.textContent = 'COMPANIES'
     footer.appendChild(title)
     LEGEND_ENTRIES.forEach((e) => {
-      if (!includeMulti && e.label === 'Multiple companies') return
+      if (e.view && e.view !== view) return
       const item = document.createElement('div')
       item.className = 'legend-item'
       item.style.cssText =
@@ -1230,8 +1345,26 @@ const { performances } = Astro.props
       } else {
         weekShows.forEach((s) => {
           const chip = document.createElement('div')
-          chip.className = 'show-chip'
+          chip.className = 'show-chip' + (s.description ? ' has-desc' : '')
           chip.innerHTML = `<span class="show-chip-bar" style="background:${accentColor(s.company)}"></span><span class="show-chip-name" title="${s.show}">${s.showAbv}</span>`
+          if (s.description) {
+            chip.addEventListener('pointerenter', (e) => {
+              if (e.pointerType === 'mouse') showDescPanel(s, chip, false)
+            })
+            chip.addEventListener('pointerleave', (e) => {
+              if (e.pointerType === 'mouse') hideDescPanel()
+            })
+            chip.addEventListener('click', (e) => {
+              if (Date.now() - lastTouchTime < 500) {
+                e.stopPropagation()
+                if (activeDescRunId === s.runId) {
+                  hideDescPanel()
+                } else {
+                  showDescPanel(s, chip, true)
+                }
+              }
+            })
+          }
           showsCol.appendChild(chip)
         })
       }
@@ -1315,7 +1448,7 @@ const { performances } = Astro.props
     document.getElementById('headerTitle').textContent = 'Calendar 2026'
     document.body.classList.remove('annual-mode')
     document.body.classList.add('scroll-mode')
-    buildFixedFooter(false)
+    buildFixedFooter('drill')
     requestAnimationFrame(() => {
       const sv = document.getElementById('scroll-view')
       sv.scrollLeft = sv.scrollWidth - sv.clientWidth
@@ -1342,7 +1475,7 @@ const { performances } = Astro.props
     document.getElementById('headerTitle').textContent = 'Santa Cruz Theater'
     document.body.classList.remove('scroll-mode')
     document.body.classList.add('annual-mode')
-    buildFixedFooter(true)
+    buildFixedFooter('annual')
     window.scrollTo(0, 0)
   }
 
@@ -1417,7 +1550,7 @@ const { performances } = Astro.props
     document.body.style.paddingBottom = footerEl.offsetHeight + 8 + 'px'
   }).observe(footerEl)
 
-  document.addEventListener('scroll', hideHoverPanel, { passive: true })
+  document.addEventListener('scroll', () => { hideHoverPanel(); hideDescPanel() }, { passive: true })
 
   document.getElementById('scroll-view').addEventListener(
     'scroll',
@@ -1444,6 +1577,15 @@ const { performances } = Astro.props
     if (activePanelDate && !e.target.closest('#hoverPanel') && !e.target.closest('.mini-day')) {
       hideHoverPanel()
     }
+    if (activeDescRunId && !e.target.closest('#showDescPanel') && !e.target.closest('.show-chip.has-desc')) {
+      hideDescPanel()
+    }
+  })
+
+  document.getElementById('showDescPanel').addEventListener('touchend', (e) => {
+    if (Date.now() - descPanelShownAt < 300) return
+    e.preventDefault()
+    hideDescPanel()
   })
 
   document.getElementById('scroll-view').addEventListener('scroll', function () {

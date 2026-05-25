@@ -13,10 +13,10 @@ the Data Editor at `/admin` and stored in `data/sc-theater-runs.json`.
 `description` is an optional string field on the `Run` type (`src/types.ts`).
 It supports a minimal Markdown-like syntax:
 
-| Syntax         | Renders as         |
-| -------------- | ------------------ |
-| `**bold text**` | **bold text**     |
-| `*italic text*` | *italic text*     |
+| Syntax          | Renders as    |
+| --------------- | ------------- |
+| `**bold text**` | **bold text** |
+| `*italic text*` | _italic text_ |
 
 `PerformanceEvent` always has `description: string` (defaults to `''` when the
 run has none). The field is populated in `src/lib/data.ts` via
@@ -31,12 +31,12 @@ table. It is built into the existing run editor form.
 
 ### Controls
 
-| Element | ID / class | Behaviour |
-| ------- | ---------- | --------- |
+| Element              | ID / class       | Behaviour                                                                                                  |
+| -------------------- | ---------------- | ---------------------------------------------------------------------------------------------------------- |
 | Description textarea | `#f-description` | Auto-saves via `runFieldChanged()` on every keystroke; starts single-line, expands to 5 rows when expanded |
-| **B** button | `.desc-fmt-btn` | Wraps the current text selection in `**…**`; places cursor after closing markers if nothing selected |
-| *I* button | `.desc-fmt-btn` | Same, but wraps in `*…*` |
-| ↕ / ↑ toggle | `#descExpandBtn` | Toggles `.expanded` on the textarea (`rows="5"`) |
+| **B** button         | `.desc-fmt-btn`  | Wraps the current text selection in `**…**`; places cursor after closing markers if nothing selected       |
+| _I_ button           | `.desc-fmt-btn`  | Same, but wraps in `*…*`                                                                                   |
+| ↕ / ↑ toggle         | `#descExpandBtn` | Toggles `.expanded` on the textarea (`rows="5"`)                                                           |
 
 ### Dormant fetch capability
 
@@ -58,9 +58,8 @@ commented out in the HTML. If re-enabled, clicking **↓ Fetch** would:
 
 The button is useful for SCS show pages (which have rich `og:description`
 tags) and for Renegade show pages (which have show descriptions under a
-"Story" or "Synopsis" heading). It is not reliable for AT, MCT, or Cabrillo
-because those companies use generic homepage or season-listing URLs as their
-infoUrls rather than individual show pages.
+"Story" or "Synopsis" heading). It is not reliable for other Companies
+because they do not provide consistent individual show pages. This feature is cuurent suppressed.
 
 To re-enable: uncomment the button in the `.desc-toolbar` section of
 `public/admin/index.html`.
@@ -76,6 +75,7 @@ raw HTML of the target page. Exists to bypass browser CORS restrictions when
 fetching external show pages from the admin editor.
 
 Security constraints:
+
 - Only `http:` and `https:` protocols are accepted (prevents SSRF against
   internal resources).
 - 8-second timeout, `redirect: 'follow'`.
@@ -95,12 +95,12 @@ in the sticky left column.
 
 ### Trigger behaviour
 
-| Input | Action |
-| ----- | ------ |
-| Mouse hover (desktop) | Panel appears; dismisses on mouse leave |
-| Touch tap (mobile) | Panel toggles on first tap; dismisses on second tap or by tapping elsewhere |
-| Scroll | Panel is dismissed |
-| Click outside | Panel is dismissed |
+| Input                 | Action                                                                      |
+| --------------------- | --------------------------------------------------------------------------- |
+| Mouse hover (desktop) | Panel appears; dismisses on mouse leave                                     |
+| Touch tap (mobile)    | Panel toggles on first tap; dismisses on second tap or by tapping elsewhere |
+| Scroll                | Panel is dismissed                                                          |
+| Click outside         | Panel is dismissed                                                          |
 
 ### Panel content
 

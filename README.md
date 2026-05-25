@@ -1,8 +1,14 @@
 # Santa Cruz Theater
 
-A performance calendar for Santa Cruz theater companies — built as an Astro 6 static site, deployed to Netlify.
+A resource for theater-goers and theater companies, currently targeting Santa Cruz, CA — built as an Astro 6 static site, deployed to Netlify.
 
-The site displays the full 2026 season across six local companies in two complementary views: an **annual overview** that shows the whole year at a glance, and a **weekly drill-down** that reveals individual performance slots. A companion **data editor** at `/admin` manages all show and performance data without requiring a build or deploy.
+Intended to provide three sets of information:
+
+1. A calendar of performances
+2. Information about upcoming auditions
+3. Theater services for shows
+
+Current implementation includes #1 only. An annual season is displayed with two complementary views: an **annual overview** that shows the whole year at a glance, and a **weekly listing** that reveals individual performances by day. A companion **data editor** at `/admin` manages all show and performance data without requiring a build or deploy. Currently supports a single year (2026).
 
 ---
 
@@ -42,14 +48,13 @@ All show data lives in `data/sc-theater-runs.json`, which the editor writes via 
 
 ### Companies
 
-| Key        | Full name                  | Color identity |
-| ---------- | -------------------------- | -------------- |
-| `SCS`      | Santa Cruz Shakespeare     | Rose           |
-| `AT`       | Actors' Theatre            | Blue           |
-| `MCT`      | Mountain Community Theater | Green          |
-| `Renegade` | Renegade Theatre           | Teal           |
-| `Cabrillo` | Cabrillo Stage             | None (grey)    |
-| `ABT`      | Actors Beyond Theater      | None (grey)    |
+| Key        | Full name                   | Color identity |
+| ---------- | --------------------------- | -------------- |
+| `SCS`      | Santa Cruz Shakespeare      | Rose           |
+| `AT`       | Actors' Theatre             | Blue           |
+| `MCT`      | Mountain Community Theater  | Green          |
+| `Renegade` | Renegade Theatre            | Teal           |
+| `Other`    | not individually identified | None (grey)    |
 
 ### Venues
 
@@ -69,7 +74,7 @@ A self-contained single-page editor served statically from `public/admin/index.h
 
 ### Runs sidebar
 
-Lists all production runs. Click a run to open it in the editor panel; click **+ New** to create one. Each run has fields for company, full title, short abbreviation, genre, venue, price, default discounts, info URL, and default ticket URL, plus an optional **Description** field. The description textarea sits between the run-level fields and the performances table; **B** and **I** buttons wrap the current selection in `**bold**` or `*italic*` markers, and a ↕ toggle expands the textarea for longer entries.
+Lists all production runs. Click a run to open it in the editor panel; click **+ New** to create one. Each run has fields for company, full title, short abbreviation, genre, venue, price, default discounts, info URL, and default ticket URL, plus an optional **Description** field. The description textarea provides **B** and **I** buttons which wrap the current selection in `**bold**` or `*italic*` markers, and a ↕ toggle expands the textarea for longer entries.
 
 ### Performances table
 
@@ -111,7 +116,7 @@ data/
 public/
   admin/index.html            # data editor SPA
 netlify/
-  functions/fetch-page.mjs    # server-side proxy for fetching external pages (CORS bypass)
+  functions/fetch-page.mjs    # server-side proxy for fetching external pages, not currently used (CORS bypass)
 scripts/
   check-data.ts               # dry-run: prints show count and date range (tsx)
 docs/
@@ -144,4 +149,4 @@ npm run build    # outputs to dist/
 npm run preview  # verify locally before pushing
 ```
 
-Netlify CI watches `main` and deploys on every push, using the config in `netlify.toml`. The calendar itself is fully static. The `netlify/functions/fetch-page.mjs` serverless function is deployed alongside it and is only called from the `/admin` editor UI.
+Netlify CI watches `main` and deploys on every push, using the config in `netlify.toml`. The calendar itself is fully static. The `netlify/functions/fetch-page.mjs` serverless function is deployed alongside it and is only called from the `/admin` editor UI. Not currently in use.

@@ -27,8 +27,6 @@ Foundation palette used across every surface. Not company-specific.
 
 Companies are coloured at three levels of saturation depending on context.
 Only SCS, AT, MCT, and Renegade have named colour sets.
-**Cabrillo and ABT are treated as "other"** and fall through to the grey fallback
-at every level — they have display names but no distinct colour identity.
 
 ### 2a. Fill colors — `--col-*`
 
@@ -40,14 +38,14 @@ performance-bar backgrounds (further softened by `filter: saturate(0.78) brightn
 SCS and AT are near-complementary on the colour wheel (rose 7° vs blue 225°)
 to maximise contrast at the smallest display sizes.
 
-| CSS variable     | Value     | Swatch                                                                                                                                                   | Hue  | Company                     | Name       |
-| ---------------- | --------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- | ---- | --------------------------- | ---------- |
-| `--col-scs`      | `#E9C1BE` | <span style="display:inline-block;width:1.1em;height:1.1em;border:1px solid #b8b0a6;border-radius:2px;background:#E9C1BE;vertical-align:middle;"></span> | 7°   | SCS                         | Carnation  |
-| `--col-at`       | `#AFBFEE` | <span style="display:inline-block;width:1.1em;height:1.1em;border:1px solid #b8b0a6;border-radius:2px;background:#AFBFEE;vertical-align:middle;"></span> | 225° | AT                          | Dusk       |
-| `--col-mct`      | `#C9E6BF` | <span style="display:inline-block;width:1.1em;height:1.1em;border:1px solid #b8b0a6;border-radius:2px;background:#C9E6BF;vertical-align:middle;"></span> | 116° | MCT                         | Willow     |
-| `--col-renegade` | `#B7E8EC` | <span style="display:inline-block;width:1.1em;height:1.1em;border:1px solid #b8b0a6;border-radius:2px;background:#B7E8EC;vertical-align:middle;"></span> | 188° | Renegade                    | Verdigris  |
-| `--col-other`    | `#d6d6d6` | <span style="display:inline-block;width:1.1em;height:1.1em;border:1px solid #b8b0a6;border-radius:2px;background:#d6d6d6;vertical-align:middle;"></span> | —    | Cabrillo / ABT / unknown    | Neutral grey |
-| `--col-multi`    | `#d4ccc2` | <span style="display:inline-block;width:1.1em;height:1.1em;border:1px solid #b8b0a6;border-radius:2px;background:#d4ccc2;vertical-align:middle;"></span> | —    | Multi-company (annual only) | Warm taupe |
+| CSS variable     | Value     | Swatch                                                                                                                                                   | Hue  | Company                     | Name         |
+| ---------------- | --------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- | ---- | --------------------------- | ------------ |
+| `--col-scs`      | `#E9C1BE` | <span style="display:inline-block;width:1.1em;height:1.1em;border:1px solid #b8b0a6;border-radius:2px;background:#E9C1BE;vertical-align:middle;"></span> | 7°   | SCS                         | Carnation    |
+| `--col-at`       | `#AFBFEE` | <span style="display:inline-block;width:1.1em;height:1.1em;border:1px solid #b8b0a6;border-radius:2px;background:#AFBFEE;vertical-align:middle;"></span> | 225° | AT                          | Dusk         |
+| `--col-mct`      | `#C9E6BF` | <span style="display:inline-block;width:1.1em;height:1.1em;border:1px solid #b8b0a6;border-radius:2px;background:#C9E6BF;vertical-align:middle;"></span> | 116° | MCT                         | Willow       |
+| `--col-renegade` | `#B7E8EC` | <span style="display:inline-block;width:1.1em;height:1.1em;border:1px solid #b8b0a6;border-radius:2px;background:#B7E8EC;vertical-align:middle;"></span> | 188° | Renegade                    | Verdigris    |
+| `--col-other`    | `#d6d6d6` | <span style="display:inline-block;width:1.1em;height:1.1em;border:1px solid #b8b0a6;border-radius:2px;background:#d6d6d6;vertical-align:middle;"></span> | —    | Other                       | Neutral grey |
+| `--col-multi`    | `#d4ccc2` | <span style="display:inline-block;width:1.1em;height:1.1em;border:1px solid #b8b0a6;border-radius:2px;background:#d4ccc2;vertical-align:middle;"></span> | —    | Multi-company (annual only) | Warm taupe   |
 
 **Where used:**
 
@@ -67,14 +65,14 @@ Muted accents (S ≈ 30–35%, L ≈ 56–62%). Used for small identification do
 where colour must read clearly at 8–11 px without dominating the surrounding
 content.
 
-| CSS variable     | Value     | Swatch                                                                                                                                                   | Company  | Name        |
-| ---------------- | --------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- | ----------- |
-| `--dot-scs`      | `#ce8481` | <span style="display:inline-block;width:1.1em;height:1.1em;border:1px solid #b8b0a6;border-radius:2px;background:#ce8481;vertical-align:middle;"></span> | SCS      | Dusty rose   |
-| `--dot-at`       | `#7b8bc4` | <span style="display:inline-block;width:1.1em;height:1.1em;border:1px solid #b8b0a6;border-radius:2px;background:#7b8bc4;vertical-align:middle;"></span> | AT       | Soft indigo  |
-| `--dot-mct`      | `#71c75f` | <span style="display:inline-block;width:1.1em;height:1.1em;border:1px solid #b8b0a6;border-radius:2px;background:#71c75f;vertical-align:middle;"></span> | MCT      | Leaf green   |
-| `--dot-renegade` | `#5dadbe` | <span style="display:inline-block;width:1.1em;height:1.1em;border:1px solid #b8b0a6;border-radius:2px;background:#5dadbe;vertical-align:middle;"></span> | Renegade | Sea teal     |
-| `--dot-other`    | `#cbcbcb` | <span style="display:inline-block;width:1.1em;height:1.1em;border:1px solid #b8b0a6;border-radius:2px;background:#cbcbcb;vertical-align:middle;"></span> | Other    | Neutral grey |
-| `--dot-multi`    | `#ccc3b8` | <span style="display:inline-block;width:1.1em;height:1.1em;border:1px solid #b8b0a6;border-radius:2px;background:#ccc3b8;vertical-align:middle;"></span> | Multi-company (annual only) | Warm taupe |
+| CSS variable     | Value     | Swatch                                                                                                                                                   | Company                     | Name         |
+| ---------------- | --------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------- | ------------ |
+| `--dot-scs`      | `#ce8481` | <span style="display:inline-block;width:1.1em;height:1.1em;border:1px solid #b8b0a6;border-radius:2px;background:#ce8481;vertical-align:middle;"></span> | SCS                         | Dusty rose   |
+| `--dot-at`       | `#7b8bc4` | <span style="display:inline-block;width:1.1em;height:1.1em;border:1px solid #b8b0a6;border-radius:2px;background:#7b8bc4;vertical-align:middle;"></span> | AT                          | Soft indigo  |
+| `--dot-mct`      | `#71c75f` | <span style="display:inline-block;width:1.1em;height:1.1em;border:1px solid #b8b0a6;border-radius:2px;background:#71c75f;vertical-align:middle;"></span> | MCT                         | Leaf green   |
+| `--dot-renegade` | `#5dadbe` | <span style="display:inline-block;width:1.1em;height:1.1em;border:1px solid #b8b0a6;border-radius:2px;background:#5dadbe;vertical-align:middle;"></span> | Renegade                    | Sea teal     |
+| `--dot-other`    | `#cbcbcb` | <span style="display:inline-block;width:1.1em;height:1.1em;border:1px solid #b8b0a6;border-radius:2px;background:#cbcbcb;vertical-align:middle;"></span> | Other                       | Neutral grey |
+| `--dot-multi`    | `#ccc3b8` | <span style="display:inline-block;width:1.1em;height:1.1em;border:1px solid #b8b0a6;border-radius:2px;background:#ccc3b8;vertical-align:middle;"></span> | Multi-company (annual only) | Warm taupe   |
 
 **Where used:**
 
@@ -92,12 +90,12 @@ content.
 Fully saturated (S ≈ 55–65%, L ≈ 42–48%). Used where colour acts as a clear,
 vivid identity signal on a neutral background rather than as an area fill.
 
-| CSS variable     | Value     | Swatch                                                                                                                                                   | Company  | Name              |
-| ---------------- | --------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- | ----------------- |
-| `--acc-scs`      | `#dc4343` | <span style="display:inline-block;width:1.1em;height:1.1em;border:1px solid #b8b0a6;border-radius:2px;background:#dc4343;vertical-align:middle;"></span> | SCS      | Vivid red-rose    |
-| `--acc-at`       | `#4f5ce0` | <span style="display:inline-block;width:1.1em;height:1.1em;border:1px solid #b8b0a6;border-radius:2px;background:#4f5ce0;vertical-align:middle;"></span> | AT       | Vivid blue-violet |
-| `--acc-mct`      | `#48ae31` | <span style="display:inline-block;width:1.1em;height:1.1em;border:1px solid #b8b0a6;border-radius:2px;background:#48ae31;vertical-align:middle;"></span> | MCT      | Vivid leaf green  |
-| `--acc-renegade` | `#21a4c8` | <span style="display:inline-block;width:1.1em;height:1.1em;border:1px solid #b8b0a6;border-radius:2px;background:#21a4c8;vertical-align:middle;"></span> | Renegade | Vivid sea teal    |
+| CSS variable     | Value     | Swatch                                                                                                                                                   | Company  | Name                |
+| ---------------- | --------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- | ------------------- |
+| `--acc-scs`      | `#dc4343` | <span style="display:inline-block;width:1.1em;height:1.1em;border:1px solid #b8b0a6;border-radius:2px;background:#dc4343;vertical-align:middle;"></span> | SCS      | Vivid red-rose      |
+| `--acc-at`       | `#4f5ce0` | <span style="display:inline-block;width:1.1em;height:1.1em;border:1px solid #b8b0a6;border-radius:2px;background:#4f5ce0;vertical-align:middle;"></span> | AT       | Vivid blue-violet   |
+| `--acc-mct`      | `#48ae31` | <span style="display:inline-block;width:1.1em;height:1.1em;border:1px solid #b8b0a6;border-radius:2px;background:#48ae31;vertical-align:middle;"></span> | MCT      | Vivid leaf green    |
+| `--acc-renegade` | `#21a4c8` | <span style="display:inline-block;width:1.1em;height:1.1em;border:1px solid #b8b0a6;border-radius:2px;background:#21a4c8;vertical-align:middle;"></span> | Renegade | Vivid sea teal      |
 | `--acc-other`    | `#8f8a85` | <span style="display:inline-block;width:1.1em;height:1.1em;border:1px solid #b8b0a6;border-radius:2px;background:#8f8a85;vertical-align:middle;"></span> | Other    | Neutral grey accent |
 
 **Where used:**
@@ -133,13 +131,12 @@ vivid identity signal on a neutral background rather than as an area fill.
 
 ## 4. Colour fallback chain
 
-When a company has no entry in a given map (Cabrillo, ABT, Other, or any
-future unregistered company):
+When a company has no entry in a given map:
 
-| Context                | Fallback value     | Swatch                                                                                                                                                   | Appearance           |
-| ---------------------- | ------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------- |
-| `companyColor()` fill  | `var(--col-other)` | <span style="display:inline-block;width:1.1em;height:1.1em;border:1px solid #b8b0a6;border-radius:2px;background:#d6d6d6;vertical-align:middle;"></span> | `#d6d6d6` neutral grey  |
-| `dotColor()` dot       | `var(--dot-other)` | <span style="display:inline-block;width:1.1em;height:1.1em;border:1px solid #b8b0a6;border-radius:2px;background:#cbcbcb;vertical-align:middle;"></span> | `#cbcbcb` neutral grey  |
+| Context                | Fallback value     | Swatch                                                                                                                                                   | Appearance                    |
+| ---------------------- | ------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------- |
+| `companyColor()` fill  | `var(--col-other)` | <span style="display:inline-block;width:1.1em;height:1.1em;border:1px solid #b8b0a6;border-radius:2px;background:#d6d6d6;vertical-align:middle;"></span> | `#d6d6d6` neutral grey        |
+| `dotColor()` dot       | `var(--dot-other)` | <span style="display:inline-block;width:1.1em;height:1.1em;border:1px solid #b8b0a6;border-radius:2px;background:#cbcbcb;vertical-align:middle;"></span> | `#cbcbcb` neutral grey        |
 | `accentColor()` accent | `var(--acc-other)` | <span style="display:inline-block;width:1.1em;height:1.1em;border:1px solid #b8b0a6;border-radius:2px;background:#8f8a85;vertical-align:middle;"></span> | `#8f8a85` neutral grey accent |
 
 ---

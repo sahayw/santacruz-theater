@@ -82,39 +82,38 @@ const { performances } = Astro.props
   @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=DM+Serif+Display&family=DM+Sans:wght@300;400;500&display=swap');
 
   :root {
+    --page-bg: #f0ede8;
     --bg: #f7f4ef;
     --surface: #ffffff;
     --ink: #1a1612;
     --ink-muted: #6b6259;
     --border: #e0d9d0;
-    /* bar fill colors — style B flat muted tints
-       SCS↔AT are near-complementary (rose 7° vs blue 225°) for max small-size contrast.
- */
+    --month-header-bg: #fffcf2;
+    /* day fill colors — flat muted tints */
     --col-scs: #e9c1be; /* Carnation   7°   SCS      */
     --col-at: #afbfee; /* Dusk      225°   AT       */
     --col-mct: #c9e6bf; /* Willow    116°   MCT      */
     --col-renegade: #b7e8ec; /* Verdigris 188°   Renegade */
-    --col-other: #e0dcd6; /* warm grey — Cabrillo / ABT / unknown fallback */
-    --col-multi: #d4ccc2; /* deeper taupe — annual multi-company days */
-    /* legend dot colors — muted accent */
+    --col-other: #d6d6d6; /* grey — Other / unknown fallback (drill down only) */
+    --col-multi: #d4ccc2; /* deeper taupe — multi-company days (annual only) */
+    /* legend dot colors — muted accent, provides increased contrast */
     --dot-scs: #ce8481; /* dusty rose  */
-    --dot-at: #7080b8; /* soft indigo */
-    --dot-mct: #68c057; /* olive sage  */
-    --dot-renegade: #479aac; /* sea teal  */
-    --dot-other: #8f8579; /* warm stone  */
-    /* fully saturated accent colors — drill-down chip bars and show-card badge */
+    --dot-at: #7b8bc4; /* soft indigo */
+    --dot-mct: #71c75f; /* olive sage  */
+    --dot-renegade: #5dadbe; /* sea teal  */
+    --dot-other: #cbcbcb; /* grey - other (drill down only) */
+    --dot-multi: #ccc3b8; /* deeper taupe — multi-company (annual only) */
+    /* fully saturated accent colors — drill-down chip bars and Show-card badge */
     --acc-scs: #dc4343; /* vivid red-rose */
-    --acc-at: #4064c8; /* vivid blue     */
+    --acc-at: #4f5ce0; /* vivid blue     */
     --acc-mct: #48ae31; /* vivid leaf green */
     --acc-renegade: #21a4c8; /* vivid sea teal  */
-    --acc-other: #8b8076; /* warm stone accent */
-    --pip-eve: #2c2c2c;
-    --pip-mat: #8a8278;
+    --acc-other: #8f8a85; /* warm grey accent */
     --radius: 6px;
     --header-h: 52px;
     --filter-h: 40px;
     --col-header-h: 28px;
-    --footer-h: 68px;
+    --footer-h: 48px;
     --shows-col-w: clamp(120px, 21vw, 160px);
     --daynum-h: 24px;
     --row-h: 22px;
@@ -128,7 +127,7 @@ const { performances } = Astro.props
 
   body {
     font-family: 'DM Sans', sans-serif;
-    background: var(--bg);
+    background: var(--page-bg);
     color: var(--ink);
     min-height: 100vh;
     font-size: 14px;
@@ -275,6 +274,7 @@ const { performances } = Astro.props
     padding: 2px;
     max-width: 960px;
     margin: 0 auto;
+    background: var(--bg);
   }
   .year-title {
     font-family: 'DM Serif Display', serif;
@@ -407,6 +407,7 @@ const { performances } = Astro.props
     display: none;
     max-width: 600px;
     margin: 0 auto;
+    padding-right: 5px;
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
   }
@@ -414,12 +415,18 @@ const { performances } = Astro.props
   .scroll-month-label {
     position: relative;
     z-index: 3;
-    padding: 5px 12px 4px;
+    padding: 7px 12px 6px;
     font-family: 'DM Serif Display', serif;
-    font-size: 20px;
+    font-size: 18px;
     font-weight: 400;
     color: #433c36;
-    background: var(--bg);
+    background: linear-gradient(
+      to bottom,
+      #f1eee8 0%,
+      var(--month-header-bg) 25%,
+      var(--month-header-bg) 85%,
+      #f1eee8 100%
+    );
     letter-spacing: 0.01em;
     border-bottom: 1px solid var(--border);
     will-change: transform;
@@ -432,6 +439,7 @@ const { performances } = Astro.props
     display: grid;
     grid-template-columns: var(--shows-col-w) repeat(7, 1fr);
     border-bottom: 2px solid var(--border);
+    border-right: 2px solid var(--border);
     min-width: 440px;
     background: var(--surface);
   }
@@ -1070,10 +1078,11 @@ const { performances } = Astro.props
     { color: 'var(--dot-at)', label: "Actors' Theatre" },
     { color: 'var(--dot-mct)', label: 'Mountain Community Theater' },
     { color: 'var(--dot-renegade)', label: 'Renegade Theatre' },
-    { color: 'var(--col-multi)', label: 'Multiple companies' }
+    { color: 'var(--dot-other)', label: 'Other', view: 'drill' },
+    { color: 'var(--dot-multi)', label: 'Multiple companies', view: 'annual' }
   ]
 
-  function buildFixedFooter(includeMulti = true) {
+  function buildFixedFooter(view = 'annual') {
     const footer = document.getElementById('fixedLegendFooter')
     footer.innerHTML = ''
     const title = document.createElement('span')
@@ -1081,7 +1090,7 @@ const { performances } = Astro.props
     title.textContent = 'COMPANIES'
     footer.appendChild(title)
     LEGEND_ENTRIES.forEach((e) => {
-      if (!includeMulti && e.label === 'Multiple companies') return
+      if (e.view && e.view !== view) return
       const item = document.createElement('div')
       item.className = 'legend-item'
       item.style.cssText =
@@ -1315,7 +1324,7 @@ const { performances } = Astro.props
     document.getElementById('headerTitle').textContent = 'Calendar 2026'
     document.body.classList.remove('annual-mode')
     document.body.classList.add('scroll-mode')
-    buildFixedFooter(false)
+    buildFixedFooter('drill')
     requestAnimationFrame(() => {
       const sv = document.getElementById('scroll-view')
       sv.scrollLeft = sv.scrollWidth - sv.clientWidth
@@ -1342,7 +1351,7 @@ const { performances } = Astro.props
     document.getElementById('headerTitle').textContent = 'Santa Cruz Theater'
     document.body.classList.remove('scroll-mode')
     document.body.classList.add('annual-mode')
-    buildFixedFooter(true)
+    buildFixedFooter('annual')
     window.scrollTo(0, 0)
   }
 

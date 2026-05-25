@@ -25,7 +25,8 @@ TypeScript strict mode. No UI framework.
 - `data/`           — `sc-theater-runs.json` (canonical source, editor-managed)
 - `public/admin/`   — editor SPA at `/admin` (static HTML, no build step)
 - `scripts/`        — one-off Node scripts (run with `tsx`)
-- `docs/`           — design documentation (e.g. `color-system.md`)
+- `docs/`           — design documentation (e.g. `color-system.md`, `description-feature.md`)
+- `netlify/functions/` — serverless functions (currently: `fetch-page.mjs`)
 
 ## Data schema
 
@@ -46,6 +47,7 @@ TypeScript strict mode. No UI framework.
 | `company`      | `Company`  | `SCS \| AT \| MCT \| Renegade \| Cabrillo \| ABT \| Other \| ""` |
 | `showAbv`      | `string`   | Short label shown in calendar chips        |
 | `show`         | `string`   | Full production title                      |
+| `description`  | `string?`  | Optional narrative paragraph; supports `**bold**` and `*italic*` |
 | `genre`        | `Genre`    | `Drama \| Musical \| Comedy \| Tragedy \| Other \| ""` |
 | `venue`        | `Venue`    | `G \| VMB \| PH \| AT \| CCT \| Other \| ""` |
 | `price`        | `string`   | Display string, e.g. `"$72-$92"`           |

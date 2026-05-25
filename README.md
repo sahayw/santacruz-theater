@@ -16,7 +16,7 @@ A full-year grid of months, each showing mini day cells. Days with performances 
 
 A scrollable grid of week columns. Each week has:
 
-- **Shows column** — one chip per production running that week, with a coloured accent bar stripe and the show abbreviation
+- **Shows column** — one chip per production running that week, with a coloured accent bar stripe and the show abbreviation. Hovering a chip (or tapping on mobile) opens a floating description panel when a description is set for that run.
 - **Day columns (Mon–Sun)** — coloured performance bars stacked within each day; clicking a bar opens the show card
 
 Filters at the top of the page narrow by **company**, **genre**, and **time of day** (matinee / evening). The header back-arrow returns to the annual view.
@@ -35,7 +35,7 @@ A persistent footer identifies each company by a coloured square and full name. 
 
 All show data lives in `data/sc-theater-runs.json`, which the editor writes via its Export button. The structure is two-tier:
 
-- **Run** — one production: company, full title, short abbreviation, genre, venue, price, discount text, info URL, ticket URL, and an ordered list of performances
+- **Run** — one production: company, full title, short abbreviation, optional description paragraph, genre, venue, price, discount text, info URL, ticket URL, and an ordered list of performances
 - **Performance** — one date/time slot: date (`YYYY-MM-DD`), time (`HH:MM` 24 h), optional performance type (Preview / Opening / Closing / Talk-back), and optional per-slot overrides for discounts and ticket URL
 
 `src/lib/data.ts` flattens runs into a sorted `PerformanceEvent[]` at build time, resolving per-slot overrides. The calendar component receives this flat array as a prop.
@@ -69,7 +69,7 @@ A self-contained single-page editor served statically from `public/admin/index.h
 
 ### Runs sidebar
 
-Lists all production runs. Click a run to open it in the editor panel; click **+ New** to create one. Each run has fields for company, full title, short abbreviation, genre, venue, price, default discounts, info URL, and default ticket URL.
+Lists all production runs. Click a run to open it in the editor panel; click **+ New** to create one. Each run has fields for company, full title, short abbreviation, genre, venue, price, default discounts, info URL, and default ticket URL, plus an optional **Description** field. The description textarea sits between the run-level fields and the performances table; **B** and **I** buttons wrap the current selection in `**bold**` or `*italic*` markers, and a ↕ toggle expands the textarea for longer entries.
 
 ### Performances table
 
@@ -110,10 +110,13 @@ data/
   sc-theater-runs.json        # canonical data; written by the editor's Export button
 public/
   admin/index.html            # data editor SPA
+netlify/
+  functions/fetch-page.mjs    # server-side proxy for fetching external pages (CORS bypass)
 scripts/
   check-data.ts               # dry-run: prints show count and date range (tsx)
 docs/
   color-system.md             # colour variable reference
+  description-feature.md      # show description field — editor UI, panel behaviour, fetch proxy
 ```
 
 ---
@@ -141,4 +144,4 @@ npm run build    # outputs to dist/
 npm run preview  # verify locally before pushing
 ```
 
-Netlify CI watches `main` and deploys on every push, using the config in `netlify.toml`. The site is fully static — no server-side runtime required.
+Netlify CI watches `main` and deploys on every push, using the config in `netlify.toml`. The calendar itself is fully static. The `netlify/functions/fetch-page.mjs` serverless function is deployed alongside it and is only called from the `/admin` editor UI.

@@ -69,6 +69,7 @@ const { performances } = Astro.props
 
 <div class="fixed-legend-footer" id="fixedLegendFooter"></div>
 <div id="hoverPanel" class="day-hover-panel"></div>
+<div id="showDescPanel" class="show-desc-panel"></div>
 <div class="overlay" id="overlay"></div>
 <div class="bottom-sheet" id="bottomSheet">
   <div class="sheet-date-header">
@@ -873,6 +874,66 @@ const { performances } = Astro.props
     text-align: right;
   }
 
+  /* ── SHOW DESCRIPTION PANEL ── */
+  .show-desc-panel {
+    display: none;
+    position: fixed;
+    z-index: 300;
+    width: 290px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
+    pointer-events: none;
+  }
+  .show-desc-panel.visible {
+    display: block;
+  }
+  .show-desc-panel.touch-mode {
+    pointer-events: auto;
+    cursor: pointer;
+  }
+  .desc-panel-header {
+    padding: 8px 12px 6px;
+    border-bottom: 1px solid var(--border);
+  }
+  .desc-panel-company {
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    color: var(--ink-muted);
+    margin-bottom: 2px;
+  }
+  .desc-panel-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 1.3;
+    color: var(--ink);
+  }
+  .desc-panel-body {
+    padding: 8px 12px;
+    font-size: 12px;
+    line-height: 1.65;
+    color: var(--ink);
+  }
+  .desc-panel-footer {
+    padding: 5px 12px;
+    font-size: 11px;
+    color: var(--ink-muted);
+    border-top: 1px solid var(--border);
+    text-align: right;
+  }
+
+  @media (hover: hover) {
+    .show-chip.has-desc:hover {
+      background: rgba(0, 0, 0, 0.05);
+      border-radius: 3px;
+      cursor: default;
+    }
+  }
+
   /* ── DRILL-DOWN HOVER HIGHLIGHT ── */
   @media (hover: hover) {
     /* Hovering the date cell: highlight it + all bars for that day */
@@ -1036,6 +1097,51 @@ const { performances } = Astro.props
       activePanelCell = null
     }
   }
+  let activeDescRunId = null
+  let descPanelShownAt = 0
+
+  function renderMd(text) {
+    return text
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+      .replace(/\*(.+?)\*/g, '<em>$1</em>')
+  }
+
+  function showDescPanel(s, chipEl, isTouch = false) {
+    const panel = document.getElementById('showDescPanel')
+    let html = `<div class="desc-panel-header">
+      <div class="desc-panel-company">${COMPANY_NAMES[s.company] || s.company}</div>
+      <div class="desc-panel-title">${s.show}</div>
+    </div>
+    <div class="desc-panel-body">${renderMd(s.description)}</div>`
+    if (isTouch) html += `<div class="desc-panel-footer">Tap to dismiss</div>`
+    panel.innerHTML = html
+    const rect = chipEl.getBoundingClientRect()
+    const pw = 290
+    const ph = 80 + Math.ceil(s.description.length / 50) * 20
+    let left = rect.right + 8
+    let top = Math.round(rect.top + (rect.height - ph) / 2)
+    if (left + pw > window.innerWidth - 8) left = Math.max(8, rect.left - pw - 8)
+    if (top + ph > window.innerHeight - 8) top = Math.max(8, window.innerHeight - ph - 8)
+    if (top < 8) top = 8
+    panel.style.left = left + 'px'
+    panel.style.top = top + 'px'
+    activeDescRunId = s.runId
+    panel.classList.add('visible')
+    if (isTouch) {
+      panel.classList.add('touch-mode')
+      descPanelShownAt = Date.now()
+    }
+  }
+
+  function hideDescPanel() {
+    const panel = document.getElementById('showDescPanel')
+    panel.classList.remove('visible', 'touch-mode')
+    activeDescRunId = null
+  }
+
   function perfsByDate(perfs) {
     const m = {}
     perfs.forEach((p) => {
@@ -1052,7 +1158,7 @@ const { performances } = Astro.props
       .forEach((p) => {
         if (!seen.has(p.runId)) {
           seen.add(p.runId)
-          result.push({ runId: p.runId, showAbv: p.showAbv, company: p.company, show: p.show })
+          result.push({ runId: p.runId, showAbv: p.showAbv, company: p.company, show: p.show, description: p.description || '' })
         }
       })
     return result
@@ -1239,8 +1345,26 @@ const { performances } = Astro.props
       } else {
         weekShows.forEach((s) => {
           const chip = document.createElement('div')
-          chip.className = 'show-chip'
+          chip.className = 'show-chip' + (s.description ? ' has-desc' : '')
           chip.innerHTML = `<span class="show-chip-bar" style="background:${accentColor(s.company)}"></span><span class="show-chip-name" title="${s.show}">${s.showAbv}</span>`
+          if (s.description) {
+            chip.addEventListener('pointerenter', (e) => {
+              if (e.pointerType === 'mouse') showDescPanel(s, chip, false)
+            })
+            chip.addEventListener('pointerleave', (e) => {
+              if (e.pointerType === 'mouse') hideDescPanel()
+            })
+            chip.addEventListener('click', (e) => {
+              if (Date.now() - lastTouchTime < 500) {
+                e.stopPropagation()
+                if (activeDescRunId === s.runId) {
+                  hideDescPanel()
+                } else {
+                  showDescPanel(s, chip, true)
+                }
+              }
+            })
+          }
           showsCol.appendChild(chip)
         })
       }
@@ -1426,7 +1550,7 @@ const { performances } = Astro.props
     document.body.style.paddingBottom = footerEl.offsetHeight + 8 + 'px'
   }).observe(footerEl)
 
-  document.addEventListener('scroll', hideHoverPanel, { passive: true })
+  document.addEventListener('scroll', () => { hideHoverPanel(); hideDescPanel() }, { passive: true })
 
   document.getElementById('scroll-view').addEventListener(
     'scroll',
@@ -1453,6 +1577,15 @@ const { performances } = Astro.props
     if (activePanelDate && !e.target.closest('#hoverPanel') && !e.target.closest('.mini-day')) {
       hideHoverPanel()
     }
+    if (activeDescRunId && !e.target.closest('#showDescPanel') && !e.target.closest('.show-chip.has-desc')) {
+      hideDescPanel()
+    }
+  })
+
+  document.getElementById('showDescPanel').addEventListener('touchend', (e) => {
+    if (Date.now() - descPanelShownAt < 300) return
+    e.preventDefault()
+    hideDescPanel()
   })
 
   document.getElementById('scroll-view').addEventListener('scroll', function () {

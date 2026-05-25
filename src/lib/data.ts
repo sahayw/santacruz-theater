@@ -19,11 +19,12 @@ export async function getPerformances(): Promise<PerformanceEvent[]> {
   for (const run of runs) {
     for (const perf of run.performances) {
       events.push({
-        runId:      run.id,
-        company:    run.company,
-        showAbv:    run.showAbv,
-        show:       run.show,
-        genre:      run.genre,
+        runId:       run.id,
+        company:     run.company,
+        showAbv:     run.showAbv,
+        show:        run.show,
+        description: run.description || '',
+        genre:       run.genre,
         venue:      run.venue,
         price:      run.price,
         discounts:  perf.discounts  || run.discounts,

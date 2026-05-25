@@ -46,8 +46,8 @@ to maximise contrast at the smallest display sizes.
 | `--col-at`       | `#AFBFEE` | <span style="display:inline-block;width:1.1em;height:1.1em;border:1px solid #b8b0a6;border-radius:2px;background:#AFBFEE;vertical-align:middle;"></span> | 225° | AT                          | Dusk       |
 | `--col-mct`      | `#C9E6BF` | <span style="display:inline-block;width:1.1em;height:1.1em;border:1px solid #b8b0a6;border-radius:2px;background:#C9E6BF;vertical-align:middle;"></span> | 116° | MCT                         | Willow     |
 | `--col-renegade` | `#B7E8EC` | <span style="display:inline-block;width:1.1em;height:1.1em;border:1px solid #b8b0a6;border-radius:2px;background:#B7E8EC;vertical-align:middle;"></span> | 188° | Renegade                    | Verdigris  |
-| `--col-other`    | `#E0DCD6` | <span style="display:inline-block;width:1.1em;height:1.1em;border:1px solid #b8b0a6;border-radius:2px;background:#E0DCD6;vertical-align:middle;"></span> | —    | Cabrillo / ABT / unknown    | Warm grey  |
-| `--col-multi`    | `#D4CCC2` | <span style="display:inline-block;width:1.1em;height:1.1em;border:1px solid #b8b0a6;border-radius:2px;background:#D4CCC2;vertical-align:middle;"></span> | —    | Multi-company (annual only) | Taupe grey |
+| `--col-other`    | `#d6d6d6` | <span style="display:inline-block;width:1.1em;height:1.1em;border:1px solid #b8b0a6;border-radius:2px;background:#d6d6d6;vertical-align:middle;"></span> | —    | Cabrillo / ABT / unknown    | Neutral grey |
+| `--col-multi`    | `#d4ccc2` | <span style="display:inline-block;width:1.1em;height:1.1em;border:1px solid #b8b0a6;border-radius:2px;background:#d4ccc2;vertical-align:middle;"></span> | —    | Multi-company (annual only) | Warm taupe |
 
 **Where used:**
 
@@ -69,20 +69,23 @@ content.
 
 | CSS variable     | Value     | Swatch                                                                                                                                                   | Company  | Name        |
 | ---------------- | --------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- | ----------- |
-| `--dot-scs`      | `#CE8481` | <span style="display:inline-block;width:1.1em;height:1.1em;border:1px solid #b8b0a6;border-radius:2px;background:#CE8481;vertical-align:middle;"></span> | SCS      | Dusty rose  |
-| `--dot-at`       | `#7080B8` | <span style="display:inline-block;width:1.1em;height:1.1em;border:1px solid #b8b0a6;border-radius:2px;background:#7080B8;vertical-align:middle;"></span> | AT       | Soft indigo |
-| `--dot-mct`      | `#68C057` | <span style="display:inline-block;width:1.1em;height:1.1em;border:1px solid #b8b0a6;border-radius:2px;background:#68C057;vertical-align:middle;"></span> | MCT      | Olive sage  |
-| `--dot-renegade` | `#479AAC` | <span style="display:inline-block;width:1.1em;height:1.1em;border:1px solid #b8b0a6;border-radius:2px;background:#479AAC;vertical-align:middle;"></span> | Renegade | Sea teal    |
-| `--dot-other`    | `#8F8579` | <span style="display:inline-block;width:1.1em;height:1.1em;border:1px solid #b8b0a6;border-radius:2px;background:#8F8579;vertical-align:middle;"></span> | Other    | Warm stone  |
+| `--dot-scs`      | `#ce8481` | <span style="display:inline-block;width:1.1em;height:1.1em;border:1px solid #b8b0a6;border-radius:2px;background:#ce8481;vertical-align:middle;"></span> | SCS      | Dusty rose   |
+| `--dot-at`       | `#7b8bc4` | <span style="display:inline-block;width:1.1em;height:1.1em;border:1px solid #b8b0a6;border-radius:2px;background:#7b8bc4;vertical-align:middle;"></span> | AT       | Soft indigo  |
+| `--dot-mct`      | `#71c75f` | <span style="display:inline-block;width:1.1em;height:1.1em;border:1px solid #b8b0a6;border-radius:2px;background:#71c75f;vertical-align:middle;"></span> | MCT      | Leaf green   |
+| `--dot-renegade` | `#5dadbe` | <span style="display:inline-block;width:1.1em;height:1.1em;border:1px solid #b8b0a6;border-radius:2px;background:#5dadbe;vertical-align:middle;"></span> | Renegade | Sea teal     |
+| `--dot-other`    | `#cbcbcb` | <span style="display:inline-block;width:1.1em;height:1.1em;border:1px solid #b8b0a6;border-radius:2px;background:#cbcbcb;vertical-align:middle;"></span> | Other    | Neutral grey |
+| `--dot-multi`    | `#ccc3b8` | <span style="display:inline-block;width:1.1em;height:1.1em;border:1px solid #b8b0a6;border-radius:2px;background:#ccc3b8;vertical-align:middle;"></span> | Multi-company (annual only) | Warm taupe |
 
 **Where used:**
 
 - `dotColor(company)` JS function returns these variables.
-  Fallback for unmapped companies: `var(--dot-other)` (`#8f8579`).
+  Fallback for unmapped companies: `var(--dot-other)` (`#cbcbcb`).
 - **Annual view hover panel** — the 8×8 px company dot beside each
   performance row (`hover-panel-dot`, line ≈ 974).
 - **Footer legend** — the 11×11 px coloured square beside each company name
-  (built dynamically in `buildFixedFooter()`).
+  (built dynamically in `buildFixedFooter()`). The "Multiple companies" legend
+  entry uses `--dot-multi` (`#ccc3b8`) in annual view; the "Other" entry uses
+  `--dot-other` (`#cbcbcb`) in drill-down view.
 
 ### 2c. Accent colors — `--acc-*`
 
@@ -91,11 +94,11 @@ vivid identity signal on a neutral background rather than as an area fill.
 
 | CSS variable     | Value     | Swatch                                                                                                                                                   | Company  | Name              |
 | ---------------- | --------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- | ----------------- |
-| `--acc-scs`      | `#DC4343` | <span style="display:inline-block;width:1.1em;height:1.1em;border:1px solid #b8b0a6;border-radius:2px;background:#DC4343;vertical-align:middle;"></span> | SCS      | Vivid red-rose    |
-| `--acc-at`       | `#4064C8` | <span style="display:inline-block;width:1.1em;height:1.1em;border:1px solid #b8b0a6;border-radius:2px;background:#4064C8;vertical-align:middle;"></span> | AT       | Vivid blue        |
-| `--acc-mct`      | `#48AE31` | <span style="display:inline-block;width:1.1em;height:1.1em;border:1px solid #b8b0a6;border-radius:2px;background:#48AE31;vertical-align:middle;"></span> | MCT      | Vivid leaf green  |
-| `--acc-renegade` | `#21A4C8` | <span style="display:inline-block;width:1.1em;height:1.1em;border:1px solid #b8b0a6;border-radius:2px;background:#21A4C8;vertical-align:middle;"></span> | Renegade | Vivid sea teal    |
-| `--acc-other`    | `#8B8076` | <span style="display:inline-block;width:1.1em;height:1.1em;border:1px solid #b8b0a6;border-radius:2px;background:#8B8076;vertical-align:middle;"></span> | Other    | Warm stone accent |
+| `--acc-scs`      | `#dc4343` | <span style="display:inline-block;width:1.1em;height:1.1em;border:1px solid #b8b0a6;border-radius:2px;background:#dc4343;vertical-align:middle;"></span> | SCS      | Vivid red-rose    |
+| `--acc-at`       | `#4f5ce0` | <span style="display:inline-block;width:1.1em;height:1.1em;border:1px solid #b8b0a6;border-radius:2px;background:#4f5ce0;vertical-align:middle;"></span> | AT       | Vivid blue-violet |
+| `--acc-mct`      | `#48ae31` | <span style="display:inline-block;width:1.1em;height:1.1em;border:1px solid #b8b0a6;border-radius:2px;background:#48ae31;vertical-align:middle;"></span> | MCT      | Vivid leaf green  |
+| `--acc-renegade` | `#21a4c8` | <span style="display:inline-block;width:1.1em;height:1.1em;border:1px solid #b8b0a6;border-radius:2px;background:#21a4c8;vertical-align:middle;"></span> | Renegade | Vivid sea teal    |
+| `--acc-other`    | `#8f8a85` | <span style="display:inline-block;width:1.1em;height:1.1em;border:1px solid #b8b0a6;border-radius:2px;background:#8f8a85;vertical-align:middle;"></span> | Other    | Neutral grey accent |
 
 **Where used:**
 
@@ -135,9 +138,9 @@ future unregistered company):
 
 | Context                | Fallback value     | Swatch                                                                                                                                                   | Appearance           |
 | ---------------------- | ------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------- |
-| `companyColor()` fill  | `var(--col-other)` | <span style="display:inline-block;width:1.1em;height:1.1em;border:1px solid #b8b0a6;border-radius:2px;background:#E0DCD6;vertical-align:middle;"></span> | `#E0DCD6` warm grey  |
-| `dotColor()` dot       | `var(--dot-other)` | <span style="display:inline-block;width:1.1em;height:1.1em;border:1px solid #b8b0a6;border-radius:2px;background:#8F8579;vertical-align:middle;"></span> | `#8F8579` warm stone |
-| `accentColor()` accent | `var(--acc-other)` | <span style="display:inline-block;width:1.1em;height:1.1em;border:1px solid #b8b0a6;border-radius:2px;background:#8B8076;vertical-align:middle;"></span> | `#8B8076` warm stone |
+| `companyColor()` fill  | `var(--col-other)` | <span style="display:inline-block;width:1.1em;height:1.1em;border:1px solid #b8b0a6;border-radius:2px;background:#d6d6d6;vertical-align:middle;"></span> | `#d6d6d6` neutral grey  |
+| `dotColor()` dot       | `var(--dot-other)` | <span style="display:inline-block;width:1.1em;height:1.1em;border:1px solid #b8b0a6;border-radius:2px;background:#cbcbcb;vertical-align:middle;"></span> | `#cbcbcb` neutral grey  |
+| `accentColor()` accent | `var(--acc-other)` | <span style="display:inline-block;width:1.1em;height:1.1em;border:1px solid #b8b0a6;border-radius:2px;background:#8f8a85;vertical-align:middle;"></span> | `#8f8a85` neutral grey accent |
 
 ---
 

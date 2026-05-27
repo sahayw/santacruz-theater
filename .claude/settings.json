@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "WebSearch",
+      "WebFetch(domain:unsplash.com)",
+      "Bash(npx playwright *)",
+      "WebFetch(domain:santacruzshakespeare.org)",
+      "WebFetch(domain:www.santacruzactorstheatre.org)",
+      "WebFetch(domain:mctshows.org)"
+    ]
+  }
+}

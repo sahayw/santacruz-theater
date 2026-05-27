@@ -1,0 +1,81 @@
+---
+import CalendarView from '../components/calendar.astro';
+import SiteNav from '../components/SiteNav.astro';
+import { getPerformances } from '../lib/data.ts';
+
+const performances = await getPerformances();
+---
+
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="generator" content={Astro.generator} />
+    <title>Calendar — Santa Cruz Theater 2026</title>
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  </head>
+  <body>
+    <SiteNav currentPage="calendar" />
+    <CalendarView performances={performances} />
+  </body>
+</html>
+
+<!-- Suppress the calendar's own header bar (now redundant with the site nav)
+     and adjust all fixed-element positions. calendar.astro is not modified. -->
+<style is:global>
+  :root {
+    --nav-h: 44px;
+    --header-h: 0px; /* header is hidden; auto-corrects all downstream calculations */
+  }
+
+  /* Collapse the header bar visually while keeping its DOM nodes for JS */
+  .app-header {
+    height: 0 !important;
+    padding: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    overflow: visible !important;
+  }
+
+  /* Back button: re-home it into the left edge of the filter bar row */
+  .back-btn.visible {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    position: fixed !important;
+    top: var(--nav-h) !important;
+    left: 0 !important;
+    height: var(--filter-h) !important;
+    width: 40px !important;
+    padding: 0 !important;
+    z-index: 131 !important;
+    background: var(--surface) !important;
+    border-right: 1px solid var(--border) !important;
+    color: var(--ink-muted) !important;
+    font-size: 20px !important;
+  }
+
+  /* Make room in the filter bar for the back button when it is visible */
+  body.scroll-mode .filter-bar {
+    padding-left: 44px !important;
+  }
+
+  /* Positions — --header-h is now 0px so the maths simplify automatically */
+  .filter-bar {
+    top: calc(var(--nav-h) + var(--header-h)) !important;
+  }
+
+  .scroll-col-header {
+    top: calc(var(--nav-h) + var(--header-h) + var(--filter-h)) !important;
+  }
+
+  body {
+    padding-top: calc(var(--nav-h) + var(--header-h) + var(--filter-h)) !important;
+  }
+
+  body.scroll-mode {
+    padding-top: calc(
+      var(--nav-h) + var(--header-h) + var(--filter-h) + var(--col-header-h)
+    ) !important;
+  }
+</style>

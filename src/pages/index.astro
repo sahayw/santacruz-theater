@@ -1,19 +1,334 @@
 ---
-import Calendar from '../components/calendar.astro';
-import { getPerformances } from '../lib/data.ts';
-
-const performances = await getPerformances();
 ---
 
+<!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="generator" content={Astro.generator} />
-    <title>Santa Cruz Theater 2026</title>
+    <title>Santa Cruz Theater Hub</title>
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=DM+Sans:wght@300;400;500&display=swap"
+      rel="stylesheet"
+    />
   </head>
   <body>
-    <Calendar performances={performances} />
+    <div class="page">
+      <div class="page-bg"></div>
+      <div class="page-overlay"></div>
+
+      <div class="page-content">
+
+        <header class="hero-text">
+          <p class="hero-eyebrow">Live theater in</p>
+          <h1 class="hero-title">Santa Cruz</h1>
+          <p class="hero-tagline">Performances across the county's leading companies</p>
+        </header>
+
+        <div class="cards-grid">
+
+          <a href="/calendar" class="section-card">
+            <div class="card-accent"></div>
+            <div class="card-icon">
+              <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                <line x1="16" y1="2" x2="16" y2="6"></line>
+                <line x1="8" y1="2" x2="8" y2="6"></line>
+                <line x1="3" y1="10" x2="21" y2="10"></line>
+              </svg>
+            </div>
+            <h2 class="card-title">Calendar</h2>
+            <p class="card-desc">Browse performances by month, filter by company or genre, and get tickets to your next show.</p>
+            <span class="card-cta">Explore &rarr;</span>
+          </a>
+
+          <a href="/auditions" class="section-card card--soon">
+            <div class="card-accent"></div>
+            <div class="card-icon">
+              <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M2 9a5 5 0 0 1 10 0v4a5 5 0 0 1-10 0V9z"></path>
+                <path d="M5.5 12.5c.5.4 1.5.4 2 0"></path>
+                <path d="M9 10c-.5-.7-1.5-.7-2 0"></path>
+                <path d="M12 13a5 5 0 0 1 10 0V9a5 5 0 0 1-10 0"></path>
+                <path d="M16.5 15.5c.5-.4 1.5-.4 2 0"></path>
+                <path d="M19 12c-.5.7-1.5.7-2 0"></path>
+              </svg>
+            </div>
+            <h2 class="card-title">Auditions</h2>
+            <p class="card-desc">Find upcoming audition calls from Santa Cruz theater companies.</p>
+            <span class="card-soon-badge">Coming Soon</span>
+          </a>
+
+          <a href="/services" class="section-card card--soon">
+            <div class="card-accent"></div>
+            <div class="card-icon">
+              <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <circle cx="12" cy="12" r="3"></circle>
+                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+              </svg>
+            </div>
+            <h2 class="card-title">Services</h2>
+            <p class="card-desc">Connect with crew, props, venues, and production resources.</p>
+            <span class="card-soon-badge">Coming Soon</span>
+          </a>
+
+        </div>
+      </div>
+
+      <p class="photo-credit">
+        Photo: <a href="https://unsplash.com" target="_blank" rel="noopener">Unsplash</a>
+      </p>
+    </div>
   </body>
 </html>
+
+<style>
+  *, *::before, *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: #120c06;
+    color: #1a1612;
+    min-height: 100vh;
+  }
+
+  /* ── FULL-PAGE WRAPPER ── */
+  .page {
+    position: relative;
+    min-height: calc(100vh - 44px);
+    margin-top: 44px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .page-bg {
+    position: absolute;
+    inset: 0;
+    background-image: url('https://images.unsplash.com/photo-1767811556101-d4dacddc8cb6?auto=format&fit=crop&w=1920&q=80');
+    background-size: cover;
+    background-position: center top;
+  }
+
+  /* Gradient: readable title at top, visible curtain mid, darker at bottom for cards */
+  .page-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      to bottom,
+      rgba(18, 12, 6, 0.64) 0%,
+      rgba(18, 12, 6, 0.22) 38%,
+      rgba(18, 12, 6, 0.80) 100%
+    );
+  }
+
+  /* ── CONTENT COLUMN ── */
+  .page-content {
+    position: relative;
+    z-index: 2;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 36px 32px 40px;
+    gap: 24px;
+    max-width: 960px;
+    width: 100%;
+    margin: 0 auto;
+    /* hero-text fills available space, cards sit at the bottom */
+  }
+
+  /* ── HERO TEXT ── */
+  .hero-text {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    /* min so very short viewports don't squash to zero */
+    min-height: 120px;
+  }
+
+  .hero-eyebrow {
+    font-size: 11px;
+    font-weight: 400;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: #c8a96e;
+    margin-bottom: 10px;
+  }
+
+  .hero-title {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(44px, 7vw, 80px);
+    font-weight: 700;
+    color: #fff;
+    line-height: 1.0;
+    letter-spacing: -0.01em;
+    margin-bottom: 12px;
+  }
+
+  .hero-tagline {
+    font-size: 15px;
+    font-weight: 300;
+    color: rgba(255, 255, 255, 0.70);
+    letter-spacing: 0.02em;
+  }
+
+  /* ── SECTION CARDS ── */
+  .cards-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    flex-shrink: 0;
+  }
+
+  .section-card {
+    background: #fff;
+    border-radius: 8px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    text-decoration: none;
+    color: #1a1612;
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.30);
+    transition: box-shadow 0.2s, transform 0.2s;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .section-card:hover {
+    box-shadow: 0 8px 40px rgba(0, 0, 0, 0.42);
+    transform: translateY(-2px);
+  }
+
+  .section-card:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.28);
+  }
+
+  .card-accent {
+    height: 3px;
+    background: #c8a96e;
+    flex-shrink: 0;
+  }
+
+  .card--soon .card-accent {
+    background: #d4ccc2;
+  }
+
+  .card-icon {
+    padding: 16px 20px 0;
+    color: #c8a96e;
+    flex-shrink: 0;
+  }
+
+  .card--soon .card-icon {
+    color: #b5ada4;
+  }
+
+  .card-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 19px;
+    font-weight: 600;
+    padding: 8px 20px 0;
+    line-height: 1.2;
+    color: #1a1612;
+    flex-shrink: 0;
+  }
+
+  .card--soon .card-title {
+    color: #6b6259;
+  }
+
+  .card-desc {
+    font-size: 13px;
+    font-weight: 400;
+    color: #6b6259;
+    padding: 6px 20px 0;
+    line-height: 1.58;
+    flex: 1;
+  }
+
+  .card-cta {
+    display: block;
+    padding: 12px 20px 16px;
+    font-size: 12px;
+    font-weight: 500;
+    color: #c8a96e;
+    letter-spacing: 0.02em;
+    flex-shrink: 0;
+  }
+
+  .card-soon-badge {
+    display: inline-block;
+    margin: 10px 20px 16px;
+    padding: 3px 10px;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #9b9289;
+    background: #f5f2ee;
+    border-radius: 20px;
+    border: 1px solid #e0d9d0;
+    align-self: flex-start;
+    flex-shrink: 0;
+  }
+
+  /* ── PHOTO CREDIT ── */
+  .photo-credit {
+    position: absolute;
+    bottom: 8px;
+    right: 12px;
+    z-index: 3;
+    font-size: 10px;
+    color: rgba(255, 255, 255, 0.25);
+  }
+
+  .photo-credit a {
+    color: rgba(255, 255, 255, 0.25);
+    text-decoration: none;
+  }
+
+  /* ── TABLET (portrait and landscape) ── */
+  @media (max-width: 860px) {
+    .page-content {
+      padding: 28px 24px 32px;
+      gap: 20px;
+    }
+  }
+
+  /* ── PHONE ── */
+  @media (max-width: 600px) {
+    .page-content {
+      padding: 24px 16px 28px;
+      gap: 16px;
+      /* On phone the page can scroll if all 3 stacked cards overflow */
+      max-width: 440px;
+    }
+
+    .hero-text {
+      min-height: 90px;
+    }
+
+    .cards-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .card-desc {
+      /* Shorten to 2 lines on phone to keep cards compact */
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+  }
+</style>

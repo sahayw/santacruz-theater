@@ -1,0 +1,99 @@
+---
+interface Props {
+  currentPage?: 'calendar' | 'auditions' | 'services';
+}
+const { currentPage } = Astro.props;
+---
+
+<nav class="site-nav">
+  <a href="/" class="nav-brand">Santa Cruz Theater</a>
+  <ul class="nav-links">
+    <li>
+      <a
+        href="/calendar"
+        class={`nav-link${currentPage === 'calendar' ? ' nav-link--active' : ''}`}
+      >Calendar</a>
+    </li>
+    <li>
+      <a
+        href="/auditions"
+        class={`nav-link${currentPage === 'auditions' ? ' nav-link--active' : ''}`}
+      >Auditions</a>
+    </li>
+    <li>
+      <a
+        href="/services"
+        class={`nav-link${currentPage === 'services' ? ' nav-link--active' : ''}`}
+      >Services</a>
+    </li>
+  </ul>
+</nav>
+
+<style>
+  .site-nav {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 130;
+    height: 44px;
+    background: #1a1612;
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    box-shadow: 0 1px 0 rgba(255, 255, 255, 0.07);
+  }
+
+  .nav-brand {
+    font-family: 'Playfair Display', serif;
+    font-size: 15px;
+    font-weight: 600;
+    color: #e2d5b8;
+    text-decoration: none;
+    letter-spacing: 0.03em;
+    flex: 1;
+    white-space: nowrap;
+  }
+
+  .nav-links {
+    list-style: none;
+    display: flex;
+    gap: 2px;
+    margin: 0;
+    padding: 0;
+  }
+
+  .nav-link {
+    display: block;
+    color: rgba(255, 255, 255, 0.58);
+    text-decoration: none;
+    padding: 5px 11px;
+    border-radius: 4px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 400;
+    letter-spacing: 0.01em;
+    transition: color 0.14s, background 0.14s;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .nav-link:hover {
+    color: #fff;
+    background: rgba(255, 255, 255, 0.09);
+  }
+
+  .nav-link--active {
+    color: #c8a96e;
+    font-weight: 500;
+  }
+
+  @media (max-width: 380px) {
+    .nav-brand {
+      font-size: 13px;
+    }
+    .nav-link {
+      padding: 5px 8px;
+      font-size: 12px;
+    }
+  }
+</style>

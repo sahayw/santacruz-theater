@@ -1,11 +1,17 @@
 ---
 import type { PerformanceEvent } from '../types.ts'
+import companiesData from '../../data/sc-theater-companies.json'
+import venuesData from '../../data/sc-theater-venues.json'
 
 interface Props {
   performances: PerformanceEvent[]
 }
 
 const { performances } = Astro.props
+
+// Companies that appear in this year's performance data, preserving JSON order
+const activeCompanyCodes = new Set<string>(performances.map(p => p.company).filter(Boolean))
+const filterCompanies = companiesData.companies.filter(c => activeCompanyCodes.has(c.abvName))
 ---
 
 <header class="app-header">
@@ -17,11 +23,9 @@ const { performances } = Astro.props
   <label>Company</label>
   <select id="filterCompany">
     <option value="">All</option>
-    <option value="SCS">SCS</option>
-    <option value="AT">AT</option>
-    <option value="MCT">MCT</option>
-    <option value="Renegade">Renegade</option>
-    <option value="Cabrillo">Cabrillo</option>
+    {filterCompanies.map(c => (
+      <option value={c.abvName}>{c.name}</option>
+    ))}
   </select>
   <span class="filter-sep">|</span>
   <label>Genre</label>
@@ -950,7 +954,7 @@ const { performances } = Astro.props
   }
 </style>
 
-<script define:vars={{ performances }} is:inline>
+<script define:vars={{ performances, companies: companiesData.companies, venues: venuesData.venues }} is:inline>
   const PERFORMANCES = performances
   const TODAY = new Date().toISOString().slice(0, 10)
   const COMPANY_COLORS = {
@@ -959,20 +963,8 @@ const { performances } = Astro.props
     MCT: 'var(--col-mct)',
     Renegade: 'var(--col-renegade)'
   }
-  const COMPANY_NAMES = {
-    SCS: 'Santa Cruz Shakespeare',
-    AT: "Actors' Theatre",
-    MCT: 'Mountain Community Theater',
-    Renegade: 'Renegade Theatre',
-    Cabrillo: 'Cabrillo Stage'
-  }
-  const VENUE_NAMES = {
-    G: 'The Grove',
-    VMB: 'Veterans Memorial Building',
-    PH: 'Park Hall',
-    AT: "Actors' Theatre",
-    CCT: 'Cabrillo Crocker Theater'
-  }
+  const COMPANY_NAMES = Object.fromEntries(companies.map(c => [c.abvName, c.name]))
+  const VENUE_NAMES = Object.fromEntries(venues.map(v => [v.code, v.name]))
   const MONTHS = [
     'January',
     'February',
@@ -1180,10 +1172,10 @@ const { performances } = Astro.props
   }
 
   const LEGEND_ENTRIES = [
-    { color: 'var(--dot-scs)', label: 'Santa Cruz Shakespeare' },
-    { color: 'var(--dot-at)', label: "Actors' Theatre" },
-    { color: 'var(--dot-mct)', label: 'Mountain Community Theater' },
-    { color: 'var(--dot-renegade)', label: 'Renegade Theatre' },
+    ...Object.keys(COMPANY_COLORS).map(code => ({
+      color: `var(--dot-${code.toLowerCase()})`,
+      label: COMPANY_NAMES[code] || code
+    })),
     { color: 'var(--dot-other)', label: 'Other', view: 'drill' },
     { color: 'var(--dot-multi)', label: 'Multiple companies', view: 'annual' }
   ]

@@ -2,66 +2,56 @@
   "companies": [
     {
       "id": "scs",
-      "code": "SCS",
+      "abvName": "SCS",
       "name": "Santa Cruz Shakespeare",
-      "primaryVenue": "The Grove",
-      "venueCode": "G",
+      "primaryVenue": "G",
       "website": "https://santacruzshakespeare.org/",
       "logo": "/images/companies/scs-logo.png"
     },
     {
       "id": "at",
-      "code": "AT",
+      "abvName": "AT",
       "name": "Actors' Theatre",
-      "primaryVenue": "Actors' Theatre",
-      "venueCode": "AT",
       "website": "https://www.santacruzactorstheatre.org/",
       "logo": "/images/companies/at-logo.jpg"
     },
     {
       "id": "mct",
-      "code": "MCT",
+      "abvName": "MCT",
       "name": "Mountain Community Theater",
-      "primaryVenue": "Park Hall",
-      "venueCode": "PH",
+      "primaryVenue": "PH",
       "website": "https://mctshows.org/",
       "logo": "/images/companies/mct-logo.png"
     },
     {
       "id": "renegade",
-      "code": "Renegade",
+      "abvName": "Renegade",
       "name": "Renegade Theater",
-      "primaryVenue": "Veterans Memorial Building",
-      "venueCode": "VMB",
       "website": "https://renegadetheaterco.org/index.html",
       "logo": "/images/companies/renegade-logo.png"
     },
     {
       "id": "cabrillo-stage",
-      "code": "Cabrillo",
+      "abvName": "Cabrillo",
       "name": "Cabrillo Stage",
-      "primaryVenue": "Cabrillo Crocker Theater",
-      "venueCode": "CCT",
+      "primaryVenue": "CCT",
       "website": "https://www.cabrillostage.com/",
       "logo": "/images/companies/cabrillo-logo.png",
       "logoDark": true
     },
     {
       "id": "aat",
-      "code": "AAT",
+      "abvName": "AAT",
       "name": "All About Theatre",
-      "primaryVenue": "Colligan Theater",
-      "venueCode": "Colligan",
+      "primaryVenue": "Colligan",
       "website": "https://allabouttheatre.org/",
       "logo": "/images/companies/aat-logo.png",
       "logoDark": true
     },
     {
       "id": "landing",
-      "code": "Landing",
+      "abvName": "Landing",
       "name": "The Landing",
-      "primaryVenue": "The Landing",
-      "venueCode": "Landing",
       "website": "https://thelandingsv.org/",
       "logo": "/images/companies/landing-logo.png",
       "logoDark": true

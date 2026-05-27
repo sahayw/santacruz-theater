@@ -1,0 +1,11 @@
+{
+  "venues": [
+    { "code": "G",        "name": "The Grove" },
+    { "code": "VMB",      "name": "Veterans Memorial Building" },
+    { "code": "PH",       "name": "Park Hall" },
+    { "code": "AT",       "name": "Actors' Theatre" },
+    { "code": "CCT",      "name": "Cabrillo Crocker Theater" },
+    { "code": "Colligan", "name": "Colligan Theater" },
+    { "code": "Landing",  "name": "The Landing" }
+  ]
+}

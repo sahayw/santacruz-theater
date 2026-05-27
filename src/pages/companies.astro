@@ -1,8 +1,10 @@
 ---
 import SiteNav from '../components/SiteNav.astro';
 import companiesData from '../../data/sc-theater-companies.json';
+import venuesData from '../../data/sc-theater-venues.json';
 
 const { companies } = companiesData;
+const venueNames = Object.fromEntries(venuesData.venues.map(v => [v.code, v.name]));
 ---
 
 <!doctype html>
@@ -41,12 +43,12 @@ const { companies } = companiesData;
             <div class="card-logo-area">
               {company.logo
                 ? <img src={company.logo} alt={`${company.name} logo`} class="company-logo" />
-                : <span class="logo-placeholder">{company.code}</span>
+                : <span class="logo-placeholder">{company.abvName}</span>
               }
             </div>
             <div class="card-overlay" aria-hidden="true">
               <span class="overlay-name">{company.name}</span>
-              <span class="overlay-venue">{company.primaryVenue}</span>
+              <span class="overlay-venue">{company.primaryVenue ? venueNames[company.primaryVenue] ?? company.primaryVenue : ''}</span>
             </div>
           </a>
         ))}

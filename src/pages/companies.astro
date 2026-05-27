@@ -1,0 +1,226 @@
+---
+import SiteNav from '../components/SiteNav.astro';
+import companiesData from '../../data/sc-theater-companies.json';
+
+const { companies } = companiesData;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="generator" content={Astro.generator} />
+    <title>Theater Companies — Santa Cruz Theater</title>
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=DM+Sans:wght@300;400;500&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <SiteNav currentPage="companies" />
+
+    <main class="companies-page">
+      <header class="page-header">
+        <h1 class="page-title">Theater Companies</h1>
+        <p class="page-subtitle">Santa Cruz County's leading theater companies</p>
+      </header>
+
+      <div class="companies-grid">
+        {companies.map((company) => (
+          <a
+            href={company.website}
+            class={`company-card${company.logoDark ? ' card--dark-logo' : ''}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label={company.name}
+          >
+            <div class="card-logo-area">
+              {company.logo
+                ? <img src={company.logo} alt={`${company.name} logo`} class="company-logo" />
+                : <span class="logo-placeholder">{company.code}</span>
+              }
+            </div>
+            <div class="card-overlay" aria-hidden="true">
+              <span class="overlay-name">{company.name}</span>
+              <span class="overlay-venue">{company.primaryVenue}</span>
+            </div>
+          </a>
+        ))}
+      </div>
+    </main>
+  </body>
+</html>
+
+<style>
+  *, *::before, *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: #f0ede8;
+    color: #1a1612;
+    min-height: 100vh;
+  }
+
+  /* ── PAGE LAYOUT ── */
+  .companies-page {
+    margin-top: 44px;
+    padding: 40px 32px 64px;
+    max-width: 1100px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  /* ── PAGE HEADER ── */
+  .page-header {
+    margin-bottom: 32px;
+  }
+
+  .page-title {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(28px, 4vw, 40px);
+    font-weight: 600;
+    color: #1a1612;
+    line-height: 1.15;
+    margin-bottom: 8px;
+  }
+
+  .page-subtitle {
+    font-size: 15px;
+    font-weight: 300;
+    color: #6b6259;
+    letter-spacing: 0.01em;
+  }
+
+  /* ── COMPANIES GRID ── */
+  .companies-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 20px;
+  }
+
+  /* ── COMPANY CARD ── */
+  .company-card {
+    position: relative;
+    border-radius: 8px;
+    overflow: hidden;
+    display: block;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+    border-top: 3px solid #c8a96e;
+    transition: box-shadow 0.2s, transform 0.2s;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .company-card:active {
+    transform: scale(0.98);
+  }
+
+  /* ── LOGO AREA ── */
+  .card-logo-area {
+    height: 110px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 12px;
+    background: #faf7f2;
+  }
+
+  .card--dark-logo .card-logo-area {
+    background: #1a1612;
+  }
+
+  .company-logo {
+    max-width: 100%;
+    max-height: 86px; /* card height (110px) minus vertical padding (2×12px) */
+    width: auto;
+    height: auto;
+    object-fit: contain;
+  }
+
+  .logo-placeholder {
+    font-family: 'Playfair Display', serif;
+    font-size: 22px;
+    font-weight: 600;
+    color: #c8a96e;
+    letter-spacing: 0.05em;
+  }
+
+  /* ── HOVER OVERLAY (pointer devices only) ── */
+  .card-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(26, 22, 18, 0.82);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 16px;
+    opacity: 0;
+    transition: opacity 0.18s;
+    pointer-events: none;
+  }
+
+  .overlay-name {
+    font-family: 'Playfair Display', serif;
+    font-size: 16px;
+    font-weight: 600;
+    color: #fff;
+    text-align: center;
+    line-height: 1.25;
+  }
+
+  .overlay-venue {
+    font-size: 12px;
+    font-weight: 400;
+    color: rgba(255, 255, 255, 0.65);
+    text-align: center;
+    letter-spacing: 0.02em;
+  }
+
+  @media (hover: hover) {
+    .company-card:hover {
+      box-shadow: 0 6px 28px rgba(0, 0, 0, 0.16);
+      transform: translateY(-2px);
+    }
+
+    .company-card:hover .card-overlay {
+      opacity: 1;
+    }
+  }
+
+  /* ── TABLET ── */
+  @media (max-width: 860px) {
+    .companies-page {
+      padding: 32px 24px 56px;
+    }
+  }
+
+  /* ── PHONE ── */
+  @media (max-width: 600px) {
+    .companies-page {
+      padding: 24px 16px 48px;
+    }
+
+    .companies-grid {
+      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+      gap: 12px;
+    }
+
+    .card-logo-area {
+      height: 86px;
+      padding: 10px;
+    }
+
+    .company-logo {
+      max-height: 66px; /* 86 - 2×10 */
+    }
+  }
+</style>

@@ -2,8 +2,9 @@
 
 ## Project overview
 
-Astro 6 static site listing Santa Cruz theater performances, deployed to Netlify.
-TypeScript strict mode. No UI framework.
+Astro 6 static site covering Santa Cruz County theater — performances calendar, company directory, and (planned) auditions and services listings. Deployed to Netlify. TypeScript strict mode. No UI framework.
+
+The site is structured as a hub (`/`) linking to four sections: **Calendar** (`/calendar`), **Companies** (`/companies`), **Auditions** (`/auditions` — stub), and **Services** (`/services` — stub). A fixed top nav (`SiteNav.astro`) is shared across all inner pages.
 
 ## Key commands
 
@@ -17,21 +18,32 @@ TypeScript strict mode. No UI framework.
 ## Folder conventions
 
 - `src/components/` — reusable Astro components
+  - `calendar.astro` — entire calendar UI
+  - `SiteNav.astro` — fixed top nav bar, shared across all inner pages
 - `src/layouts/` — page layout wrappers
 - `src/pages/` — file-based routes
+  - `index.astro` — hub landing page
+  - `calendar.astro` — wraps `calendar.astro` component under the site nav
+  - `companies.astro` — company directory, reads from `sc-theater-companies.json`
+  - `auditions.astro` — stub
+  - `services.astro` — stub
 - `src/styles/` — global CSS
-- `src/lib/data.ts` — `getShows()` / `getPerformances()` — the only data access layer
+- `src/lib/data.ts` — `getShows()` / `getPerformances()` — the only data access layer for runs
 - `src/types.ts` — all shared TypeScript interfaces
-- `data/` — `sc-theater-runs.json` (canonical source, editor-managed)
+- `data/` — canonical data files (do not hand-edit `sc-theater-runs.json`; use the editor)
+  - `sc-theater-runs.json` — show/performance data, written by the `/admin` editor
+  - `sc-theater-companies.json` — company directory data, hand-editable
 - `public/admin/` — editor SPA at `/admin` (static HTML, no build step)
+- `public/images/companies/` — company logos downloaded locally; paths stored in `sc-theater-companies.json`
 - `scripts/` — one-off Node scripts (run with `tsx`)
 - `docs/` — design documentation (e.g. `color-system.md`, `description-feature.md`)
 - `netlify/functions/` — serverless functions (currently: `fetch-page.mjs`)
 
 ## Data schema
 
-`data/sc-theater-runs.json` is produced by the editor at `/admin` using its
-**Export JSON** button. Do not hand-edit it; use the editor instead.
+### Runs (`sc-theater-runs.json`)
+
+Produced by the editor at `/admin` using its **Export JSON** button. Do not hand-edit it; use the editor instead.
 
 ### `RunsFile` (top-level shape)
 
@@ -80,3 +92,26 @@ already resolved (performance value wins when non-empty). Sorted by date, then t
 | `PH`  | Park Hall (MCT)            |
 | `AT`  | Actors' Theatre            |
 | `CCT` | Cabrillo Crocker Theater   |
+
+### Companies (`sc-theater-companies.json`)
+
+Hand-editable. The `/companies` page reads this at build time. Logos are stored locally in `public/images/companies/` — download from the company's site and add the local path here rather than linking externally.
+
+#### `CompaniesFile` (top-level shape)
+
+```json
+{ "companies": [ <Company>, ... ] }
+```
+
+#### `Company`
+
+| Field         | Type       | Notes                                                                  |
+| ------------- | ---------- | ---------------------------------------------------------------------- |
+| `id`          | `string`   | Kebab-case slug, e.g. `"scs"`                                          |
+| `code`        | `string`   | Short key; matches `Run.company` for calendar-linked companies         |
+| `name`        | `string`   | Full company name                                                      |
+| `primaryVenue`| `string`   | Main performing venue (display string)                                 |
+| `venueCode`   | `string`   | Venue code from the table above, or a custom string for new venues     |
+| `website`     | `string`   | Company website URL                                                    |
+| `logo`        | `string?`  | Local path, e.g. `"/images/companies/scs-logo.png"`                    |
+| `logoDark`    | `boolean?` | `true` when the logo is white/light and needs a dark card background   |

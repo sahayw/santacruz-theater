@@ -1,6 +1,6 @@
 ---
 interface Props {
-  currentPage?: 'calendar' | 'auditions' | 'services';
+  currentPage?: 'calendar' | 'companies' | 'auditions' | 'services';
 }
 const { currentPage } = Astro.props;
 ---
@@ -13,6 +13,12 @@ const { currentPage } = Astro.props;
         href="/calendar"
         class={`nav-link${currentPage === 'calendar' ? ' nav-link--active' : ''}`}
       >Calendar</a>
+    </li>
+    <li>
+      <a
+        href="/companies"
+        class={`nav-link${currentPage === 'companies' ? ' nav-link--active' : ''}`}
+      >Companies</a>
     </li>
     <li>
       <a

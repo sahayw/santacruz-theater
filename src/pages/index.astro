@@ -31,7 +31,7 @@
 
         <div class="cards-grid">
 
-          <a href="/calendar" class="section-card">
+          <a href="/calendar" class="section-card card--wide">
             <div class="card-accent"></div>
             <div class="card-icon">
               <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -41,8 +41,23 @@
                 <line x1="3" y1="10" x2="21" y2="10"></line>
               </svg>
             </div>
-            <h2 class="card-title">Calendar</h2>
-            <p class="card-desc">Browse performances by month, filter by company or genre, and get tickets to your next show.</p>
+            <div class="card-main">
+              <h2 class="card-title">Calendar</h2>
+              <p class="card-desc">Browse performances by month, filter by company or genre, and get tickets to your next show.</p>
+            </div>
+            <span class="card-cta">Explore &rarr;</span>
+          </a>
+
+          <a href="/companies" class="section-card">
+            <div class="card-accent"></div>
+            <div class="card-icon">
+              <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <rect x="2" y="7" width="20" height="14" rx="2"></rect>
+                <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path>
+              </svg>
+            </div>
+            <h2 class="card-title">Companies</h2>
+            <p class="card-desc">Profiles of Santa Cruz County theater companies, venues, and contact information.</p>
             <span class="card-cta">Explore &rarr;</span>
           </a>
 
@@ -283,6 +298,45 @@
     flex-shrink: 0;
   }
 
+  /* ── WIDE CALENDAR CARD ── */
+  .card--wide {
+    grid-column: 1 / -1;
+    flex-direction: row;
+    align-items: center;
+  }
+
+  .card--wide .card-accent {
+    width: 3px;
+    height: auto;
+    align-self: stretch;
+  }
+
+  .card--wide .card-icon {
+    padding: 0 8px 0 16px;
+    align-self: center;
+  }
+
+  .card--wide .card-main {
+    flex: 1;
+    padding: 16px 12px;
+    min-width: 0;
+  }
+
+  .card--wide .card-title {
+    padding: 0;
+    margin-bottom: 4px;
+  }
+
+  .card--wide .card-desc {
+    padding: 0;
+    flex: unset;
+  }
+
+  .card--wide .card-cta {
+    padding: 0 20px;
+    white-space: nowrap;
+  }
+
   /* ── PHOTO CREDIT ── */
   .photo-credit {
     position: absolute;
@@ -311,7 +365,6 @@
     .page-content {
       padding: 24px 16px 28px;
       gap: 16px;
-      /* On phone the page can scroll if all 3 stacked cards overflow */
       max-width: 440px;
     }
 
@@ -321,6 +374,27 @@
 
     .cards-grid {
       grid-template-columns: 1fr;
+    }
+
+    .card--wide {
+      flex-direction: column;
+    }
+
+    .card--wide .card-accent {
+      width: auto;
+      height: 3px;
+    }
+
+    .card--wide .card-icon {
+      padding: 16px 20px 0;
+    }
+
+    .card--wide .card-main {
+      padding: 8px 20px 0;
+    }
+
+    .card--wide .card-cta {
+      padding: 12px 20px 16px;
     }
 
     .card-desc {

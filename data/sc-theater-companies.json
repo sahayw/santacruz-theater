@@ -1,0 +1,70 @@
+{
+  "companies": [
+    {
+      "id": "scs",
+      "code": "SCS",
+      "name": "Santa Cruz Shakespeare",
+      "primaryVenue": "The Grove",
+      "venueCode": "G",
+      "website": "https://santacruzshakespeare.org/",
+      "logo": "/images/companies/scs-logo.png"
+    },
+    {
+      "id": "at",
+      "code": "AT",
+      "name": "Actors' Theatre",
+      "primaryVenue": "Actors' Theatre",
+      "venueCode": "AT",
+      "website": "https://www.santacruzactorstheatre.org/",
+      "logo": "/images/companies/at-logo.jpg"
+    },
+    {
+      "id": "mct",
+      "code": "MCT",
+      "name": "Mountain Community Theater",
+      "primaryVenue": "Park Hall",
+      "venueCode": "PH",
+      "website": "https://mctshows.org/",
+      "logo": "/images/companies/mct-logo.png"
+    },
+    {
+      "id": "renegade",
+      "code": "Renegade",
+      "name": "Renegade Theater",
+      "primaryVenue": "Veterans Memorial Building",
+      "venueCode": "VMB",
+      "website": "https://renegadetheaterco.org/index.html",
+      "logo": "/images/companies/renegade-logo.png"
+    },
+    {
+      "id": "cabrillo-stage",
+      "code": "Cabrillo",
+      "name": "Cabrillo Stage",
+      "primaryVenue": "Cabrillo Crocker Theater",
+      "venueCode": "CCT",
+      "website": "https://www.cabrillostage.com/",
+      "logo": "/images/companies/cabrillo-logo.png",
+      "logoDark": true
+    },
+    {
+      "id": "aat",
+      "code": "AAT",
+      "name": "All About Theatre",
+      "primaryVenue": "Colligan Theater",
+      "venueCode": "Colligan",
+      "website": "https://allabouttheatre.org/",
+      "logo": "/images/companies/aat-logo.png",
+      "logoDark": true
+    },
+    {
+      "id": "landing",
+      "code": "Landing",
+      "name": "The Landing",
+      "primaryVenue": "The Landing",
+      "venueCode": "Landing",
+      "website": "https://thelandingsv.org/",
+      "logo": "/images/companies/landing-logo.png",
+      "logoDark": true
+    }
+  ]
+}

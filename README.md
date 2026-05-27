@@ -1,14 +1,23 @@
 # Santa Cruz Theater
 
-A resource for theater-goers and theater companies, currently targeting Santa Cruz, CA — built as an Astro 6 static site, deployed to Netlify.
+A resource for theater-goers and theater companies in Santa Cruz County — built as an Astro 6 static site, deployed to Netlify.
 
-Intended to provide three sets of information:
+Four sections, accessible from a persistent top nav and a hub landing page:
 
-1. A calendar of performances
-2. Information about upcoming auditions
-3. Theater services for shows
+1. **Calendar** — performances calendar ✓
+2. **Companies** — theater company directory with logos ✓
+3. **Auditions** — upcoming audition listings _(planned)_
+4. **Services** — crew, props, and production resources _(planned)_
 
-Current implementation includes #1 only. An annual season is displayed with two complementary views: an **annual overview** that shows the whole year at a glance, and a **weekly listing** that reveals individual performances by day. A companion **data editor** at `/admin` manages all show and performance data without requiring a build or deploy. Currently supports a single year (2026).
+A companion **data editor** at `/admin` manages all show and performance data without requiring a build or deploy. Currently supports a single year (2026).
+
+---
+
+## Companies directory
+
+The `/companies` page displays a card grid of Santa Cruz County theater companies. Each card shows the company logo; hovering (on pointer devices) reveals the company name, venue, and a link. Tapping on mobile goes directly to the company website.
+
+Company data lives in `data/sc-theater-companies.json`. Logos are downloaded locally to `public/images/companies/` so the site has no runtime dependency on external image hosts. Companies whose logos are white-on-transparent use a dark card background (`"logoDark": true`). Adding a new company requires only a new entry in the JSON file — no code changes.
 
 ---
 
@@ -48,13 +57,18 @@ All show data lives in `data/sc-theater-runs.json`, which the editor writes via 
 
 ### Companies
 
-| Key        | Full name                   | Color identity |
-| ---------- | --------------------------- | -------------- |
-| `SCS`      | Santa Cruz Shakespeare      | Rose           |
-| `AT`       | Actors' Theatre             | Blue           |
-| `MCT`      | Mountain Community Theater  | Green          |
-| `Renegade` | Renegade Theatre            | Teal           |
-| `Other`    | not individually identified | None (grey)    |
+Calendar colour identities for companies that appear in `sc-theater-runs.json`:
+
+| Key        | Full name                  | Color identity |
+| ---------- | -------------------------- | -------------- |
+| `SCS`      | Santa Cruz Shakespeare     | Rose           |
+| `AT`       | Actors' Theatre            | Blue           |
+| `MCT`      | Mountain Community Theater | Green          |
+| `Renegade` | Renegade Theater           | Teal           |
+| `Cabrillo` | Cabrillo Stage             | None (grey)    |
+| `Other`    | not individually identified| None (grey)    |
+
+Full company profiles (name, venue, website, logo) are in `data/sc-theater-companies.json` and include additional companies not yet in the calendar (All About Theatre, The Landing).
 
 ### Venues
 
@@ -107,16 +121,25 @@ See [`docs/color-system.md`](docs/color-system.md) for the full variable referen
 
 ```
 src/
-  components/calendar.astro   # entire calendar UI — CSS, HTML, and JS in one file
-  lib/data.ts                 # getShows() / getPerformances() — sole data access layer
-  pages/index.astro           # root page; passes performances to the calendar component
+  components/
+    calendar.astro            # entire calendar UI — CSS, HTML, and JS in one file
+    SiteNav.astro             # fixed top nav bar shared across all inner pages
+  lib/data.ts                 # getShows() / getPerformances() — sole data access layer for runs
+  pages/
+    index.astro               # hub landing page with links to all four sections
+    calendar.astro            # wraps calendar component under the site nav
+    companies.astro           # company directory, reads sc-theater-companies.json at build time
+    auditions.astro           # stub
+    services.astro            # stub
   types.ts                    # shared TypeScript interfaces
 data/
-  sc-theater-runs.json        # canonical data; written by the editor's Export button
+  sc-theater-runs.json        # canonical run/performance data; written by the editor's Export button
+  sc-theater-companies.json   # company directory; hand-editable
 public/
   admin/index.html            # data editor SPA
+  images/companies/           # locally stored company logos
 netlify/
-  functions/fetch-page.mjs    # server-side proxy for fetching external pages, not currently used (CORS bypass)
+  functions/fetch-page.mjs    # server-side proxy, not currently used (CORS bypass)
 scripts/
   check-data.ts               # dry-run: prints show count and date range (tsx)
 docs/

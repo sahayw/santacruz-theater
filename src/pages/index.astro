@@ -48,7 +48,7 @@
             <span class="card-cta">Explore &rarr;</span>
           </a>
 
-          <a href="/companies" class="section-card">
+          <a href="/companies" class="section-card card--sub">
             <div class="card-accent"></div>
             <div class="card-icon">
               <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -61,7 +61,7 @@
             <span class="card-cta">Explore &rarr;</span>
           </a>
 
-          <a href="/auditions" class="section-card card--soon">
+          <a href="/auditions" class="section-card card--sub card--soon">
             <div class="card-accent"></div>
             <div class="card-icon">
               <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -78,7 +78,7 @@
             <span class="card-soon-badge">Coming Soon</span>
           </a>
 
-          <a href="/services" class="section-card card--soon">
+          <a href="/services" class="section-card card--sub card--soon">
             <div class="card-accent"></div>
             <div class="card-icon">
               <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -100,6 +100,12 @@
     </div>
   </body>
 </html>
+
+<script>
+  document.querySelector('.page')?.addEventListener('click', (e) => {
+    if (!(e.target as Element).closest('a')) window.location.href = '/calendar';
+  });
+</script>
 
 <style>
   *, *::before, *::after {
@@ -123,6 +129,7 @@
     display: flex;
     flex-direction: column;
     overflow: hidden;
+    cursor: pointer;
   }
 
   .page-bg {
@@ -173,7 +180,7 @@
   }
 
   .hero-eyebrow {
-    font-size: 11px;
+    font-size: 14px;
     font-weight: 400;
     letter-spacing: 0.18em;
     text-transform: uppercase;
@@ -202,8 +209,9 @@
   .cards-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    gap: 16px;
+    gap: 32px;
     flex-shrink: 0;
+    padding: 0 8px 8px;
   }
 
   .section-card {
@@ -263,6 +271,10 @@
     color: #6b6259;
   }
 
+  .card--sub .card-title {
+    font-size: 15px;
+  }
+
   .card-desc {
     font-size: 13px;
     font-weight: 400;
@@ -270,6 +282,10 @@
     padding: 6px 20px 0;
     line-height: 1.58;
     flex: 1;
+  }
+
+  .card--sub .card-desc {
+    font-size: 12px;
   }
 
   .card-cta {
@@ -299,6 +315,11 @@
   }
 
   /* ── WIDE CALENDAR CARD ── */
+  .card--wide:hover {
+    transform: none;
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.30);
+  }
+
   .card--wide {
     grid-column: 1 / -1;
     flex-direction: row;

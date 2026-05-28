@@ -65,6 +65,10 @@ const { currentPage } = Astro.props;
 </script>
 
 <style>
+  :root {
+    --bar-bg: #2e2a26;
+  }
+
   .site-nav {
     position: fixed;
     top: 0;
@@ -72,7 +76,7 @@ const { currentPage } = Astro.props;
     right: 0;
     z-index: 130;
     height: 44px;
-    background: #1a1612;
+    background: var(--bar-bg);
     display: flex;
     align-items: center;
     padding: 0 20px;
@@ -88,6 +92,10 @@ const { currentPage } = Astro.props;
     letter-spacing: 0.03em;
     flex: 1;
     white-space: nowrap;
+    transition: color 0.14s;
+  }
+  .nav-brand:hover {
+    color: #c8a96e;
   }
 
   .nav-toggle {
@@ -133,18 +141,18 @@ const { currentPage } = Astro.props;
     font-size: 13px;
     font-weight: 400;
     letter-spacing: 0.01em;
-    transition: color 0.14s, background 0.14s;
+    transition: color 0.14s;
     -webkit-tap-highlight-color: transparent;
   }
 
   .nav-link:hover {
-    color: #fff;
-    background: rgba(255, 255, 255, 0.09);
+    color: #c8a96e;
   }
 
   .nav-link--active {
     color: #c8a96e;
     font-weight: 500;
+    pointer-events: none;
   }
 
   @media (max-width: 560px) {
@@ -160,7 +168,7 @@ const { currentPage } = Astro.props;
       flex-direction: column;
       gap: 2px;
       padding: 4px;
-      background: #1a1612;
+      background: var(--bar-bg);
       box-shadow: 0 6px 16px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.07);
       border-radius: 0 0 6px 6px;
     }

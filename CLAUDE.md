@@ -4,7 +4,7 @@
 
 Astro 6 static site covering Santa Cruz County theater — performances calendar, company directory, and (planned) auditions and services listings. Deployed to Netlify. TypeScript strict mode. No UI framework.
 
-The site is structured as a hub (`/`) linking to four sections: **Calendar** (`/calendar`), **Companies** (`/companies`), **Auditions** (`/auditions` — stub), and **Services** (`/services` — stub). A fixed top nav (`SiteNav.astro`) is shared across all inner pages.
+The site is structured as a hub (`/`) linking to four sections: **Calendar** (`/calendar`), **Companies** (`/companies`), **Auditions** (`/auditions` — stub), and **Services** (`/services` — stub). A fixed top nav (`SiteNav.astro`) is shared across all inner pages. An **About** page (`/about`) is linked from the home page footer and contains a Netlify contact form.
 
 ## Key commands
 
@@ -22,9 +22,10 @@ The site is structured as a hub (`/`) linking to four sections: **Calendar** (`/
   - `SiteNav.astro` — fixed top nav bar, shared across all inner pages
 - `src/layouts/` — page layout wrappers
 - `src/pages/` — file-based routes
-  - `index.astro` — hub landing page
+  - `index.astro` — hub landing page; footer links to `/about`
   - `calendar.astro` — wraps `calendar.astro` component under the site nav
   - `companies.astro` — company directory, reads from `sc-theater-companies.json`
+  - `about.astro` — about page with community text and Netlify contact form
   - `auditions.astro` — stub
   - `services.astro` — stub
 - `src/styles/` — global CSS
@@ -105,13 +106,13 @@ Hand-editable. The `/companies` page reads this at build time. Logos are stored 
 
 #### `Company`
 
-| Field         | Type       | Notes                                                                  |
-| ------------- | ---------- | ---------------------------------------------------------------------- |
-| `id`          | `string`   | Kebab-case slug, e.g. `"scs"`                                          |
-| `code`        | `string`   | Short key; matches `Run.company` for calendar-linked companies         |
-| `name`        | `string`   | Full company name                                                      |
-| `primaryVenue`| `string`   | Main performing venue (display string)                                 |
-| `venueCode`   | `string`   | Venue code from the table above, or a custom string for new venues     |
-| `website`     | `string`   | Company website URL                                                    |
-| `logo`        | `string?`  | Local path, e.g. `"/images/companies/scs-logo.png"`                    |
-| `logoDark`    | `boolean?` | `true` when the logo is white/light and needs a dark card background   |
+| Field          | Type       | Notes                                                                |
+| -------------- | ---------- | -------------------------------------------------------------------- |
+| `id`           | `string`   | Kebab-case slug, e.g. `"scs"`                                        |
+| `code`         | `string`   | Short key; matches `Run.company` for calendar-linked companies       |
+| `name`         | `string`   | Full company name                                                    |
+| `primaryVenue` | `string`   | Main performing venue (display string)                               |
+| `venueCode`    | `string`   | Venue code from the table above, or a custom string for new venues   |
+| `website`      | `string`   | Company website URL                                                  |
+| `logo`         | `string?`  | Local path, e.g. `"/images/companies/scs-logo.png"`                  |
+| `logoDark`     | `boolean?` | `true` when the logo is white/light and needs a dark card background |

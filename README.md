@@ -9,7 +9,17 @@ Four sections, accessible from a persistent top nav and a hub landing page:
 3. **Auditions** — upcoming audition listings _(planned)_
 4. **Services** — crew, props, and production resources _(planned)_
 
+An **About** page is linked from the home page footer and includes a community contact form.
+
 A companion **data editor** at `/admin` manages all show and performance data without requiring a build or deploy. Currently supports a single year (2026).
+
+---
+
+## About page and contact form
+
+`/about` explains the site's purpose and invites feedback via a contact form. The form uses **Netlify Forms** — no serverless function needed. Submissions appear in the Netlify dashboard under **Forms**, and email notifications are configured there (Site settings → Forms → Notifications). The notification address is set entirely in the Netlify UI, not in code.
+
+On successful submission the form is replaced by a confirmation message; after 5 seconds the user is returned to the home page.
 
 ---
 
@@ -59,14 +69,14 @@ All show data lives in `data/sc-theater-runs.json`, which the editor writes via 
 
 Calendar colour identities for companies that appear in `sc-theater-runs.json`:
 
-| Key        | Full name                  | Color identity |
-| ---------- | -------------------------- | -------------- |
-| `SCS`      | Santa Cruz Shakespeare     | Rose           |
-| `AT`       | Actors' Theatre            | Blue           |
-| `MCT`      | Mountain Community Theater | Green          |
-| `Renegade` | Renegade Theater           | Teal           |
-| `Cabrillo` | Cabrillo Stage             | None (grey)    |
-| `Other`    | not individually identified| None (grey)    |
+| Key        | Full name                   | Color identity |
+| ---------- | --------------------------- | -------------- |
+| `SCS`      | Santa Cruz Shakespeare      | Rose           |
+| `AT`       | Actors' Theatre             | Blue           |
+| `MCT`      | Mountain Community Theater  | Green          |
+| `Renegade` | Renegade Theater            | Teal           |
+| `Cabrillo` | Cabrillo Stage              | None (grey)    |
+| `Other`    | not individually identified | None (grey)    |
 
 Full company profiles (name, venue, website, logo) are in `data/sc-theater-companies.json` and include additional companies not yet in the calendar (All About Theatre, The Landing).
 
@@ -126,9 +136,10 @@ src/
     SiteNav.astro             # fixed top nav bar shared across all inner pages
   lib/data.ts                 # getShows() / getPerformances() — sole data access layer for runs
   pages/
-    index.astro               # hub landing page with links to all four sections
+    index.astro               # hub landing page; footer links to /about
     calendar.astro            # wraps calendar component under the site nav
     companies.astro           # company directory, reads sc-theater-companies.json at build time
+    about.astro               # about page with community text and Netlify contact form
     auditions.astro           # stub
     services.astro            # stub
   types.ts                    # shared TypeScript interfaces

@@ -7,6 +7,11 @@ const { currentPage } = Astro.props;
 
 <nav class="site-nav">
   <a href="/" class="nav-brand">Santa Cruz Theater</a>
+  <button class="nav-toggle" aria-label="Open menu" aria-expanded="false">
+    <span class="nav-toggle-bar"></span>
+    <span class="nav-toggle-bar"></span>
+    <span class="nav-toggle-bar"></span>
+  </button>
   <ul class="nav-links">
     <li>
       <a
@@ -35,6 +40,30 @@ const { currentPage } = Astro.props;
   </ul>
 </nav>
 
+<script>
+  const toggle = document.querySelector<HTMLButtonElement>('.nav-toggle');
+  const links = document.querySelector<HTMLElement>('.nav-links');
+
+  toggle?.addEventListener('click', () => {
+    const isOpen = links?.classList.toggle('nav-links--open');
+    toggle.setAttribute('aria-expanded', String(isOpen));
+  });
+
+  links?.querySelectorAll('a').forEach(a => {
+    a.addEventListener('click', () => {
+      links.classList.remove('nav-links--open');
+      toggle?.setAttribute('aria-expanded', 'false');
+    });
+  });
+
+  document.addEventListener('click', e => {
+    if (!toggle?.contains(e.target as Node) && !links?.contains(e.target as Node)) {
+      links?.classList.remove('nav-links--open');
+      toggle?.setAttribute('aria-expanded', 'false');
+    }
+  });
+</script>
+
 <style>
   .site-nav {
     position: fixed;
@@ -59,6 +88,31 @@ const { currentPage } = Astro.props;
     letter-spacing: 0.03em;
     flex: 1;
     white-space: nowrap;
+  }
+
+  .nav-toggle {
+    display: none;
+    flex-direction: column;
+    justify-content: center;
+    gap: 4px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 6px 4px;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .nav-toggle-bar {
+    display: block;
+    width: 18px;
+    height: 1.5px;
+    background: rgba(255, 255, 255, 0.65);
+    border-radius: 1px;
+    transition: background 0.14s;
+  }
+
+  .nav-toggle:hover .nav-toggle-bar {
+    background: rgba(255, 255, 255, 0.9);
   }
 
   .nav-links {
@@ -93,13 +147,31 @@ const { currentPage } = Astro.props;
     font-weight: 500;
   }
 
-  @media (max-width: 380px) {
-    .nav-brand {
-      font-size: 13px;
+  @media (max-width: 560px) {
+    .nav-toggle {
+      display: flex;
     }
+
+    .nav-links {
+      display: none;
+      position: absolute;
+      top: 44px;
+      right: 0;
+      flex-direction: column;
+      gap: 2px;
+      padding: 4px;
+      background: #1a1612;
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.07);
+      border-radius: 0 0 6px 6px;
+    }
+
+    .nav-links--open {
+      display: flex;
+    }
+
     .nav-link {
-      padding: 5px 8px;
-      font-size: 12px;
+      white-space: nowrap;
+      padding: 8px 14px;
     }
   }
 </style>

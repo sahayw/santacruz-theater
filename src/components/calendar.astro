@@ -676,6 +676,8 @@ const filterCompanies = companiesData.companies.filter(c => activeCompanyCodes.h
     align-items: center;
     flex-wrap: wrap;
     gap: 8px 12px;
+    -webkit-transform: translateZ(0);
+    transform: translateZ(0);
   }
   .fixed-legend-footer.visible {
     display: flex;
@@ -1558,7 +1560,8 @@ const filterCompanies = companiesData.companies.filter(c => activeCompanyCodes.h
 
   function goToMonth(m) {
     hideHoverPanel()
-    if (!monthAnchorIds[displayYear]) buildScrollView()
+    const rebuilt = !monthAnchorIds[displayYear]
+    if (rebuilt) buildScrollView()
     document.getElementById('annual-view').style.display = 'none'
     document.getElementById('scroll-view').style.display = 'block'
     document.getElementById('scrollColHeader').classList.add('visible')
@@ -1566,11 +1569,12 @@ const filterCompanies = companiesData.companies.filter(c => activeCompanyCodes.h
     document.body.classList.remove('annual-mode')
     document.body.classList.add('scroll-mode')
     buildFixedFooter('drill')
-    requestAnimationFrame(() => {
-      const sv = document.getElementById('scroll-view')
-      sv.scrollLeft = sv.scrollWidth - sv.clientWidth
-      scrollToAnchorEl(document.getElementById(monthAnchorIds[displayYear]?.[m]))
-    })
+    const doScroll = () => scrollToAnchorEl(document.getElementById(monthAnchorIds[displayYear]?.[m]))
+    if (rebuilt) {
+      requestAnimationFrame(() => requestAnimationFrame(doScroll))
+    } else {
+      requestAnimationFrame(doScroll)
+    }
   }
 
   function showAnnual() {

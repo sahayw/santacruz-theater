@@ -128,6 +128,7 @@ import SiteNav from '../components/SiteNav.astro'
       })
       form.hidden = true
       if (success) success.hidden = false
+      setTimeout(() => { window.location.href = '/' }, 5000)
     } catch {
       btn.disabled = false
       btn.textContent = 'Send message'

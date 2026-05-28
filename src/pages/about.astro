@@ -1,0 +1,326 @@
+---
+import SiteNav from '../components/SiteNav.astro'
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="generator" content={Astro.generator} />
+    <title>About — Santa Cruz Theater</title>
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=DM+Sans:wght@300;400;500&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <SiteNav />
+
+    <main class="about-page">
+      <div class="about-card">
+        <h1 class="about-title">About this site</h1>
+
+        <div class="about-body">
+          <p>
+            This site is provided as a service to the community of theater patrons and makers in
+            Santa Cruz County.
+          </p>
+          <p>
+            The information provided is not guaranteed to be correct, but if you find errors please
+            let us know and we will aim to correct them.
+          </p>
+          <p>If you have comments or suggestions please let us know via the form below.</p>
+        </div>
+
+        <div class="form-section" id="form-section">
+          <form
+            class="contact-form"
+            name="about-contact"
+            method="POST"
+            data-netlify="true"
+            data-netlify-honeypot="bot-field"
+          >
+            <input type="hidden" name="form-name" value="about-contact" />
+            <p class="honey-field">
+              <label>Don't fill this out: <input name="bot-field" /></label>
+            </p>
+
+            <div class="field">
+              <label class="field-label" for="name">Name</label>
+              <input class="field-input" type="text" id="name" name="name" autocomplete="name" />
+            </div>
+
+            <div class="field">
+              <label class="field-label" for="email"
+                >Email <span class="field-hint"> - optional (so we can reply)</span></label
+              >
+              <input
+                class="field-input"
+                type="email"
+                id="email"
+                name="email"
+                autocomplete="email"
+              />
+            </div>
+
+            <div class="field">
+              <label class="field-label" for="message"
+                >Message <span class="field-required">*</span></label
+              >
+              <textarea
+                class="field-input field-textarea"
+                id="message"
+                name="message"
+                rows="5"
+                required></textarea>
+            </div>
+
+            <div class="form-actions">
+              <button class="submit-btn" type="submit">Send message</button>
+            </div>
+          </form>
+
+          <div class="success-message" hidden>
+            <svg
+              width="32"
+              height="32"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.5"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+              <polyline points="22 4 12 14.01 9 11.01"></polyline>
+            </svg>
+            <p class="success-heading">Message sent — thank you!</p>
+            <p class="success-body">We appreciate you taking the time to reach out.</p>
+          </div>
+        </div>
+      </div>
+    </main>
+  </body>
+</html>
+
+<script>
+  const form = document.querySelector<HTMLFormElement>('.contact-form')
+  const success = document.querySelector<HTMLElement>('.success-message')
+
+  form?.addEventListener('submit', async (e) => {
+    e.preventDefault()
+    const btn = form.querySelector<HTMLButtonElement>('.submit-btn')!
+    btn.disabled = true
+    btn.textContent = 'Sending…'
+
+    try {
+      await fetch('/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams(
+          new FormData(form) as unknown as Record<string, string>
+        ).toString()
+      })
+      form.hidden = true
+      if (success) success.hidden = false
+    } catch {
+      btn.disabled = false
+      btn.textContent = 'Send message'
+      alert('Something went wrong — please try again.')
+    }
+  })
+</script>
+
+<style>
+  [hidden] {
+    display: none !important;
+  }
+
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: #f0ede8;
+    color: #1a1612;
+    min-height: 100vh;
+  }
+
+  .about-page {
+    margin-top: 44px;
+    padding: 48px 24px 80px;
+    display: flex;
+    justify-content: center;
+  }
+
+  .about-card {
+    background: #fff;
+    border: 1px solid #e0d9d0;
+    border-radius: 10px;
+    padding: 48px 56px 52px;
+    max-width: 600px;
+    width: 100%;
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.07);
+  }
+
+  .about-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 34px;
+    font-weight: 600;
+    color: #1a1612;
+    margin-bottom: 28px;
+    line-height: 1.15;
+  }
+
+  .about-body {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    margin-bottom: 40px;
+    border-bottom: 1px solid #e0d9d0;
+    padding-bottom: 40px;
+  }
+
+  .about-body p {
+    font-size: 15px;
+    line-height: 1.7;
+    color: #3d342c;
+  }
+
+  /* ── FORM ── */
+
+  .honey-field {
+    display: none;
+  }
+
+  .contact-form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .field-label {
+    font-size: 13px;
+    font-weight: 500;
+    color: #1a1612;
+    letter-spacing: 0.01em;
+  }
+
+  .field-hint {
+    font-weight: 400;
+    color: #9b9289;
+  }
+
+  .field-required {
+    color: #c8a96e;
+  }
+
+  .field-input {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    color: #1a1612;
+    background: #faf7f2;
+    border: 1.5px solid #e0d9d0;
+    border-radius: 5px;
+    padding: 9px 12px;
+    outline: none;
+    transition:
+      border-color 0.15s,
+      box-shadow 0.15s;
+    width: 100%;
+  }
+
+  .field-input:focus {
+    border-color: #c8a96e;
+    box-shadow: 0 0 0 3px rgba(200, 169, 110, 0.14);
+  }
+
+  .field-textarea {
+    resize: vertical;
+    min-height: 120px;
+    line-height: 1.55;
+  }
+
+  .form-actions {
+    display: flex;
+    justify-content: flex-end;
+    padding-top: 4px;
+  }
+
+  .submit-btn {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+    color: #fff;
+    background: #c8a96e;
+    border: none;
+    border-radius: 5px;
+    padding: 10px 24px;
+    cursor: pointer;
+    transition:
+      background 0.15s,
+      opacity 0.15s;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .submit-btn:hover {
+    background: #b8995e;
+  }
+
+  .submit-btn:disabled {
+    opacity: 0.6;
+    cursor: default;
+  }
+
+  /* ── SUCCESS ── */
+
+  .success-message {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 12px;
+    padding: 16px 0;
+    color: #c8a96e;
+  }
+
+  .success-heading {
+    font-family: 'Playfair Display', serif;
+    font-size: 20px;
+    font-weight: 600;
+    color: #1a1612;
+  }
+
+  .success-body {
+    font-size: 14px;
+    color: #6b6259;
+    line-height: 1.6;
+  }
+
+  @media (max-width: 600px) {
+    .about-card {
+      padding: 36px 28px 40px;
+    }
+
+    .about-title {
+      font-size: 28px;
+    }
+  }
+</style>

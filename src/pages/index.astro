@@ -139,20 +139,19 @@
             <span class="card-soon-badge">Coming Soon</span>
           </a>
         </div>
+
+        <div class="page-footer">
+          <a href="/about" class="about-link">About this site</a>
+          <p class="photo-credit">
+            Photo: <a href="https://unsplash.com" target="_blank" rel="noopener">Unsplash</a>
+          </p>
+        </div>
       </div>
 
-      <p class="photo-credit">
-        Photo: <a href="https://unsplash.com" target="_blank" rel="noopener">Unsplash</a>
-      </p>
     </div>
   </body>
 </html>
 
-<script>
-  document.querySelector('.page')?.addEventListener('click', (e) => {
-    if (!(e.target as Element).closest('a')) window.location.href = '/calendar'
-  })
-</script>
 
 <style>
   *,
@@ -178,7 +177,6 @@
     display: flex;
     flex-direction: column;
     overflow: hidden;
-    cursor: pointer;
   }
 
   .page-bg {
@@ -221,8 +219,12 @@
     content: '';
   }
 
-  .page-content::before { flex: 3; }
-  .page-content::after  { flex: 1; }
+  .page-content::before {
+    flex: 3;
+  }
+  .page-content::after {
+    flex: 1;
+  }
 
   .hero-cards-gap {
     flex: 2;
@@ -420,18 +422,36 @@
     white-space: nowrap;
   }
 
+  /* ── PAGE FOOTER (about + photo credit) ── */
+  .page-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 8px 4px;
+  }
+
+  .about-link {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.8);
+    text-decoration: none;
+    letter-spacing: 0.03em;
+    padding: 2px 6px;
+    border-radius: 3px;
+    transition: background 0.15s;
+  }
+
+  .about-link:hover {
+    background: rgba(255, 255, 255, 0.15);
+  }
+
   /* ── PHOTO CREDIT ── */
   .photo-credit {
-    position: absolute;
-    bottom: 8px;
-    right: 12px;
-    z-index: 3;
     font-size: 10px;
-    color: rgba(255, 255, 255, 0.25);
+    color: rgba(255, 255, 255, 0.5);
   }
 
   .photo-credit a {
-    color: rgba(255, 255, 255, 0.25);
+    color: rgba(255, 255, 255, 0.5);
     text-decoration: none;
   }
 

@@ -120,6 +120,13 @@ const venueNames = Object.fromEntries(venuesData.venues.map(v => [v.code, v.name
     -webkit-tap-highlight-color: transparent;
   }
 
+  @media (hover: hover) {
+    .company-card:hover {
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.13);
+      transform: translateY(-2px);
+    }
+  }
+
   .company-card:active {
     transform: scale(0.98);
   }
@@ -187,16 +194,6 @@ const venueNames = Object.fromEntries(venuesData.venues.map(v => [v.code, v.name
     letter-spacing: 0.02em;
   }
 
-  @media (hover: hover) {
-    .company-card:hover {
-      box-shadow: 0 6px 28px rgba(0, 0, 0, 0.16);
-      transform: translateY(-2px);
-    }
-
-    .company-card:hover .card-overlay {
-      opacity: 1;
-    }
-  }
 
   /* ── TABLET ── */
   @media (max-width: 860px) {

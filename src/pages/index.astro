@@ -17,7 +17,15 @@
       rel="stylesheet"
     />
     <!-- Netlify Identity widget: handles invite/recovery tokens in URL fragment -->
-    <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
+    <script src="https://unpkg.com/netlify-identity-widget@1/build/netlify-identity-widget.js"
+    ></script>
+    <script>
+      if (window.netlifyIdentity) {
+        window.netlifyIdentity.on('login', () => {
+          window.location.href = '/admin/'
+        })
+      }
+    </script>
   </head>
   <body>
     <div class="page">
@@ -149,11 +157,9 @@
           </p>
         </div>
       </div>
-
     </div>
   </body>
 </html>
-
 
 <style>
   *,

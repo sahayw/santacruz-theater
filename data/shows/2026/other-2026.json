@@ -1,0 +1,198 @@
+{
+  "company": "Other",
+  "year": 2026,
+  "runs": [
+    {
+      "id": "run-1779397816337",
+      "company": "Other",
+      "showAbv": "R&G",
+      "show": "Rosencrantz and Guildenstern are Dead",
+      "genre": "Drama",
+      "venue": "AT",
+      "price": "$40",
+      "discounts": "Senior / Student $35",
+      "infoUrl": "https://randg.live/",
+      "ticketsUrl": "",
+      "performances": [
+        {
+          "date": "2026-08-14",
+          "time": "19:30",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-08-15",
+          "time": "19:30",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-08-16",
+          "time": "14:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-08-20",
+          "time": "19:30",
+          "perfType": "",
+          "discounts": "2 for 1",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-08-21",
+          "time": "19:30",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-08-22",
+          "time": "19:30",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-08-23",
+          "time": "14:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-08-27",
+          "time": "19:30",
+          "perfType": "",
+          "discounts": "2 for 1",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-08-28",
+          "time": "19:30",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-08-29",
+          "time": "19:30",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-08-30",
+          "time": "14:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        }
+      ],
+      "description": "Tom Stoppard's absurdist masterpiece puts two minor characters from *Hamlet* center stage, watching the tragedy unfold from the wings while wrestling with questions of fate, free will, and what it means to be a supporting character in someone else's story."
+    },
+    {
+      "id": "run-1779619220498",
+      "company": "Other",
+      "showAbv": "Whole Monkey Show",
+      "show": "The Whole Monkey Show (Christopher Michael Palermo)",
+      "genre": "Drama",
+      "venue": "AT",
+      "price": "$25",
+      "discounts": "",
+      "infoUrl": "https://www.santacruzactorstheatre.org/",
+      "ticketsUrl": "https://search.events.com/#/org/336338",
+      "performances": [
+        {
+          "date": "2026-05-22",
+          "time": "19:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-05-23",
+          "time": "19:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-05-29",
+          "time": "19:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-05-30",
+          "time": "19:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        }
+      ],
+      "description": "Writer and performer Christopher Michael Palermo presents stories and fractured essays from his unique perspective on the world as it is, was, and has always been."
+    },
+    {
+      "id": "run-1779710174290",
+      "company": "Other",
+      "showAbv": "Matt & Ben",
+      "show": "Matt & Ben (Kaling /Withers)",
+      "description": "A playful, \"what-if\" spoof imagining Matt Damon and Ben Affleck struggling to write their cinematic masterpiece after a magical script literally falls from the ceiling of their apartment.",
+      "genre": "Comedy",
+      "venue": "AT",
+      "price": "",
+      "discounts": "",
+      "infoUrl": "",
+      "ticketsUrl": "",
+      "performances": [
+        {
+          "date": "2026-03-13",
+          "time": "19:30",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-03-14",
+          "time": "19:30",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-03-15",
+          "time": "14:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-03-20",
+          "time": "19:30",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-03-21",
+          "time": "19:30",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-03-22",
+          "time": "14:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        }
+      ]
+    }
+  ]
+}

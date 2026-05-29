@@ -26,7 +26,9 @@
       "Bash(curl -sL \"https://images.squarespace-cdn.com/content/v1/689e5e9cc3d57a66f127c393/bd8be7ee-9672-401c-ae73-bfa6750b0c4d/AAT-square-logo-inverted.png\" -o /tmp/aat-inverted.png)",
       "WebFetch(domain:thelandingsv.org)",
       "Bash(curl -sL \"https://thelandingsv.org/wp-content/uploads/2025/07/The-Landing_Logo-white_no-tagline-500x373.png\" -o /tmp/landing-logo.png)",
-      "Bash(curl -sL \"https://thelandingsv.org/wp-content/uploads/2025/06/The-Landing-Logo_white-500x413.png\" -o /tmp/landing-logo-tagline.png)"
+      "Bash(curl -sL \"https://thelandingsv.org/wp-content/uploads/2025/06/The-Landing-Logo_white-500x413.png\" -o /tmp/landing-logo-tagline.png)",
+      "Bash(node -e ' *)",
+      "Bash(npx tsx *)"
     ],
     "additionalDirectories": [
       "/private/tmp"

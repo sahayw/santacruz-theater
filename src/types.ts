@@ -41,9 +41,25 @@ export interface Run {
   performances: Performance[];
 }
 
-/** Shape of data/sc-theater-runs.json — the editor's two-tier export format. */
-export interface RunsFile {
+/** Shape of each data/shows/<year>/<company>-<year>.json file. */
+export interface ShowsFile {
+  company: Company;
+  year: number;
   runs: Run[];
+}
+
+/** Shape of data/companies/sc-theater-companies.json. */
+export interface CompanyEntry {
+  id: string;
+  abvName: string;
+  name: string;
+  primaryVenue?: string;
+  venueCode?: string;
+  website?: string;
+  logo?: string;
+  logoDark?: boolean;
+  editorEmail?: string;
+  adminOnly?: boolean;
 }
 
 /**

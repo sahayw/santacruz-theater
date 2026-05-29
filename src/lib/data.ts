@@ -1,11 +1,11 @@
-import runsData from '../../data/sc-theater-runs.json';
-import type { Run, RunsFile, PerformanceEvent } from '../types.ts';
+import type { Run, ShowsFile, PerformanceEvent } from '../types.ts';
 
-const { runs } = runsData as RunsFile;
+const modules = import.meta.glob<{ default: ShowsFile }>('../../data/shows/**/*.json', { eager: true });
+const allRuns: Run[] = Object.values(modules).flatMap(m => m.default.runs);
 
 /** Raw run-based data. Use for run/show card views. */
 export async function getShows(): Promise<Run[]> {
-  return runs;
+  return allRuns;
 }
 
 /**
@@ -16,7 +16,7 @@ export async function getShows(): Promise<Run[]> {
 export async function getPerformances(): Promise<PerformanceEvent[]> {
   const events: PerformanceEvent[] = [];
 
-  for (const run of runs) {
+  for (const run of allRuns) {
     for (const perf of run.performances) {
       events.push({
         runId:       run.id,

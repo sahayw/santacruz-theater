@@ -1,0 +1,459 @@
+{
+  "company": "MCT",
+  "year": 2026,
+  "runs": [
+    {
+      "id": "run-1779379400969",
+      "company": "MCT",
+      "showAbv": "Virginia Woolf",
+      "show": "Who's Afraid of Virginia Woolf (Albee)",
+      "genre": "Drama",
+      "venue": "PH",
+      "price": "$30",
+      "discounts": "Senior/Student $20",
+      "infoUrl": "https://mctshows.org/",
+      "ticketsUrl": "https://mctshows.org/buy-tickets/",
+      "performances": [
+        {
+          "date": "2026-05-15",
+          "time": "19:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-05-16",
+          "time": "19:00",
+          "perfType": "",
+          "discounts": "2 for 1",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-05-17",
+          "time": "14:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-05-22",
+          "time": "19:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-05-23",
+          "time": "19:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-05-24",
+          "time": "14:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-05-29",
+          "time": "19:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-05-30",
+          "time": "19:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-05-31",
+          "time": "14:00",
+          "perfType": "Talk-back",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-06-05",
+          "time": "19:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-06-06",
+          "time": "19:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-06-07",
+          "time": "14:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        }
+      ],
+      "description": "A dark comedy packed with sparkling wit and language that dissects and illuminates the complex marriage of George and Martha. Two couples engage in psychological games over one intense evening, blurring the boundaries between reality and illusion until the games transform them all."
+    },
+    {
+      "id": "run-1779380782967",
+      "company": "MCT",
+      "showAbv": "Rumors",
+      "show": "Rumors (Neil Simon)",
+      "genre": "Comedy",
+      "venue": "PH",
+      "price": "$30",
+      "discounts": "Senior/Student $20",
+      "infoUrl": "https://mctshows.org/",
+      "ticketsUrl": "https://mctshows.org/buy-tickets/",
+      "performances": [
+        {
+          "date": "2026-09-18",
+          "time": "20:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-09-19",
+          "time": "20:00",
+          "perfType": "",
+          "discounts": "2 for 1",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-09-20",
+          "time": "14:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-09-25",
+          "time": "20:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-09-26",
+          "time": "20:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-09-27",
+          "time": "14:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-10-02",
+          "time": "20:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-10-03",
+          "time": "20:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-10-04",
+          "time": "14:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-10-09",
+          "time": "20:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-10-10",
+          "time": "20:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-10-11",
+          "time": "14:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        }
+      ],
+      "description": "When a deputy mayor's wife goes missing following a mysterious accident, arriving dinner party guests become entangled in a web of confusion, miscommunication, and lies spun to conceal the truth from each other — and from a pair of increasingly suspicious police officers."
+    },
+    {
+      "id": "run-1779617218671",
+      "company": "MCT",
+      "showAbv": "Spitfire Grill",
+      "show": "The Spitfire Grill (Valcq/Alley)",
+      "genre": "",
+      "venue": "",
+      "price": "$40",
+      "discounts": "Senior/Student $30",
+      "infoUrl": "",
+      "ticketsUrl": "",
+      "performances": [
+        {
+          "date": "2026-03-06",
+          "time": "20:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-03-07",
+          "time": "20:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-03-08",
+          "time": "14:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-03-13",
+          "time": "20:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-03-14",
+          "time": "20:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-03-15",
+          "time": "14:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-03-20",
+          "time": "20:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-03-21",
+          "time": "20:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-03-22",
+          "time": "14:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-03-27",
+          "time": "20:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-03-28",
+          "time": "20:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-03-29",
+          "time": "14:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-04-03",
+          "time": "20:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-04-04",
+          "time": "20:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-04-05",
+          "time": "14:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        }
+      ],
+      "description": "The once prosperous town is dying. Percy, a convicted murderer on parole, ends up lodging with Hannah, the longtime owner of The Spitfire Grill. Together they discover that hope and community are worth fighting for, in this musical about redemption and revival."
+    },
+    {
+      "id": "run-1779617377368",
+      "company": "MCT",
+      "showAbv": "New Works Weekend",
+      "show": "New Works Weekend",
+      "genre": "Drama",
+      "venue": "PH",
+      "price": "",
+      "discounts": "",
+      "infoUrl": "",
+      "ticketsUrl": "",
+      "performances": [
+        {
+          "date": "2026-08-14",
+          "time": "20:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-08-15",
+          "time": "20:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-08-16",
+          "time": "14:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        }
+      ],
+      "description": "An exciting weekend of a reading of a new play by a local playwright! "
+    },
+    {
+      "id": "run-1779617466366",
+      "company": "MCT",
+      "showAbv": "Coney Island Ctmas",
+      "show": "Coney Island Christmas",
+      "genre": "Comedy",
+      "venue": "PH",
+      "price": "$30",
+      "discounts": "Senior/Student $25",
+      "infoUrl": "https://mctshows.org/season-subscription/",
+      "ticketsUrl": "",
+      "performances": [
+        {
+          "date": "2026-11-20",
+          "time": "20:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-11-21",
+          "time": "20:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-11-22",
+          "time": "14:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-11-27",
+          "time": "20:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-11-28",
+          "time": "20:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-11-29",
+          "time": "14:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-12-04",
+          "time": "20:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-12-05",
+          "time": "20:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-12-06",
+          "time": "14:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-12-11",
+          "time": "20:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-12-12",
+          "time": "20:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-12-13",
+          "time": "14:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        }
+      ],
+      "description": "A coming-of-age story about a young Jewish girl cast as Jesus in her school's Christmas pageant in 1930s Brooklyn. By turns funny and touching, the play explores cultural identity, family traditions, and what it truly means to belong — while celebrating the richness of difference."
+    }
+  ]
+}

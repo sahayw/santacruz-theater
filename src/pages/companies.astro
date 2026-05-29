@@ -1,9 +1,9 @@
 ---
 import SiteNav from '../components/SiteNav.astro';
-import companiesData from '../../data/sc-theater-companies.json';
+import companiesData from '../../data/companies/sc-theater-companies.json';
 import venuesData from '../../data/sc-theater-venues.json';
 
-const { companies } = companiesData;
+const companies = companiesData.companies.filter(c => !c.adminOnly);
 const venueNames = Object.fromEntries(venuesData.venues.map(v => [v.code, v.name]));
 ---
 

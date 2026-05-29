@@ -24,32 +24,33 @@ The site is structured as a hub (`/`) linking to four sections: **Calendar** (`/
 - `src/pages/` — file-based routes
   - `index.astro` — hub landing page; footer links to `/about`
   - `calendar.astro` — wraps `calendar.astro` component under the site nav
-  - `companies.astro` — company directory, reads from `sc-theater-companies.json`
+  - `companies.astro` — company directory, reads from `data/companies/sc-theater-companies.json`
   - `about.astro` — about page with community text and Netlify contact form
   - `auditions.astro` — stub
   - `services.astro` — stub
 - `src/styles/` — global CSS
-- `src/lib/data.ts` — `getShows()` / `getPerformances()` — the only data access layer for runs
+- `src/lib/data.ts` — `getShows()` / `getPerformances()` — the only data access layer for runs; compiles from all `data/shows/**/*.json` via `import.meta.glob`
 - `src/types.ts` — all shared TypeScript interfaces
-- `data/` — canonical data files (do not hand-edit `sc-theater-runs.json`; use the editor)
-  - `sc-theater-runs.json` — show/performance data, written by the `/admin` editor
-  - `sc-theater-companies.json` — company directory data, hand-editable
+- `data/` — canonical data files
+  - `shows/<year>/<company-id>-<year>.json` — per-company per-year show files; use the `/admin` editor to manage runs
+  - `companies/sc-theater-companies.json` — company directory data, hand-editable
 - `public/admin/` — editor SPA at `/admin` (static HTML, no build step)
 - `public/images/companies/` — company logos downloaded locally; paths stored in `sc-theater-companies.json`
 - `scripts/` — one-off Node scripts (run with `tsx`)
+  - `split-runs.ts` — migration script that split the old single `sc-theater-runs.json` into the per-company per-year structure
 - `docs/` — design documentation (e.g. `color-system.md`, `description-feature.md`)
 - `netlify/functions/` — serverless functions (currently: `fetch-page.mjs`)
 
 ## Data schema
 
-### Runs (`sc-theater-runs.json`)
+### Shows (`data/shows/<year>/<company-id>-<year>.json`)
 
-Produced by the editor at `/admin` using its **Export JSON** button. Do not hand-edit it; use the editor instead.
+One file per company per year. Managed by the `/admin` editor. Do not hand-edit individual runs; use the editor instead.
 
-### `RunsFile` (top-level shape)
+### `ShowsFile` (top-level shape)
 
 ```json
-{ "runs": [ <Run>, ... ] }
+{ "company": "SCS", "year": 2026, "runs": [ <Run>, ... ] }
 ```
 
 ### `Run`
@@ -57,7 +58,7 @@ Produced by the editor at `/admin` using its **Export JSON** button. Do not hand
 | Field          | Type            | Notes                                                            |
 | -------------- | --------------- | ---------------------------------------------------------------- |
 | `id`           | `string`        | `"run-<timestamp>"` — stable, editor-assigned                    |
-| `company`      | `Company`       | `SCS \| AT \| MCT \| Renegade \| Other \| ""`                    |
+| `company`      | `Company`       | `SCS \| AT \| MCT \| Renegade \| Cabrillo \| ABT \| Other \| ""` |
 | `showAbv`      | `string`        | Short label shown in calendar chips                              |
 | `show`         | `string`        | Full production title                                            |
 | `description`  | `string?`       | Optional narrative paragraph; supports `**bold**` and `*italic*` |
@@ -94,25 +95,29 @@ already resolved (performance value wins when non-empty). Sorted by date, then t
 | `AT`  | Actors' Theatre            |
 | `CCT` | Cabrillo Crocker Theater   |
 
-### Companies (`sc-theater-companies.json`)
+### Companies (`data/companies/sc-theater-companies.json`)
 
-Hand-editable. The `/companies` page reads this at build time. Logos are stored locally in `public/images/companies/` — download from the company's site and add the local path here rather than linking externally.
+Hand-editable. The `/companies` page reads this at build time and filters out `adminOnly` entries. Logos are stored locally in `public/images/companies/` — download from the company's site and add the local path here rather than linking externally.
 
 #### `CompaniesFile` (top-level shape)
 
 ```json
-{ "companies": [ <Company>, ... ] }
+{ "companies": [ <CompanyEntry>, ... ] }
 ```
 
-#### `Company`
+#### `CompanyEntry`
 
-| Field          | Type       | Notes                                                                |
-| -------------- | ---------- | -------------------------------------------------------------------- |
-| `id`           | `string`   | Kebab-case slug, e.g. `"scs"`                                        |
-| `code`         | `string`   | Short key; matches `Run.company` for calendar-linked companies       |
-| `name`         | `string`   | Full company name                                                    |
-| `primaryVenue` | `string`   | Main performing venue (display string)                               |
-| `venueCode`    | `string`   | Venue code from the table above, or a custom string for new venues   |
-| `website`      | `string`   | Company website URL                                                  |
-| `logo`         | `string?`  | Local path, e.g. `"/images/companies/scs-logo.png"`                  |
-| `logoDark`     | `boolean?` | `true` when the logo is white/light and needs a dark card background |
+| Field          | Type       | Notes                                                                     |
+| -------------- | ---------- | ------------------------------------------------------------------------- |
+| `id`           | `string`   | Kebab-case slug, e.g. `"scs"`                                             |
+| `abvName`      | `string`   | Short key; matches `Run.company` for calendar-linked companies             |
+| `name`         | `string`   | Full company name                                                         |
+| `primaryVenue` | `string?`  | Main performing venue (display string)                                    |
+| `venueCode`    | `string?`  | Venue code from the table above, or a custom string for new venues        |
+| `website`      | `string?`  | Company website URL                                                       |
+| `logo`         | `string?`  | Local path, e.g. `"/images/companies/scs-logo.png"`                       |
+| `logoDark`     | `boolean?` | `true` when the logo is white/light and needs a dark card background      |
+| `editorEmail`  | `string?`  | Email matched against Netlify Identity login to scope editor access       |
+| `adminOnly`    | `boolean?` | `true` for the admin sentinel entry — excluded from public companies page |
+
+The first entry (`id: "admin"`, `adminOnly: true`) is a sentinel used by the editor to grant site-wide access; it is never rendered on the public `/companies` page.

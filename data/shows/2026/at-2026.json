@@ -1,0 +1,374 @@
+{
+  "company": "AT",
+  "year": 2026,
+  "runs": [
+    {
+      "id": "run-1779421039175",
+      "company": "AT",
+      "showAbv": "Dangerous Neighbors",
+      "show": "Dangerous Neighbors",
+      "genre": "Comedy",
+      "venue": "AT",
+      "price": "$25",
+      "discounts": "",
+      "infoUrl": "https://www.santacruzactorstheatre.org/",
+      "ticketsUrl": "https://tickets.evvnt.com/modal_checkout/select_occurrence?domain_id=233&event_id=229681&token=a70d479a7d8b0fc50182c5fedd4b969e",
+      "performances": [
+        {
+          "date": "2026-06-05",
+          "time": "20:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-06-06",
+          "time": "20:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-06-12",
+          "time": "20:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-06-13",
+          "time": "20:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        }
+      ],
+      "description": "Contemporary political satire blended with random jaunts into the deranged psyche of homo sapiens, with live music woven throughout. A sketch comedy benefit for Indivisible Santa Cruz County."
+    },
+    {
+      "id": "run-1779421253938",
+      "company": "AT",
+      "showAbv": "Escaping Queens",
+      "show": "Escaping Queens - Over the Roofs (Ortiz)",
+      "genre": "Musical",
+      "venue": "AT",
+      "price": "$35",
+      "discounts": "$32 student/senior",
+      "infoUrl": "https://www.santacruzactorstheatre.org/",
+      "ticketsUrl": "https://ci.ovationtix.com/35410/production/1270885",
+      "performances": [
+        {
+          "date": "2026-07-03",
+          "time": "19:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-07-04",
+          "time": "19:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-07-05",
+          "time": "14:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-07-09",
+          "time": "19:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-07-10",
+          "time": "19:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-07-11",
+          "time": "19:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-07-12",
+          "time": "14:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-07-16",
+          "time": "19:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-07-17",
+          "time": "19:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-07-18",
+          "time": "19:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-07-19",
+          "time": "14:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-07-23",
+          "time": "19:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-07-24",
+          "time": "19:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-07-25",
+          "time": "19:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-07-26",
+          "time": "14:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-07-30",
+          "time": "19:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-07-31",
+          "time": "19:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-08-01",
+          "time": "19:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-08-02",
+          "time": "14:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        }
+      ],
+      "description": "A musical conceived and written by Capitola songwriter Joe Ortiz, making its Actors' Theatre debut after years of workshops and readings since its world premiere at Cabrillo Stage in 2012."
+    },
+    {
+      "id": "run-1779615489527",
+      "company": "AT",
+      "showAbv": "8x10s",
+      "show": "8 Tens @ 8 ",
+      "genre": "Drama",
+      "venue": "AT",
+      "price": "$35",
+      "discounts": "",
+      "infoUrl": "https://www.santacruzactorstheatre.org/8-tens-at-8-festival",
+      "ticketsUrl": "",
+      "performances": [
+        {
+          "date": "2026-01-16",
+          "time": "20:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-01-17",
+          "time": "20:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-01-18",
+          "time": "14:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-01-23",
+          "time": "20:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-01-24",
+          "time": "20:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-01-25",
+          "time": "14:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-01-30",
+          "time": "20:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-01-31",
+          "time": "20:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-02-01",
+          "time": "14:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-02-06",
+          "time": "20:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-02-07",
+          "time": "20:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-02-08",
+          "time": "14:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-02-13",
+          "time": "20:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-02-14",
+          "time": "20:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-02-15",
+          "time": "14:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        }
+      ],
+      "description": "Santa Cruz's beloved annual festival of world-premiere ten-minute plays, billed as the longest-running short play festival in the world. Scripts are selected through an international competition and performed for the first time on any stage."
+    },
+    {
+      "id": "run-1779615762058",
+      "company": "AT",
+      "showAbv": "8x10s (BOTR)",
+      "show": "8 Tens @ 8 (Best of the Rest)",
+      "genre": "Drama",
+      "venue": "AT",
+      "price": "$35",
+      "discounts": "",
+      "infoUrl": "https://www.santacruzactorstheatre.org/8-tens-at-8-festival",
+      "ticketsUrl": "",
+      "performances": [
+        {
+          "date": "2026-02-27",
+          "time": "20:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-02-28",
+          "time": "20:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-03-01",
+          "time": "14:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-03-06",
+          "time": "20:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-03-07",
+          "time": "20:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-03-08",
+          "time": "14:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        }
+      ],
+      "description": "Staged readings of the runners up from this years 8 x 10s Festival submissions."
+    }
+  ]
+}

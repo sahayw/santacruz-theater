@@ -1,0 +1,74 @@
+{
+  "companies": [
+    {
+      "id": "admin",
+      "abvName": "admin",
+      "name": "Site Admin",
+      "editorEmail": "admin@santacruz.theater",
+      "adminOnly": true
+    },
+    {
+      "id": "scs",
+      "abvName": "SCS",
+      "name": "Santa Cruz Shakespeare",
+      "primaryVenue": "G",
+      "website": "https://santacruzshakespeare.org/",
+      "logo": "/images/companies/scs-logo.png",
+      "editorEmail": ""
+    },
+    {
+      "id": "at",
+      "abvName": "AT",
+      "name": "Actors' Theatre",
+      "website": "https://www.santacruzactorstheatre.org/",
+      "logo": "/images/companies/at-logo.jpg",
+      "editorEmail": ""
+    },
+    {
+      "id": "mct",
+      "abvName": "MCT",
+      "name": "Mountain Community Theater",
+      "primaryVenue": "PH",
+      "website": "https://mctshows.org/",
+      "logo": "/images/companies/mct-logo.png",
+      "editorEmail": "president@mctshows.org"
+    },
+    {
+      "id": "renegade",
+      "abvName": "Renegade",
+      "name": "Renegade Theater",
+      "website": "https://renegadetheaterco.org/index.html",
+      "logo": "/images/companies/renegade-logo.png",
+      "editorEmail": ""
+    },
+    {
+      "id": "cabrillo-stage",
+      "abvName": "Cabrillo",
+      "name": "Cabrillo Stage",
+      "primaryVenue": "CCT",
+      "website": "https://www.cabrillostage.com/",
+      "logo": "/images/companies/cabrillo-logo.png",
+      "logoDark": true,
+      "editorEmail": ""
+    },
+    {
+      "id": "aat",
+      "abvName": "AAT",
+      "name": "All About Theatre",
+      "primaryVenue": "Colligan",
+      "website": "https://allabouttheatre.org/",
+      "logo": "/images/companies/aat-logo.png",
+      "logoDark": true,
+      "editorEmail": ""
+    },
+    {
+      "id": "landing",
+      "abvName": "Landing",
+      "name": "The Landing",
+      "website": "https://thelandingsv.org/",
+      "logo": "/images/companies/landing-logo.png",
+      "logoDark": true,
+      "editorEmail": ""
+    }
+  ]
+}

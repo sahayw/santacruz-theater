@@ -314,7 +314,7 @@ function initIdentity() {
     userAccess = null; allCompanies = []; currentEditor = null;
     showLoginOverlay();
   });
-  window.netlifyIdentity.init();
+  window.netlifyIdentity.init({ APIUrl: 'https://santacruz.theater/.netlify/identity' });
 }
 
 async function onLoggedIn(user) {

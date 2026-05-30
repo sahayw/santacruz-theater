@@ -99,13 +99,16 @@ Full company profiles (name, venue, website, logo) are in `data/companies/sc-the
 
 ## Data editor (`/admin`)
 
+### Authentication
+
+Visiting `/admin` shows a login overlay (production only; dev skips auth). Sign in with a Netlify Identity account whose email matches an entry in `sc-theater-companies.json`. After login the hub shows a tile for each dataset the user has access to (e.g. Calendar Editor, Auditions Editor).
+
 ### Selecting data to edit
 
-The top bar has three chained selectors:
+After choosing the **Calendar Editor** tile:
 
-1. **User** — lists all entries in `sc-theater-companies.json` that have an `editorEmail`. Admin users see a company selector next; non-admin users skip straight to the year selector.
-2. **Company** (admin only) — populated from the actual files present in `data/shows/`, displaying each company's `abvName`.
-3. **Year** — populated from the years available for the selected company, newest first. An **Add year** option creates a new empty file for `max(existing years) + 1`. If no data exists for the selected company, year is set to `current year`.
+1. **Company** (admin only) — populated from the actual files present in `data/shows/`, displaying each company's `abvName`. Non-admin users have their company pre-selected.
+2. **Year** — populated from the years available for the selected company, newest first. An **Add year** option creates a new empty file for `max(existing years) + 1`. If no data exists for the selected company, year is set to `current year`.
 
 ### Runs sidebar
 
@@ -157,20 +160,27 @@ data/
   shows/<year>/               # one JSON file per company per year, e.g. scs-2026.json
   companies/
     sc-theater-companies.json # company directory; hand-editable
-public/
-  admin/index.html            # data editor SPA (no build step)
-  images/companies/           # locally stored company logos
-astro.config.mjs              # includes Vite dev proxy for /.netlify/functions/data
-netlify/
-  functions/
-    data.mjs                  # GET/PUT show files via GitHub API; requires Netlify Identity JWT for PUT
-    fetch-page.mjs            # server-side HTML proxy for the editor's description-fetch feature
-scripts/
-  check-data.ts               # dry-run: prints show count and date range (tsx)
-docs/
-  color-system.md             # colour variable reference
-  description-feature.md      # show description field — editor UI, panel behaviour, fetch proxy
 ```
+
+public/
+admin/
+index.html # hub shell — login overlay, dataset tiles, routing
+api.js # shared apiFetch / apiPut / Identity helpers
+calendar.js # calendar editor ES module
+auditions.js # auditions editor stub ES module
+images/companies/ # locally stored company logos
+astro.config.mjs # includes Vite dev proxy for /.netlify/functions/data
+netlify/
+functions/
+data.mjs # GET/PUT show files via GitHub API; requires Netlify Identity JWT for PUT
+fetch-page.mjs # server-side HTML proxy for the editor's description-fetch feature
+scripts/
+check-data.ts # dry-run: prints show count and date range (tsx)
+docs/
+color-system.md # colour variable reference
+description-feature.md # show description field — editor UI, panel behaviour, fetch proxy
+
+````
 
 ---
 
@@ -180,7 +190,7 @@ docs/
 nvm use          # Node 20 (.nvmrc)
 npm install
 npm run dev      # http://localhost:4321
-```
+````
 
 | Command                       | Action                                                                    |
 | ----------------------------- | ------------------------------------------------------------------------- |
@@ -212,4 +222,4 @@ Required for the `data.mjs` function (set in Netlify → Site configuration → 
 
 ### Netlify Identity
 
-Enabled under Netlify → Identity. Registration is set to **invite only**. Each editor is invited by email; their address must match the `editorEmail` field in `sc-theater-companies.json`. The Netlify Identity widget is loaded on the home page (`src/pages/index.astro`) to handle invite and password-reset tokens that arrive as URL fragments.
+Enabled under Netlify → Identity. Registration is set to **invite only**. Each editor is invited by email; their address must match an entry in the `editors` array in `sc-theater-companies.json`. Each editor entry specifies which datasets that person can edit (e.g. `["calendar"]` or `["calendar", "auditions"]`). The Netlify Identity widget is loaded on the home page (`src/pages/index.astro`) to handle invite and password-reset tokens that arrive as URL fragments.

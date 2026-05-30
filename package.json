@@ -8,11 +8,10 @@
   "scripts": {
     "dev": "astro dev",
     "build": "astro build",
-    "preview": "astro preview",
-    "astro": "astro",
+    "preview": "astro build && astro preview",
+    "release": "git diff --quiet && git diff --cached --quiet && git checkout dev && git pull origin dev && git checkout main && git pull origin main && git merge dev && git push origin main && git checkout dev && git merge main && git push origin dev",
     "check-data": "tsx scripts/check-data.ts",
-    "check-data-contract": "tsx scripts/check-data-contract.ts",
-    "release": "git diff --quiet && git diff --cached --quiet && git checkout dev && git pull origin dev && git checkout main && git pull origin main && git merge dev && git push origin main && git checkout dev && git merge main && git push origin dev"
+    "check-data-contract": "tsx scripts/check-data-contract.ts"
   },
   "dependencies": {
     "astro": "^6.3.7"

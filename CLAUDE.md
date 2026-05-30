@@ -109,26 +109,35 @@ Hand-editable. The `/companies` page reads this at build time and filters out `a
 
 #### `CompanyEntry`
 
-| Field          | Type       | Notes                                                                     |
-| -------------- | ---------- | ------------------------------------------------------------------------- |
-| `id`           | `string`   | Kebab-case slug, e.g. `"scs"`                                             |
-| `abvName`      | `string`   | Short key; matches `Run.company` for calendar-linked companies            |
-| `name`         | `string`   | Full company name                                                         |
-| `primaryVenue` | `string?`  | Main performing venue (display string)                                    |
-| `venueCode`    | `string?`  | Venue code from the table above, or a custom string for new venues        |
-| `website`      | `string?`  | Company website URL                                                       |
-| `logo`         | `string?`  | Local path, e.g. `"/images/companies/scs-logo.png"`                       |
-| `logoDark`     | `boolean?` | `true` when the logo is white/light and needs a dark card background      |
-| `editorEmail`  | `string?`  | Email matched against Netlify Identity login to scope editor access       |
-| `adminOnly`    | `boolean?` | `true` for the admin sentinel entry — excluded from public companies page |
+| Field          | Type                  | Notes                                                                                                                                                                                         |
+| -------------- | --------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `id`           | `string`              | Kebab-case slug, e.g. `"scs"`                                                                                                                                                                 |
+| `abvName`      | `string`              | Short key; matches `Run.company` for calendar-linked companies                                                                                                                                |
+| `name`         | `string`              | Full company name                                                                                                                                                                             |
+| `primaryVenue` | `string?`             | Main performing venue (display string)                                                                                                                                                        |
+| `venueCode`    | `string?`             | Venue code from the table above, or a custom string for new venues                                                                                                                            |
+| `website`      | `string?`             | Company website URL                                                                                                                                                                           |
+| `logo`         | `string?`             | Local path, e.g. `"/images/companies/scs-logo.png"`                                                                                                                                           |
+| `logoDark`     | `boolean?`            | `true` when the logo is white/light and needs a dark card background                                                                                                                          |
+| `editors`      | `{email,datasets}[]?` | Array of editor objects. Each grants the named email access to the listed datasets, e.g. `[{"email":"x@y.com","datasets":["calendar"]}]`. Admin entry uses this to identify site-wide admins. |
+| `adminOnly`    | `boolean?`            | `true` for the admin sentinel entry — excluded from public companies page                                                                                                                     |
 
 The first entry (`id: "admin"`, `adminOnly: true`) is a sentinel used by the editor to grant site-wide access; it is never rendered on the public `/companies` page. The entry for 'Other Companies' (`id: "other"`, `adminOnly: true`) is used to manage file of runs for companies that are not explicitly named in the system. These runs are editable by admin user only and there is no corresponding entry on the Companies page.
 
 ## Editor authentication & data flow
 
-The `/admin` editor uses **Netlify Identity** in production. On login the Identity widget issues a JWT; the editor sends it as `Authorization: Bearer <token>` on every PUT request. Netlify populates `context.clientContext.user` automatically — no manual JWT validation needed in `data.mjs`.
+The `/admin` SPA is structured as a hub with separate editor modules:
 
-In local dev (`localhost`) authentication is skipped and `/.netlify/functions/data` is intercepted by a Vite middleware (`data-dev-proxy` in `astro.config.mjs`) that reads/writes `data/` directly.
+- `public/admin/index.html` — login overlay, hub (dataset tiles), routing
+- `public/admin/api.js` — shared `apiFetch` / `apiPut` / `resolveUserAccess`
+- `public/admin/calendar.js` — calendar editor ES module (`mount` / `unmount`)
+- `public/admin/auditions.js` — auditions editor stub ES module
+
+On production, `/admin` shows a full-screen login overlay first. After **Netlify Identity** login, the user's email is looked up in `sc-theater-companies.json` via `resolveUserAccess()`. The hub then renders one tile per dataset the user may edit. Selecting a tile mounts the corresponding editor module.
+
+The Identity widget issues a JWT; the editor sends it as `Authorization: Bearer <token>` on every PUT request. Netlify populates `context.clientContext.user` automatically — no manual JWT validation needed in `data.mjs`.
+
+In local dev (`localhost`) authentication is skipped entirely; the hub starts with full admin access and all dataset tiles visible.
 
 The home page (`src/pages/index.astro`) loads the Identity widget and handles `#invite_token` / `#recovery_token` URL fragments so invite and password-reset emails work correctly on the personal Netlify plan (which does not support custom email templates).
 

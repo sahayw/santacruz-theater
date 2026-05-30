@@ -4,7 +4,7 @@
       "id": "admin",
       "abvName": "Admin",
       "name": "Data Admin",
-      "editorEmail": "sh.theater@icloud.com",
+      "editors": [{ "email": "sh.theater@icloud.com", "datasets": ["calendar", "auditions"] }],
       "adminOnly": true
     },
     {
@@ -19,16 +19,14 @@
       "name": "Santa Cruz Shakespeare",
       "primaryVenue": "G",
       "website": "https://santacruzshakespeare.org/",
-      "logo": "/images/companies/scs-logo.png",
-      "editorEmail": ""
+      "logo": "/images/companies/scs-logo.png"
     },
     {
       "id": "at",
       "abvName": "AT",
       "name": "Actors' Theatre",
       "website": "https://www.santacruzactorstheatre.org/",
-      "logo": "/images/companies/at-logo.jpg",
-      "editorEmail": ""
+      "logo": "/images/companies/at-logo.jpg"
     },
     {
       "id": "mct",
@@ -37,15 +35,14 @@
       "primaryVenue": "PH",
       "website": "https://mctshows.org/",
       "logo": "/images/companies/mct-logo.png",
-      "editorEmail": "president@mctshows.org"
+      "editors": [{ "email": "president@mctshows.org", "datasets": ["calendar"] }]
     },
     {
       "id": "renegade",
       "abvName": "Renegade",
       "name": "Renegade Theater",
       "website": "https://renegadetheaterco.org/index.html",
-      "logo": "/images/companies/renegade-logo.png",
-      "editorEmail": ""
+      "logo": "/images/companies/renegade-logo.png"
     },
     {
       "id": "cabrillo",
@@ -54,8 +51,7 @@
       "primaryVenue": "CCT",
       "website": "https://www.cabrillostage.com/",
       "logo": "/images/companies/cabrillo-logo.png",
-      "logoDark": true,
-      "editorEmail": ""
+      "logoDark": true
     },
     {
       "id": "aat",
@@ -64,8 +60,7 @@
       "primaryVenue": "Colligan",
       "website": "https://allabouttheatre.org/",
       "logo": "/images/companies/aat-logo.png",
-      "logoDark": true,
-      "editorEmail": ""
+      "logoDark": true
     },
     {
       "id": "landing",
@@ -73,8 +68,7 @@
       "name": "The Landing",
       "website": "https://thelandingsv.org/",
       "logo": "/images/companies/landing-logo.png",
-      "logoDark": true,
-      "editorEmail": ""
+      "logoDark": true
     }
   ]
 }

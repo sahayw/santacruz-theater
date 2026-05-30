@@ -1288,6 +1288,8 @@ function downloadJSON() {
 export function mount(container, context) {
   injectStyles()
   container.innerHTML = CAL_HTML
+  isAdminContext = context.isAdmin
+  updateEmptyState()
 
   // Expose handlers for inline event attributes
   window.cal = {

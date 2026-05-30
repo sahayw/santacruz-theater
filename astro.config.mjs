@@ -9,11 +9,39 @@ export default defineConfig({
       {
         name: 'public-dir-index',
         configureServer(server) {
-          server.middlewares.use((req, _res, next) => {
-            if (req.url === '/admin' || req.url === '/admin/') {
+          server.middlewares.use((req, res, next) => {
+            if (req.url === '/admin') {
+              // Redirect to trailing-slash URL so relative ES module imports
+              // resolve to /admin/api.js etc. rather than /api.js.
+              res.writeHead(302, { Location: '/admin/' })
+              return res.end()
+            }
+            if (req.url === '/admin/') {
               req.url = '/admin/index.html'
             }
             next()
+          })
+        }
+      },
+      {
+        // Serve public/admin/*.js as static files before Vite's transform
+        // pipeline intercepts them. Vite's transform looks in src/, not public/,
+        // so module imports from the admin SPA would 404 without this.
+        name: 'public-admin-modules',
+        configureServer(server) {
+          server.middlewares.use((req, res, next) => {
+            const url = req.url?.split('?')[0]
+            if (!url?.startsWith('/admin/') || !url.endsWith('.js')) return next()
+            const absPath = path.join(process.cwd(), 'public', url)
+            const safeRoot = path.join(process.cwd(), 'public', 'admin') + path.sep
+            if (!path.resolve(absPath).startsWith(safeRoot)) return next()
+            try {
+              const content = fs.readFileSync(absPath, 'utf-8')
+              res.setHeader('Content-Type', 'application/javascript; charset=utf-8')
+              return res.end(content)
+            } catch {
+              return next()
+            }
           })
         }
       },

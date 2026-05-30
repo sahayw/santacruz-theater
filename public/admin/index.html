@@ -41,7 +41,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 100;
+  z-index: 10;
 }
 .login-card {
   background: var(--surface);
@@ -236,8 +236,13 @@ const EDITORS = {
 
 async function init() {
   if (IS_DEV) {
-    allCompanies = await loadCompanies();
-    userAccess   = { isAdmin: true, datasets: ['calendar', 'auditions'], company: null };
+    try {
+      allCompanies = await loadCompanies();
+    } catch(e) {
+      console.warn('Dev: could not load companies:', e);
+      allCompanies = [];
+    }
+    userAccess = { isAdmin: true, datasets: ['calendar', 'auditions'], company: null };
     showApp();
     showHub();
     return;

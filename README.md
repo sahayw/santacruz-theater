@@ -1,6 +1,6 @@
 # Santa Cruz Theater
 
-A resource for theater-goers and theater companies in Santa Cruz County — built as an Astro 6 static site, deployed to Netlify.
+A resource for theater-goers and theater companies in Santa Cruz County — built as an Astro 6 static site, deployed to Netlify. Built with assistance from Claude Code.
 
 Four sections, accessible from a persistent top nav and a hub landing page:
 
@@ -11,23 +11,7 @@ Four sections, accessible from a persistent top nav and a hub landing page:
 
 An **About** page is linked from the home page footer and includes a community contact form.
 
-A companion **data editor** at `/admin` manages all show and performance data without requiring a build or deploy. Currently supports a single year (2026).
-
----
-
-## About page and contact form
-
-`/about` explains the site's purpose and invites feedback via a contact form. The form uses **Netlify Forms** — no serverless function needed. Submissions appear in the Netlify dashboard under **Forms**, and email notifications are configured there (Site settings → Forms → Notifications). The notification address is set entirely in the Netlify UI, not in code.
-
-On successful submission the form is replaced by a confirmation message; after 5 seconds the user is returned to the home page.
-
----
-
-## Companies directory
-
-The `/companies` page displays a card grid of Santa Cruz County theater companies. Each card shows the company logo; hovering (on pointer devices) reveals the company name, venue, and a link. Tapping on mobile goes directly to the company website.
-
-Company data lives in `data/sc-theater-companies.json`. Logos are downloaded locally to `public/images/companies/` so the site has no runtime dependency on external image hosts. Companies whose logos are white-on-transparent use a dark card background (`"logoDark": true`). Adding a new company requires only a new entry in the JSON file — no code changes.
+A companion **data editor** at `/admin` manages all show and performance data without requiring a build or deploy. Changes saved in the editor commit directly to GitHub, triggering a Netlify rebuild.
 
 ---
 
@@ -56,18 +40,39 @@ A persistent footer identifies each company by a coloured square and full name. 
 
 ---
 
+## Companies directory
+
+The `/companies` page displays a card grid of Santa Cruz County theater companies. Each card shows the company logo; hovering (on pointer devices) reveals the company name, venue, and a link. Tapping on mobile goes directly to the company website.
+
+Company data lives in `data/sc-theater-companies.json`. Logos are downloaded locally to `public/images/companies/` so the site has no runtime dependency on external image hosts. Companies whose logos are white-on-transparent use a dark card background (`"logoDark": true`). Adding a new company requires only a new entry in the JSON file — no code changes.
+
+---
+
+## About page and contact form
+
+`/about` explains the site's purpose and invites feedback via a contact form. The form uses **Netlify Forms** — no serverless function needed. Submissions appear in the Netlify dashboard under **Forms**, and email notifications are configured there (Site settings → Forms → Notifications). The notification address is set entirely in the Netlify UI, not in code.
+
+On successful submission the form is replaced by a confirmation message; after 5 seconds the user is returned to the home page.
+
+---
+
 ## Data model
 
-All show data lives in `data/sc-theater-runs.json`, which the editor writes via its Export button. The structure is two-tier:
+All show data lives in `data/shows/<year>/<company-id>-<year>.json` — one file per company per year. The `/admin` editor reads and writes these files via the `/.netlify/functions/data` endpoint, which commits to GitHub and triggers a rebuild.
 
-- **Run** — one production: company, full title, short abbreviation, optional description paragraph, genre, venue, price, discount text, info URL, ticket URL, and an ordered list of performances
-- **Performance** — one date/time slot: date (`YYYY-MM-DD`), time (`HH:MM` 24 h), optional performance type (Preview / Opening / Closing / Talk-back), and optional per-slot overrides for discounts and ticket URL
+Company directory data lives in `data/companies/sc-theater-companies.json` and is hand-editable.
 
-`src/lib/data.ts` flattens runs into a sorted `PerformanceEvent[]` at build time, resolving per-slot overrides. The calendar component receives this flat array as a prop.
+`src/lib/data.ts` imports all `data/shows/**/*.json` at build time via `import.meta.glob`, flattening runs into a sorted `PerformanceEvent[]`, resolving per-slot overrides.
+
+### ShowsFile (top-level shape)
+
+```json
+{ "company": "SCS", "year": 2026, "runs": [ <Run>, ... ] }
+```
 
 ### Companies
 
-Calendar colour identities for companies that appear in `sc-theater-runs.json`:
+Calendar colour identities:
 
 | Key        | Full name                   | Color identity |
 | ---------- | --------------------------- | -------------- |
@@ -78,7 +83,7 @@ Calendar colour identities for companies that appear in `sc-theater-runs.json`:
 | `Cabrillo` | Cabrillo Stage              | None (grey)    |
 | `Other`    | not individually identified | None (grey)    |
 
-Full company profiles (name, venue, website, logo) are in `data/sc-theater-companies.json` and include additional companies not yet in the calendar (All About Theatre, The Landing).
+Full company profiles (name, venue, website, logo) are in `data/companies/sc-theater-companies.json`.
 
 ### Venues
 
@@ -94,11 +99,17 @@ Full company profiles (name, venue, website, logo) are in `data/sc-theater-compa
 
 ## Data editor (`/admin`)
 
-A self-contained single-page editor served statically from `public/admin/index.html` — no build step, no server dependency. It reads and writes to `localStorage` and exports to `data/sc-theater-runs.json`.
+### Selecting data to edit
+
+The top bar has three chained selectors:
+
+1. **User** — lists all entries in `sc-theater-companies.json` that have an `editorEmail`. Admin users see a company selector next; non-admin users skip straight to the year selector.
+2. **Company** (admin only) — populated from the actual files present in `data/shows/`, displaying each company's `abvName`.
+3. **Year** — populated from the years available for the selected company, newest first. An **Add year** option creates a new empty file for `max(existing years) + 1`. If no data exists for the selected company, year is set to `current year`.
 
 ### Runs sidebar
 
-Lists all production runs. Click a run to open it in the editor panel; click **+ New** to create one. Each run has fields for company, full title, short abbreviation, genre, venue, price, default discounts, info URL, and default ticket URL, plus an optional **Description** field. The description textarea provides **B** and **I** buttons which wrap the current selection in `**bold**` or `*italic*` markers, and a ↕ toggle expands the textarea for longer entries.
+Lists all production runs for the loaded file. Click a run to open it; click **+ New** to create one. The Company field is read-only (set from the loaded file) — it cannot be edited to prevent inconsistencies.
 
 ### Performances table
 
@@ -112,10 +123,9 @@ A quick-fill tool for recurring schedules. Set a date range, choose days of the 
 
 Accepts free-form date text pasted from a website or email (e.g. `Friday, June 5 at 7:30pm`) and parses it into table rows. Lines that cannot be interpreted are listed separately so nothing is silently dropped.
 
-### Import / Export
+### Saving
 
-- **Export JSON** — serialises all runs to the canonical `sc-theater-runs.json` format and offers a download. Paste the file into `data/` and rebuild to publish.
-- **Import JSON** — loads a previously exported two-tier `{ "runs": [...] }` file back into the editor. Runs with matching IDs are updated in place; new IDs are appended. Useful for continuing work across sessions or merging edits from another machine.
+The **Save** button commits the current file to GitHub (`data/shows/<year>/<company>-<year>.json`). In production a valid Netlify Identity session is required. The commit message records the editor's email address. Netlify detects the push and triggers a rebuild automatically.
 
 ---
 
@@ -144,13 +154,17 @@ src/
     services.astro            # stub
   types.ts                    # shared TypeScript interfaces
 data/
-  sc-theater-runs.json        # canonical run/performance data; written by the editor's Export button
-  sc-theater-companies.json   # company directory; hand-editable
+  shows/<year>/               # one JSON file per company per year, e.g. scs-2026.json
+  companies/
+    sc-theater-companies.json # company directory; hand-editable
 public/
-  admin/index.html            # data editor SPA
+  admin/index.html            # data editor SPA (no build step)
   images/companies/           # locally stored company logos
+astro.config.mjs              # includes Vite dev proxy for /.netlify/functions/data
 netlify/
-  functions/fetch-page.mjs    # server-side proxy, not currently used (CORS bypass)
+  functions/
+    data.mjs                  # GET/PUT show files via GitHub API; requires Netlify Identity JWT for PUT
+    fetch-page.mjs            # server-side HTML proxy for the editor's description-fetch feature
 scripts/
   check-data.ts               # dry-run: prints show count and date range (tsx)
 docs/
@@ -183,4 +197,19 @@ npm run build    # outputs to dist/
 npm run preview  # verify locally before pushing
 ```
 
-Netlify CI watches `main` and deploys on every push, using the config in `netlify.toml`. The calendar itself is fully static. The `netlify/functions/fetch-page.mjs` serverless function is deployed alongside it and is only called from the `/admin` editor UI. Not currently in use.
+Netlify CI watches `main` and deploys on every push, using the config in `netlify.toml`.
+
+### Netlify environment variables
+
+Required for the `data.mjs` function (set in Netlify → Site configuration → Environment variables):
+
+| Variable        | Value                                 |
+| --------------- | ------------------------------------- |
+| `GITHUB_TOKEN`  | Fine-grained PAT, Contents r/w        |
+| `GITHUB_OWNER`  | Repository owner (GitHub username)    |
+| `GITHUB_REPO`   | Repository name                       |
+| `GITHUB_BRANCH` | Branch to commit to (default: `main`) |
+
+### Netlify Identity
+
+Enabled under Netlify → Identity. Registration is set to **invite only**. Each editor is invited by email; their address must match the `editorEmail` field in `sc-theater-companies.json`. The Netlify Identity widget is loaded on the home page (`src/pages/index.astro`) to handle invite and password-reset tokens that arrive as URL fragments.

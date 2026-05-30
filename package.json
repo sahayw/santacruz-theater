@@ -11,7 +11,8 @@
     "preview": "astro preview",
     "astro": "astro",
     "check-data": "tsx scripts/check-data.ts",
-    "check-data-contract": "tsx scripts/check-data-contract.ts"
+    "check-data-contract": "tsx scripts/check-data-contract.ts",
+    "release": "git checkout dev && git pull origin dev && git checkout main && git pull origin main && git merge dev && git push origin main && git checkout dev && git merge main && git push origin dev"
   },
   "dependencies": {
     "astro": "^6.3.7"

@@ -103,16 +103,18 @@ Full company profiles (name, venue, website, logo) are in `data/companies/sc-the
 
 Visiting `/admin` shows a login overlay (production only; dev skips auth). Sign in with a Netlify Identity account whose email matches an entry in `sc-theater-companies.json`. After login the hub shows a tile for each dataset the user has access to (e.g. Calendar Editor, Auditions Editor).
 
+The Identity widget is pinned to `https://santacruz.theater/.netlify/identity` so that sign-in works correctly on preview deploys as well as the main domain.
+
 ### Selecting data to edit
 
-After choosing the **Calendar Editor** tile:
+After choosing the **Calendar Editor** tile the editor opens with a context-aware prompt:
 
-1. **Company** (admin only) — populated from the actual files present in `data/shows/`, displaying each company's `abvName`. Non-admin users have their company pre-selected.
-2. **Year** — populated from the years available for the selected company, newest first. An **Add year** option creates a new empty file for `max(existing years) + 1`. If no data exists for the selected company, year is set to `current year`.
+- **Admin users** — a company selector appears in the toolbar; the main panel shows "Select company / year". Once a company is chosen a year selector appears. When year is picked the file loads.
+- **Non-admin users** — the company is pre-determined by their login; a year selector appears immediately. If only one year of data exists for their company the file loads automatically with no selection required.
 
 ### Runs sidebar
 
-Lists all production runs for the loaded file. Click a run to open it; click **+ New** to create one. The Company field is read-only (set from the loaded file) — it cannot be edited to prevent inconsistencies.
+Lists all production runs for the loaded file. Click a run to open it; click **+ New** to create one. The sidebar width is adjustable. The Company field in each run is read-only (set from the loaded file) to prevent inconsistencies between json file names and data content.
 
 ### Performances table
 
@@ -160,27 +162,25 @@ data/
   shows/<year>/               # one JSON file per company per year, e.g. scs-2026.json
   companies/
     sc-theater-companies.json # company directory; hand-editable
-```
-
 public/
-admin/
-index.html # hub shell — login overlay, dataset tiles, routing
-api.js # shared apiFetch / apiPut / Identity helpers
-calendar.js # calendar editor ES module
-auditions.js # auditions editor stub ES module
-images/companies/ # locally stored company logos
-astro.config.mjs # includes Vite dev proxy for /.netlify/functions/data
+  admin/
+    index.html                # hub shell — login overlay, dataset tiles, routing
+    api.js                    # shared apiFetch / apiPut / Identity helpers
+    calendar.js               # calendar editor ES module
+    auditions.js              # auditions editor stub ES module
+    images/companies/         # locally stored company logos
+astro.config.mjs              # includes Vite dev proxy for /.netlify/functions/data
 netlify/
-functions/
-data.mjs # GET/PUT show files via GitHub API; requires Netlify Identity JWT for PUT
-fetch-page.mjs # server-side HTML proxy for the editor's description-fetch feature
+  functions/
+    data.mjs                  # GET/PUT show files via GitHub API; requires Netlify Identity JWT for PUT
+    fetch-page.mjs            # server-side HTML proxy for the editor's description-fetch feature
 scripts/
-check-data.ts # dry-run: prints show count and date range (tsx)
+  check-data.ts               # dry-run: prints show count and date range (tsx)
 docs/
-color-system.md # colour variable reference
-description-feature.md # show description field — editor UI, panel behaviour, fetch proxy
-
-````
+  color-system.md             # colour variable reference
+  description-feature.md      # show description field — editor UI, panel behaviour, fetch proxy
+  home-page-spacing.md        # details of padding and layout info for different device sizes
+```
 
 ---
 
@@ -190,7 +190,7 @@ description-feature.md # show description field — editor UI, panel behaviour, 
 nvm use          # Node 20 (.nvmrc)
 npm install
 npm run dev      # http://localhost:4321
-````
+```
 
 | Command                       | Action                                                                    |
 | ----------------------------- | ------------------------------------------------------------------------- |
@@ -203,8 +203,9 @@ npm run dev      # http://localhost:4321
 ## Build & deploy
 
 ```sh
-npm run build    # outputs to dist/
-npm run preview  # verify locally before pushing
+npm run build     # outputs to dist/
+npm run preview   # verify locally before pushing
+npm release       # git merge dev to main and sync back to dev, so commits remain consistent
 ```
 
 Netlify CI watches `main` and deploys on every push, using the config in `netlify.toml`.

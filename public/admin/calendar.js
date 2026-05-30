@@ -27,6 +27,9 @@ let currentCompanyId = null
 let currentYear = CURRENT_YEAR
 let currentCompanyAbv = ''
 let isDirty = false
+let isAdminContext = false
+let _resizeMouseMove = null
+let _resizeMouseUp = null
 
 // ── STYLES ──
 const STYLES_ID = 'cal-editor-styles'
@@ -69,12 +72,22 @@ const CAL_CSS = `
   min-height: 0;
 }
 .sidebar {
-  width: var(--sidebar-w);
+  width: 160px;
   background: var(--surface);
-  border-right: 1px solid var(--border);
   display: flex;
   flex-direction: column;
   flex-shrink: 0;
+}
+.sidebar-resize-handle {
+  width: 5px;
+  background: var(--border);
+  cursor: col-resize;
+  flex-shrink: 0;
+  transition: background 0.15s;
+}
+.sidebar-resize-handle:hover,
+.sidebar-resize-handle.dragging {
+  background: var(--accent2);
 }
 .sidebar-header {
   padding: 10px 12px 8px;
@@ -408,19 +421,19 @@ const CAL_HTML = `
     <option value="">— Year —</option>
   </select>
   <div class="cal-toolbar-spacer"></div>
-  <button class="btn btn-sm" id="importBtn" onclick="cal.importJSON()" style="display:none;background:var(--bg);border:1px solid var(--border);color:var(--ink)">Import</button>
-  <button class="btn btn-accent btn-sm" id="exportBtn" onclick="cal.openExport()" style="display:none">Export</button>
   <button class="btn btn-sm" id="saveBtn" onclick="cal.saveFile()" style="border:1px solid var(--border);color:rgba(28,26,23,0.4)" disabled>Save</button>
 </div>
 
 <div class="cal-wrap">
-  <div class="sidebar">
+  <div class="sidebar" id="calSidebar">
     <div class="sidebar-header">
       <span class="sidebar-label">Runs</span>
       <button class="btn btn-green btn-sm" onclick="cal.newRun()">+ New</button>
     </div>
     <div class="run-list" id="runList"></div>
   </div>
+
+  <div class="sidebar-resize-handle" id="sidebarHandle"></div>
 
   <div class="cal-main" id="mainPanel">
     <div class="empty-state" id="emptyState">
@@ -441,7 +454,7 @@ const CAL_HTML = `
           <input class="field-input field-readonly" id="f-company" readonly tabindex="-1">
         </div>
         <div class="field-group">
-          <label class="field-label">Abbrev *</label>
+          <label class="field-label">Abbrev</label>
           <input class="field-input" id="f-showAbv" placeholder="Brief title" maxlength="20" oninput="cal.runFieldChanged()">
         </div>
         <div class="field-group">
@@ -452,7 +465,7 @@ const CAL_HTML = `
           </select>
         </div>
         <div class="field-group">
-          <label class="field-label">Venue *</label>
+          <label class="field-label">Venue</label>
           <select class="field-select" id="f-venue" onchange="cal.runFieldChanged()">
             <option value="">-</option>
             <option value="G">The Grove (SCS)</option>
@@ -464,7 +477,7 @@ const CAL_HTML = `
           </select>
         </div>
         <div class="field-group" style="grid-column:span 1">
-          <label class="field-label">Full Show Title *</label>
+          <label class="field-label">Full Show Title</label>
           <input class="field-input" id="f-show" placeholder="Full title" oninput="cal.runFieldChanged()">
         </div>
         <div class="field-group" style="grid-column:span 1">
@@ -606,20 +619,38 @@ async function loadCompanyFile(coId, year) {
     loadRunEditor()
     updateStatus()
     updateSaveBtn()
-    showFileControls(true)
   } catch (e) {
     alert('Could not load company file: ' + e.message)
   }
 }
 
-function showFileControls(visible) {
-  document.getElementById('importBtn').style.display = visible ? '' : 'none'
-  document.getElementById('exportBtn').style.display = visible ? '' : 'none'
+function showFileControls(_visible) { /* buttons removed; keep for future reinstatement */ }
+
+function updateEmptyState() {
+  const el = document.getElementById('emptyState')
+  if (!el) return
+  if (!currentCompanyId) {
+    if (isAdminContext) {
+      el.innerHTML = `<div class="empty-state-icon">📅</div>
+        <h2>Select a company / year</h2>
+        <p>from the toolbar above to load its runs</p>`
+    } else {
+      el.innerHTML = `<div class="empty-state-icon">📅</div>
+        <h2>Select a year</h2>
+        <p>Choose a year from the toolbar above to load runs.</p>`
+    }
+  } else {
+    el.innerHTML = `<div class="empty-state-icon">🎭</div>
+      <h2>No run selected</h2>
+      <p>Select a run from the sidebar or click + New.</p>`
+  }
 }
 
 // ── INIT FROM CONTEXT ──
 async function initFromContext(context) {
+  isAdminContext = context.isAdmin
   allCompanies = context.allCompanies || []
+  updateEmptyState()
   try {
     allShowFiles = await loadShowsDir()
   } catch (e) {
@@ -650,6 +681,9 @@ async function initFromContext(context) {
     currentCompanyAbv = context.company.abvName
     const years = allShowFiles.filter((f) => f.companyId === context.company.id).map((f) => f.year)
     populateYearSelect(years)
+    if (years.length === 1) {
+      await loadCompanyFile(pendingCompanyId, years[0])
+    }
   }
 }
 
@@ -795,9 +829,13 @@ function renderSidebar() {
   const list = document.getElementById('runList')
   if (!list) return
   if (!runs.length) {
-    list.innerHTML = !currentCompanyId
-      ? '<div class="sidebar-empty">Select a company to load data.</div>'
-      : '<div class="sidebar-empty">No runs yet.<br>Click + New to add one.</div>'
+    let msg
+    if (!currentCompanyId) {
+      msg = isAdminContext ? 'Select a company to load data.' : 'Select a year to load data.'
+    } else {
+      msg = 'No runs yet.<br>Click + New to add one.'
+    }
+    list.innerHTML = `<div class="sidebar-empty">${msg}</div>`
     return
   }
   const openingDate = (r) =>
@@ -827,6 +865,7 @@ function selectRun(idx) {
 
 function loadRunEditor() {
   if (activeRunIdx < 0 || activeRunIdx >= runs.length) {
+    updateEmptyState()
     document.getElementById('emptyState').style.display = ''
     document.getElementById('runEditor').style.display = 'none'
     return
@@ -948,11 +987,11 @@ function clearEditor() {
   activeRunIdx = -1
   isDirty = false
   renderSidebar()
+  updateEmptyState()
   document.getElementById('emptyState').style.display = ''
   document.getElementById('runEditor').style.display = 'none'
   updateStatus()
   updateSaveBtn()
-  showFileControls(false)
 }
 
 // ── PERFORMANCE TABLE ──
@@ -1290,12 +1329,42 @@ export function mount(container, context) {
     if (e.target === document.getElementById('exportModal')) closeExport()
   })
 
+  const sidebarHandle = document.getElementById('sidebarHandle')
+  const calSidebar    = document.getElementById('calSidebar')
+  sidebarHandle.addEventListener('mousedown', (e) => {
+    const startX = e.clientX
+    const startW = calSidebar.offsetWidth
+    sidebarHandle.classList.add('dragging')
+    document.body.style.cursor = 'col-resize'
+    document.body.style.userSelect = 'none'
+    e.preventDefault()
+    _resizeMouseMove = (ev) => {
+      const newW = Math.min(Math.max(startW + ev.clientX - startX, 130), 400)
+      calSidebar.style.width = newW + 'px'
+    }
+    _resizeMouseUp = () => {
+      sidebarHandle.classList.remove('dragging')
+      document.body.style.cursor = ''
+      document.body.style.userSelect = ''
+      document.removeEventListener('mousemove', _resizeMouseMove)
+      document.removeEventListener('mouseup', _resizeMouseUp)
+      _resizeMouseMove = null
+      _resizeMouseUp = null
+    }
+    document.addEventListener('mousemove', _resizeMouseMove)
+    document.addEventListener('mouseup', _resizeMouseUp)
+  })
+
   initFromContext(context)
   updateStatus()
   updateSaveBtn()
 }
 
 export function unmount() {
+  if (_resizeMouseMove) document.removeEventListener('mousemove', _resizeMouseMove)
+  if (_resizeMouseUp)   document.removeEventListener('mouseup',   _resizeMouseUp)
+  _resizeMouseMove = null
+  _resizeMouseUp   = null
   delete window.cal
   runs = []
   activeRunIdx = -1
@@ -1306,4 +1375,5 @@ export function unmount() {
   currentYear = CURRENT_YEAR
   currentCompanyAbv = ''
   isDirty = false
+  isAdminContext = false
 }

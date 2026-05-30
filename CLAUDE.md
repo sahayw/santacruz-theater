@@ -135,11 +135,24 @@ The `/admin` SPA is structured as a hub with separate editor modules:
 
 On production, `/admin` shows a full-screen login overlay first. After **Netlify Identity** login, the user's email is looked up in `sc-theater-companies.json` via `resolveUserAccess()`. The hub then renders one tile per dataset the user may edit. Selecting a tile mounts the corresponding editor module.
 
+The Identity widget is initialised with `APIUrl: 'https://santacruz.theater/.netlify/identity'` to pin it to the production endpoint regardless of which Netlify URL the page is served from (prevents 400 errors on preview deploys).
+
 The Identity widget issues a JWT; the editor sends it as `Authorization: Bearer <token>` on every PUT request. Netlify populates `context.clientContext.user` automatically — no manual JWT validation needed in `data.mjs`.
 
 In local dev (`localhost`) authentication is skipped entirely; the hub starts with full admin access and all dataset tiles visible.
 
 The home page (`src/pages/index.astro`) loads the Identity widget and handles `#invite_token` / `#recovery_token` URL fragments so invite and password-reset emails work correctly on the personal Netlify plan (which does not support custom email templates).
+
+### Calendar editor (`calendar.js`)
+
+The editor opens with a context-aware prompt:
+
+- **Admin users** — toolbar shows a company selector; main panel prompts "Select company / year".
+- **Non-admin users** — toolbar shows a year selector for their company; main panel prompts "Select a year". If only one year of data exists for their company, the file is loaded automatically (no selection required).
+
+The runs sidebar is user-resizable via a drag handle (default 160 px, range 130–400 px).
+
+Import and Export buttons have been removed from the toolbar UI; the underlying functions (`importJSON`, `handleImport`, `openExport`, `closeExport`, `downloadJSON`) are retained in the module for future reinstatement if desired.
 
 ## Required Netlify environment variables
 

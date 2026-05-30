@@ -39,7 +39,9 @@ The site is structured as a hub (`/`) linking to four sections: **Calendar** (`/
 - `scripts/` — one-off Node scripts (run with `tsx`)
   - `split-runs.ts` — migration script that split the old single `sc-theater-runs.json` into the per-company per-year structure
 - `docs/` — design documentation (e.g. `color-system.md`, `description-feature.md`)
-- `netlify/functions/` — serverless functions (currently: `fetch-page.mjs`)
+- `netlify/functions/` — serverless functions
+  - `data.mjs` — GET/PUT show files via GitHub API; PUT requires a valid Netlify Identity JWT; commits trigger a Netlify rebuild
+  - `fetch-page.mjs` — server-side HTML proxy for the editor's description-fetch feature
 
 ## Data schema
 
@@ -58,11 +60,11 @@ One file per company per year. Managed by the `/admin` editor. Do not hand-edit 
 | Field          | Type            | Notes                                                            |
 | -------------- | --------------- | ---------------------------------------------------------------- |
 | `id`           | `string`        | `"run-<timestamp>"` — stable, editor-assigned                    |
-| `company`      | `Company`       | `SCS \| AT \| MCT \| Renegade \| Cabrillo \| ABT \| Other \| ""` |
+| `company`      | `Company`       | `SCS \| AT \| MCT \| Renegade \| Cabrillo \| Other \| ""`        |
 | `showAbv`      | `string`        | Short label shown in calendar chips                              |
 | `show`         | `string`        | Full production title                                            |
 | `description`  | `string?`       | Optional narrative paragraph; supports `**bold**` and `*italic*` |
-| `genre`        | `Genre`         | `Drama \| Musical \| Comedy \| Tragedy \| Other \| ""`           |
+| `genre`        | `Genre`         | `Drama \| Musical \| Comedy \| Other \| ""`                      |
 | `venue`        | `Venue`         | `G \| VMB \| PH \| AT \| CCT \| Other \| ""`                     |
 | `price`        | `string`        | Display string, e.g. `"$72-$92"`                                 |
 | `discounts`    | `string`        | Default discount text for all performances                       |
@@ -110,7 +112,7 @@ Hand-editable. The `/companies` page reads this at build time and filters out `a
 | Field          | Type       | Notes                                                                     |
 | -------------- | ---------- | ------------------------------------------------------------------------- |
 | `id`           | `string`   | Kebab-case slug, e.g. `"scs"`                                             |
-| `abvName`      | `string`   | Short key; matches `Run.company` for calendar-linked companies             |
+| `abvName`      | `string`   | Short key; matches `Run.company` for calendar-linked companies            |
 | `name`         | `string`   | Full company name                                                         |
 | `primaryVenue` | `string?`  | Main performing venue (display string)                                    |
 | `venueCode`    | `string?`  | Venue code from the table above, or a custom string for new venues        |
@@ -120,4 +122,21 @@ Hand-editable. The `/companies` page reads this at build time and filters out `a
 | `editorEmail`  | `string?`  | Email matched against Netlify Identity login to scope editor access       |
 | `adminOnly`    | `boolean?` | `true` for the admin sentinel entry — excluded from public companies page |
 
-The first entry (`id: "admin"`, `adminOnly: true`) is a sentinel used by the editor to grant site-wide access; it is never rendered on the public `/companies` page.
+The first entry (`id: "admin"`, `adminOnly: true`) is a sentinel used by the editor to grant site-wide access; it is never rendered on the public `/companies` page. The entry for 'Other Companies' (`id: "other"`, `adminOnly: true`) is used to manage file of runs for companies that are not explicitly named in the system. These runs are editable by admin user only and there is no corresponding entry on the Companies page.
+
+## Editor authentication & data flow
+
+The `/admin` editor uses **Netlify Identity** in production. On login the Identity widget issues a JWT; the editor sends it as `Authorization: Bearer <token>` on every PUT request. Netlify populates `context.clientContext.user` automatically — no manual JWT validation needed in `data.mjs`.
+
+In local dev (`localhost`) authentication is skipped and `/.netlify/functions/data` is intercepted by a Vite middleware (`data-dev-proxy` in `astro.config.mjs`) that reads/writes `data/` directly.
+
+The home page (`src/pages/index.astro`) loads the Identity widget and handles `#invite_token` / `#recovery_token` URL fragments so invite and password-reset emails work correctly on the personal Netlify plan (which does not support custom email templates).
+
+## Required Netlify environment variables
+
+| Variable        | Purpose                                   |
+| --------------- | ----------------------------------------- |
+| `GITHUB_TOKEN`  | Fine-grained PAT with Contents read/write |
+| `GITHUB_OWNER`  | GitHub repository owner                   |
+| `GITHUB_REPO`   | GitHub repository name                    |
+| `GITHUB_BRANCH` | Branch to commit to (default: `main`)     |

@@ -2,9 +2,15 @@
   "companies": [
     {
       "id": "admin",
-      "abvName": "admin",
-      "name": "Site Admin",
+      "abvName": "Admin",
+      "name": "Data Admin",
       "editorEmail": "sh.theater@icloud.com",
+      "adminOnly": true
+    },
+    {
+      "id": "other",
+      "abvName": "Other",
+      "name": "Other Companies",
       "adminOnly": true
     },
     {
@@ -42,7 +48,7 @@
       "editorEmail": ""
     },
     {
-      "id": "cabrillo-stage",
+      "id": "cabrillo",
       "abvName": "Cabrillo",
       "name": "Cabrillo Stage",
       "primaryVenue": "CCT",

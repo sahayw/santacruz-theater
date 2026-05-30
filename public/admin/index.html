@@ -71,6 +71,25 @@ body {
 .btn-green  { background: var(--green); color: #fff; }
 .btn-blue   { background: var(--accent2); color: #fff; }
 .btn-sm { font-size: 10px; padding: 3px 8px; }
+.topbar-select {
+  font-family: 'IBM Plex Sans', sans-serif;
+  font-size: 12px;
+  padding: 4px 8px;
+  border: 1px solid rgba(255,255,255,0.25);
+  border-radius: 3px;
+  background: rgba(255,255,255,0.08);
+  color: #fff;
+  cursor: pointer;
+  max-width: 190px;
+}
+.topbar-select option { background: var(--ink); color: #fff; }
+.field-input.field-readonly {
+  background: rgba(0,0,0,0.06);
+  color: var(--ink-mid);
+  cursor: default;
+  pointer-events: none;
+  border-color: var(--border);
+}
 
 /* ── LAYOUT ── */
 .app-body {
@@ -631,8 +650,19 @@ tbody td {
 <!-- TOP BAR -->
 <div class="topbar">
   <div class="topbar-title">Santa Cruz Theater <span>Data Editor</span></div>
-  <button class="btn btn-ghost btn-sm" onclick="importJSON()">Import JSON</button>
-  <button class="btn btn-accent btn-sm" onclick="openExport()">Export JSON</button>
+  <select class="topbar-select" id="userSelect" onchange="onUserSelect()">
+    <option value="">— Select user —</option>
+  </select>
+  <select class="topbar-select" id="companySelect" onchange="onCompanySelect()" style="display:none">
+    <option value="">— Select company —</option>
+  </select>
+  <select class="topbar-select" id="yearSelect" onchange="onYearSelect()" style="display:none">
+    <option value="">— Year —</option>
+  </select>
+  <button class="btn btn-ghost btn-sm" id="loginBtn" style="display:none">Login</button>
+  <button class="btn btn-ghost btn-sm" onclick="importJSON()" style="display:none">Import</button>
+  <button class="btn btn-sm" id="saveBtn" onclick="saveFile()" style="border:1px solid rgba(255,255,255,0.3);color:rgba(255,255,255,0.5)" disabled>Save</button>
+  <button class="btn btn-accent btn-sm" onclick="openExport()" style="display:none">Export</button>
 </div>
 
 <!-- APP BODY -->
@@ -665,49 +695,43 @@ tbody td {
       <!-- Run-level fields -->
       <div class="run-fields">
         <div class="field-group">
-          <label class="field-label">Company *</label>
-          <select class="field-select" id="f-company" onchange="runFieldChanged()">
-            <option value="">— select —</option>
-            <option>SCS</option><option>AT</option><option>MCT</option>
-            <option>Renegade</option><option>Cabrillo</option><option>ABT</option>
-            <option>Other</option>
-          </select>
+          <label class="field-label">Company</label>
+          <input class="field-input field-readonly" id="f-company" readonly tabindex="-1">
         </div>
         <div class="field-group">
           <label class="field-label">Abbrev *</label>
-          <input class="field-input" id="f-showAbv" placeholder="Much Ado" maxlength="20" oninput="runFieldChanged()">
+          <input class="field-input" id="f-showAbv" placeholder="Brief title" maxlength="20" oninput="runFieldChanged()">
         </div>
         <div class="field-group">
           <label class="field-label">Genre</label>
           <select class="field-select" id="f-genre" onchange="runFieldChanged()">
-            <option value="">—</option>
-            <option>Drama</option><option>Musical</option><option>Comedy</option>
-            <option>Tragedy</option><option>Other</option>
+            <option value="">-</option>
+            <option>Drama</option><option>Musical</option><option>Comedy</option><option>Other</option>
           </select>
         </div>
         <div class="field-group">
           <label class="field-label">Venue *</label>
           <select class="field-select" id="f-venue" onchange="runFieldChanged()">
-            <option value="">— select —</option>
-            <option value="G">G — The Grove (SCS)</option>
-            <option value="VMB">VMB — Veterans Memorial Building</option>
-            <option value="PH">PH — Park Hall (MCT)</option>
-            <option value="AT">AT — Actors' Theatre</option>
-            <option value="CCT">CCT — Cabrillo Crocker Theater</option>
+            <option value="">-</option>
+            <option value="G">The Grove (SCS)</option>
+            <option value="VMB">Veterans Memorial Building</option>
+            <option value="PH">Park Hall (MCT)</option>
+            <option value="AT">Actors' Theatre</option>
+            <option value="CCT">Cabrillo Crocker Theater</option>
             <option value="Other">Other</option>
           </select>
         </div>
         <div class="field-group" style="grid-column: span 1">
           <label class="field-label">Full Show Title *</label>
-          <input class="field-input" id="f-show" placeholder="Much Ado About Nothing (Shakespeare)" oninput="runFieldChanged()">
+          <input class="field-input" id="f-show" placeholder="Full title" oninput="runFieldChanged()">
         </div>
         <div class="field-group" style="grid-column: span 1">
           <label class="field-label">Price</label>
-          <input class="field-input" id="f-price" placeholder="$72-$92" oninput="runFieldChanged()">
+          <input class="field-input" id="f-price" placeholder="e.g. $xx-$yy" oninput="runFieldChanged()">
         </div>
         <div class="field-group" style="grid-column: span 2">
           <label class="field-label">Discounts</label>
-          <input class="field-input" id="f-discounts" placeholder="Senior/Military $65, Student $25" oninput="runFieldChanged()">
+          <input class="field-input" id="f-discounts" placeholder="e.g. Senior $aa, Student $bb" oninput="runFieldChanged()">
         </div>
         <div class="field-group" style="grid-column: span 2">
           <label class="field-label">Info URL</label>
@@ -774,7 +798,7 @@ tbody td {
             <label style="font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.06em;color:var(--accent2)">Default time for pasted dates</label>
             <input type="time" class="pattern-input" id="paste-time" value="19:30" style="width:100px;border-color:#c8d8e8">
           </div>
-          <textarea class="paste-textarea" id="pasteArea" placeholder="Paste dates, one per line:&#10;July 11 2026&#10;July 12 2026&#10;2026-07-14&#10;Saturday, July 18, 2026 at 8:00 PM"></textarea>
+          <textarea class="paste-textarea" id="pasteArea" placeholder="Paste dates, one per line, e.g.:&#10;July 11 2026&#10;July 12 2026&#10;2026-07-14&#10;Saturday, July 18, 2026 at 8:00 PM"></textarea>
           <div style="display:flex;flex-direction:column;gap:6px">
             <div class="paste-hint">Accepts most date formats. Time in line overrides default. SCS-format lines (e.g. <em>Saturday, July 18, 2026 at 8:00 PM</em>) parsed automatically.</div>
             <button class="btn btn-blue btn-sm" onclick="parsePaste()">Import dates</button>
@@ -808,9 +832,7 @@ tbody td {
 <div class="statusbar">
   <span class="status-item"><span class="status-key">Runs</span><span id="st-runs">0</span></span>
   <span class="status-item"><span class="status-key">Total perfs</span><span id="st-perfs">0</span></span>
-  <span class="status-item"><span class="status-key">Tab</span><span>next cell</span></span>
-  <span class="status-item"><span class="status-key">Enter</span><span>new row</span></span>
-  <span class="status-item"><span class="status-key">Unsaved</span><span id="st-saved" style="color:#f0a500">auto-saved to localStorage</span></span>
+  <span class="status-item"><span class="status-key">Status</span><span id="st-saved" style="color:rgba(255,255,255,0.35)">no file loaded</span></span>
 </div>
 
 <!-- EXPORT MODAL -->
@@ -832,33 +854,275 @@ tbody td {
 <input type="file" id="importFile" accept=".json" style="display:none" onchange="handleImport(event)">
 
 <script>
-// ── DATA MODEL ──
+// ── CONSTANTS & STATE ──
 const PERF_TYPES = ['', 'Preview', 'Opening', 'Closing', 'Talk-back'];
 const MONTH_MAP = {january:1,february:2,march:3,april:4,may:5,june:6,july:7,august:8,september:9,october:10,november:11,december:12};
+const CURRENT_YEAR = 2026;
+const IS_DEV = ['localhost', '127.0.0.1'].includes(window.location.hostname);
 
-let runs = [];        // array of run objects
+let runs = [];
 let activeRunIdx = -1;
+let allCompanies = [];
+let allShowFiles = [];
+let pendingCompanyId = null;
+let currentCompanyId = null;
+let currentYear = CURRENT_YEAR;
+let currentCompanyAbv = '';
+let isDirty = false;
+let identityUser = null;
 
-// ── PERSISTENCE ──
-function save() {
-  localStorage.setItem('sc-theater-runs', JSON.stringify(runs));
-  updateStatus();
+// ── DATA API ──
+async function apiFetch(file) {
+  const resp = await fetch(`/.netlify/functions/data?file=${encodeURIComponent(file)}`);
+  if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+  return resp.json();
 }
 
-function load() {
-  const stored = localStorage.getItem('sc-theater-runs');
-  if (stored) {
-    try { runs = JSON.parse(stored); } catch(e) { runs = []; }
+async function apiPut(file, payload) {
+  const hdrs = { 'Content-Type': 'application/json' };
+  if (identityUser) {
+    hdrs['Authorization'] = `Bearer ${await identityUser.jwt()}`;
   }
+  const resp = await fetch(`/.netlify/functions/data?file=${encodeURIComponent(file)}`, {
+    method: 'PUT',
+    headers: hdrs,
+    body: JSON.stringify(payload, null, 2),
+  });
+  if (!resp.ok) {
+    const msg = await resp.text();
+    throw new Error(msg || `HTTP ${resp.status}`);
+  }
+}
+
+// ── IDENTITY ──
+function initIdentity() {
+  if (IS_DEV || !window.netlifyIdentity) return;
+  const loginBtn = document.getElementById('loginBtn');
+  loginBtn.style.display = '';
+  window.netlifyIdentity.on('init', u => { if (u) { identityUser = u; loginBtn.textContent = u.email; } });
+  window.netlifyIdentity.on('login', u => { identityUser = u; loginBtn.textContent = u.email; window.netlifyIdentity.close(); });
+  window.netlifyIdentity.on('logout', () => { identityUser = null; loginBtn.textContent = 'Login'; });
+  window.netlifyIdentity.init();
+  loginBtn.onclick = () => {
+    if (identityUser) { if (confirm('Log out?')) window.netlifyIdentity.logout(); }
+    else window.netlifyIdentity.open();
+  };
+}
+
+// ── COMPANIES ──
+async function loadCompanies() {
+  try {
+    const data = await apiFetch('companies/sc-theater-companies.json');
+    allCompanies = data.companies || [];
+    const sel = document.getElementById('userSelect');
+    sel.innerHTML = '<option value="">— Select user —</option>' +
+      allCompanies.filter(c => c.editorEmail)
+        .map(c => `<option value="${c.id}">${c.abvName}</option>`).join('');
+  } catch(e) {
+    console.error('Could not load company list:', e);
+  }
+}
+
+async function onUserSelect() {
+  const userId = document.getElementById('userSelect').value;
+  if (!userId) return;
+  if (isDirty && !confirm('You have unsaved changes. Discard and continue?')) {
+    document.getElementById('userSelect').value = '';
+    return;
+  }
+  document.getElementById('companySelect').style.display = 'none';
+  hideYearSelect();
+  clearEditor();
+  const co = allCompanies.find(c => c.id === userId);
+  if (!co) return;
+  try {
+    allShowFiles = await loadShowsDir();
+  } catch(e) {
+    alert('Could not list show files: ' + e.message); return;
+  }
+  const SKIP = new Set(['admin']);
+  if (co.adminOnly) {
+    const compSel = document.getElementById('companySelect');
+    const uniqueIds = [...new Set(
+      allShowFiles.filter(f => !SKIP.has(f.companyId)).map(f => f.companyId)
+    )].sort((a, b) => {
+      const aAbv = allCompanies.find(c => c.id === a)?.abvName || a;
+      const bAbv = allCompanies.find(c => c.id === b)?.abvName || b;
+      return aAbv.localeCompare(bAbv);
+    });
+    compSel.innerHTML = '<option value="">— Select company —</option>' +
+      uniqueIds.map(id => {
+        const abv = allCompanies.find(c => c.id === id)?.abvName || id;
+        return `<option value="${id}">${abv}</option>`;
+      }).join('');
+    compSel.style.display = '';
+    compSel.value = '';
+  } else {
+    pendingCompanyId = userId;
+    populateYearSelect(allShowFiles.filter(f => f.companyId === userId).map(f => f.year));
+  }
+}
+
+function onCompanySelect() {
+  const coId = document.getElementById('companySelect').value;
+  if (!coId) { hideYearSelect(); clearEditor(); return; }
+  if (isDirty && !confirm('You have unsaved changes. Discard and continue?')) {
+    document.getElementById('companySelect').value = pendingCompanyId || '';
+    return;
+  }
+  pendingCompanyId = coId;
+  const years = allShowFiles.filter(f => f.companyId === coId).map(f => f.year);
+  populateYearSelect(years);
+  clearEditor();
+}
+
+function populateYearSelect(years) {
+  const sel = document.getElementById('yearSelect');
+  years = [...new Set(years)].sort((a, b) => b - a);
+  sel.innerHTML = '<option value="">— Year —</option>' +
+    years.map(y => `<option value="${y}">${y}</option>`).join('') +
+    '<option value="__new__">Add year</option>';
+  sel.style.display = '';
+  sel.value = '';
+}
+
+function hideYearSelect() {
+  const sel = document.getElementById('yearSelect');
+  sel.style.display = 'none';
+  sel.value = '';
+}
+
+async function onYearSelect() {
+  const val = document.getElementById('yearSelect').value;
+  if (!val || !pendingCompanyId) return;
+  if (isDirty && !confirm('You have unsaved changes. Discard and continue?')) {
+    document.getElementById('yearSelect').value = currentYear || '';
+    return;
+  }
+  if (val === '__new__') {
+    const existingYears = allShowFiles.filter(f => f.companyId === pendingCompanyId).map(f => f.year);
+    const nextYear = existingYears.length > 0 ? Math.max(...existingYears) + 1 : CURRENT_YEAR;
+    const abv = allCompanies.find(c => c.id === pendingCompanyId)?.abvName || pendingCompanyId;
+    const file = `shows/${nextYear}/${pendingCompanyId}-${nextYear}.json`;
+    const payload = { company: abv, year: nextYear, runs: [] };
+    try {
+      await apiPut(file, payload);
+    } catch(e) {
+      alert('Could not create file: ' + e.message);
+      document.getElementById('yearSelect').value = '';
+      return;
+    }
+    // Add to local list and repopulate selector so the new year is selectable
+    allShowFiles.push({ companyId: pendingCompanyId, year: nextYear });
+    const allYears = allShowFiles.filter(f => f.companyId === pendingCompanyId).map(f => f.year);
+    populateYearSelect(allYears);
+    document.getElementById('yearSelect').value = String(nextYear);
+    await loadCompanyFile(pendingCompanyId, nextYear);
+    return;
+  }
+  await loadCompanyFile(pendingCompanyId, parseInt(val, 10));
+}
+
+async function loadShowsDir() {
+  const resp = await fetch('/.netlify/functions/data?dir=shows');
+  if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+  return resp.json();
+}
+
+async function loadCompanyFile(coId, year) {
+  year = year || CURRENT_YEAR;
+  try {
+    const data = await apiFetch(`shows/${year}/${coId}-${year}.json`);
+    runs = data.runs || [];
+    currentCompanyId = coId;
+    currentYear = data.year || year;
+    currentCompanyAbv = allCompanies.find(c => c.id === coId)?.abvName || coId;
+    isDirty = false;
+    activeRunIdx = runs.length > 0 ? 0 : -1;
+    renderSidebar();
+    loadRunEditor();
+    updateStatus();
+    updateSaveBtn();
+  } catch(e) {
+    alert('Could not load company file: ' + e.message);
+  }
+}
+
+function clearEditor() {
+  runs = []; currentCompanyId = null; activeRunIdx = -1; isDirty = false;
   renderSidebar();
+  document.getElementById('emptyState').style.display = '';
+  document.getElementById('runEditor').style.display = 'none';
+  updateStatus(); updateSaveBtn();
+}
+
+function clearAll() {
+  pendingCompanyId = null;
+  hideYearSelect();
+  clearEditor();
+}
+
+// ── PERSISTENCE (marks dirty — actual write via saveFile()) ──
+function save() {
+  if (!currentCompanyId) return;
+  isDirty = true;
   updateStatus();
+  updateSaveBtn();
+}
+
+function updateSaveBtn() {
+  const btn = document.getElementById('saveBtn');
+  const can = isDirty && !!currentCompanyId;
+  btn.disabled = !can;
+  btn.style.background  = can ? 'var(--yellow)' : 'transparent';
+  btn.style.color       = can ? '#1c1a17' : 'rgba(255,255,255,0.5)';
+  btn.style.borderColor = can ? 'var(--yellow)' : 'rgba(255,255,255,0.3)';
+}
+
+async function saveFile() {
+  if (!currentCompanyId) return;
+  if (!IS_DEV && !identityUser) {
+    alert('Please log in to save.');
+    window.netlifyIdentity?.open();
+    return;
+  }
+  const btn = document.getElementById('saveBtn');
+  btn.disabled = true;
+  btn.textContent = 'Saving…';
+  try {
+    await apiPut(
+      `shows/${currentYear}/${currentCompanyId}-${currentYear}.json`,
+      { company: currentCompanyAbv, year: currentYear, runs }
+    );
+    isDirty = false;
+    btn.textContent = 'Saved ✓';
+    btn.style.background = 'var(--green)'; btn.style.color = '#fff'; btn.style.borderColor = 'var(--green)';
+    updateStatus();
+    setTimeout(() => { btn.textContent = 'Save'; updateSaveBtn(); }, 2500);
+  } catch(e) {
+    alert('Save failed: ' + e.message);
+    btn.textContent = 'Save';
+    updateSaveBtn();
+  }
+}
+
+// ── STATUS ──
+function updateStatus() {
+  document.getElementById('st-runs').textContent = runs.length;
+  document.getElementById('st-perfs').textContent = runs.reduce((s,r)=>s+r.performances.length,0);
+  const el = document.getElementById('st-saved');
+  if (!currentCompanyId) { el.textContent = 'no file loaded'; el.style.color = 'rgba(255,255,255,0.35)'; }
+  else if (isDirty)      { el.textContent = 'unsaved changes'; el.style.color = 'var(--yellow)'; }
+  else                   { el.textContent = 'saved'; el.style.color = 'var(--green)'; }
 }
 
 // ── SIDEBAR ──
 function renderSidebar() {
   const list = document.getElementById('runList');
   if (!runs.length) {
-    list.innerHTML = '<div class="sidebar-empty">No runs yet.<br>Click + New to add one.</div>';
+    list.innerHTML = !currentCompanyId
+      ? '<div class="sidebar-empty">Select a user to load data.</div>'
+      : '<div class="sidebar-empty">No runs yet.<br>Click + New to add one.</div>';
     return;
   }
   const openingDate = r => r.performances.length ? r.performances.map(p => p.date).sort()[0] : '9999-99-99';
@@ -872,10 +1136,7 @@ function renderSidebar() {
   updateStatus();
 }
 
-function updateStatus() {
-  document.getElementById('st-runs').textContent = runs.length;
-  document.getElementById('st-perfs').textContent = runs.reduce((s,r)=>s+r.performances.length,0);
-}
+
 
 // ── RUN SELECTION ──
 function selectRun(idx) {
@@ -924,7 +1185,6 @@ function updateEditorTitle() {
 function runFieldChanged() {
   if (activeRunIdx < 0) return;
   const r = runs[activeRunIdx];
-  r.company     = document.getElementById('f-company').value;
   r.showAbv     = document.getElementById('f-showAbv').value;
   r.show        = document.getElementById('f-show').value;
   r.genre       = document.getElementById('f-genre').value;
@@ -1060,9 +1320,10 @@ function fmtDesc(type) {
 
 // ── RUN CRUD ──
 function newRun() {
+  if (!currentCompanyId) { alert('Please select a user/company first.'); return; }
   const run = {
     id: `run-${Date.now()}`,
-    company:'', showAbv:'', show:'', description:'', genre:'', venue:'',
+    company: currentCompanyAbv, showAbv:'', show:'', description:'', genre:'', venue:'',
     price:'', discounts:'', infoUrl:'', ticketsUrl:'',
     performances:[]
   };
@@ -1070,7 +1331,7 @@ function newRun() {
   activeRunIdx = runs.length - 1;
   renderSidebar();
   loadRunEditor();
-  document.getElementById('f-company').focus();
+  document.getElementById('f-showAbv').focus();
   save();
 }
 
@@ -1107,11 +1368,11 @@ function renderPerfTable() {
           ${PERF_TYPES.map(t=>`<option value="${t}" ${p.perfType===t?'selected':''}>${t||'—'}</option>`).join('')}
         </select>
       </td>
-      <td><input class="cell-input" value="${p.discounts||''}" placeholder="(uses run default)"
+      <td><input class="cell-input" value="${p.discounts||''}" placeholder="(default for run)"
           onchange="cellChanged(${i},'discounts',this.value)"
           style="font-family:'IBM Plex Sans',sans-serif;font-size:11px"
           id="cell-${i}-discounts"></td>
-      <td><input class="cell-input" value="${p.ticketsUrl||''}" placeholder="(uses run default)"
+      <td><input class="cell-input" value="${p.ticketsUrl||''}" placeholder="(default for run)"
           onchange="cellChanged(${i},'ticketsUrl',this.value)"
           id="cell-${i}-ticketsUrl"></td>
     </tr>`).join('');
@@ -1343,7 +1604,10 @@ function closeExport() {
 }
 
 function renderExport() {
-  document.getElementById('jsonOutput').textContent = JSON.stringify({ runs }, null, 2);
+  const payload = currentCompanyId
+    ? { company: currentCompanyAbv, year: currentYear, runs }
+    : { runs };
+  document.getElementById('jsonOutput').textContent = JSON.stringify(payload, null, 2);
 }
 
 function downloadJSON() {
@@ -1352,7 +1616,7 @@ function downloadJSON() {
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = 'sc-theater-runs.json';
+  a.download = currentCompanyId ? `${currentCompanyId}-${currentYear}.json` : 'sc-theater-runs.json';
   a.click();
   URL.revokeObjectURL(url);
 }
@@ -1363,8 +1627,10 @@ document.getElementById('exportModal').addEventListener('click', e => {
 });
 
 // ── INIT ──
-load();
-if (runs.length > 0) selectRun(0);
+initIdentity();
+loadCompanies();
+updateStatus();
+updateSaveBtn();
 </script>
 </body>
 </html>

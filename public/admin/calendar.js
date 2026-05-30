@@ -682,6 +682,7 @@ async function initFromContext(context) {
     const years = allShowFiles.filter((f) => f.companyId === context.company.id).map((f) => f.year)
     populateYearSelect(years)
     if (years.length === 1) {
+      document.getElementById('yearSelect').value = String(years[0])
       await loadCompanyFile(pendingCompanyId, years[0])
     }
   }

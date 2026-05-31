@@ -3,7 +3,7 @@
 
 export type Company = 'SCS' | 'AT' | 'MCT' | 'Renegade' | 'Cabrillo' | 'ABT' | 'Other' | ''
 
-export type Genre = 'Drama' | 'Musical' | 'Comedy' | 'Tragedy' | 'Other' | ''
+export type Genre = 'Drama' | 'Musical' | 'Comedy' | 'Other' | ''
 
 // G = The Grove (SCS), VMB = Veterans Memorial Building, PH = Park Hall (MCT),
 // AT = Actors' Theatre, CCT = Cabrillo Crocker Theater
@@ -61,6 +61,68 @@ export interface CompanyEntry {
   logoDark?: boolean
   editors?: CompanyEditor[]
   adminOnly?: boolean
+}
+
+export type AuditionGender = 'female' | 'male' | 'any'
+export type AuditionRoleType = 'lead' | 'supporting' | 'ensemble'
+
+export interface AuditionRole {
+  role: string
+  type: AuditionRoleType
+  gender: AuditionGender
+  ageRange?: string    // e.g. "30s", "20s–40s", "18+", "Any"
+  voicePart?: string   // e.g. "Soprano", "Baritone" — musicals only
+  description?: string
+}
+
+export interface AuditionDate {
+  date: string       // YYYY-MM-DD
+  startTime: string  // HH:MM 24-hour
+  endTime: string    // HH:MM 24-hour
+  notes?: string     // e.g. "First come, first served"
+  location?: AuditionLocation
+}
+
+export interface AuditionLocation {
+  name: string
+  address?: string
+}
+
+export interface AuditionContact {
+  name?: string
+  email?: string
+  phone?: string
+}
+
+export interface AuditionPrep {
+  acting?: string
+  singing?: string
+  dance?: string
+  bring?: string[]
+}
+
+export interface Audition {
+  id: string              // "audition-<timestamp>"
+  production: string
+  genre: Genre
+  productionId?: string   // soft ref to a Run id in shows data
+  auditionDates: AuditionDate[]
+  rolesAvailable: AuditionRole[]
+  prep?: AuditionPrep
+  rehearsalStart?: string // YYYY-MM-DD
+  openingDate?: string    // YYYY-MM-DD
+  contact?: AuditionContact
+  auditionNoticeUrl?: string
+  productionUrl?: string
+  notes?: string
+  createdAt: string
+  updatedAt: string
+}
+
+export interface AuditionsFile {
+  company: Company
+  year: number
+  auditions: Audition[]
 }
 
 /**

@@ -1,5 +1,112 @@
 ---
 import SiteNav from '../components/SiteNav.astro';
+import companiesData from '../../data/companies/sc-theater-companies.json';
+import { getAuditions } from '../lib/data.ts';
+import type { AuditionEvent } from '../lib/data.ts';
+
+const auditions = getAuditions();
+
+const companyNameMap: Record<string, string> = Object.fromEntries(
+  companiesData.companies.map(c => [c.abvName, c.name])
+);
+
+const audCompanyCodes = new Set<string>(auditions.map(a => a.company));
+const filterCompanies = companiesData.companies.filter(
+  c => !c.adminOnly && audCompanyCodes.has(c.abvName as string)
+);
+const filterGenres = [...new Set(auditions.map(a => a.genre).filter(Boolean))].sort();
+
+// ── Server-side formatting helpers ──
+
+function fmtShortDate(dateStr: string): string {
+  const [, m, d] = dateStr.split('-').map(Number);
+  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  return `${months[m - 1]} ${d}`;
+}
+
+function fmtAudDateRange(aud: AuditionEvent): string {
+  const dates = aud.auditionDates;
+  if (!dates.length) return '';
+  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  if (dates.length === 1) {
+    const [y, m, d] = dates[0].date.split('-').map(Number);
+    return `${months[m - 1]} ${d}, ${y}`;
+  }
+  const [fy, fm, fd] = dates[0].date.split('-').map(Number);
+  const [ly, lm, ld] = dates[dates.length - 1].date.split('-').map(Number);
+  if (fy === ly) {
+    if (fm === lm) return `${months[fm - 1]} ${fd}–${ld}, ${fy}`;
+    return `${months[fm - 1]} ${fd} – ${months[lm - 1]} ${ld}, ${fy}`;
+  }
+  return `${months[fm - 1]} ${fd}, ${fy} – ${months[lm - 1]} ${ld}, ${ly}`;
+}
+
+function fmt12(t: string): string {
+  if (!t) return '';
+  const [hStr, mStr] = t.replace('.', ':').split(':');
+  const h = Number(hStr);
+  const m = mStr !== undefined ? Number(mStr) : 0;
+  return m === 0 ? String(h % 12 || 12) : `${h % 12 || 12}:${String(m).padStart(2, '0')}`;
+}
+
+function fmtTimeRange(start: string, end: string): string {
+  if (!start && !end) return '';
+  if (!start || !end) return fmt12(start || end);
+  const sh = Number(start.split(':')[0]);
+  const eh = Number(end.split(':')[0]);
+  const sp = sh < 12 ? 'am' : 'pm';
+  const ep = eh < 12 ? 'am' : 'pm';
+  return sp === ep ? `${fmt12(start)}–${fmt12(end)} ${ep}` : `${fmt12(start)} ${sp}–${fmt12(end)} ${ep}`;
+}
+
+function fmtFullDate(dateStr: string): string {
+  const [y, m, d] = dateStr.split('-').map(Number);
+  return new Date(y, m - 1, d).toLocaleDateString('en-US', {
+    weekday: 'short', month: 'short', day: 'numeric',
+  });
+}
+
+function rolesSum(aud: AuditionEvent): string {
+  let female = 0, male = 0, any = 0, hasEnsemble = false;
+  for (const r of aud.rolesAvailable) {
+    if (r.type === 'ensemble') { hasEnsemble = true; continue; }
+    if (r.gender === 'female') female++;
+    else if (r.gender === 'male') male++;
+    else any++;
+  }
+  const parts: string[] = [];
+  if (female > 0) parts.push(`${female} female`);
+  if (male > 0) parts.push(`${male} male`);
+  if (any > 0) parts.push(`${any} any`);
+  if (hasEnsemble) parts.push('ensemble');
+  return parts.join(' · ');
+}
+
+function latestDate(aud: AuditionEvent): string {
+  return [...aud.auditionDates].sort((a, b) => b.date.localeCompare(a.date))[0]?.date ?? '';
+}
+
+function dotVar(company: string): string {
+  const map: Record<string, string> = {
+    SCS: 'var(--dot-scs)',
+    AT: 'var(--dot-at)',
+    MCT: 'var(--dot-mct)',
+    Renegade: 'var(--dot-renegade)',
+    Cabrillo: 'var(--dot-cabrillo)',
+    ABT: 'var(--dot-abt)',
+  };
+  return map[company] ?? 'var(--dot-other)';
+}
+
+function genreClass(genre: string): string {
+  return `genre-${genre.toLowerCase()}`;
+}
+
+function roleTypeLabel(type: string): string {
+  if (type === 'lead') return 'Lead';
+  if (type === 'supporting') return 'Supp.';
+  return 'Ensemble';
+}
 ---
 
 <!doctype html>
@@ -20,23 +127,216 @@ import SiteNav from '../components/SiteNav.astro';
   <body>
     <SiteNav currentPage="auditions" />
 
-    <main class="stub-page">
-      <div class="stub-card">
-        <div class="stub-icon" aria-hidden="true">
-          <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M2 9a5 5 0 0 1 10 0v4a5 5 0 0 1-10 0V9z"></path>
-            <path d="M5.5 12.5c.5.4 1.5.4 2 0"></path>
-            <path d="M9 10c-.5-.7-1.5-.7-2 0"></path>
-            <path d="M12 13a5 5 0 0 1 10 0V9a5 5 0 0 1-10 0"></path>
-            <path d="M16.5 15.5c.5-.4 1.5-.4 2 0"></path>
-            <path d="M19 12c-.5.7-1.5.7-2 0"></path>
-          </svg>
+    <main class="aud-page">
+      <header class="page-header">
+        <h1 class="page-title">Auditions</h1>
+        <p class="page-subtitle">Open calls from Santa Cruz County theater companies</p>
+      </header>
+
+      <div class="filter-bar">
+        <div class="filter-controls">
+          <div class="filter-group">
+            <label for="filter-company">Company</label>
+            <select id="filter-company">
+              <option value="">All</option>
+              {filterCompanies.map(c => (
+                <option value={c.abvName}>{c.name}</option>
+              ))}
+            </select>
+          </div>
+          <div class="filter-group">
+            <label for="filter-genre">Genre</label>
+            <select id="filter-genre">
+              <option value="">All</option>
+              {filterGenres.map(g => (
+                <option value={g}>{g}</option>
+              ))}
+            </select>
+          </div>
+          <div class="filter-group">
+            <label for="filter-when">When</label>
+            <select id="filter-when">
+              <option value="upcoming">Upcoming</option>
+              <option value="all">All dates</option>
+              <option value="past">Past only</option>
+            </select>
+          </div>
         </div>
-        <h1 class="stub-title">Auditions</h1>
-        <p class="stub-coming">Coming Soon</p>
-        <p class="stub-desc">Audition listings from Santa Cruz theater companies will appear here.</p>
-        <a href="/" class="stub-back">Back to Hub</a>
+        <div class="filter-count" id="filter-count" aria-live="polite"></div>
       </div>
+
+      {auditions.length === 0 ? (
+        <div class="aud-no-data">No audition listings yet. Check back soon.</div>
+      ) : (
+        <div class="aud-list" id="aud-list">
+          {auditions.map((aud) => {
+            const showVoice = aud.genre === 'Musical';
+            const companyName = companyNameMap[aud.company] ?? aud.company;
+            const latest = latestDate(aud);
+            return (
+              <div
+                class="aud-card"
+                data-company={aud.company}
+                data-genre={aud.genre}
+                data-latest-date={latest}
+              >
+                {/* ── Collapsed summary ── */}
+                <button class="aud-summary" aria-expanded="false">
+                  <div class="aud-main">
+                    <div class="aud-title-row">
+                      <span class="company-dot" style={`background:${dotVar(aud.company)}`}></span>
+                      <span class="aud-title">{aud.production}</span>
+                      {aud.genre && (
+                        <span class={`genre-badge ${genreClass(aud.genre)}`}>{aud.genre}</span>
+                      )}
+                    </div>
+                    <div class="aud-meta-row">
+                      {companyName}
+                      {aud.openingDate && ` · Opens ${fmtShortDate(aud.openingDate)}`}
+                    </div>
+                    <div class="aud-roles-row">{rolesSum(aud)}</div>
+                  </div>
+                  <div class="aud-aside">
+                    <span class="aud-date-range">{fmtAudDateRange(aud)}</span>
+                    <span class="aud-chevron" aria-hidden="true"></span>
+                  </div>
+                </button>
+
+                {/* ── Expanded detail ── */}
+                <div class="aud-detail" hidden>
+                  <div class="detail-grid">
+                    {/* Left column */}
+                    <div class="detail-left">
+                      <section class="detail-section">
+                        <h4 class="detail-section-head">Audition dates</h4>
+                        {aud.auditionDates.map(ad => (
+                          <div class="detail-date-row">
+                            <span class="detail-date-label">{fmtFullDate(ad.date)}</span>
+                            <span class="detail-time-label">{fmtTimeRange(ad.startTime, ad.endTime)}</span>
+                            {ad.notes && <span class="detail-date-note">{ad.notes}</span>}
+                            {ad.location && (
+                              <div class="detail-date-location">
+                                <span class="detail-location-name">{ad.location.name}</span>
+                                {ad.location.address && (
+                                  <span class="detail-sub"> · {ad.location.address}</span>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </section>
+
+                      {aud.prep && (
+                        <section class="detail-section">
+                          <h4 class="detail-section-head">Prepare</h4>
+                          {aud.prep.acting && (
+                            <div class="detail-prep-row">
+                              <span class="prep-label">Acting</span>
+                              <span>{aud.prep.acting}</span>
+                            </div>
+                          )}
+                          {aud.prep.singing && (
+                            <div class="detail-prep-row">
+                              <span class="prep-label">Singing</span>
+                              <span>{aud.prep.singing}</span>
+                            </div>
+                          )}
+                          {aud.prep.dance && (
+                            <div class="detail-prep-row">
+                              <span class="prep-label">Dance</span>
+                              <span>{aud.prep.dance}</span>
+                            </div>
+                          )}
+                          {aud.prep.bring && aud.prep.bring.length > 0 && (
+                            <div class="detail-prep-row">
+                              <span class="prep-label">Bring</span>
+                              <span>{aud.prep.bring.join(', ')}</span>
+                            </div>
+                          )}
+                        </section>
+                      )}
+
+                      {aud.contact && (aud.contact.name || aud.contact.email || aud.contact.phone) && (
+                        <section class="detail-section">
+                          <h4 class="detail-section-head">Contact</h4>
+                          {aud.contact.name && <div class="detail-contact-name">{aud.contact.name}</div>}
+                          {aud.contact.email && (
+                            <div>
+                              <a href={`mailto:${aud.contact.email}`} class="detail-link-inline">
+                                {aud.contact.email}
+                              </a>
+                            </div>
+                          )}
+                          {aud.contact.phone && <div class="detail-sub">{aud.contact.phone}</div>}
+                        </section>
+                      )}
+                    </div>
+
+                    {/* Right column — roles table */}
+                    {aud.rolesAvailable?.length > 0 && (
+                    <div class="detail-right">
+                      <section class="detail-section">
+                        <h4 class="detail-section-head">Roles available</h4>
+                        <table class="roles-table">
+                          <thead>
+                            <tr>
+                              <th>Role</th>
+                              <th>Type</th>
+                              <th>Age</th>
+                              {showVoice && <th>Voice</th>}
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {aud.rolesAvailable.map(role => (
+                              <tr>
+                                <td class="role-name-cell">
+                                  {role.role}
+                                  {role.description && (
+                                    <span class="role-desc">{role.description}</span>
+                                  )}
+                                </td>
+                                <td class={`role-type role-${role.type}`}>
+                                  {roleTypeLabel(role.type)}
+                                </td>
+                                <td class="role-age">{role.ageRange ?? ''}</td>
+                                {showVoice && <td class="role-voice">{role.voicePart ?? ''}</td>}
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </section>
+                    </div>
+                    )}
+                  </div>
+
+                  {aud.notes && (
+                    <div class="detail-notes-full">{aud.notes}</div>
+                  )}
+
+                  {(aud.auditionNoticeUrl || aud.productionUrl) && (
+                    <div class="detail-links-row">
+                      {aud.auditionNoticeUrl && (
+                        <a href={aud.auditionNoticeUrl} class="detail-action-link" target="_blank" rel="noopener">
+                          Audition notice →
+                        </a>
+                      )}
+                      {aud.productionUrl && (
+                        <a href={aud.productionUrl} class="detail-action-link" target="_blank" rel="noopener">
+                          Production info →
+                        </a>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+
+          <div class="aud-empty" id="aud-empty" hidden>
+            No auditions match the current filters.
+          </div>
+        </div>
+      )}
     </main>
   </body>
 </html>
@@ -48,95 +348,589 @@ import SiteNav from '../components/SiteNav.astro';
     padding: 0;
   }
 
+  :root {
+    --nav-h: 44px;
+    --page-bg: #f0ede8;
+    --bg: #f7f4ef;
+    --surface: #ffffff;
+    --ink: #1a1612;
+    --ink-muted: #6b6259;
+    --ink-subtle: #9c9189;
+    --border: #e0d9d0;
+    --border-primary: #c8a96e;
+    --radius: 6px;
+
+    /* Company dot colours — match calendar.astro */
+    --dot-scs: #ce8481;
+    --dot-at: #7b8bc4;
+    --dot-mct: #71c75f;
+    --dot-renegade: #5dadbe;
+    --dot-cabrillo: #c8a96e;
+    --dot-abt: #a57bc4;
+    --dot-other: #cbcbcb;
+  }
+
   body {
     font-family: 'DM Sans', sans-serif;
-    background: #f0ede8;
-    color: #1a1612;
+    background: var(--page-bg);
+    color: var(--ink);
     min-height: 100vh;
-    display: flex;
-    flex-direction: column;
+    font-size: 14px;
   }
 
-  .stub-page {
-    flex: 1;
+  /* ── PAGE LAYOUT ── */
+  .aud-page {
+    margin-top: var(--nav-h);
+    padding: 32px 32px 80px;
+    max-width: 960px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  /* ── PAGE HEADER ── */
+  .page-header {
+    margin-bottom: 24px;
+  }
+
+  .page-title {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(28px, 4vw, 40px);
+    font-weight: 600;
+    color: var(--ink);
+    line-height: 1.15;
+    margin-bottom: 6px;
+  }
+
+  .page-subtitle {
+    font-size: 15px;
+    font-weight: 300;
+    color: var(--ink-muted);
+    letter-spacing: 0.01em;
+  }
+
+  /* ── FILTER BAR ── */
+  .filter-bar {
+    position: sticky;
+    top: var(--nav-h);
+    z-index: 50;
+    background: var(--page-bg);
+    border-bottom: 1px solid var(--border);
     display: flex;
     align-items: center;
-    justify-content: center;
-    padding: 44px 24px 64px;
-    margin-top: 44px;
-  }
-
-  .stub-card {
-    background: #fff;
-    border: 1px solid #e0d9d0;
-    border-radius: 10px;
-    padding: 48px 48px 40px;
-    max-width: 420px;
-    width: 100%;
-    text-align: center;
-    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.07);
-  }
-
-  .stub-icon {
-    color: #c8a96e;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 10px 0 10px;
+    margin: 0 -32px;
+    padding-left: 32px;
+    padding-right: 32px;
     margin-bottom: 20px;
+    flex-wrap: wrap;
+  }
+
+  .filter-controls {
     display: flex;
-    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
   }
 
-  .stub-title {
-    font-family: 'Playfair Display', serif;
-    font-size: 32px;
-    font-weight: 600;
-    color: #1a1612;
-    margin-bottom: 12px;
-    line-height: 1.15;
+  .filter-group {
+    display: flex;
+    align-items: center;
+    gap: 6px;
   }
 
-  .stub-coming {
-    font-family: 'Playfair Display', serif;
-    font-style: italic;
-    font-size: 17px;
-    font-weight: 400;
-    color: #c8a96e;
-    margin-bottom: 16px;
-    letter-spacing: 0.02em;
-  }
-
-  .stub-desc {
-    font-size: 14px;
-    font-weight: 400;
-    color: #6b6259;
-    line-height: 1.62;
-    margin-bottom: 32px;
-  }
-
-  .stub-back {
-    display: inline-block;
-    padding: 9px 22px;
-    border: 1.5px solid #e0d9d0;
-    border-radius: 4px;
-    color: #6b6259;
-    font-size: 13px;
+  .filter-group label {
+    font-size: 12px;
     font-weight: 500;
-    text-decoration: none;
-    letter-spacing: 0.02em;
-    transition: border-color 0.15s, color 0.15s, background 0.15s;
+    color: var(--ink-muted);
+    white-space: nowrap;
+  }
+
+  .filter-group select {
+    font-family: inherit;
+    font-size: 12px;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 4px 8px;
+    background: var(--surface);
+    color: var(--ink);
+    cursor: pointer;
+    -webkit-appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%236b6259'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 8px center;
+    padding-right: 24px;
+  }
+
+  .filter-count {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--ink-muted);
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  /* ── EMPTY STATES ── */
+  .aud-no-data,
+  .aud-empty {
+    padding: 48px 24px;
+    text-align: center;
+    font-size: 14px;
+    color: var(--ink-muted);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+  }
+
+  /* ── CARD LIST ── */
+  .aud-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  /* ── CARD ── */
+  .aud-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    transition: border-color 0.15s, box-shadow 0.15s;
+  }
+
+  .aud-card.open {
+    border-color: var(--border-primary);
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.07);
+  }
+
+  /* ── SUMMARY ROW (collapsed) ── */
+  .aud-summary {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    width: 100%;
+    padding: 14px 16px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    text-align: left;
+    font-family: inherit;
+    font-size: inherit;
+    color: inherit;
     -webkit-tap-highlight-color: transparent;
   }
 
-  .stub-back:hover {
-    border-color: #c8a96e;
-    color: #1a1612;
-    background: #faf7f2;
+  @media (hover: hover) {
+    .aud-summary:hover {
+      background: rgba(0, 0, 0, 0.02);
+    }
   }
 
-  @media (max-width: 480px) {
-    .stub-card {
-      padding: 36px 28px 32px;
+  .aud-main {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .aud-title-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .company-dot {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .aud-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--ink);
+    line-height: 1.25;
+  }
+
+  .genre-badge {
+    font-size: 11px;
+    font-weight: 500;
+    padding: 2px 8px;
+    border-radius: 10px;
+    flex-shrink: 0;
+    letter-spacing: 0.02em;
+  }
+
+  .genre-musical  { background: #dce4fb; color: #2c3e9a; }
+  .genre-drama    { background: #fbe5e1; color: #8c3a2e; }
+  .genre-comedy   { background: #dff4d6; color: #2d6020; }
+  .genre-other    { background: #f0ece6; color: var(--ink-muted); }
+
+  .aud-meta-row {
+    font-size: 12px;
+    color: var(--ink-muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .aud-roles-row {
+    font-size: 12px;
+    color: var(--ink-subtle);
+  }
+
+  /* Right aside — dates + chevron */
+  .aud-aside {
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 3px;
+    min-width: 80px;
+  }
+
+  .aud-date-range {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--ink);
+    white-space: nowrap;
+  }
+
+  .aud-chevron {
+    width: 8px;
+    height: 8px;
+    border-right: 2px solid var(--ink-subtle);
+    border-bottom: 2px solid var(--ink-subtle);
+    transform: rotate(45deg);
+    transition: transform 0.2s ease;
+    margin-top: 4px;
+    flex-shrink: 0;
+  }
+
+  .aud-card.open .aud-chevron {
+    transform: rotate(-135deg);
+  }
+
+  /* ── DETAIL PANEL (expanded) ── */
+  .aud-detail {
+    background: var(--bg);
+    border-top: 1px solid var(--border);
+    padding: 20px 16px 16px;
+  }
+
+  .detail-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px 32px;
+    margin-bottom: 16px;
+  }
+
+  .detail-section {
+    margin-bottom: 16px;
+  }
+
+  .detail-section:last-child {
+    margin-bottom: 0;
+  }
+
+  .detail-section-head {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--ink-muted);
+    margin-bottom: 8px;
+  }
+
+  /* Date rows */
+  .detail-date-row {
+    display: flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 5px;
+    font-size: 13px;
+  }
+
+  .detail-date-label {
+    font-weight: 500;
+    color: var(--ink);
+    white-space: nowrap;
+  }
+
+  .detail-time-label {
+    color: var(--ink-muted);
+    white-space: nowrap;
+  }
+
+  .detail-date-note {
+    font-size: 11px;
+    color: var(--ink-subtle);
+    font-style: italic;
+    white-space: nowrap;
+  }
+
+  /* Per-date location */
+  .detail-date-location {
+    width: 100%;
+    font-size: 12px;
+    color: var(--ink-muted);
+    margin-top: 1px;
+  }
+
+  .detail-location-name {
+    font-weight: 500;
+    color: var(--ink-muted);
+  }
+
+  .detail-sub {
+    font-size: 12px;
+    color: var(--ink-muted);
+    line-height: 1.5;
+  }
+
+  /* Prep */
+  .detail-prep-row {
+    display: flex;
+    gap: 6px;
+    font-size: 13px;
+    margin-bottom: 5px;
+    line-height: 1.45;
+  }
+
+  .detail-prep-row:last-child {
+    margin-bottom: 0;
+  }
+
+  .prep-label {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--ink-muted);
+    white-space: nowrap;
+    padding-top: 2px;
+    flex-shrink: 0;
+    min-width: 48px;
+  }
+
+  /* Contact */
+  .detail-contact-name {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--ink);
+    margin-bottom: 2px;
+  }
+
+  .detail-link-inline {
+    font-size: 12px;
+    color: #4f5ce0;
+    text-decoration: none;
+  }
+  .detail-link-inline:hover {
+    text-decoration: underline;
+  }
+
+  /* ── ROLES TABLE ── */
+  .roles-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+
+  .roles-table th {
+    text-align: left;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--ink-muted);
+    padding: 0 10px 5px 0;
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+  }
+
+  .roles-table td {
+    padding: 6px 10px 6px 0;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+    line-height: 1.4;
+  }
+
+  .roles-table tr:last-child td {
+    border-bottom: none;
+  }
+
+  .role-name-cell {
+    font-weight: 500;
+    color: var(--ink);
+  }
+
+  .role-desc {
+    display: block;
+    font-size: 11px;
+    font-weight: 400;
+    color: var(--ink-muted);
+    font-style: italic;
+    margin-top: 2px;
+    line-height: 1.4;
+  }
+
+  .role-type {
+    white-space: nowrap;
+  }
+
+  .role-lead      { color: #6c3bb5; font-weight: 500; }
+  .role-supporting { color: var(--ink-muted); }
+  .role-ensemble  { color: var(--ink-subtle); font-style: italic; }
+
+  .role-age,
+  .role-voice {
+    color: var(--ink-muted);
+    white-space: nowrap;
+  }
+
+  /* ── DETAIL FOOTER ── */
+  .detail-notes-full {
+    font-size: 13px;
+    color: var(--ink-muted);
+    line-height: 1.6;
+    padding: 12px 0 8px;
+    border-top: 1px solid var(--border);
+    margin-top: 4px;
+    font-style: italic;
+  }
+
+  .detail-links-row {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+    padding-top: 12px;
+    border-top: 1px solid var(--border);
+    margin-top: 4px;
+  }
+
+  .aud-detail .detail-notes-full + .detail-links-row,
+  .aud-detail .detail-grid + .detail-links-row {
+    margin-top: 0;
+  }
+
+  .detail-action-link {
+    font-size: 13px;
+    font-weight: 500;
+    color: #4f5ce0;
+    text-decoration: none;
+    transition: color 0.14s;
+  }
+  .detail-action-link:hover {
+    color: #2c3e9a;
+    text-decoration: underline;
+  }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 860px) {
+    .aud-page {
+      padding: 28px 24px 64px;
     }
-    .stub-title {
-      font-size: 26px;
+    .filter-bar {
+      margin: 0 -24px;
+      padding-left: 24px;
+      padding-right: 24px;
+    }
+  }
+
+  @media (max-width: 600px) {
+    .aud-page {
+      padding: 20px 16px 56px;
+    }
+    .filter-bar {
+      margin: 0 -16px;
+      padding-left: 16px;
+      padding-right: 16px;
+    }
+    .filter-controls {
+      gap: 8px;
+    }
+    .detail-grid {
+      grid-template-columns: 1fr;
+    }
+    .aud-aside {
+      min-width: 72px;
+    }
+    .aud-title {
+      font-size: 15px;
+    }
+    .aud-meta-row {
+      white-space: normal;
+    }
+  }
+
+  @media (max-width: 420px) {
+    .filter-controls {
+      flex-direction: column;
+      align-items: flex-start;
     }
   }
 </style>
+
+<script is:inline>
+  const TODAY = new Date().toISOString().slice(0, 10);
+
+  const cards = Array.from(document.querySelectorAll('.aud-card'));
+  const countEl = document.getElementById('filter-count');
+  const filterCompany = document.getElementById('filter-company');
+  const filterGenre = document.getElementById('filter-genre');
+  const filterWhen = document.getElementById('filter-when');
+  const emptyEl = document.getElementById('aud-empty');
+
+  function updateFilters() {
+    const co = filterCompany.value;
+    const ge = filterGenre.value;
+    const wh = filterWhen.value;
+    let visible = 0;
+
+    cards.forEach(card => {
+      const matchCo = !co || card.dataset.company === co;
+      const matchGe = !ge || card.dataset.genre === ge;
+      const latest = card.dataset.latestDate ?? '';
+      const matchWh =
+        wh === 'all'      ? true :
+        wh === 'past'     ? latest < TODAY :
+        /* upcoming */      latest >= TODAY;
+
+      const show = matchCo && matchGe && matchWh;
+      card.style.display = show ? '' : 'none';
+      if (show) visible++;
+    });
+
+    if (countEl) {
+      countEl.textContent = `${visible} ${visible === 1 ? 'audition' : 'auditions'}`;
+    }
+    if (emptyEl) {
+      emptyEl.hidden = visible > 0;
+    }
+  }
+
+  // Default to upcoming
+  if (filterWhen) filterWhen.value = 'upcoming';
+  updateFilters();
+
+  filterCompany?.addEventListener('change', updateFilters);
+  filterGenre?.addEventListener('change', updateFilters);
+  filterWhen?.addEventListener('change', updateFilters);
+
+  // Expand / collapse
+  document.querySelectorAll('.aud-summary').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const card = btn.closest('.aud-card');
+      const detail = card?.querySelector('.aud-detail');
+      if (!card || !detail) return;
+      const isOpen = card.classList.toggle('open');
+      detail.hidden = !isOpen;
+      btn.setAttribute('aria-expanded', String(isOpen));
+    });
+  });
+</script>

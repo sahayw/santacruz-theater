@@ -1,0 +1,187 @@
+{
+  "company": "MCT",
+  "year": 2026,
+  "auditions": [
+    {
+      "id": "audition-1750464000000",
+      "production": "Hamlet",
+      "genre": "Drama",
+      "auditionDates": [
+        {
+          "date": "2026-06-20",
+          "startTime": "14:00",
+          "endTime": "18:00",
+          "notes": "Open call",
+          "location": { "name": "Park Hall", "address": "20060 CA-9, Boulder Creek, CA 95006" }
+        },
+        {
+          "date": "2026-06-21",
+          "startTime": "14:00",
+          "endTime": "17:00",
+          "notes": "Callbacks",
+          "location": { "name": "Park Hall", "address": "20060 CA-9, Boulder Creek, CA 95006" }
+        }
+      ],
+      "rolesAvailable": [
+        {
+          "role": "Hamlet",
+          "type": "lead",
+          "gender": "any",
+          "ageRange": "20s–30s",
+          "description": "Intellectually nimble; must navigate comedy, grief, and rage with equal conviction"
+        },
+        {
+          "role": "Claudius",
+          "type": "lead",
+          "gender": "male",
+          "ageRange": "40s–50s"
+        },
+        {
+          "role": "Gertrude",
+          "type": "lead",
+          "gender": "female",
+          "ageRange": "40s–50s"
+        },
+        {
+          "role": "Ophelia",
+          "type": "lead",
+          "gender": "female",
+          "ageRange": "20s"
+        },
+        {
+          "role": "Horatio",
+          "type": "supporting",
+          "gender": "any",
+          "ageRange": "20s–30s"
+        },
+        {
+          "role": "Laertes",
+          "type": "supporting",
+          "gender": "male",
+          "ageRange": "20s–30s"
+        },
+        {
+          "role": "Polonius",
+          "type": "supporting",
+          "gender": "any",
+          "ageRange": "50s+"
+        },
+        {
+          "role": "Players / Court",
+          "type": "ensemble",
+          "gender": "any"
+        }
+      ],
+      "prep": {
+        "acting": "Two contrasting monologues — one Shakespeare, one contemporary (90 seconds each)"
+      },
+      "rehearsalStart": "2026-08-08",
+      "openingDate": "2026-09-19",
+      "contact": {
+        "name": "MCT Casting",
+        "email": "casting@mctshows.org"
+      },
+      "productionUrl": "https://mctshows.org/",
+      "notes": "MCT welcomes all experience levels. Hamlet will be set in a contemporary environment. Sides provided at audition.",
+      "createdAt": "2026-05-10T00:00:00Z",
+      "updatedAt": "2026-05-25T00:00:00Z"
+    },
+    {
+      "id": "audition-1754956800000",
+      "production": "The Music Man",
+      "genre": "Musical",
+      "auditionDates": [
+        {
+          "date": "2026-08-15",
+          "startTime": "13:00",
+          "endTime": "17:00",
+          "notes": "Open call; no appointment required",
+          "location": { "name": "Park Hall", "address": "20060 CA-9, Boulder Creek, CA 95006" }
+        },
+        {
+          "date": "2026-08-16",
+          "startTime": "10:00",
+          "endTime": "14:00",
+          "notes": "Callbacks",
+          "location": { "name": "Park Hall", "address": "20060 CA-9, Boulder Creek, CA 95006" }
+        }
+      ],
+      "rolesAvailable": [
+        {
+          "role": "Harold Hill",
+          "type": "lead",
+          "gender": "male",
+          "ageRange": "30s–40s",
+          "voicePart": "Baritone",
+          "description": "Charismatic con man — strong acting and comedy; charm is everything"
+        },
+        {
+          "role": "Marian Paroo",
+          "type": "lead",
+          "gender": "female",
+          "ageRange": "20s–30s",
+          "voicePart": "Soprano"
+        },
+        {
+          "role": "Mayor Shinn",
+          "type": "supporting",
+          "gender": "male",
+          "ageRange": "40s–50s",
+          "voicePart": "Bass-Baritone"
+        },
+        {
+          "role": "Eulalie Shinn",
+          "type": "supporting",
+          "gender": "female",
+          "ageRange": "40s–50s",
+          "voicePart": "Alto"
+        },
+        {
+          "role": "Winthrop Paroo",
+          "type": "supporting",
+          "gender": "male",
+          "ageRange": "8–14",
+          "voicePart": "Unchanged tenor",
+          "description": "Child role — must be comfortable performing with a lisp"
+        },
+        {
+          "role": "Marcellus Washburn",
+          "type": "supporting",
+          "gender": "male",
+          "ageRange": "30s",
+          "voicePart": "Baritone"
+        },
+        {
+          "role": "The Buffalo Bills (barbershop quartet)",
+          "type": "supporting",
+          "gender": "male",
+          "ageRange": "Any",
+          "voicePart": "TTBB",
+          "description": "Strong a cappella barbershop singers; groups may audition together"
+        },
+        {
+          "role": "Townspeople",
+          "type": "ensemble",
+          "gender": "any",
+          "voicePart": "All parts"
+        }
+      ],
+      "prep": {
+        "singing": "16–32 bars in classic musical theater style; accompanist provided",
+        "dance": "Basic tap or movement — no dance experience required for ensemble",
+        "bring": ["Headshot and résumé if available", "Conflict calendar Oct 2026–Jan 2027"]
+      },
+      "rehearsalStart": "2026-10-01",
+      "openingDate": "2026-11-07",
+      "contact": {
+        "name": "MCT Casting",
+        "email": "casting@mctshows.org",
+        "phone": "(831) 555-0229"
+      },
+      "auditionNoticeUrl": "https://mctshows.org/auditions",
+      "productionUrl": "https://mctshows.org/",
+      "createdAt": "2026-06-15T00:00:00Z",
+      "updatedAt": "2026-06-20T00:00:00Z"
+    }
+  ]
+}

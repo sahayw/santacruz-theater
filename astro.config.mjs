@@ -55,17 +55,21 @@ export default defineConfig({
             const params = new URLSearchParams(qs)
 
             // ── directory listing ──
-            if (params.get('dir') === 'shows') {
+            const dirParam = params.get('dir')
+            if (dirParam === 'shows' || dirParam === 'auditions') {
               try {
-                const showsDir = path.join(process.cwd(), 'data', 'shows')
+                const dataDir = path.join(process.cwd(), 'data', dirParam)
+                const fileRe = dirParam === 'auditions'
+                  ? /^(.+)-auditions-(\d{4})\.json$/
+                  : /^(.+)-(\d{4})\.json$/
                 const result = []
-                for (const yearEntry of fs.readdirSync(showsDir, { withFileTypes: true })) {
+                for (const yearEntry of fs.readdirSync(dataDir, { withFileTypes: true })) {
                   if (!yearEntry.isDirectory()) continue
                   const year = parseInt(yearEntry.name, 10)
                   if (!year) continue
-                  const yearPath = path.join(showsDir, yearEntry.name)
+                  const yearPath = path.join(dataDir, yearEntry.name)
                   for (const file of fs.readdirSync(yearPath)) {
-                    const m = file.match(/^(.+)-(\d{4})\.json$/)
+                    const m = file.match(fileRe)
                     if (m) result.push({ companyId: m[1], year: parseInt(m[2], 10) })
                   }
                 }

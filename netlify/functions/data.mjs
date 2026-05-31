@@ -28,20 +28,25 @@ export const handler = async (event, context) => {
   }
 
   // ── DIR LISTING ──
-  if (event.queryStringParameters?.dir === 'shows') {
+  const dirParam = event.queryStringParameters?.dir
+  if (dirParam === 'shows' || dirParam === 'auditions') {
     try {
-      const listUrl = `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/data/shows?ref=${GITHUB_BRANCH}`
+      const listUrl = `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/data/${dirParam}?ref=${GITHUB_BRANCH}`
       const yearListResp = await fetch(listUrl, { headers: ghHeaders })
       if (!yearListResp.ok)
-        return { statusCode: yearListResp.status, body: 'Failed to list shows directory' }
+        return { statusCode: yearListResp.status, body: `Failed to list ${dirParam} directory` }
       const yearDirs = await yearListResp.json()
       const result = []
+      // auditions files: <company>-auditions-<year>.json; shows files: <company>-<year>.json
+      const fileRe = dirParam === 'auditions'
+        ? /^(.+)-auditions-(\d{4})\.json$/
+        : /^(.+)-(\d{4})\.json$/
       for (const d of yearDirs.filter((x) => x.type === 'dir')) {
         const fileListResp = await fetch(d.url, { headers: ghHeaders })
         if (!fileListResp.ok) continue
         const files = await fileListResp.json()
         for (const f of files.filter((x) => x.type === 'file')) {
-          const m = f.name.match(/^(.+)-(\d{4})\.json$/)
+          const m = f.name.match(fileRe)
           if (m) result.push({ companyId: m[1], year: parseInt(m[2], 10) })
         }
       }

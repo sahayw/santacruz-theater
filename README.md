@@ -6,7 +6,7 @@ Four sections, accessible from a persistent top nav and a hub landing page:
 
 1. **Calendar** — performances calendar ✓
 2. **Companies** — theater company directory with logos ✓
-3. **Auditions** — upcoming audition listings _(planned)_
+3. **Auditions** — upcoming audition listings ✓
 4. **Services** — crew, props, and production resources _(planned)_
 
 An **About** page is linked from the home page footer and includes a community contact form.
@@ -48,6 +48,20 @@ Company data lives in `data/sc-theater-companies.json`. Logos are downloaded loc
 
 ---
 
+## Auditions
+
+The `/auditions` page lists upcoming open calls from Santa Cruz County theater companies. Cards are collapsed by default, showing the production title, genre badge, company colour dot, location, opening date, and a roles summary. Clicking a card expands a detail panel with full audition dates and times, location, preparation requirements, contact info, and a roles table (with a Voice column added automatically for musicals).
+
+A filter bar with Company, Genre, and When controls (Upcoming / All dates / Past only) narrows the list client-side. The result count updates live. Past auditions are hidden by default.
+
+### Auditions data
+
+Data lives in `data/auditions/<year>/<company-id>-auditions-<year>.json` — one file per company per year. `getAuditions()` in `src/lib/data.ts` imports all files at build time and returns a flat, sorted `AuditionEvent[]`. The upcoming/past distinction is determined client-side from the user's current date, not the build date.
+
+Location is stored per `AuditionDate` (not at the audition level), so different sessions of the same audition can be in different venues. Collapsed cards show only the date range; location appears in the expanded detail per date row. Voice Part is only shown for Musical genre auditions; Singing and Dance prep fields are similarly Musical-only.
+
+---
+
 ## About page and contact form
 
 `/about` explains the site's purpose and invites feedback via a contact form. The form uses **Netlify Forms** — no serverless function needed. Submissions appear in the Netlify dashboard under **Forms**, and email notifications are configured there (Site settings → Forms → Notifications). The notification address is set entirely in the Netlify UI, not in code.
@@ -62,7 +76,7 @@ All show data lives in `data/shows/<year>/<company-id>-<year>.json` — one file
 
 Company directory data lives in `data/companies/sc-theater-companies.json` and is hand-editable.
 
-`src/lib/data.ts` imports all `data/shows/**/*.json` at build time via `import.meta.glob`, flattening runs into a sorted `PerformanceEvent[]`, resolving per-slot overrides.
+`src/lib/data.ts` imports all show and audition JSON at build time via `import.meta.glob`. `getPerformances()` flattens runs into a sorted `PerformanceEvent[]` with per-slot overrides resolved; `getAuditions()` flattens auditions into a sorted `AuditionEvent[]`.
 
 ### ShowsFile (top-level shape)
 
@@ -82,6 +96,8 @@ Calendar colour identities:
 | `Renegade` | Renegade Theater            | Teal           |
 | `Cabrillo` | Cabrillo Stage              | None (grey)    |
 | `Other`    | not individually identified | None (grey)    |
+
+`Genre` values: `Drama`, `Musical`, `Comedy`, `Other` (Tragedy was removed).
 
 Full company profiles (name, venue, website, logo) are in `data/companies/sc-theater-companies.json`.
 
@@ -128,9 +144,38 @@ A quick-fill tool for recurring schedules. Set a date range, choose days of the 
 
 Accepts free-form date text pasted from a website or email (e.g. `Friday, June 5 at 7:30pm`) and parses it into table rows. Lines that cannot be interpreted are listed separately so nothing is silently dropped.
 
+### Date and time entry
+
+Both the calendar and auditions editors accept relaxed date and time formats and normalize them on blur:
+
+- **Dates** — `YYYY-MM-DD` is canonical, but `/` and `.` separators and 2-digit years are accepted: `26/6/13`, `2026.6.13`, `26-6-13` all normalize to `2026-06-13`. Order is always Y-M-D.
+- **Times** — dot separator accepted: `21.30` normalizes to `21:30`.
+
+Invalid entries (impossible dates, out-of-range hours or minutes) are highlighted with a red cell border immediately. Clicking **Save** runs a full validation pass across all records in the file and shows a specific error list before aborting — empty required fields and audition records with no date rows are caught here.
+
 ### Saving
 
 The **Save** button commits the current file to GitHub (`data/shows/<year>/<company>-<year>.json`). In production a valid Netlify Identity session is required. The commit message records the editor's email address. Netlify detects the push and triggers a rebuild automatically.
+
+---
+
+## Auditions editor
+
+Choosing the **Auditions Editor** tile opens a similar editor for audition listings.
+
+The company selector shows all companies from `sc-theater-companies.json`. Selecting a company with no existing file creates one automatically for the current year. If a company's files are all for the current year or earlier, the current year loads without requiring a selection.
+
+### Audition dates
+
+Each audition record has one or more date rows, each with a date, start/end time, optional location (name and address), and session notes. Date and time fields use the same normalization and validation as the calendar editor; start and end times are required. A record with no date rows cannot be saved.
+
+### Roles table
+
+Inline-editable table of roles being cast. Columns: Role, Type, Gender, Age Range, Description — plus Voice Part for Musical genre productions only. If no roles are specified the section is hidden on the public page and the role count is omitted from the editor sidebar.
+
+### Musical-only fields
+
+When Genre is set to Musical, Singing and Dance fields appear in the Prepare section and the Voice Part column appears in the roles table. Switching away from Musical hides these fields and clears them from the saved data.
 
 ---
 
@@ -149,17 +194,18 @@ src/
   components/
     calendar.astro            # entire calendar UI — CSS, HTML, and JS in one file
     SiteNav.astro             # fixed top nav bar shared across all inner pages
-  lib/data.ts                 # getShows() / getPerformances() — sole data access layer for runs
+  lib/data.ts                 # getShows() / getPerformances() / getAuditions() — sole data access layer
   pages/
     index.astro               # hub landing page; footer links to /about
     calendar.astro            # wraps calendar component under the site nav
     companies.astro           # company directory, reads sc-theater-companies.json at build time
+    auditions.astro           # audition listings — filter bar + collapsible cards
     about.astro               # about page with community text and Netlify contact form
-    auditions.astro           # stub
     services.astro            # stub
   types.ts                    # shared TypeScript interfaces
 data/
   shows/<year>/               # one JSON file per company per year, e.g. scs-2026.json
+  auditions/<year>/           # one JSON file per company per year, e.g. renegade-auditions-2026.json
   companies/
     sc-theater-companies.json # company directory; hand-editable
 public/
@@ -167,7 +213,7 @@ public/
     index.html                # hub shell — login overlay, dataset tiles, routing
     api.js                    # shared apiFetch / apiPut / Identity helpers
     calendar.js               # calendar editor ES module
-    auditions.js              # auditions editor stub ES module
+    auditions.js              # auditions editor ES module
     images/companies/         # locally stored company logos
 astro.config.mjs              # includes Vite dev proxy for /.netlify/functions/data
 netlify/

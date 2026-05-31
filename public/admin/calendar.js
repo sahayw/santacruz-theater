@@ -337,6 +337,7 @@ tbody td { padding: 2px 4px; vertical-align: middle; }
   color: var(--ink);
 }
 .cell-input:focus { outline: none; border-color: var(--accent2); background: var(--surface); }
+.cell-input.invalid { border-color: #c0392b !important; background: #fef2f2 !important; }
 .cell-select {
   font-family: 'IBM Plex Sans', sans-serif;
   font-size: 11px;
@@ -779,6 +780,11 @@ async function saveFile() {
     alert('Please log in to save.')
     return
   }
+  const errors = collectErrors()
+  if (errors.length) {
+    alert('Cannot save — fix these issues:\n\n' + errors.join('\n'))
+    return
+  }
   const btn = document.getElementById('saveBtn')
   btn.disabled = true
   btn.textContent = 'Saving…'
@@ -995,6 +1001,44 @@ function clearEditor() {
   updateSaveBtn()
 }
 
+// ── VALIDATION ──
+function normalizeDate(v) {
+  if (!v) return v
+  const parts = v.trim().replace(/[/.]/g, '-').split('-').map(s => s.trim())
+  if (parts.length !== 3) return v
+  let [y, m, d] = parts
+  if (y.length === 2) y = '20' + y
+  if (y.length !== 4 || isNaN(Number(y)) || isNaN(Number(m)) || isNaN(Number(d))) return v
+  return `${y}-${m.padStart(2, '0')}-${d.padStart(2, '0')}`
+}
+function isValidDate(v) {
+  if (!v || !/^\d{4}-\d{2}-\d{2}$/.test(v)) return false
+  const [y, m, d] = v.split('-').map(Number)
+  const dt = new Date(y, m - 1, d)
+  return dt.getFullYear() === y && dt.getMonth() === m - 1 && dt.getDate() === d
+}
+function isValidTime(v) {
+  if (!v) return false
+  const norm = v.replace('.', ':')
+  if (!/^\d{1,2}:\d{2}$/.test(norm)) return false
+  const [h, m] = norm.split(':').map(Number)
+  return h >= 0 && h <= 23 && m >= 0 && m <= 59
+}
+function setInvalid(id, invalid) {
+  document.getElementById(id)?.classList.toggle('invalid', invalid)
+}
+function collectErrors() {
+  const errors = []
+  runs.forEach((run, ri) => {
+    const label = run.show || `Run ${ri + 1}`
+    run.performances.forEach((p, pi) => {
+      if (!isValidDate(p.date)) errors.push(`"${label}" — row ${pi + 1}: date "${p.date || '(empty)'}"`)
+      if (!isValidTime(p.time)) errors.push(`"${label}" — row ${pi + 1}: time "${p.time || '(empty)'}"`)
+    })
+  })
+  return errors
+}
+
 // ── PERFORMANCE TABLE ──
 function renderPerfTable() {
   if (activeRunIdx < 0) return
@@ -1028,9 +1072,24 @@ function renderPerfTable() {
     </tr>`
     )
     .join('')
+  perfs.forEach((p, i) => {
+    if (p.date) setInvalid(`cell-${i}-date`, !isValidDate(p.date))
+    if (p.time) setInvalid(`cell-${i}-time`, !isValidTime(p.time))
+  })
 }
 
 function cellChanged(idx, field, value) {
+  if (field === 'date') {
+    value = normalizeDate(value)
+    const el = document.getElementById(`cell-${idx}-date`)
+    if (el && el.value !== value) el.value = value
+    if (value) setInvalid(`cell-${idx}-date`, !isValidDate(value))
+  } else if (field === 'time') {
+    value = value.replace('.', ':')
+    const el = document.getElementById(`cell-${idx}-time`)
+    if (el && el.value !== value) el.value = value
+    if (value) setInvalid(`cell-${idx}-time`, !isValidTime(value))
+  }
   runs[activeRunIdx].performances[idx][field] = value
   markDirty()
 }

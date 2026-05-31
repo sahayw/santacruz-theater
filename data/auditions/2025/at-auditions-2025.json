@@ -1,0 +1,34 @@
+{
+  "company": "AT",
+  "year": 2025,
+  "auditions": [
+    {
+      "id": "audition-1780207053979",
+      "production": "8x10s (TEST DATA)",
+      "genre": "Drama",
+      "auditionDates": [
+        {
+          "date": "2025-10-01",
+          "startTime": "19:15",
+          "endTime": "22:00",
+          "location": {
+            "name": "AT"
+          }
+        },
+        {
+          "date": "2025-10-03",
+          "startTime": "18:30",
+          "endTime": "21:00",
+          "location": {
+            "name": "AT"
+          },
+          "notes": "Call backs"
+        }
+      ],
+      "rolesAvailable": [],
+      "createdAt": "2025-05-31T05:57:33.978Z",
+      "updatedAt": "2025-05-31T05:59:51.545Z",
+      "notes": "Auditions for multiple roles in 8 short plays"
+    }
+  ]
+}

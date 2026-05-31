@@ -4,7 +4,7 @@
 
 Astro 6 static site covering Santa Cruz County theater — performances calendar, company directory, and (planned) auditions and services listings. Deployed to Netlify. TypeScript strict mode. No UI framework.
 
-The site is structured as a hub (`/`) linking to four sections: **Calendar** (`/calendar`), **Companies** (`/companies`), **Auditions** (`/auditions` — stub), and **Services** (`/services` — stub). A fixed top nav (`SiteNav.astro`) is shared across all inner pages. An **About** page (`/about`) is linked from the home page footer and contains a Netlify contact form.
+The site is structured as a hub (`/`) linking to four sections: **Calendar** (`/calendar`), **Companies** (`/companies`), **Auditions** (`/auditions`), and **Services** (`/services` — stub). A fixed top nav (`SiteNav.astro`) is shared across all inner pages. An **About** page (`/about`) is linked from the home page footer and contains a Netlify contact form.
 
 ## Key commands
 
@@ -26,10 +26,10 @@ The site is structured as a hub (`/`) linking to four sections: **Calendar** (`/
   - `calendar.astro` — wraps `calendar.astro` component under the site nav
   - `companies.astro` — company directory, reads from `data/companies/sc-theater-companies.json`
   - `about.astro` — about page with community text and Netlify contact form
-  - `auditions.astro` — stub
+  - `auditions.astro` — audition listings with filter bar and collapsible detail cards
   - `services.astro` — stub
 - `src/styles/` — global CSS
-- `src/lib/data.ts` — `getShows()` / `getPerformances()` — the only data access layer for runs; compiles from all `data/shows/**/*.json` via `import.meta.glob`
+- `src/lib/data.ts` — `getShows()` / `getPerformances()` / `getAuditions()` — sole data access layer; compiles from all `data/shows/**/*.json` and `data/auditions/**/*.json` via `import.meta.glob`
 - `src/types.ts` — all shared TypeScript interfaces
 - `data/` — canonical data files
   - `shows/<year>/<company-id>-<year>.json` — per-company per-year show files; use the `/admin` editor to manage runs
@@ -131,7 +131,7 @@ The `/admin` SPA is structured as a hub with separate editor modules:
 - `public/admin/index.html` — login overlay, hub (dataset tiles), routing
 - `public/admin/api.js` — shared `apiFetch` / `apiPut` / `resolveUserAccess`
 - `public/admin/calendar.js` — calendar editor ES module (`mount` / `unmount`)
-- `public/admin/auditions.js` — auditions editor stub ES module
+- `public/admin/auditions.js` — auditions editor ES module (`mount` / `unmount`)
 
 On production, `/admin` shows a full-screen login overlay first. After **Netlify Identity** login, the user's email is looked up in `sc-theater-companies.json` via `resolveUserAccess()`. The hub then renders one tile per dataset the user may edit. Selecting a tile mounts the corresponding editor module.
 
@@ -153,6 +153,95 @@ The editor opens with a context-aware prompt:
 The runs sidebar is user-resizable via a drag handle (default 160 px, range 130–400 px).
 
 Import and Export buttons have been removed from the toolbar UI; the underlying functions (`importJSON`, `handleImport`, `openExport`, `closeExport`, `downloadJSON`) are retained in the module for future reinstatement if desired.
+
+#### Date and time input — normalization and validation
+
+Both the calendar and auditions editors normalize and validate date/time fields on cell change:
+
+**Date normalization** — the editor accepts several entry formats and normalizes to `YYYY-MM-DD` on blur, updating the cell in place:
+
+| Entered    | Stored as    |
+| ---------- | ------------ |
+| `26/1/2`   | `2026-01-02` |
+| `2026/1/2` | `2026-01-02` |
+| `26.01.02` | `2026-01-02` |
+| `2026-1-2` | `2026-01-02` |
+
+Format assumed to be `Y-M-D` (or `YY-M-D`). 2-digit years are prefixed with `20`.
+
+**Time normalization** — dot separator is accepted and converted to colon (e.g. `21.30` → `21:30`).
+
+**Validation** — after normalization, invalid entries (bad format, impossible calendar date, hour > 23, minute > 59) are highlighted with a red cell border. Empty required fields are not highlighted during editing but are caught at save time. Clicking **Save** runs a full scan across all records in the file and shows a specific error list if anything is invalid. The calendar editor checks every performance row; the auditions editor additionally rejects records with no audition date rows.
+
+### Auditions editor (`auditions.js`)
+
+Follows the same mount/unmount pattern as `calendar.js`. The company selector is populated from all non-admin entries in `sc-theater-companies.json`. If the selected company has no existing file, one is created automatically for the current year. If existing files are all for the current year or earlier and the current year is present, it is auto-loaded without requiring a year selection.
+
+The form is split into a fixed header (production title, company badge, delete button) and a fixed fields row (company, genre, rehearsal start, opening date, production title, URLs), followed by a scrollable body containing: Audition Dates → Roles Available → Prepare/Contact → Notes.
+
+- **Audition dates table** — inline-editable rows for date, start/end time, location name, address, and session notes. Date and time fields apply the same normalization and validation as the calendar editor; start time and end time are both required.
+- **Roles table** — inline-editable; Voice Part column is shown only for Musical genre. Role count is hidden in the sidebar when no roles are defined.
+- **Musical-only fields** — Singing and Dance prep rows, and the Voice Part column in the roles table, are shown only when genre is Musical.
+- **Roles Available section** — suppressed entirely (header and table) when no roles are defined, both in the editor and on the public `/auditions` page.
+
+## Auditions data
+
+### File location
+
+`data/auditions/<year>/<company-id>-auditions-<year>.json`
+
+One file per company per year. Top-level shape:
+
+```json
+{ "company": "MCT", "year": 2026, "auditions": [ <Audition>, ... ] }
+```
+
+### `Audition`
+
+| Field               | Type               | Notes                                                            |
+| ------------------- | ------------------ | ---------------------------------------------------------------- |
+| `id`                | `string`           | `"audition-<timestamp>"` — stable, editor-assigned               |
+| `production`        | `string`           | Full production title                                            |
+| `genre`             | `Genre`            | `Drama \| Musical \| Comedy \| Other \| ""`                      |
+| `productionId`      | `string?`          | Soft ref to a `Run` id in shows data (not exposed in editor UI)  |
+| `auditionDates`     | `AuditionDate[]`   | Ordered list of audition sessions; each carries its own location |
+| `rolesAvailable`    | `AuditionRole[]`   | Roles being cast                                                 |
+| `prep`              | `AuditionPrep?`    | `{ acting?, singing?, dance?, bring? }`                          |
+| `rehearsalStart`    | `string?`          | `YYYY-MM-DD`                                                     |
+| `openingDate`       | `string?`          | `YYYY-MM-DD`                                                     |
+| `contact`           | `AuditionContact?` | `{ name?, email?, phone? }`                                      |
+| `auditionNoticeUrl` | `string?`          | Link to full audition notice                                     |
+| `productionUrl`     | `string?`          | Link to production page                                          |
+| `notes`             | `string?`          | Full-width notes shown at bottom of expanded card                |
+| `createdAt`         | `string`           | ISO 8601 timestamp                                               |
+| `updatedAt`         | `string`           | ISO 8601 timestamp                                               |
+
+### `AuditionDate`
+
+| Field       | Type                | Notes                                                                                |
+| ----------- | ------------------- | ------------------------------------------------------------------------------------ |
+| `date`      | `string`            | `YYYY-MM-DD`                                                                         |
+| `startTime` | `string`            | `HH:MM` 24-hour                                                                      |
+| `endTime`   | `string`            | `HH:MM` 24-hour                                                                      |
+| `notes`     | `string?`           | e.g. `"First come, first served"`                                                    |
+| `location`  | `AuditionLocation?` | `{ name, address? }` — per date, since different sessions may be in different venues |
+
+### `AuditionRole`
+
+| Field         | Type               | Notes                                          |
+| ------------- | ------------------ | ---------------------------------------------- |
+| `role`        | `string`           | Character name                                 |
+| `type`        | `AuditionRoleType` | `lead \| supporting \| ensemble`               |
+| `gender`      | `AuditionGender`   | `female \| male \| any`                        |
+| `ageRange`    | `string?`          | e.g. `"30s"`, `"20s–40s"`, `"18+"`, `"Any"`    |
+| `voicePart`   | `string?`          | e.g. `"Soprano"`, `"Baritone"` — musicals only |
+| `description` | `string?`          | Optional casting note                          |
+
+### Data access
+
+`getAuditions()` in `src/lib/data.ts` compiles all `data/auditions/**/*.json` files via `import.meta.glob` and returns a flat `AuditionEvent[]` (audition + `company` + `year`), sorted by earliest `auditionDate.date` ascending.
+
+The `/auditions` page is "upcoming" by default — an audition is upcoming when its latest `auditionDate.date` is ≥ today's date. Past/all filtering is handled client-side.
 
 ## Required Netlify environment variables
 

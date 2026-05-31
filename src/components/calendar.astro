@@ -40,7 +40,6 @@ const filterCompanies = companiesData.companies.filter(c => activeCompanyCodes.h
           <option value="Drama">Drama</option>
           <option value="Musical">Musical</option>
           <option value="Comedy">Comedy</option>
-          <option value="Tragedy">Tragedy</option>
         </select>
       </div>
       <div class="filter-row">
@@ -1112,7 +1111,9 @@ const filterCompanies = companiesData.companies.filter(c => activeCompanyCodes.h
     return 'mid'
   }
   function fmtTime(t) {
-    const [h, m] = t.split(':').map(Number)
+    const [hStr, mStr] = (t || '').replace('.', ':').split(':')
+    const h = Number(hStr)
+    const m = mStr !== undefined ? Number(mStr) : 0
     const period = h < 12 ? 'am' : 'pm'
     const h12 = h % 12 || 12
     return m === 0 ? `${h12}${period}` : `${h12}:${String(m).padStart(2, '0')}${period}`
@@ -1602,7 +1603,8 @@ const filterCompanies = companiesData.companies.filter(c => activeCompanyCodes.h
     perfs.forEach((p) => {
       const card = document.createElement('div')
       card.className = 'perf-card'
-      const [h, min] = p.time.split(':').map(Number)
+      const [hStr, mStr] = (p.time || '').replace('.', ':').split(':')
+      const h = Number(hStr), min = mStr !== undefined ? Number(mStr) : 0
       const timeStr = `${h > 12 ? h - 12 : h || 12}:${String(min).padStart(2, '0')}${h >= 12 ? 'pm' : 'am'}`
       card.innerHTML = `
       <div class="perf-card-company">

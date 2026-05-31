@@ -1,4 +1,5 @@
-import type { Run, ShowsFile, PerformanceEvent } from '../types.ts';
+import type { Run, ShowsFile, PerformanceEvent, Audition, AuditionsFile } from '../types.ts';
+import type { Company } from '../types.ts';
 
 const modules = import.meta.glob<{ default: ShowsFile }>('../../data/shows/**/*.json', { eager: true });
 const allRuns: Run[] = Object.values(modules).flatMap(m => m.default.runs);
@@ -40,4 +41,28 @@ export async function getPerformances(): Promise<PerformanceEvent[]> {
   return events.sort((a, b) =>
     a.date !== b.date ? a.date.localeCompare(b.date) : a.time.localeCompare(b.time),
   );
+}
+
+export interface AuditionEvent extends Audition {
+  company: Company;
+  year: number;
+}
+
+export function getAuditions(): AuditionEvent[] {
+  const files = import.meta.glob<{ default: AuditionsFile }>(
+    '../../data/auditions/**/*.json',
+    { eager: true },
+  );
+  const events: AuditionEvent[] = [];
+  for (const mod of Object.values(files)) {
+    const file = mod.default;
+    for (const a of file.auditions) {
+      events.push({ ...a, company: file.company, year: file.year });
+    }
+  }
+  return events.sort((a, b) => {
+    const da = a.auditionDates[0]?.date ?? '';
+    const db = b.auditionDates[0]?.date ?? '';
+    return da.localeCompare(db);
+  });
 }

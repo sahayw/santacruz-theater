@@ -4,7 +4,7 @@
   "auditions": [
     {
       "id": "audition-1746230400000",
-      "production": "The Addams Family",
+      "production": "The Addams Family (TEST DATA)",
       "genre": "Musical",
       "auditionDates": [
         {
@@ -12,14 +12,20 @@
           "startTime": "13:00",
           "endTime": "16:00",
           "notes": "Open call; no appointment needed",
-          "location": { "name": "Veterans Memorial Building", "address": "846 Front St, Santa Cruz, CA 95060" }
+          "location": {
+            "name": "Veterans Memorial Building",
+            "address": "846 Front St, Santa Cruz, CA 95060"
+          }
         },
         {
           "date": "2026-05-03",
           "startTime": "10:00",
           "endTime": "13:00",
           "notes": "Callbacks by invitation",
-          "location": { "name": "Veterans Memorial Building", "address": "846 Front St, Santa Cruz, CA 95060" }
+          "location": {
+            "name": "Veterans Memorial Building",
+            "address": "846 Front St, Santa Cruz, CA 95060"
+          }
         }
       ],
       "rolesAvailable": [
@@ -66,9 +72,12 @@
         }
       ],
       "prep": {
-        "singing": "16–32 bars of a comedic or character song in style; bring sheet music",
         "acting": "Cold reading from script provided at audition",
-        "bring": ["Headshot and résumé", "List of conflicts Jun–Sep 2026"]
+        "singing": "16–32 bars of a comedic or character song in style; bring sheet music",
+        "bring": [
+          "Headshot and résumé",
+          "List of conflicts Jun–Sep 2026"
+        ]
       },
       "rehearsalStart": "2026-06-01",
       "openingDate": "2026-07-10",
@@ -79,11 +88,11 @@
       "productionUrl": "https://renegadetheaterco.org/",
       "notes": "Community theater production. All ages and experience levels are welcome to audition.",
       "createdAt": "2026-04-15T00:00:00Z",
-      "updatedAt": "2026-04-25T00:00:00Z"
+      "updatedAt": "2026-05-31T20:57:38.558Z"
     },
     {
       "id": "audition-1749168000000",
-      "production": "Into the Woods",
+      "production": "Into the Woods  (TEST DATA)",
       "genre": "Musical",
       "auditionDates": [
         {
@@ -91,14 +100,20 @@
           "startTime": "19:00",
           "endTime": "21:30",
           "notes": "Open call; no appointment needed",
-          "location": { "name": "Veterans Memorial Building", "address": "846 Front St, Santa Cruz, CA 95060" }
+          "location": {
+            "name": "Veterans Memorial Building",
+            "address": "846 Front St, Santa Cruz, CA 95060"
+          }
         },
         {
           "date": "2026-06-14",
           "startTime": "13:00",
           "endTime": "17:00",
           "notes": "Callbacks by invitation only",
-          "location": { "name": "Veterans Memorial Building", "address": "846 Front St, Santa Cruz, CA 95060" }
+          "location": {
+            "name": "Veterans Memorial Building",
+            "address": "846 Front St, Santa Cruz, CA 95060"
+          }
         }
       ],
       "rolesAvailable": [
@@ -166,9 +181,12 @@
         }
       ],
       "prep": {
-        "singing": "32 bars from a Sondheim musical or contemporary musical theater piece; accompanist provided",
         "acting": "Short monologue (1 min) or cold read provided at audition",
-        "bring": ["Headshot and résumé", "Conflict calendar Aug–Nov 2026"]
+        "singing": "32 bars from a Sondheim musical or contemporary musical theater piece; accompanist provided",
+        "bring": [
+          "Headshot and résumé",
+          "Conflict calendar Aug–Nov 2026"
+        ]
       },
       "rehearsalStart": "2026-08-01",
       "openingDate": "2026-09-26",
@@ -181,7 +199,7 @@
       "productionUrl": "https://renegadetheaterco.org/",
       "notes": "Renegade Theater is committed to inclusive and equitable casting. All ethnicities, body types, and gender expressions are encouraged to audition.",
       "createdAt": "2026-05-01T00:00:00Z",
-      "updatedAt": "2026-05-20T00:00:00Z"
+      "updatedAt": "2026-05-31T20:57:51.668Z"
     }
   ]
 }

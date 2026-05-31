@@ -1,11 +1,14 @@
 {
   "venues": [
-    { "code": "G",        "name": "The Grove" },
-    { "code": "VMB",      "name": "Veterans Memorial Building" },
-    { "code": "PH",       "name": "Park Hall" },
-    { "code": "AT",       "name": "Actors' Theatre" },
-    { "code": "CCT",      "name": "Cabrillo Crocker Theater" },
-    { "code": "Colligan", "name": "Colligan Theater" },
-    { "code": "Landing",  "name": "The Landing" }
+    { "code": "G",        "name": "The Grove",                      "address": "501 Upper Park Rd, Santa Cruz, CA 95065",           "website": "https://santacruzshakespeare.org/visit/" },
+    { "code": "VMB",      "name": "Veterans Memorial Building",     "address": "846 Front St, Santa Cruz, CA 95060",                "website": "https://www.veteranshall.org/" },
+    { "code": "PH",       "name": "Park Hall",                      "address": "9400 Mill St, Ben Lomond, CA 95005",                "website": "https://parkhall.benlomond.org" },
+    { "code": "AT",       "name": "Actors' Theatre",                "address": "1001 Center St, Santa Cruz, CA 95060",              "website": "https://www.santacruzactorstheatre.org" },
+    { "code": "CCT",      "name": "Cabrillo Crocker Theater",       "address": "6500 Soquel Dr, Aptos, CA 95003",                   "website": "https://www.cabrillostage.com/directions" },
+    { "code": "Colligan", "name": "Colligan Theater",               "address": "1050 River St, Santa Cruz, CA 95060",               "website": "https://colligantheater.org" },
+    { "code": "Landing",  "name": "The Landing, SV",                "address": "251B Kings Village Rd, Scotts Valley, CA 95066",    "website": "https://thelandingsv.org" },
+    { "code": "LN",       "name": "London Nelson Community Center", "address": "301 Center St, Santa Cruz, CA 95060",               "website": "https://www.santacruzca.gov/Government/City-Departments/Parks-Recreation/Community-Spaces/London-Nelson-Community-Center" },
+    { "code": "Scratch",  "name": "Scratch Studios",                "address": "02B 303 Potrero St, Santa Cruz, CA 95060",          "website": "https://scratchsantacruz.com" },
+    { "code": "StA",      "name": "St Andrews Hall",                "address": "101 Riverside Ave, Ben Lomond, CA 95005",           "website": "https://saintandrewsbenlomond.org" }
   ]
 }

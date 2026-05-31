@@ -4,7 +4,7 @@
   "auditions": [
     {
       "id": "audition-1750464000000",
-      "production": "Hamlet",
+      "production": "Hamlet (TEST DATA)",
       "genre": "Drama",
       "auditionDates": [
         {
@@ -12,14 +12,20 @@
           "startTime": "14:00",
           "endTime": "18:00",
           "notes": "Open call",
-          "location": { "name": "Park Hall", "address": "20060 CA-9, Boulder Creek, CA 95006" }
+          "location": {
+            "name": "St Andrews Hall",
+            "address": "101 Riverside Ave, Ben Lomond, CA 95005"
+          }
         },
         {
           "date": "2026-06-21",
           "startTime": "14:00",
           "endTime": "17:00",
           "notes": "Callbacks",
-          "location": { "name": "Park Hall", "address": "20060 CA-9, Boulder Creek, CA 95006" }
+          "location": {
+            "name": "Park Hall",
+            "address": "9400 Mill St, Ben Lomond, CA 95005"
+          }
         }
       ],
       "rolesAvailable": [
@@ -84,11 +90,11 @@
       "productionUrl": "https://mctshows.org/",
       "notes": "MCT welcomes all experience levels. Hamlet will be set in a contemporary environment. Sides provided at audition.",
       "createdAt": "2026-05-10T00:00:00Z",
-      "updatedAt": "2026-05-25T00:00:00Z"
+      "updatedAt": "2026-05-31T20:56:56.040Z"
     },
     {
       "id": "audition-1754956800000",
-      "production": "The Music Man",
+      "production": "The Music Man (TEST DATA)",
       "genre": "Musical",
       "auditionDates": [
         {
@@ -96,14 +102,20 @@
           "startTime": "13:00",
           "endTime": "17:00",
           "notes": "Open call; no appointment required",
-          "location": { "name": "Park Hall", "address": "20060 CA-9, Boulder Creek, CA 95006" }
+          "location": {
+            "name": "Park Hall",
+            "address": "9400 Mill St, Ben Lomond, CA 95005"
+          }
         },
         {
           "date": "2026-08-16",
           "startTime": "10:00",
           "endTime": "14:00",
           "notes": "Callbacks",
-          "location": { "name": "Park Hall", "address": "20060 CA-9, Boulder Creek, CA 95006" }
+          "location": {
+            "name": "Park Hall",
+            "address": "9400 Mill St, Ben Lomond, CA 95005"
+          }
         }
       ],
       "rolesAvailable": [
@@ -169,7 +181,10 @@
       "prep": {
         "singing": "16–32 bars in classic musical theater style; accompanist provided",
         "dance": "Basic tap or movement — no dance experience required for ensemble",
-        "bring": ["Headshot and résumé if available", "Conflict calendar Oct 2026–Jan 2027"]
+        "bring": [
+          "Headshot and résumé if available",
+          "Conflict calendar Oct 2026–Jan 2027"
+        ]
       },
       "rehearsalStart": "2026-10-01",
       "openingDate": "2026-11-07",
@@ -181,7 +196,7 @@
       "auditionNoticeUrl": "https://mctshows.org/auditions",
       "productionUrl": "https://mctshows.org/",
       "createdAt": "2026-06-15T00:00:00Z",
-      "updatedAt": "2026-06-20T00:00:00Z"
+      "updatedAt": "2026-05-31T20:57:15.108Z"
     }
   ]
 }

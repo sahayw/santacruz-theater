@@ -1,23 +1,24 @@
 import { IS_DEV, apiFetch, apiPut } from './api.js'
 
-const ROLE_TYPES   = ['lead', 'supporting', 'ensemble']
+const ROLE_TYPES = ['lead', 'supporting', 'ensemble']
 const ROLE_GENDERS = ['any', 'female', 'male']
 const CURRENT_YEAR = 2026
-const STYLES_ID    = 'aud-editor-styles'
+const STYLES_ID = 'aud-editor-styles'
 
 // ── MODULE STATE (reset on each mount) ──
-let auditions        = []
-let activeAudIdx     = -1
-let allCompanies     = []
-let allAudFiles      = []
+let auditions = []
+let activeAudIdx = -1
+let allCompanies = []
+let allAudFiles = []
 let pendingCompanyId = null
 let currentCompanyId = null
-let currentYear      = CURRENT_YEAR
+let currentYear = CURRENT_YEAR
 let currentCompanyAbv = ''
-let isDirty          = false
-let isAdminContext   = false
+let isDirty = false
+let isAdminContext = false
+let venuesList = []
 let _resizeMouseMove = null
-let _resizeMouseUp   = null
+let _resizeMouseUp = null
 
 // ── STYLES ──
 function injectStyles() {
@@ -285,6 +286,27 @@ const AUD_CSS = `
 }
 .aud-status-item { display: flex; gap: 6px; }
 .aud-status-key  { color: rgba(255,255,255,0.35); }
+
+/* Venue autocomplete dropdown */
+.aud-venue-dropdown {
+  position: fixed;
+  z-index: 1000;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  overflow-y: auto;
+  max-height: 220px;
+}
+.aud-venue-item {
+  padding: 6px 10px;
+  cursor: pointer;
+  border-bottom: 1px solid var(--border);
+}
+.aud-venue-item:last-child { border-bottom: none; }
+.aud-venue-item:hover { background: var(--bg); }
+.aud-venue-item-name { font-size: 12px; font-family: 'IBM Plex Sans', sans-serif; color: var(--ink); }
+.aud-venue-item-addr { font-size: 10px; font-family: 'IBM Plex Mono', monospace; color: var(--ink-faint); margin-top: 2px; }
 `
 
 // ── HTML TEMPLATE ──
@@ -493,12 +515,12 @@ async function loadCompanyFile(coId, year) {
   year = year || CURRENT_YEAR
   try {
     const data = await apiFetch(`auditions/${year}/${coId}-auditions-${year}.json`)
-    auditions        = data.auditions || []
+    auditions = data.auditions || []
     currentCompanyId = coId
-    currentYear      = data.year || year
-    currentCompanyAbv = allCompanies.find(c => c.id === coId)?.abvName || coId
-    isDirty          = false
-    activeAudIdx     = auditions.length > 0 ? 0 : -1
+    currentYear = data.year || year
+    currentCompanyAbv = allCompanies.find((c) => c.id === coId)?.abvName || coId
+    isDirty = false
+    activeAudIdx = auditions.length > 0 ? 0 : -1
     renderSidebar()
     loadAudEditor()
     updateStatus()
@@ -513,16 +535,16 @@ function updateEmptyState() {
   const el = document.getElementById('audEmptyState')
   if (!el) return
   el.innerHTML = !currentCompanyId
-    ? (isAdminContext
-        ? `<div class="aud-empty-icon">🎤</div><h2>Select a company / year</h2><p>from the toolbar above to load auditions</p>`
-        : `<div class="aud-empty-icon">🎤</div><h2>Select a year</h2><p>Choose a year from the toolbar above.</p>`)
+    ? isAdminContext
+      ? `<div class="aud-empty-icon">🎤</div><h2>Select a company / year</h2><p>from the toolbar above to load auditions</p>`
+      : `<div class="aud-empty-icon">🎤</div><h2>Select a year</h2><p>Choose a year from the toolbar above.</p>`
     : `<div class="aud-empty-icon">🎤</div><h2>No audition selected</h2><p>Select an audition or click + New.</p>`
 }
 
 // ── INIT FROM CONTEXT ──
 async function initFromContext(context) {
   isAdminContext = context.isAdmin
-  allCompanies   = context.allCompanies || []
+  allCompanies = context.allCompanies || []
   updateEmptyState()
   try {
     allAudFiles = await loadAuditionsDir()
@@ -530,19 +552,22 @@ async function initFromContext(context) {
     alert('Could not list audition files: ' + e.message)
     return
   }
+  venuesList = await apiFetch('sc-theater-venues.json')
+    .then((d) => d.venues || [])
+    .catch(() => [])
   if (context.isAdmin) {
     const compSel = document.getElementById('audCompanySelect')
-    const sorted  = allCompanies
-      .filter(c => !c.adminOnly)
+    const sorted = allCompanies
+      .filter((c) => !c.adminOnly)
       .sort((a, b) => (a.abvName || a.name).localeCompare(b.abvName || b.name))
     compSel.innerHTML =
       '<option value="">— Company —</option>' +
-      sorted.map(c => `<option value="${c.id}">${c.abvName || c.name}</option>`).join('')
+      sorted.map((c) => `<option value="${c.id}">${c.abvName || c.name}</option>`).join('')
     compSel.style.display = ''
   } else {
-    pendingCompanyId  = context.company.id
+    pendingCompanyId = context.company.id
     currentCompanyAbv = context.company.abvName
-    const years = allAudFiles.filter(f => f.companyId === context.company.id).map(f => f.year)
+    const years = allAudFiles.filter((f) => f.companyId === context.company.id).map((f) => f.year)
     populateYearSelect(years)
     if (years.length === 1) {
       document.getElementById('audYearSelect').value = String(years[0])
@@ -554,17 +579,21 @@ async function initFromContext(context) {
 // ── COMPANY / YEAR SELECTION ──
 async function onCompanySelect() {
   const coId = document.getElementById('audCompanySelect').value
-  if (!coId) { hideYearSelect(); clearEditor(); return }
+  if (!coId) {
+    hideYearSelect()
+    clearEditor()
+    return
+  }
   if (isDirty && !confirm('You have unsaved changes. Discard and continue?')) {
     document.getElementById('audCompanySelect').value = pendingCompanyId || ''
     return
   }
-  pendingCompanyId  = coId
-  currentCompanyAbv = allCompanies.find(c => c.id === coId)?.abvName || coId
-  const years = allAudFiles.filter(f => f.companyId === coId).map(f => f.year)
+  pendingCompanyId = coId
+  currentCompanyAbv = allCompanies.find((c) => c.id === coId)?.abvName || coId
+  const years = allAudFiles.filter((f) => f.companyId === coId).map((f) => f.year)
   if (years.length > 0) {
     populateYearSelect(years)
-    const hasFuture = years.some(y => y > CURRENT_YEAR)
+    const hasFuture = years.some((y) => y > CURRENT_YEAR)
     if (!hasFuture && years.includes(CURRENT_YEAR)) {
       document.getElementById('audYearSelect').value = String(CURRENT_YEAR)
       await loadCompanyFile(coId, CURRENT_YEAR)
@@ -578,10 +607,13 @@ async function onCompanySelect() {
 }
 
 async function autoCreateFirstFile(coId) {
-  const abv = allCompanies.find(c => c.id === coId)?.abvName || coId
+  const abv = allCompanies.find((c) => c.id === coId)?.abvName || coId
   try {
-    await apiPut(`auditions/${CURRENT_YEAR}/${coId}-auditions-${CURRENT_YEAR}.json`,
-      { company: abv, year: CURRENT_YEAR, auditions: [] })
+    await apiPut(`auditions/${CURRENT_YEAR}/${coId}-auditions-${CURRENT_YEAR}.json`, {
+      company: abv,
+      year: CURRENT_YEAR,
+      auditions: []
+    })
   } catch (e) {
     alert('Could not create file: ' + e.message)
     return
@@ -597,7 +629,7 @@ function populateYearSelect(years) {
   years = [...new Set(years)].sort((a, b) => b - a)
   sel.innerHTML =
     '<option value="">— Year —</option>' +
-    years.map(y => `<option value="${y}">${y}</option>`).join('') +
+    years.map((y) => `<option value="${y}">${y}</option>`).join('') +
     '<option value="__new__">Add year</option>'
   sel.style.display = ''
   sel.value = ''
@@ -617,19 +649,26 @@ async function onYearSelect() {
     return
   }
   if (val === '__new__') {
-    const existingYears = allAudFiles.filter(f => f.companyId === pendingCompanyId).map(f => f.year)
+    const existingYears = allAudFiles
+      .filter((f) => f.companyId === pendingCompanyId)
+      .map((f) => f.year)
     const nextYear = existingYears.length ? Math.max(...existingYears) + 1 : CURRENT_YEAR
-    const abv      = allCompanies.find(c => c.id === pendingCompanyId)?.abvName || pendingCompanyId
+    const abv = allCompanies.find((c) => c.id === pendingCompanyId)?.abvName || pendingCompanyId
     try {
-      await apiPut(`auditions/${nextYear}/${pendingCompanyId}-auditions-${nextYear}.json`,
-        { company: abv, year: nextYear, auditions: [] })
+      await apiPut(`auditions/${nextYear}/${pendingCompanyId}-auditions-${nextYear}.json`, {
+        company: abv,
+        year: nextYear,
+        auditions: []
+      })
     } catch (e) {
       alert('Could not create file: ' + e.message)
       document.getElementById('audYearSelect').value = ''
       return
     }
     allAudFiles.push({ companyId: pendingCompanyId, year: nextYear })
-    populateYearSelect(allAudFiles.filter(f => f.companyId === pendingCompanyId).map(f => f.year))
+    populateYearSelect(
+      allAudFiles.filter((f) => f.companyId === pendingCompanyId).map((f) => f.year)
+    )
     document.getElementById('audYearSelect').value = String(nextYear)
     await loadCompanyFile(pendingCompanyId, nextYear)
     return
@@ -640,42 +679,55 @@ async function onYearSelect() {
 // ── PERSISTENCE ──
 function markDirty() {
   if (!currentCompanyId) return
-  isDirty = true; updateStatus(); updateSaveBtn()
+  isDirty = true
+  updateStatus()
+  updateSaveBtn()
 }
 
 function updateSaveBtn() {
   const btn = document.getElementById('audSaveBtn')
   if (!btn) return
   const can = isDirty && !!currentCompanyId
-  btn.disabled          = !can
-  btn.style.background  = can ? 'var(--yellow)' : 'transparent'
-  btn.style.color       = can ? '#1c1a17' : 'rgba(28,26,23,0.4)'
+  btn.disabled = !can
+  btn.style.background = can ? 'var(--yellow)' : 'transparent'
+  btn.style.color = can ? '#1c1a17' : 'rgba(28,26,23,0.4)'
   btn.style.borderColor = can ? 'var(--yellow)' : 'var(--border)'
 }
 
 async function saveFile() {
   if (!currentCompanyId) return
-  if (!IS_DEV && !window.netlifyIdentity?.currentUser()) { alert('Please log in to save.'); return }
+  if (!IS_DEV && !window.netlifyIdentity?.currentUser()) {
+    alert('Please log in to save.')
+    return
+  }
   const errors = collectErrors()
   if (errors.length) {
     alert('Cannot save — fix these issues:\n\n' + errors.join('\n'))
     return
   }
   const btn = document.getElementById('audSaveBtn')
-  btn.disabled = true; btn.textContent = 'Saving…'
+  btn.disabled = true
+  btn.textContent = 'Saving…'
   try {
-    await apiPut(`auditions/${currentYear}/${currentCompanyId}-auditions-${currentYear}.json`,
-      { company: currentCompanyAbv, year: currentYear, auditions })
+    await apiPut(`auditions/${currentYear}/${currentCompanyId}-auditions-${currentYear}.json`, {
+      company: currentCompanyAbv,
+      year: currentYear,
+      auditions
+    })
     isDirty = false
     btn.textContent = 'Saved ✓'
-    btn.style.background  = 'var(--green)'
-    btn.style.color       = '#fff'
+    btn.style.background = 'var(--green)'
+    btn.style.color = '#fff'
     btn.style.borderColor = 'var(--green)'
     updateStatus()
-    setTimeout(() => { btn.textContent = 'Save'; updateSaveBtn() }, 2500)
+    setTimeout(() => {
+      btn.textContent = 'Save'
+      updateSaveBtn()
+    }, 2500)
   } catch (e) {
     alert('Save failed: ' + e.message)
-    btn.textContent = 'Save'; updateSaveBtn()
+    btn.textContent = 'Save'
+    updateSaveBtn()
   }
 }
 
@@ -688,11 +740,14 @@ function updateStatus() {
   ec.textContent = auditions.length
   er.textContent = auditions.reduce((s, a) => s + (a.rolesAvailable?.length || 0), 0)
   if (!currentCompanyId) {
-    es.textContent = 'no file loaded'; es.style.color = 'rgba(255,255,255,0.35)'
+    es.textContent = 'no file loaded'
+    es.style.color = 'rgba(255,255,255,0.35)'
   } else if (isDirty) {
-    es.textContent = 'unsaved changes'; es.style.color = 'var(--yellow)'
+    es.textContent = 'unsaved changes'
+    es.style.color = 'var(--yellow)'
   } else {
-    es.textContent = 'saved'; es.style.color = 'var(--green)'
+    es.textContent = 'saved'
+    es.style.color = 'var(--green)'
   }
 }
 
@@ -702,20 +757,27 @@ function renderSidebar() {
   if (!list) return
   if (!auditions.length) {
     const msg = !currentCompanyId
-      ? (isAdminContext ? 'Select a company to load data.' : 'Select a year to load data.')
+      ? isAdminContext
+        ? 'Select a company to load data.'
+        : 'Select a year to load data.'
       : 'No auditions yet.<br>Click + New to add one.'
     list.innerHTML = `<div class="aud-list-empty">${msg}</div>`
     return
   }
-  const firstDate = a => a.auditionDates?.[0]?.date || '9999-99-99'
-  const sorted = auditions.map((a, i) => ({ a, i }))
+  const firstDate = (a) => a.auditionDates?.[0]?.date || '9999-99-99'
+  const sorted = auditions
+    .map((a, i) => ({ a, i }))
     .sort((x, y) => firstDate(x.a).localeCompare(firstDate(y.a)))
-  list.innerHTML = sorted.map(({ a, i }) => `
+  list.innerHTML = sorted
+    .map(
+      ({ a, i }) => `
     <div class="aud-list-item ${i === activeAudIdx ? 'active' : ''}" onclick="aud.selectAud(${i})">
       <div class="aud-item-genre">${a.genre || '—'}</div>
       <div class="aud-item-title">${a.production || 'Untitled'}</div>
       ${(a.rolesAvailable?.length || 0) > 0 ? `<div class="aud-item-count">${a.rolesAvailable.length} role${a.rolesAvailable.length !== 1 ? 's' : ''}</div>` : ''}
-    </div>`).join('')
+    </div>`
+    )
+    .join('')
   updateStatus()
 }
 
@@ -728,35 +790,35 @@ function selectAud(idx) {
 
 function loadAudEditor() {
   const emptyEl = document.getElementById('audEmptyState')
-  const formEl  = document.getElementById('audForm')
+  const formEl = document.getElementById('audForm')
   if (activeAudIdx < 0 || activeAudIdx >= auditions.length) {
     updateEmptyState()
     emptyEl.style.display = ''
-    formEl.style.display  = 'none'
+    formEl.style.display = 'none'
     return
   }
   emptyEl.style.display = 'none'
-  formEl.style.display  = ''
+  formEl.style.display = ''
   const a = auditions[activeAudIdx]
 
-  document.getElementById('af-company').value    = currentCompanyAbv || ''
-  document.getElementById('af-genre').value      = a.genre || ''
-  document.getElementById('af-rehearsal').value  = a.rehearsalStart || ''
-  document.getElementById('af-opening').value    = a.openingDate || ''
+  document.getElementById('af-company').value = currentCompanyAbv || ''
+  document.getElementById('af-genre').value = a.genre || ''
+  document.getElementById('af-rehearsal').value = a.rehearsalStart || ''
+  document.getElementById('af-opening').value = a.openingDate || ''
   document.getElementById('af-production').value = a.production || ''
   document.getElementById('af-notice-url').value = a.auditionNoticeUrl || ''
-  document.getElementById('af-prod-url').value   = a.productionUrl || ''
+  document.getElementById('af-prod-url').value = a.productionUrl || ''
 
   const notesTa = document.getElementById('af-notes')
   notesTa.value = a.notes || ''
   notesTa.classList.remove('expanded')
   document.getElementById('audNotesExpandBtn').textContent = '↕'
 
-  document.getElementById('af-prep-acting').value  = a.prep?.acting  || ''
+  document.getElementById('af-prep-acting').value = a.prep?.acting || ''
   document.getElementById('af-prep-singing').value = a.prep?.singing || ''
-  document.getElementById('af-prep-dance').value   = a.prep?.dance   || ''
-  document.getElementById('af-prep-bring').value   = a.prep?.bring?.join('\n') || ''
-  document.getElementById('af-contact-name').value  = a.contact?.name  || ''
+  document.getElementById('af-prep-dance').value = a.prep?.dance || ''
+  document.getElementById('af-prep-bring').value = a.prep?.bring?.join('\n') || ''
+  document.getElementById('af-contact-name').value = a.contact?.name || ''
   document.getElementById('af-contact-email').value = a.contact?.email || ''
   document.getElementById('af-contact-phone').value = a.contact?.phone || ''
 
@@ -769,15 +831,15 @@ function loadAudEditor() {
 function updateEditorTitle() {
   const a = auditions[activeAudIdx]
   document.getElementById('audTitleText').textContent = a.production || 'Untitled'
-  document.getElementById('audSubtitle').textContent  = a.genre ? ` · ${a.genre}` : ''
+  document.getElementById('audSubtitle').textContent = a.genre ? ` · ${a.genre}` : ''
 }
 
 // ── MUSICAL-ONLY FIELD VISIBILITY ──
 function updateMusicLayout() {
   const musical = isMusical()
-  const singRow  = document.getElementById('aud-singing-row')
+  const singRow = document.getElementById('aud-singing-row')
   const danceRow = document.getElementById('aud-dance-row')
-  if (singRow)  singRow.style.display  = musical ? '' : 'none'
+  if (singRow) singRow.style.display = musical ? '' : 'none'
   if (danceRow) danceRow.style.display = musical ? '' : 'none'
   renderRolesTable()
 }
@@ -787,31 +849,34 @@ function fieldChanged() {
   if (activeAudIdx < 0) return
   const a = auditions[activeAudIdx]
 
-  a.production        = document.getElementById('af-production').value
-  a.genre             = document.getElementById('af-genre').value
-  a.rehearsalStart    = document.getElementById('af-rehearsal').value || undefined
-  a.openingDate       = document.getElementById('af-opening').value   || undefined
+  a.production = document.getElementById('af-production').value
+  a.genre = document.getElementById('af-genre').value
+  a.rehearsalStart = document.getElementById('af-rehearsal').value || undefined
+  a.openingDate = document.getElementById('af-opening').value || undefined
   a.auditionNoticeUrl = document.getElementById('af-notice-url').value || undefined
-  a.productionUrl     = document.getElementById('af-prod-url').value   || undefined
-  a.notes             = document.getElementById('af-notes').value      || undefined
+  a.productionUrl = document.getElementById('af-prod-url').value || undefined
+  a.notes = document.getElementById('af-notes').value || undefined
 
-  const bring = document.getElementById('af-prep-bring').value
-    .split('\n').map(s => s.trim()).filter(Boolean)
+  const bring = document
+    .getElementById('af-prep-bring')
+    .value.split('\n')
+    .map((s) => s.trim())
+    .filter(Boolean)
   const musical = a.genre === 'Musical'
   const prep = {
-    acting:  document.getElementById('af-prep-acting').value  || undefined,
-    singing: musical ? (document.getElementById('af-prep-singing').value || undefined) : undefined,
-    dance:   musical ? (document.getElementById('af-prep-dance').value   || undefined) : undefined,
-    bring:   bring.length ? bring : undefined,
+    acting: document.getElementById('af-prep-acting').value || undefined,
+    singing: musical ? document.getElementById('af-prep-singing').value || undefined : undefined,
+    dance: musical ? document.getElementById('af-prep-dance').value || undefined : undefined,
+    bring: bring.length ? bring : undefined
   }
-  a.prep = (prep.acting || prep.singing || prep.dance || prep.bring) ? prep : undefined
+  a.prep = prep.acting || prep.singing || prep.dance || prep.bring ? prep : undefined
 
   const contact = {
-    name:  document.getElementById('af-contact-name').value  || undefined,
+    name: document.getElementById('af-contact-name').value || undefined,
     email: document.getElementById('af-contact-email').value || undefined,
-    phone: document.getElementById('af-contact-phone').value || undefined,
+    phone: document.getElementById('af-contact-phone').value || undefined
   }
-  a.contact = (contact.name || contact.email || contact.phone) ? contact : undefined
+  a.contact = contact.name || contact.email || contact.phone ? contact : undefined
 
   a.updatedAt = new Date().toISOString()
   updateEditorTitle()
@@ -822,7 +887,7 @@ function fieldChanged() {
 
 // ── NOTES EXPAND ──
 function toggleNotesExpand() {
-  const ta  = document.getElementById('af-notes')
+  const ta = document.getElementById('af-notes')
   const btn = document.getElementById('audNotesExpandBtn')
   ta.classList.toggle('expanded')
   btn.textContent = ta.classList.contains('expanded') ? '↑' : '↕'
@@ -830,16 +895,23 @@ function toggleNotesExpand() {
 
 // ── AUDITION CRUD ──
 function newAudition() {
-  if (!currentCompanyId) { alert('Please select a company and year first.'); return }
+  if (!currentCompanyId) {
+    alert('Please select a company and year first.')
+    return
+  }
   const now = new Date().toISOString()
   auditions.push({
     id: `audition-${Date.now()}`,
-    production: '', genre: '',
-    auditionDates: [], rolesAvailable: [],
-    createdAt: now, updatedAt: now,
+    production: '',
+    genre: '',
+    auditionDates: [],
+    rolesAvailable: [],
+    createdAt: now,
+    updatedAt: now
   })
   activeAudIdx = auditions.length - 1
-  renderSidebar(); loadAudEditor()
+  renderSidebar()
+  loadAudEditor()
   document.getElementById('af-production').focus()
   markDirty()
 }
@@ -850,21 +922,32 @@ function deleteAudition() {
   if (!confirm(`Delete "${a.production || 'this audition'}"? This cannot be undone.`)) return
   auditions.splice(activeAudIdx, 1)
   activeAudIdx = Math.min(activeAudIdx, auditions.length - 1)
-  renderSidebar(); loadAudEditor(); markDirty()
+  renderSidebar()
+  loadAudEditor()
+  markDirty()
 }
 
 function clearEditor() {
-  auditions = []; currentCompanyId = null; activeAudIdx = -1; isDirty = false
-  renderSidebar(); updateEmptyState()
+  auditions = []
+  currentCompanyId = null
+  activeAudIdx = -1
+  isDirty = false
+  renderSidebar()
+  updateEmptyState()
   document.getElementById('audEmptyState').style.display = ''
-  document.getElementById('audForm').style.display       = 'none'
-  updateStatus(); updateSaveBtn()
+  document.getElementById('audForm').style.display = 'none'
+  updateStatus()
+  updateSaveBtn()
 }
 
 // ── VALIDATION ──
 function normalizeDate(v) {
   if (!v) return v
-  const parts = v.trim().replace(/[/.]/g, '-').split('-').map(s => s.trim())
+  const parts = v
+    .trim()
+    .replace(/[/.]/g, '-')
+    .split('-')
+    .map((s) => s.trim())
   if (parts.length !== 3) return v
   let [y, m, d] = parts
   if (y.length === 2) y = '20' + y
@@ -895,9 +978,12 @@ function collectErrors() {
       errors.push(`"${label}": no audition dates`)
     } else {
       a.auditionDates.forEach((d, di) => {
-        if (!isValidDate(d.date))      errors.push(`"${label}" — date row ${di + 1}: date "${d.date || '(empty)'}"`)
-        if (!isValidTime(d.startTime)) errors.push(`"${label}" — date row ${di + 1}: start time "${d.startTime || '(empty)'}"`)
-        if (!isValidTime(d.endTime))   errors.push(`"${label}" — date row ${di + 1}: end time "${d.endTime || '(empty)'}"`)
+        if (!isValidDate(d.date))
+          errors.push(`"${label}" — date row ${di + 1}: date "${d.date || '(empty)'}"`)
+        if (!isValidTime(d.startTime))
+          errors.push(`"${label}" — date row ${di + 1}: start time "${d.startTime || '(empty)'}"`)
+        if (!isValidTime(d.endTime))
+          errors.push(`"${label}" — date row ${di + 1}: end time "${d.endTime || '(empty)'}"`)
       })
     }
   })
@@ -907,9 +993,12 @@ function collectErrors() {
 // ── AUDITION DATES TABLE ──
 function renderDatesTable() {
   if (activeAudIdx < 0) return
+  hideVenueDropdown()
   const dates = auditions[activeAudIdx].auditionDates || []
   document.getElementById('audDatesCount').textContent = `(${dates.length})`
-  document.getElementById('audDatesBody').innerHTML = dates.map((d, i) => `
+  document.getElementById('audDatesBody').innerHTML = dates
+    .map(
+      (d, i) => `
     <tr>
       <td><button class="aud-del-btn" onclick="aud.deleteDateRow(${i})" title="Delete">×</button></td>
       <td><input class="aud-cell-input" value="${esc(d.date)}" placeholder="2026-06-13"
@@ -923,6 +1012,9 @@ function renderDatesTable() {
           onkeydown="aud.dateCellKey(event,${i},'endTime')" id="dc-${i}-endTime"></td>
       <td><input class="aud-cell-input" value="${esc(d.location?.name)}" placeholder="Veterans Memorial Bldg"
           onchange="aud.dateCellChanged(${i},'locName',this.value)"
+          oninput="aud.onLocNameInput(${i},this)"
+          onfocus="aud.onLocNameInput(${i},this)"
+          onblur="setTimeout(()=>aud.hideVenueDropdown(),150)"
           onkeydown="aud.dateCellKey(event,${i},'locName')" id="dc-${i}-locName"></td>
       <td><input class="aud-cell-input" value="${esc(d.location?.address)}" placeholder="123 Main St, City"
           onchange="aud.dateCellChanged(${i},'locAddr',this.value)"
@@ -930,11 +1022,13 @@ function renderDatesTable() {
       <td><input class="aud-cell-input" value="${esc(d.notes)}" placeholder="e.g. Open call"
           onchange="aud.dateCellChanged(${i},'notes',this.value)"
           onkeydown="aud.dateCellKey(event,${i},'notes')" id="dc-${i}-notes"></td>
-    </tr>`).join('')
+    </tr>`
+    )
+    .join('')
   dates.forEach((d, i) => {
-    if (d.date)      setAudInvalid(`dc-${i}-date`,      !isValidDate(d.date))
+    if (d.date) setAudInvalid(`dc-${i}-date`, !isValidDate(d.date))
     if (d.startTime) setAudInvalid(`dc-${i}-startTime`, !isValidTime(d.startTime))
-    if (d.endTime)   setAudInvalid(`dc-${i}-endTime`,   !isValidTime(d.endTime))
+    if (d.endTime) setAudInvalid(`dc-${i}-endTime`, !isValidTime(d.endTime))
   })
 }
 
@@ -947,6 +1041,13 @@ function dateCellChanged(idx, field, value) {
   if (field === 'locName') {
     if (!d.location) d.location = { name: '' }
     d.location.name = value
+    // Clear address if the new name doesn't match any known venue
+    const knownVenue = venuesList.find((v) => v.name === value)
+    if (!knownVenue) {
+      d.location.address = undefined
+      const addrEl = document.getElementById(`dc-${idx}-locAddr`)
+      if (addrEl) addrEl.value = ''
+    }
     if (!value && !d.location.address) d.location = undefined
   } else if (field === 'locAddr') {
     if (!d.location) d.location = { name: '' }
@@ -971,9 +1072,26 @@ function dateCellChanged(idx, field, value) {
 
 const DATE_COLS = ['date', 'startTime', 'endTime', 'locName', 'locAddr', 'notes']
 function dateCellKey(event, rowIdx, field) {
+  if (field === 'locName' && event.key === 'Escape') {
+    hideVenueDropdown()
+    return
+  }
+  // Tab or Enter on the location name field: if exactly one venue matches, select it
+  if (field === 'locName' && (event.key === 'Tab' || event.key === 'Enter')) {
+    const dd = document.getElementById('aud-venue-dropdown')
+    if (dd && dd.style.display !== 'none' && dd.children.length === 1) {
+      event.preventDefault()
+      const code = dd.children[0].getAttribute('onmousedown').match(/'([^']+)'\)$/)?.[1]
+      if (code) {
+        selectVenueItem(rowIdx, code)
+        return
+      }
+    }
+  }
   const col = DATE_COLS.indexOf(field)
   if (event.key === 'Tab') {
     event.preventDefault()
+    hideVenueDropdown()
     const next = event.shiftKey ? col - 1 : col + 1
     if (next >= 0 && next < DATE_COLS.length) {
       document.getElementById(`dc-${rowIdx}-${DATE_COLS[next]}`)?.focus()
@@ -991,14 +1109,16 @@ function dateCellKey(event, rowIdx, field) {
 function addDateRow() {
   if (activeAudIdx < 0) return
   auditions[activeAudIdx].auditionDates.push({ date: '', startTime: '', endTime: '' })
-  renderDatesTable(); markDirty()
+  renderDatesTable()
+  markDirty()
   const idx = auditions[activeAudIdx].auditionDates.length - 1
   setTimeout(() => document.getElementById(`dc-${idx}-date`)?.focus(), 30)
 }
 
 function deleteDateRow(idx) {
   auditions[activeAudIdx].auditionDates.splice(idx, 1)
-  renderDatesTable(); markDirty()
+  renderDatesTable()
+  markDirty()
 }
 
 // ── ROLES TABLE ──
@@ -1023,39 +1143,47 @@ function renderRolesTable() {
     ${musical ? '<th class="col-voice">Voice Part</th>' : ''}
     <th>Description</th>`
 
-  document.getElementById('audRolesBody').innerHTML = roles.map((r, i) => `
+  document.getElementById('audRolesBody').innerHTML = roles
+    .map(
+      (r, i) => `
     <tr>
       <td><button class="aud-del-btn" onclick="aud.deleteRoleRow(${i})" title="Delete">×</button></td>
       <td><input class="aud-cell-input" value="${esc(r.role)}" placeholder="Character name"
           onchange="aud.roleCellChanged(${i},'role',this.value)"
           onkeydown="aud.roleCellKey(event,${i},'role')" id="rc-${i}-role"></td>
       <td><select class="aud-cell-select" onchange="aud.roleCellChanged(${i},'type',this.value)" id="rc-${i}-type">
-        ${ROLE_TYPES.map(t => `<option value="${t}" ${r.type===t?'selected':''}>${t}</option>`).join('')}
+        ${ROLE_TYPES.map((t) => `<option value="${t}" ${r.type === t ? 'selected' : ''}>${t}</option>`).join('')}
       </select></td>
       <td><select class="aud-cell-select" onchange="aud.roleCellChanged(${i},'gender',this.value)" id="rc-${i}-gender">
-        ${ROLE_GENDERS.map(g => `<option value="${g}" ${r.gender===g?'selected':''}>${g}</option>`).join('')}
+        ${ROLE_GENDERS.map((g) => `<option value="${g}" ${r.gender === g ? 'selected' : ''}>${g}</option>`).join('')}
       </select></td>
       <td><input class="aud-cell-input" value="${esc(r.ageRange)}" placeholder="30s, 18+"
           onchange="aud.roleCellChanged(${i},'ageRange',this.value)"
           onkeydown="aud.roleCellKey(event,${i},'ageRange')" id="rc-${i}-ageRange"></td>
-      ${musical ? `<td><input class="aud-cell-input" value="${esc(r.voicePart)}" placeholder="Soprano"
+      ${
+        musical
+          ? `<td><input class="aud-cell-input" value="${esc(r.voicePart)}" placeholder="Soprano"
           onchange="aud.roleCellChanged(${i},'voicePart',this.value)"
-          onkeydown="aud.roleCellKey(event,${i},'voicePart')" id="rc-${i}-voicePart"></td>` : ''}
+          onkeydown="aud.roleCellKey(event,${i},'voicePart')" id="rc-${i}-voicePart"></td>`
+          : ''
+      }
       <td><input class="aud-cell-input" value="${esc(r.description)}" placeholder="Optional casting note"
           onchange="aud.roleCellChanged(${i},'description',this.value)"
           onkeydown="aud.roleCellKey(event,${i},'description')" id="rc-${i}-description"></td>
-    </tr>`).join('')
+    </tr>`
+    )
+    .join('')
 }
 
 function roleCellChanged(idx, field, value) {
   const r = auditions[activeAudIdx].rolesAvailable[idx]
-  r[field] = (field === 'type' || field === 'gender') ? value : (value || undefined)
+  r[field] = field === 'type' || field === 'gender' ? value : value || undefined
   markDirty()
 }
 
 function roleCellKey(event, rowIdx, field) {
   const cols = getRoleCols()
-  const col  = cols.indexOf(field)
+  const col = cols.indexOf(field)
   if (event.key === 'Tab') {
     event.preventDefault()
     const next = event.shiftKey ? col - 1 : col + 1
@@ -1075,14 +1203,78 @@ function roleCellKey(event, rowIdx, field) {
 function addRoleRow() {
   if (activeAudIdx < 0) return
   auditions[activeAudIdx].rolesAvailable.push({ role: '', type: 'lead', gender: 'any' })
-  renderRolesTable(); markDirty()
+  renderRolesTable()
+  markDirty()
   const idx = auditions[activeAudIdx].rolesAvailable.length - 1
   setTimeout(() => document.getElementById(`rc-${idx}-role`)?.focus(), 30)
 }
 
 function deleteRoleRow(idx) {
   auditions[activeAudIdx].rolesAvailable.splice(idx, 1)
-  renderRolesTable(); markDirty()
+  renderRolesTable()
+  markDirty()
+}
+
+// ── VENUE AUTOCOMPLETE ──
+function getVenueDropdown() {
+  let el = document.getElementById('aud-venue-dropdown')
+  if (!el) {
+    el = document.createElement('div')
+    el.id = 'aud-venue-dropdown'
+    el.className = 'aud-venue-dropdown'
+    el.style.display = 'none'
+    document.body.appendChild(el)
+  }
+  return el
+}
+
+function onLocNameInput(rowIdx, inputEl) {
+  if (!venuesList.length) return
+  const query = inputEl.value.trim().toLowerCase()
+  const matches = venuesList.filter((v) => !query || v.name.toLowerCase().includes(query))
+  const dd = getVenueDropdown()
+  if (!matches.length) {
+    dd.style.display = 'none'
+    return
+  }
+  dd.innerHTML = matches
+    .map(
+      (v) => `
+    <div class="aud-venue-item" onmousedown="aud.selectVenueItem(${rowIdx},'${v.code}')">
+      <div class="aud-venue-item-name">${esc(v.name)}</div>
+      ${v.address ? `<div class="aud-venue-item-addr">${esc(v.address)}</div>` : ''}
+    </div>`
+    )
+    .join('')
+  const rect = inputEl.getBoundingClientRect()
+  dd.style.left = rect.left + 'px'
+  dd.style.top = rect.bottom + 2 + 'px'
+  dd.style.width = Math.max(rect.width, 240) + 'px'
+  dd.style.display = 'block'
+}
+
+function hideVenueDropdown() {
+  const dd = document.getElementById('aud-venue-dropdown')
+  if (dd) dd.style.display = 'none'
+}
+
+function selectVenueItem(rowIdx, code) {
+  const venue = venuesList.find((v) => v.code === code)
+  if (!venue) {
+    hideVenueDropdown()
+    return
+  }
+  const d = auditions[activeAudIdx].auditionDates[rowIdx]
+  if (!d.location) d.location = {}
+  d.location.name = venue.name
+  d.location.address = venue.address || undefined
+  const nameEl = document.getElementById(`dc-${rowIdx}-locName`)
+  const addrEl = document.getElementById(`dc-${rowIdx}-locAddr`)
+  if (nameEl) nameEl.value = venue.name
+  if (addrEl) addrEl.value = venue.address || ''
+  hideVenueDropdown()
+  markDirty()
+  document.getElementById(`dc-${rowIdx}-notes`)?.focus()
 }
 
 // ── MODULE API ──
@@ -1093,33 +1285,48 @@ export function mount(container, context) {
   updateEmptyState()
 
   window.aud = {
-    onCompanySelect, onYearSelect, saveFile,
-    newAudition, selectAud, deleteAudition,
-    fieldChanged, toggleNotesExpand,
-    addDateRow, deleteDateRow, dateCellChanged, dateCellKey,
-    addRoleRow, deleteRoleRow, roleCellChanged, roleCellKey,
+    onCompanySelect,
+    onYearSelect,
+    saveFile,
+    newAudition,
+    selectAud,
+    deleteAudition,
+    fieldChanged,
+    toggleNotesExpand,
+    addDateRow,
+    deleteDateRow,
+    dateCellChanged,
+    dateCellKey,
+    addRoleRow,
+    deleteRoleRow,
+    roleCellChanged,
+    roleCellKey,
+    onLocNameInput,
+    hideVenueDropdown,
+    selectVenueItem
   }
 
-  const handle  = document.getElementById('audResizeHandle')
+  const handle = document.getElementById('audResizeHandle')
   const sidebar = document.getElementById('audSidebar')
-  handle.addEventListener('mousedown', e => {
-    const startX = e.clientX, startW = sidebar.offsetWidth
+  handle.addEventListener('mousedown', (e) => {
+    const startX = e.clientX,
+      startW = sidebar.offsetWidth
     handle.classList.add('dragging')
     document.body.style.cursor = 'col-resize'
     document.body.style.userSelect = 'none'
     e.preventDefault()
-    _resizeMouseMove = ev => {
+    _resizeMouseMove = (ev) => {
       sidebar.style.width = Math.min(Math.max(startW + ev.clientX - startX, 130), 400) + 'px'
     }
     _resizeMouseUp = () => {
       handle.classList.remove('dragging')
       document.body.style.cursor = document.body.style.userSelect = ''
       document.removeEventListener('mousemove', _resizeMouseMove)
-      document.removeEventListener('mouseup',   _resizeMouseUp)
+      document.removeEventListener('mouseup', _resizeMouseUp)
       _resizeMouseMove = _resizeMouseUp = null
     }
     document.addEventListener('mousemove', _resizeMouseMove)
-    document.addEventListener('mouseup',   _resizeMouseUp)
+    document.addEventListener('mouseup', _resizeMouseUp)
   })
 
   initFromContext(context)
@@ -1129,11 +1336,18 @@ export function mount(container, context) {
 
 export function unmount() {
   if (_resizeMouseMove) document.removeEventListener('mousemove', _resizeMouseMove)
-  if (_resizeMouseUp)   document.removeEventListener('mouseup',   _resizeMouseUp)
+  if (_resizeMouseUp) document.removeEventListener('mouseup', _resizeMouseUp)
   _resizeMouseMove = _resizeMouseUp = null
+  document.getElementById('aud-venue-dropdown')?.remove()
   delete window.aud
-  auditions = []; activeAudIdx = -1; allCompanies = []; allAudFiles = []
+  auditions = []
+  activeAudIdx = -1
+  allCompanies = []
+  allAudFiles = []
   pendingCompanyId = currentCompanyId = null
-  currentYear = CURRENT_YEAR; currentCompanyAbv = ''
-  isDirty = false; isAdminContext = false
+  currentYear = CURRENT_YEAR
+  currentCompanyAbv = ''
+  isDirty = false
+  isAdminContext = false
+  venuesList = []
 }

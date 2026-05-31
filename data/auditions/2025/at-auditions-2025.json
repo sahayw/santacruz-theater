@@ -12,7 +12,8 @@
           "startTime": "19:15",
           "endTime": "22:00",
           "location": {
-            "name": "AT"
+            "name": "Actors' Theatre",
+            "address": "1001 Center St, Santa Cruz, CA 95060"
           }
         },
         {
@@ -20,7 +21,8 @@
           "startTime": "18:30",
           "endTime": "21:00",
           "location": {
-            "name": "AT"
+            "name": "Actors' Theatre",
+            "address": "1001 Center St, Santa Cruz, CA 95060"
           },
           "notes": "Call backs"
         }

@@ -1,0 +1,28 @@
+{
+  "company": "Other",
+  "year": 2026,
+  "auditions": [
+    {
+      "id": "audition-1780261748445",
+      "production": "Gross Indecency: The 3 Trials of Oscar Wilde",
+      "genre": "Drama",
+      "auditionDates": [
+        {
+          "date": "2026-07-10",
+          "startTime": "19:00",
+          "endTime": "21:00",
+          "location": {
+            "name": "Actors' Theatre",
+            "address": "1001 Center St, Santa Cruz, CA 95060"
+          },
+          "notes": "Open Call"
+        }
+      ],
+      "rolesAvailable": [],
+      "createdAt": "2026-05-31T21:09:08.445Z",
+      "updatedAt": "2026-05-31T21:18:42.659Z",
+      "rehearsalStart": "2026-08-26",
+      "openingDate": "2026-10-03"
+    }
+  ]
+}

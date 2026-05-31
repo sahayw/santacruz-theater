@@ -147,6 +147,7 @@ const AUD_CSS = `
 }
 .aud-field-input:focus, .aud-field-select:focus { outline: none; border-color: var(--accent2); }
 .aud-field-input.mono { font-family: 'IBM Plex Mono', monospace; font-size: 11px; }
+.aud-field-input.invalid { border-color: #c0392b !important; background: #fef2f2 !important; }
 .aud-field-readonly {
   background: rgba(0,0,0,0.06); color: var(--ink-mid);
   cursor: default; pointer-events: none;
@@ -366,11 +367,11 @@ const AUD_HTML = `
         </div>
         <div class="aud-field-group">
           <label class="aud-field-label">Rehearsal Start</label>
-          <input class="aud-field-input mono" id="af-rehearsal" placeholder="YYYY-MM-DD" oninput="aud.fieldChanged()">
+          <input class="aud-field-input mono" id="af-rehearsal" placeholder="YYYY-MM-DD" oninput="aud.fieldChanged()" onblur="aud.normalizeHeaderDate('af-rehearsal')">
         </div>
         <div class="aud-field-group">
           <label class="aud-field-label">Opening Date</label>
-          <input class="aud-field-input mono" id="af-opening" placeholder="YYYY-MM-DD" oninput="aud.fieldChanged()">
+          <input class="aud-field-input mono" id="af-opening" placeholder="YYYY-MM-DD" oninput="aud.fieldChanged()" onblur="aud.normalizeHeaderDate('af-opening')">
         </div>
         <div class="aud-field-group" style="grid-column:span 2">
           <label class="aud-field-label">Production Title</label>
@@ -558,8 +559,12 @@ async function initFromContext(context) {
   if (context.isAdmin) {
     const compSel = document.getElementById('audCompanySelect')
     const sorted = allCompanies
-      .filter((c) => !c.adminOnly)
-      .sort((a, b) => (a.abvName || a.name).localeCompare(b.abvName || b.name))
+      .filter((c) => c.id !== 'admin')
+      .sort((a, b) => {
+        if (a.id === 'other') return 1
+        if (b.id === 'other') return -1
+        return (a.abvName || a.name).localeCompare(b.abvName || b.name)
+      })
     compSel.innerHTML =
       '<option value="">— Company —</option>' +
       sorted.map((c) => `<option value="${c.id}">${c.abvName || c.name}</option>`).join('')
@@ -709,10 +714,14 @@ async function saveFile() {
   btn.disabled = true
   btn.textContent = 'Saving…'
   try {
+    const cleanAuditions = auditions.map((a) => ({
+      ...a,
+      auditionDates: (a.auditionDates || []).filter((d) => !isEmptyDateRow(d))
+    }))
     await apiPut(`auditions/${currentYear}/${currentCompanyId}-auditions-${currentYear}.json`, {
       company: currentCompanyAbv,
       year: currentYear,
-      auditions
+      auditions: cleanAuditions
     })
     isDirty = false
     btn.textContent = 'Saved ✓'
@@ -970,14 +979,28 @@ function isValidTime(v) {
 function setAudInvalid(id, invalid) {
   document.getElementById(id)?.classList.toggle('invalid', invalid)
 }
+function isEmptyDateRow(d) {
+  return !d.date && !d.startTime && !d.endTime
+}
+function normalizeHeaderDate(id) {
+  const el = document.getElementById(id)
+  if (!el) return
+  const norm = normalizeDate(el.value)
+  if (norm !== el.value) {
+    el.value = norm
+    fieldChanged()
+  }
+  setAudInvalid(id, !!el.value && !isValidDate(el.value))
+}
 function collectErrors() {
   const errors = []
   auditions.forEach((a, ai) => {
     const label = a.production || `Audition ${ai + 1}`
-    if (!a.auditionDates || a.auditionDates.length === 0) {
+    const nonEmptyDates = (a.auditionDates || []).filter((d) => !isEmptyDateRow(d))
+    if (nonEmptyDates.length === 0) {
       errors.push(`"${label}": no audition dates`)
     } else {
-      a.auditionDates.forEach((d, di) => {
+      nonEmptyDates.forEach((d, di) => {
         if (!isValidDate(d.date))
           errors.push(`"${label}" — date row ${di + 1}: date "${d.date || '(empty)'}"`)
         if (!isValidTime(d.startTime))
@@ -1303,7 +1326,8 @@ export function mount(container, context) {
     roleCellKey,
     onLocNameInput,
     hideVenueDropdown,
-    selectVenueItem
+    selectVenueItem,
+    normalizeHeaderDate
   }
 
   const handle = document.getElementById('audResizeHandle')

@@ -878,8 +878,7 @@ function loadRunEditor() {
   document.getElementById('f-showAbv').value = r.showAbv || ''
   document.getElementById('f-show').value = r.show || ''
   document.getElementById('f-genre').value = r.genre || ''
-  document.getElementById('f-venue').value =
-    venuesList.find((v) => v.code === r.venue)?.name || r.venue || ''
+  document.getElementById('f-venue').value = r.venue || ''
   document.getElementById('f-price').value = r.price || ''
   document.getElementById('f-discounts').value = r.discounts || ''
   document.getElementById('f-infoUrl').value = r.infoUrl || ''

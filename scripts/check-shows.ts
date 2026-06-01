@@ -24,7 +24,6 @@ const VALID_COMPANIES = new Set<string>([
 ])
 const VALID_GENRES = new Set<Genre>(['Drama', 'Musical', 'Comedy', 'Tragedy', 'Other', ''])
 const VALID_VENUES = new Set<string>([
-  ...venuesJson.venues.map((v: { code: string }) => v.code),
   ...venuesJson.venues.map((v: { name: string }) => v.name),
   'Other',
   ''

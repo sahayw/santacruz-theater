@@ -133,7 +133,7 @@ Run metadata merged with each `Performance`. `discounts` and `ticketsUrl` are al
 
 #### `Venue`
 
-The canonical venue list lives in `data/sc-theater-venues.json`. Each entry has `code`, `name`, `address`, and `website`. The calendar and auditions editors both use this file to drive venue autocomplete. `Run.venue` stores the venue **name**; old files that stored a code are translated to the name on load. `check-shows.ts` accepts both codes and names.
+The canonical venue list lives in `data/sc-theater-venues.json`. Each entry has `code`, `name`, `address`, and `website`. The calendar and auditions editors both use this file to drive venue autocomplete. `Run.venue` stores the venue **name** from this list, or `"Other"` for unlisted venues.
 
 ### Calendar editor (`calendar.js`)
 

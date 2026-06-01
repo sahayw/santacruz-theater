@@ -1,7 +1,6 @@
 ---
 import type { PerformanceEvent } from '../types.ts'
 import companiesData from '../../data/sc-theater-companies.json'
-import venuesData from '../../data/sc-theater-venues.json'
 
 interface Props {
   performances: PerformanceEvent[]
@@ -1022,7 +1021,7 @@ const filterCompanies = companiesData.companies.filter(c => activeCompanyCodes.h
   }
 </style>
 
-<script define:vars={{ performances, companies: companiesData.companies, venues: venuesData.venues }} is:inline>
+<script define:vars={{ performances, companies: companiesData.companies }} is:inline>
   const PERFORMANCES = performances
   const TODAY = new Date().toISOString().slice(0, 10)
   const COMPANY_COLORS = {
@@ -1032,8 +1031,7 @@ const filterCompanies = companiesData.companies.filter(c => activeCompanyCodes.h
     Renegade: 'var(--col-renegade)'
   }
   const COMPANY_NAMES = Object.fromEntries(companies.map(c => [c.abvName, c.name]))
-  const VENUE_NAMES = Object.fromEntries(venues.map(v => [v.code, v.name]))
-  const MONTHS = [
+const MONTHS = [
     'January',
     'February',
     'March',
@@ -1141,7 +1139,7 @@ const filterCompanies = companiesData.companies.filter(c => activeCompanyCodes.h
     let html = `<div class="hover-panel-header">${dateLabel}</div>`
     const sorted = [...perfs].sort((a, b) => a.time.localeCompare(b.time))
     sorted.forEach((p) => {
-      const venue = VENUE_NAMES[p.venue] || p.venue
+      const venue = p.venue
       html += `<div class="hover-panel-row">
         <div class="hover-panel-show">
           <div class="hover-panel-dot" style="background:${dotColor(p.company)}"></div>
@@ -1615,7 +1613,7 @@ const filterCompanies = companiesData.companies.filter(c => activeCompanyCodes.h
       <div class="card-show-title">${p.show}</div>
       <div class="card-meta">
         <div class="card-meta-item"><span class="card-meta-label">Time&nbsp;</span>${timeStr}</div>
-        <div class="card-meta-item"><span class="card-meta-label">Venue&nbsp;</span>${VENUE_NAMES[p.venue] || p.venue}</div>
+        <div class="card-meta-item"><span class="card-meta-label">Venue&nbsp;</span>${p.venue}</div>
         <div class="card-meta-item"><span class="card-meta-label">Price&nbsp;</span>${p.price}</div>
         <div class="card-meta-item"><span class="card-meta-label">Genre&nbsp;</span>${p.genre}</div>
       </div>

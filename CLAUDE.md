@@ -2,19 +2,19 @@
 
 ## Project overview
 
-Astro 6 static site covering Santa Cruz County theater — performances calendar, company directory, and (planned) auditions and services listings. Deployed to Netlify. TypeScript strict mode. No UI framework.
+Astro 6 static site covering Santa Cruz County theater — performances calendar, company directory, audition listings, and a planned services section. Deployed to Netlify. TypeScript strict mode. No UI framework.
 
 The site is structured as a hub (`/`) linking to four sections: **Calendar** (`/calendar`), **Companies** (`/companies`), **Auditions** (`/auditions`), and **Services** (`/services` — stub). A fixed top nav (`SiteNav.astro`) is shared across all inner pages. An **About** page (`/about`) is linked from the home page footer and contains a Netlify contact form.
 
 ## Key commands
 
-| Command                       | Action                             |
-| ----------------------------- | ---------------------------------- |
-| `npm run dev`                 | Dev server at localhost:4321       |
-| `npm run build`               | Build to `dist/`                   |
-| `npm run preview`             | Preview production build locally   |
-| `npm run check-shows`         | Validate show JSON files against schema |
-| `npm run check-auditions`     | Validate audition JSON files against schema |
+| Command                   | Action                                      |
+| ------------------------- | ------------------------------------------- |
+| `npm run dev`             | Dev server at localhost:4321                |
+| `npm run build`           | Build to `dist/`                            |
+| `npm run preview`         | Preview production build locally            |
+| `npm run check-shows`     | Validate show JSON files against schema     |
+| `npm run check-auditions` | Validate audition JSON files against schema |
 
 ## Documentation files
 
@@ -24,33 +24,33 @@ The site is structured as a hub (`/`) linking to four sections: **Calendar** (`/
 ## Folder conventions
 
 - `src/components/` — reusable Astro components
-  - `calendar.astro` — entire calendar UI
-  - `SiteNav.astro` — fixed top nav bar, shared across all inner pages
+  - `calendar.astro` — calendar interface
+  - `SiteNav.astro` — shared site navigation
 - `src/layouts/` — page layout wrappers
 - `src/pages/` — file-based routes
-  - `index.astro` — hub landing page; footer links to `/about`
-  - `calendar.astro` — wraps `calendar.astro` component under the site nav
-  - `companies.astro` — company directory, reads from `data/sc-theater-companies.json`
-  - `about.astro` — about page with community text and Netlify contact form
-  - `auditions.astro` — audition listings with filter bar and collapsible detail cards
+  - `index.astro` — home page
+  - `calendar.astro` — calendar route
+  - `companies.astro` — company directory
+  - `about.astro` — about and contact page
+  - `auditions.astro` — auditions route
   - `services.astro` — stub
 - `src/styles/` — global CSS
-- `src/lib/data.ts` — `getShows()` / `getPerformances()` / `getAuditions()` — sole data access layer; compiles from all `data/shows/**/*.json` and `data/auditions/**/*.json` via `import.meta.glob`
-- `src/types.ts` — all shared TypeScript interfaces
+- `src/lib/data.ts` — build-time data loading
+- `src/types.ts` — shared data types
 - `data/` — canonical data files
   - `sc-theater-companies.json` — company directory data, hand-editable
-  - `sc-theater-venues.json` — curated venue list used by both calendar and auditions editors for venue autocomplete
-  - `shows/<year>/<company-id>-<year>.json` — per-company per-year show files; use the `/admin` editor to manage runs
-  - `auditions/<year>/<company-id>-auditions-<year>.json` — per-company per-year audition files; use the `/admin` editor to manage
-- `public/admin/` — editor SPA at `/admin` (static HTML, no build step)
+  - `sc-theater-venues.json` — shared venue list
+  - `shows/<year>/<company-id>-<year>.json` — show data files
+  - `auditions/<year>/<company-id>-auditions-<year>.json` — audition data files
+- `public/admin/` — editor SPA at `/admin`
 - `public/images/companies/` — company logos downloaded locally; paths stored in `sc-theater-companies.json`
 - `scripts/` — utility scripts (run with `tsx`)
-  - `check-shows.ts` — validates all show JSON files against schema; also runs as part of `npm run build`
-  - `check-auditions.ts` — validates all audition JSON files against schema; also runs as part of `npm run build`
+  - `check-shows.ts` — show data validation
+  - `check-auditions.ts` — audition data validation
 - `docs/` — design documentation (e.g. `color-system.md`, `description-feature.md`)
 - `netlify/functions/` — serverless functions
-  - `data.mjs` — GET/PUT show files via GitHub API; PUT requires a valid Netlify Identity JWT; commits trigger a Netlify rebuild
-  - `fetch-page.mjs` — server-side HTML proxy for the editor's description-fetch feature
+  - `data.mjs` — data read/write endpoint
+  - `fetch-page.mjs` — page-fetch proxy
 
 ## Editor authentication & data flow
 
@@ -69,7 +69,7 @@ The Identity widget issues a JWT; the editor sends it as `Authorization: Bearer 
 
 In local dev (`localhost`) authentication is skipped entirely; the hub starts with full admin access and all dataset tiles visible.
 
-The home page (`src/pages/index.astro`) loads the Identity widget and handles `#invite_token` / `#recovery_token` URL fragments so invite and password-reset emails work correctly on the personal Netlify plan (which does not support custom email templates).
+The home page (`src/pages/index.astro`) loads the Identity widget so invite and password-reset flows that arrive as `#invite_token` / `#recovery_token` URL fragments can be processed correctly on the personal Netlify plan (which does not support custom email templates).
 
 ### Date and time input — normalization and validation
 
@@ -94,9 +94,7 @@ Format assumed to be `Y-M-D` (or `YY-M-D`). 2-digit years are prefixed with `20`
 
 ### Data schema (`data/shows/<year>/<company-id>-<year>.json`)
 
-One file per company per year. Managed by the `/admin` editor. Do not hand-edit individual runs; use the editor instead.
-
-#### `ShowsFile` (top-level shape)
+One file per company per year. Top-level shape:
 
 ```json
 { "company": "SCS", "year": 2026, "runs": [ <Run>, ... ] }
@@ -133,9 +131,9 @@ One file per company per year. Managed by the `/admin` editor. Do not hand-edit 
 
 Run metadata merged with each `Performance`. `discounts` and `ticketsUrl` are already resolved (performance value wins when non-empty). Sorted by date, then time.
 
-#### Venue list
+#### `Venue`
 
-The canonical venue list lives in `data/sc-theater-venues.json`. Each entry has `code`, `name`, `address`, and `website`. The calendar and auditions editors both use this file to drive venue autocomplete. `Run.venue` stores the venue **name**; old files that stored a code are translated to the name on load. `check-data-contract.ts` accepts both codes and names.
+The canonical venue list lives in `data/sc-theater-venues.json`. Each entry has `code`, `name`, `address`, and `website`. The calendar and auditions editors both use this file to drive venue autocomplete. `Run.venue` stores the venue **name**; old files that stored a code are translated to the name on load. `check-shows.ts` accepts both codes and names.
 
 ### Calendar editor (`calendar.js`)
 
@@ -213,7 +211,7 @@ The `/auditions` page is "upcoming" by default — an audition is upcoming when 
 
 ### Auditions editor (`auditions.js`)
 
-Follows the same mount/unmount pattern as `calendar.js`. The company selector is populated from all non-admin entries in `sc-theater-companies.json` via the shared `buildCompanyOptions()` function in `api.js`. If the selected company has no existing file, one is created automatically for the current year. If existing files are all for the current year or earlier and the current year is present, it is auto-loaded without requiring a year selection.
+Follows the same mount/unmount pattern as `calendar.js`. The company selector is populated from every company except the admin sentinel entry in `sc-theater-companies.json` via the shared `buildCompanyOptions()` function in `api.js`, with `Other` listed last. If the selected company has no existing file, one is created automatically for the current year. If existing files are all for the current year or earlier and the current year is present, it is auto-loaded without requiring a year selection.
 
 The **+ New** button in the auditions sidebar is hidden until a company file is loaded. The sidebar column stays blank until data is loaded.
 

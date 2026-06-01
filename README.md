@@ -1,6 +1,6 @@
 # Santa Cruz Theater
 
-A resource for theater-goers and theater companies in Santa Cruz County — built as an Astro 6 static site, deployed to Netlify. Built with assistance from Claude Code.
+A resource for theater-goers and theater companies in Santa Cruz County — built as an Astro 6 static site, deployed to Netlify. Built with assistance from Claude Code (under very close supervision).
 
 Four sections, accessible from a persistent top nav and a hub landing page:
 
@@ -9,17 +9,17 @@ Four sections, accessible from a persistent top nav and a hub landing page:
 3. **Auditions** — upcoming audition listings ✓
 4. **Services** — crew, props, and production resources _(planned)_
 
-An **About** page is linked from the home page footer and includes a community contact form.
+An **About** page is linked from the home page footer and includes a contact form.
 
-A companion **data editor** at `/admin` manages all show and performance data without requiring a build or deploy. Changes saved in the editor commit directly to GitHub, triggering a Netlify rebuild.
+A companion **data editors** at `/admin` manage show and audition data without requiring a local build or deploy. Changes saved in the editor commit directly to GitHub, triggering a Netlify rebuild.
 
 ---
 
-## Calendar views
+## Performances
 
 ### Annual view (default)
 
-A full-year grid of months, each showing mini day cells. Days with performances are coloured by company; days with multiple companies use a warm grey. Hovering a day opens a small panel listing every performance on that date with company, time, and show title. Clicking drills down into the weekly view for that date's week.
+A full-year grid of months, each showing mini day cells. Days with performances are coloured by company, or a fallback color if there are performances by multiple companies on that day. Hovering a day shows a small panel listing every performance on that date with company, time, and show title. Clicking drills down into the weekly view for that date's week. On touch devices, tapping day gives the performances for that day, tapping that panel gives the weekly view.
 
 ### Weekly drill-down
 
@@ -42,7 +42,7 @@ A persistent footer identifies each company by a coloured square and full name. 
 
 ## Companies directory
 
-The `/companies` page displays a card grid of Santa Cruz County theater companies. Each card shows the company logo; hovering (on pointer devices) reveals the company name, venue, and a link. Tapping on mobile goes directly to the company website.
+The `/companies` page displays a card grid of Santa Cruz County theater companies, showing the company logo. Links to URL specified in JSON data (should be the company website).
 
 Company data lives in `data/sc-theater-companies.json`. Logos are downloaded locally to `public/images/companies/` so the site has no runtime dependency on external image hosts. Companies whose logos are white-on-transparent use a dark card background (`"logoDark": true`). Adding a new company requires only a new entry in the JSON file — no code changes.
 
@@ -50,9 +50,9 @@ Company data lives in `data/sc-theater-companies.json`. Logos are downloaded loc
 
 ## Auditions
 
-The `/auditions` page lists upcoming open calls from Santa Cruz County theater companies. Cards are collapsed by default, showing the production title, genre badge, company colour dot, location, opening date, and a roles summary. Clicking a card expands a detail panel with full audition dates and times, location, preparation requirements, contact info, and a roles table (with a Voice column added automatically for musicals).
+The `/auditions` page lists upcoming open calls from Santa Cruz County theater companies. Cards are collapsed by default, showing the production title, genre badge, company colour dot, opening date, a roles summary, and the audition date range. Clicking a card expands a detail panel with full audition dates and times, locations, preparation requirements, contact info, and a roles table.
 
-A filter bar with Company, Genre, and When controls (Upcoming / All dates / Past only) narrows the list client-side. The result count updates live. Past auditions are hidden by default.
+A filter bar with Company, Genre, and When controls (Upcoming / All dates / Past only) narrows the list client-side. Filter defaults to Upcoming.
 
 ### Auditions data
 
@@ -72,23 +72,13 @@ On successful submission the form is replaced by a confirmation message; after 5
 
 ## Data model
 
-All show data lives in `data/shows/<year>/<company-id>-<year>.json` — one file per company per year. The `/admin` editor reads and writes these files via the `/.netlify/functions/data` endpoint, which commits to GitHub and triggers a rebuild.
-
-Company directory data lives in `data/sc-theater-companies.json` and is hand-editable.
-
-`src/lib/data.ts` imports all show and audition JSON at build time via `import.meta.glob`. `getPerformances()` flattens runs into a sorted `PerformanceEvent[]` with per-slot overrides resolved; `getAuditions()` flattens auditions into a sorted `AuditionEvent[]`.
-
-### ShowsFile (top-level shape)
-
-```json
-{ "company": "SCS", "year": 2026, "runs": [ <Run>, ... ] }
-```
-
 ### Companies
 
-Full company profiles (name, venue, website, logo) are in `data/sc-theater-companies.json`.
+Full company profiles (name, primary venue, website, logo) are in `data/sc-theater-companies.json` (hand-editable).
 
-The following companies have distinct colour identities in calendar display:
+#### Colour system
+
+Companies have distinct colour identities in displays:
 
 | Key        | Full name                   | Color identity |
 | ---------- | --------------------------- | -------------- |
@@ -98,17 +88,33 @@ The following companies have distinct colour identities in calendar display:
 | `Renegade` | Renegade Theater            | Teal           |
 | `Other`    | not individually identified | None (grey)    |
 
+Colors are defined at three saturation tiers: muted fills for area backgrounds, muted dot accents for small legend pips, and vivid accents for chip bar stripes and show-card badges.
+
+See [`docs/color-system.md`](docs/color-system.md) for the full variable reference, hex values, and instructions for adding a new company colour.
+
 ### Venues
 
-Venue names and addresses are maintained in `data/sc-theater-venues.json`. Both editors use this file to drive venue autocomplete. Venues are stored as names in show data and can be updated without code changes.
+Venue names and addresses are maintained in `data/sc-theater-venues.json` (hand-editable). Both editors use this file to drive venue autocomplete.
+
+### Shows Files (top-level shape)
+
+```json
+{ "company": "SCS", "year": 2026, "runs": [ <Run>, ... ] }
+```
+
+### Auditions Files (top-level shape)
+
+```json
+{ "company": "MCT", "year": 2027, "auditions": [ <Audition>, ... ] }
+```
 
 ### Genre
 
-Currently hard coded: `Drama`, `Musical`, `Comedy`, `Other`.
+Hard coded: `Drama`, `Musical`, `Comedy`, `Other`.
 
 ---
 
-## Data editor (`/admin`)
+## Data editors (`/admin`)
 
 ### Authentication
 
@@ -116,18 +122,28 @@ Visiting `/admin` shows a login overlay (production only; dev skips auth). Sign 
 
 The Identity widget is pinned to `https://santacruz.theater/.netlify/identity` so that sign-in works correctly on preview deploys as well as the main domain.
 
+### Data access
+
+Data in `data/shows/<year>/<company-id>-<year>.json`and `data/auditions/<year>/<company-id>-auditions-<year>.json` is read and written via the `/.netlify/functions/data` endpoint, which commits to GitHub and triggers a rebuild.
+
+It is not recommended to edit these files by hand. The scripts `check-shows.ts` and `check-auditions.ts` can be used to check for consistency of data with code expectations. Files can be archived by moving to some alternate directory.
+
+`src/lib/data.ts` imports all show and audition JSON at build time via `import.meta.glob`. `getPerformances()` flattens runs into a sorted `PerformanceEvent[]` with per-slot overrides resolved; `getAuditions()` flattens auditions into a sorted `AuditionEvent[]`.
+
 ### Selecting data to edit
 
-After choosing the **Calendar Editor** tile the editor opens with a context-aware prompt:
+After choosing an editor tile the editor opens with a context-aware prompt:
 
 - **Admin users** — a company selector appears in the toolbar (populated from `sc-theater-companies.json`); the main panel shows "Select company / year". Once a company is chosen a year selector appears. When year is picked the file loads.
-- **Non-admin users** — the company is pre-determined by their login; a year selector appears immediately. If only one year of data exists for their company the file loads automatically with no selection required.
+- **Non-admin users** — the company is pre-determined by their login; a year selector appears immediately.
 
 The top bar subtitle updates to reflect the active editor ("Edit Performances" or "Edit Auditions"). Clicking **← Editors** returns to the hub and resets the title.
 
+For Auditiions, if only one year of data exists for the company that file loads automatically with no selection required.
+
 ### Runs sidebar
 
-Lists all production runs for the loaded file. The **+ New** button is hidden until a company file is loaded; the sidebar column stays blank until then. Click a run to open it. The sidebar width is adjustable. The Company field in each run is read-only (set from the loaded file) to prevent inconsistencies between JSON file names and data content.
+Lists all production runs for the loaded file. The sidebar column stays blank until a company file is loaded. Click a run to open it. The sidebar width is adjustable. The Company field in each run is read-only (set from the loaded file) to prevent inconsistencies between JSON file names and data content.
 
 ### Performances table
 
@@ -160,9 +176,9 @@ The **Save** button commits the current file to GitHub (`data/shows/<year>/<comp
 
 Choosing the **Auditions Editor** tile opens a similar editor for audition listings.
 
-The company selector shows all companies from `sc-theater-companies.json` (populated via the shared `buildCompanyOptions()` function). Selecting a company with no existing file creates one automatically for the current year. If a company's files are all for the current year or earlier, the current year loads without requiring a selection.
+The company selector shows every company except the admin sentinel entry from `sc-theater-companies.json` (populated via the shared `buildCompanyOptions()` function), with `Other` listed last. Selecting a company with no existing file creates one automatically for the current year. If a company's files are all for the current year or earlier, the current year loads without requiring a selection.
 
-The **+ New** button is hidden until a company file is loaded; the sidebar column stays blank until then.
+The sidebar column stays blank until a company file is loaded.
 
 ### Audition dates
 
@@ -178,54 +194,46 @@ When Genre is set to Musical, Singing and Dance fields appear in the Prepare sec
 
 ---
 
-## Colour system
-
-Companies are coloured at three saturation tiers: muted fills for area backgrounds, muted dot accents for small legend pips, and vivid accents for chip bar stripes and show-card badges. Cabrillo and ABT have no colour identity and fall through to grey at all tiers.
-
-See [`docs/color-system.md`](docs/color-system.md) for the full variable reference, hex values, and instructions for adding a new company colour.
-
----
-
 ## Project structure
 
 ```
 src/
   components/
-    calendar.astro            # entire calendar UI — CSS, HTML, and JS in one file
-    SiteNav.astro             # fixed top nav bar shared across all inner pages
-  lib/data.ts                 # getShows() / getPerformances() / getAuditions() — sole data access layer
+    calendar.astro            # calendar interface
+    SiteNav.astro             # shared site navigation
+  lib/data.ts                 # build-time data loading
   pages/
-    index.astro               # hub landing page; footer links to /about
-    calendar.astro            # wraps calendar component under the site nav
-    companies.astro           # company directory, reads sc-theater-companies.json at build time
-    auditions.astro           # audition listings — filter bar + collapsible cards
-    about.astro               # about page with community text and Netlify contact form
+    index.astro               # home page
+    calendar.astro            # calendar route
+    companies.astro           # company directory
+    auditions.astro           # auditions route
+    about.astro               # about and contact page
     services.astro            # stub
   types.ts                    # shared TypeScript interfaces
 data/
   shows/<year>/               # one JSON file per company per year, e.g. scs-2026.json
   auditions/<year>/           # one JSON file per company per year, e.g. renegade-auditions-2026.json
   sc-theater-companies.json   # company directory; hand-editable
-  sc-theater-venues.json      # venue list with addresses; drives autocomplete in both editors; hand-editable
+  sc-theater-venues.json      # shared venue list; hand-editable
 public/
   admin/
-    index.html                # hub shell — login overlay, dataset tiles, routing
-    api.js                    # shared apiFetch / apiPut / buildCompanyOptions / Identity helpers
-    calendar.js               # calendar editor ES module
-    auditions.js              # auditions editor ES module
-    images/companies/         # locally stored company logos
-astro.config.mjs              # includes Vite dev proxy for /.netlify/functions/data
+    index.html                # shell for data editors
+    calendar.js               # calendar editor
+    auditions.js              # auditions editor
+    api.js                    # shared editor API helpers
+  images/companies/           # locally stored company logos
+astro.config.mjs              # Astro config, including Vite dev proxy
 netlify/
   functions/
-    data.mjs                  # GET/PUT show files via GitHub API; requires Netlify Identity JWT for PUT
-    fetch-page.mjs            # server-side HTML proxy for the editor's description-fetch feature
+    data.mjs                  # data read/write endpoint
+    fetch-page.mjs            # page-fetch proxy
 scripts/
-  check-shows.ts              # validates all show JSON files against schema; also runs as part of build
-  check-auditions.ts          # validates all audition JSON files against schema; also runs as part of build
+  check-shows.ts              # show data validation
+  check-auditions.ts          # audition data validation
 docs/
-  color-system.md             # colour variable reference
-  description-feature.md      # show description field — editor UI, panel behaviour, fetch proxy
-  home-page-spacing.md        # details of padding and layout info for different device sizes
+  color-system.md             # color reference
+  description-feature.md      # notes on show description extraction feature (not currently used)
+  home-page-spacing.md        # homepage layout notes inc device type differences
 ```
 
 ---
@@ -233,18 +241,18 @@ docs/
 ## Getting started
 
 ```sh
-nvm use          # Node 20 (.nvmrc)
+nvm use          # Node 22 (.nvmrc)
 npm install
 npm run dev      # http://localhost:4321
 ```
 
-| Command                       | Action                                                                    |
-| ----------------------------- | ------------------------------------------------------------------------- |
-| `npm run dev`                 | Dev server at localhost:4321                                              |
-| `npm run build`               | Production build to `dist/`                                               |
-| `npm run preview`             | Preview the production build locally                                      |
-| `npm run check-shows`         | Validates all show JSON files against schema                              |
-| `npm run check-auditions`     | Validates all audition JSON files against schema                          |
+| Command                   | Action                                           |
+| ------------------------- | ------------------------------------------------ |
+| `npm run dev`             | Dev server at localhost:4321                     |
+| `npm run build`           | Production build to `dist/`                      |
+| `npm run preview`         | Preview the production build locally             |
+| `npm run check-shows`     | Validates all show JSON files against schema     |
+| `npm run check-auditions` | Validates all audition JSON files against schema |
 
 ## Build & deploy
 
@@ -269,4 +277,4 @@ Required for the `data.mjs` function (set in Netlify → Site configuration → 
 
 ### Netlify Identity
 
-Enabled under Netlify → Identity. Registration is set to **invite only**. Each editor is invited by email; their address must match an entry in the `editors` array in `sc-theater-companies.json`. Each editor entry specifies which datasets that person can edit (e.g. `["calendar"]` or `["calendar", "auditions"]`). The Netlify Identity widget is loaded on the home page (`src/pages/index.astro`) to handle invite and password-reset tokens that arrive as URL fragments.
+Enabled under Netlify → Identity. Registration is set to **invite only**. Each editor is invited by email; their address must match an entry in the `editors` array in `sc-theater-companies.json`. Each editor entry specifies which datasets that person can edit (e.g. `["calendar"]` or `["calendar", "auditions"]`). The Netlify Identity widget is loaded on the home page (`src/pages/index.astro`) so invite and password-reset flows that arrive as URL fragments can be processed by Netlify Identity.

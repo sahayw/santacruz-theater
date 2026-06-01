@@ -220,7 +220,8 @@ netlify/
     data.mjs                  # GET/PUT show files via GitHub API; requires Netlify Identity JWT for PUT
     fetch-page.mjs            # server-side HTML proxy for the editor's description-fetch feature
 scripts/
-  check-data-contract.ts      # validates all show JSON files against schema; also runs as part of build
+  check-shows.ts              # validates all show JSON files against schema; also runs as part of build
+  check-auditions.ts          # validates all audition JSON files against schema; also runs as part of build
 docs/
   color-system.md             # colour variable reference
   description-feature.md      # show description field — editor UI, panel behaviour, fetch proxy
@@ -242,7 +243,8 @@ npm run dev      # http://localhost:4321
 | `npm run dev`                 | Dev server at localhost:4321                                              |
 | `npm run build`               | Production build to `dist/`                                               |
 | `npm run preview`             | Preview the production build locally                                      |
-| `npm run check-data-contract` | Validates the canonical two-tier JSON file and the display data transform |
+| `npm run check-shows`         | Validates all show JSON files against schema                              |
+| `npm run check-auditions`     | Validates all audition JSON files against schema                          |
 
 ## Build & deploy
 

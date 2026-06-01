@@ -2,7 +2,7 @@
  * Contract check for the per-company per-year show files.
  * Validates each ShowsFile's shape and verifies that flattening produces
  * a consistent, sorted event list — mirroring the logic in src/lib/data.ts.
- * Run with: npm run check-data
+ * Run with: npm run check-shows
  */
 import { readdirSync, readFileSync } from 'fs'
 import { resolve, join } from 'path'

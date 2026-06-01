@@ -13,7 +13,8 @@ The site is structured as a hub (`/`) linking to four sections: **Calendar** (`/
 | `npm run dev`                 | Dev server at localhost:4321       |
 | `npm run build`               | Build to `dist/`                   |
 | `npm run preview`             | Preview production build locally   |
-| `npm run check-data-contract` | Validate data files against schema |
+| `npm run check-shows`         | Validate show JSON files against schema |
+| `npm run check-auditions`     | Validate audition JSON files against schema |
 
 ## Documentation files
 
@@ -44,7 +45,8 @@ The site is structured as a hub (`/`) linking to four sections: **Calendar** (`/
 - `public/admin/` — editor SPA at `/admin` (static HTML, no build step)
 - `public/images/companies/` — company logos downloaded locally; paths stored in `sc-theater-companies.json`
 - `scripts/` — utility scripts (run with `tsx`)
-  - `check-data-contract.ts` — validates all show JSON files against schema; also runs as part of `npm run build`
+  - `check-shows.ts` — validates all show JSON files against schema; also runs as part of `npm run build`
+  - `check-auditions.ts` — validates all audition JSON files against schema; also runs as part of `npm run build`
 - `docs/` — design documentation (e.g. `color-system.md`, `description-feature.md`)
 - `netlify/functions/` — serverless functions
   - `data.mjs` — GET/PUT show files via GitHub API; PUT requires a valid Netlify Identity JWT; commits trigger a Netlify rebuild

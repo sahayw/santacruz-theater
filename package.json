@@ -7,10 +7,11 @@
   },
   "scripts": {
     "dev": "astro dev",
-    "build": "tsx scripts/check-data-contract.ts && astro build",
-    "preview": "astro build && astro preview",
+    "build": "tsx scripts/check-shows.ts && tsx scripts/check-auditions.ts && astro build",
+    "preview": "tsx scripts/check-shows.ts && tsx scripts/check-auditions.ts &&  astro preview",
     "release": "git diff --quiet && git diff --cached --quiet && git checkout dev && git pull origin dev && git checkout main && git pull origin main && git merge dev && git push origin main && git checkout dev && git merge main && git push origin dev",
-    "check-data-contract": "tsx scripts/check-data-contract.ts"
+    "check-shows": "tsx scripts/check-shows.ts",
+    "check-auditions": "tsx scripts/check-auditions.ts"
   },
   "dependencies": {
     "astro": "^6.3.7"

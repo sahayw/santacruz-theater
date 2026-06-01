@@ -8,12 +8,12 @@ The site is structured as a hub (`/`) linking to four sections: **Calendar** (`/
 
 ## Key commands
 
-| Command              | Action                                    |
-| -------------------- | ----------------------------------------- |
-| `npm run dev`        | Dev server at localhost:4321              |
-| `npm run build`      | Build to `dist/`                          |
-| `npm run preview`    | Preview production build locally          |
-| `npm run check-data` | Dry-run: prints show count and date range |
+| Command                       | Action                             |
+| ----------------------------- | ---------------------------------- |
+| `npm run dev`                 | Dev server at localhost:4321       |
+| `npm run build`               | Build to `dist/`                   |
+| `npm run preview`             | Preview production build locally   |
+| `npm run check-data-contract` | Validate data files against schema |
 
 ## Documentation files
 
@@ -29,7 +29,7 @@ The site is structured as a hub (`/`) linking to four sections: **Calendar** (`/
 - `src/pages/` — file-based routes
   - `index.astro` — hub landing page; footer links to `/about`
   - `calendar.astro` — wraps `calendar.astro` component under the site nav
-  - `companies.astro` — company directory, reads from `data/companies/sc-theater-companies.json`
+  - `companies.astro` — company directory, reads from `data/sc-theater-companies.json`
   - `about.astro` — about page with community text and Netlify contact form
   - `auditions.astro` — audition listings with filter bar and collapsible detail cards
   - `services.astro` — stub
@@ -37,12 +37,14 @@ The site is structured as a hub (`/`) linking to four sections: **Calendar** (`/
 - `src/lib/data.ts` — `getShows()` / `getPerformances()` / `getAuditions()` — sole data access layer; compiles from all `data/shows/**/*.json` and `data/auditions/**/*.json` via `import.meta.glob`
 - `src/types.ts` — all shared TypeScript interfaces
 - `data/` — canonical data files
+  - `sc-theater-companies.json` — company directory data, hand-editable
+  - `sc-theater-venues.json` — curated venue list used by both calendar and auditions editors for venue autocomplete
   - `shows/<year>/<company-id>-<year>.json` — per-company per-year show files; use the `/admin` editor to manage runs
-  - `companies/sc-theater-companies.json` — company directory data, hand-editable
+  - `auditions/<year>/<company-id>-auditions-<year>.json` — per-company per-year audition files; use the `/admin` editor to manage
 - `public/admin/` — editor SPA at `/admin` (static HTML, no build step)
 - `public/images/companies/` — company logos downloaded locally; paths stored in `sc-theater-companies.json`
-- `scripts/` — one-off Node scripts (run with `tsx`)
-  - `split-runs.ts` — migration script that split the old single `sc-theater-runs.json` into the per-company per-year structure
+- `scripts/` — utility scripts (run with `tsx`)
+  - `check-data-contract.ts` — validates all show JSON files against schema; also runs as part of `npm run build`
 - `docs/` — design documentation (e.g. `color-system.md`, `description-feature.md`)
 - `netlify/functions/` — serverless functions
   - `data.mjs` — GET/PUT show files via GitHub API; PUT requires a valid Netlify Identity JWT; commits trigger a Netlify rebuild
@@ -53,7 +55,7 @@ The site is structured as a hub (`/`) linking to four sections: **Calendar** (`/
 The `/admin` SPA is structured as a hub with separate editor modules:
 
 - `public/admin/index.html` — login overlay, hub (dataset tiles), routing
-- `public/admin/api.js` — shared `apiFetch` / `apiPut` / `resolveUserAccess`
+- `public/admin/api.js` — shared `apiFetch` / `apiPut` / `resolveUserAccess` / `buildCompanyOptions`
 - `public/admin/calendar.js` — calendar editor ES module (`mount` / `unmount`)
 - `public/admin/auditions.js` — auditions editor ES module (`mount` / `unmount`)
 
@@ -103,12 +105,12 @@ One file per company per year. Managed by the `/admin` editor. Do not hand-edit 
 | Field          | Type            | Notes                                                            |
 | -------------- | --------------- | ---------------------------------------------------------------- |
 | `id`           | `string`        | `"run-<timestamp>"` — stable, editor-assigned                    |
-| `company`      | `Company`       | `SCS \| AT \| MCT \| Renegade \| Cabrillo \| Other \| ""`        |
+| `company`      | `string`        | Company `abvName` from `sc-theater-companies.json`               |
 | `showAbv`      | `string`        | Short label shown in calendar chips                              |
 | `show`         | `string`        | Full production title                                            |
 | `description`  | `string?`       | Optional narrative paragraph; supports `**bold**` and `*italic*` |
 | `genre`        | `Genre`         | `Drama \| Musical \| Comedy \| Other \| ""`                      |
-| `venue`        | `Venue`         | `G \| VMB \| PH \| AT \| CCT \| Other \| ""`                     |
+| `venue`        | `string`        | Venue name from `sc-theater-venues.json`, or free text           |
 | `price`        | `string`        | Display string, e.g. `"$72-$92"`                                 |
 | `discounts`    | `string`        | Default discount text for all performances                       |
 | `infoUrl`      | `string`        | Show info page                                                   |
@@ -129,24 +131,22 @@ One file per company per year. Managed by the `/admin` editor. Do not hand-edit 
 
 Run metadata merged with each `Performance`. `discounts` and `ticketsUrl` are already resolved (performance value wins when non-empty). Sorted by date, then time.
 
-#### Venue codes
+#### Venue list
 
-| Code  | Venue                      |
-| ----- | -------------------------- |
-| `G`   | The Grove (SCS)            |
-| `VMB` | Veterans Memorial Building |
-| `PH`  | Park Hall (MCT)            |
-| `AT`  | Actors' Theatre            |
-| `CCT` | Cabrillo Crocker Theater   |
+The canonical venue list lives in `data/sc-theater-venues.json`. Each entry has `code`, `name`, `address`, and `website`. The calendar and auditions editors both use this file to drive venue autocomplete. `Run.venue` stores the venue **name**; old files that stored a code are translated to the name on load. `check-data-contract.ts` accepts both codes and names.
 
 ### Calendar editor (`calendar.js`)
 
 The editor opens with a context-aware prompt:
 
-- **Admin users** — toolbar shows a company selector; main panel prompts "Select company / year".
+- **Admin users** — toolbar shows a company selector (populated from `sc-theater-companies.json` via `buildCompanyOptions()`); main panel prompts "Select company / year".
 - **Non-admin users** — toolbar shows a year selector for their company; main panel prompts "Select a year". If only one year of data exists for their company, the file is loaded automatically (no selection required).
 
+The **+ New** button in the runs sidebar is hidden until a company file is loaded. The sidebar column stays blank until data is loaded.
+
 The runs sidebar is user-resizable via a drag handle (default 160 px, range 130–400 px).
+
+The **Venue** field is a text input with autocomplete driven by `sc-theater-venues.json` — the same dropdown pattern as the auditions location field. Selecting a venue stores its full name (e.g. `"The Grove"`). Files that previously stored a venue code are translated to the name on load for backward compatibility.
 
 Import and Export buttons have been removed from the toolbar UI; the underlying functions (`importJSON`, `handleImport`, `openExport`, `closeExport`, `downloadJSON`) are retained in the module for future reinstatement if desired.
 
@@ -211,7 +211,9 @@ The `/auditions` page is "upcoming" by default — an audition is upcoming when 
 
 ### Auditions editor (`auditions.js`)
 
-Follows the same mount/unmount pattern as `calendar.js`. The company selector is populated from all non-admin entries in `sc-theater-companies.json`. If the selected company has no existing file, one is created automatically for the current year. If existing files are all for the current year or earlier and the current year is present, it is auto-loaded without requiring a year selection.
+Follows the same mount/unmount pattern as `calendar.js`. The company selector is populated from all non-admin entries in `sc-theater-companies.json` via the shared `buildCompanyOptions()` function in `api.js`. If the selected company has no existing file, one is created automatically for the current year. If existing files are all for the current year or earlier and the current year is present, it is auto-loaded without requiring a year selection.
+
+The **+ New** button in the auditions sidebar is hidden until a company file is loaded. The sidebar column stays blank until data is loaded.
 
 The form is split into a fixed header (production title, company badge, delete button) and a fixed fields row (company, genre, rehearsal start, opening date, production title, URLs), followed by a scrollable body containing: Audition Dates → Roles Available → Prepare/Contact → Notes.
 
@@ -222,7 +224,7 @@ The form is split into a fixed header (production title, company badge, delete b
 
 ## Companies
 
-### Data schema (`data/companies/sc-theater-companies.json`)
+### Data schema (`data/sc-theater-companies.json`)
 
 Hand-editable. The `/companies` page reads this at build time and filters out `adminOnly` entries. Logos are stored locally in `public/images/companies/` — download from the company's site and add the local path here rather than linking externally.
 
@@ -240,7 +242,7 @@ Hand-editable. The `/companies` page reads this at build time and filters out `a
 | `abvName`      | `string`              | Short key; matches `Run.company` for calendar-linked companies                                                                                                                                |
 | `name`         | `string`              | Full company name                                                                                                                                                                             |
 | `primaryVenue` | `string?`             | Main performing venue (display string)                                                                                                                                                        |
-| `venueCode`    | `string?`             | Venue code from the [venue codes table](#venue-codes) in Calendar — Shows, or a custom string for new venues                                                                                  |
+| `venueCode`    | `string?`             | Venue code from the [venue list](#venue-list) in Calendar — Shows, or a custom string for new venues                                                                                          |
 | `website`      | `string?`             | Company website URL                                                                                                                                                                           |
 | `logo`         | `string?`             | Local path, e.g. `"/images/companies/scs-logo.png"`                                                                                                                                           |
 | `logoDark`     | `boolean?`            | `true` when the logo is white/light and needs a dark card background                                                                                                                          |

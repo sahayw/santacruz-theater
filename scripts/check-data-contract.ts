@@ -7,17 +7,28 @@
 import { readdirSync, readFileSync } from 'fs'
 import { resolve, join } from 'path'
 import { fileURLToPath } from 'url'
-import type { Company, Genre, PerfType, Run, ShowsFile, Venue, PerformanceEvent } from '../src/types.ts'
+import type { Genre, PerfType, Run, ShowsFile, PerformanceEvent } from '../src/types.ts'
 
 const __dirname = resolve(fileURLToPath(import.meta.url), '..')
 const root = resolve(__dirname, '..')
 const showsDir = resolve(root, 'data/shows')
 
-const VALID_COMPANIES = new Set<Company>([
-  'SCS', 'AT', 'MCT', 'Renegade', 'Cabrillo', 'ABT', 'Other', ''
+const companiesJson = JSON.parse(
+  readFileSync(resolve(root, 'data/sc-theater-companies.json'), 'utf8')
+)
+const venuesJson = JSON.parse(readFileSync(resolve(root, 'data/sc-theater-venues.json'), 'utf8'))
+
+const VALID_COMPANIES = new Set<string>([
+  ...companiesJson.companies.map((c: { abvName: string }) => c.abvName),
+  ''
 ])
 const VALID_GENRES = new Set<Genre>(['Drama', 'Musical', 'Comedy', 'Tragedy', 'Other', ''])
-const VALID_VENUES = new Set<Venue>(['G', 'VMB', 'PH', 'AT', 'CCT', 'Other', ''])
+const VALID_VENUES = new Set<string>([
+  ...venuesJson.venues.map((v: { code: string }) => v.code),
+  ...venuesJson.venues.map((v: { name: string }) => v.name),
+  'Other',
+  ''
+])
 const VALID_PERF_TYPES = new Set<PerfType>(['', 'Preview', 'Opening', 'Closing', 'Talk-back'])
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/
 const TIME_RE = /^\d{2}:\d{2}$/
@@ -35,7 +46,10 @@ function expectString(value: unknown, label: string): string {
   return value
 }
 
-function validateShowsFile(value: unknown, filePath: string): ShowsFile & { __orderingWarnings: string[] } {
+function validateShowsFile(
+  value: unknown,
+  filePath: string
+): ShowsFile & { __orderingWarnings: string[] } {
   assert(isRecord(value), `${filePath}: top-level JSON must be an object`)
   assert(typeof value.year === 'number', `${filePath}: year must be a number`)
   assert(Array.isArray(value.runs), `${filePath}: must contain a runs array`)
@@ -81,7 +95,9 @@ function validateShowsFile(value: unknown, filePath: string): ShowsFile & { __or
 
       const sortKey = `${date}T${time}`
       if (previousSortKey > sortKey) {
-        orderingWarnings.push(`${loc}.performances is not ordered by date/time (${sortKey} after ${previousSortKey})`)
+        orderingWarnings.push(
+          `${loc}.performances is not ordered by date/time (${sortKey} after ${previousSortKey})`
+        )
       }
       previousSortKey = sortKey
     })
@@ -95,20 +111,20 @@ function flattenAndSort(runs: Run[]): PerformanceEvent[] {
   for (const run of runs) {
     for (const perf of run.performances) {
       events.push({
-        runId:       run.id,
-        company:     run.company,
-        showAbv:     run.showAbv,
-        show:        run.show,
+        runId: run.id,
+        company: run.company,
+        showAbv: run.showAbv,
+        show: run.show,
         description: run.description || '',
-        genre:       run.genre,
-        venue:       run.venue,
-        price:       run.price,
-        discounts:   perf.discounts  || run.discounts,
-        infoUrl:     run.infoUrl,
-        ticketsUrl:  perf.ticketsUrl || run.ticketsUrl,
-        date:        perf.date,
-        time:        perf.time,
-        perfType:    perf.perfType,
+        genre: run.genre,
+        venue: run.venue,
+        price: run.price,
+        discounts: perf.discounts || run.discounts,
+        infoUrl: run.infoUrl,
+        ticketsUrl: perf.ticketsUrl || run.ticketsUrl,
+        date: perf.date,
+        time: perf.time,
+        perfType: perf.perfType
       })
     }
   }
@@ -119,8 +135,8 @@ function flattenAndSort(runs: Run[]): PerformanceEvent[] {
 
 // Read and validate all ShowsFiles
 const yearDirs = readdirSync(showsDir, { withFileTypes: true })
-  .filter(d => d.isDirectory())
-  .map(d => d.name)
+  .filter((d) => d.isDirectory())
+  .map((d) => d.name)
 
 const allRawRuns: Run[] = []
 const allOrderingWarnings: string[] = []
@@ -129,7 +145,7 @@ const seenRunIds = new Set<string>()
 let fileCount = 0
 for (const year of yearDirs) {
   const yearDir = join(showsDir, year)
-  const files = readdirSync(yearDir).filter(f => f.endsWith('.json'))
+  const files = readdirSync(yearDir).filter((f) => f.endsWith('.json'))
   for (const file of files) {
     const filePath = join('data/shows', year, file)
     const raw = JSON.parse(readFileSync(join(root, filePath), 'utf8'))

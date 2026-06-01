@@ -1,89 +1,125 @@
 ---
-import SiteNav from '../components/SiteNav.astro';
-import companiesData from '../../data/companies/sc-theater-companies.json';
-import { getAuditions } from '../lib/data.ts';
-import type { AuditionEvent } from '../lib/data.ts';
+import SiteNav from '../components/SiteNav.astro'
+import companiesData from '../../data/sc-theater-companies.json'
+import { getAuditions } from '../lib/data.ts'
+import type { AuditionEvent } from '../lib/data.ts'
 
-const auditions = getAuditions();
+const auditions = getAuditions()
 
 const companyNameMap: Record<string, string> = Object.fromEntries(
-  companiesData.companies.map(c => [c.abvName, c.name])
-);
+  companiesData.companies.map((c) => [c.abvName, c.name])
+)
 
-const audCompanyCodes = new Set<string>(auditions.map(a => a.company));
+const audCompanyCodes = new Set<string>(auditions.map((a) => a.company))
 const filterCompanies = companiesData.companies.filter(
-  c => !c.adminOnly && audCompanyCodes.has(c.abvName as string)
-);
-const filterGenres = [...new Set(auditions.map(a => a.genre).filter(Boolean))].sort();
+  (c) => !c.adminOnly && audCompanyCodes.has(c.abvName as string)
+)
+const filterGenres = [...new Set(auditions.map((a) => a.genre).filter(Boolean))].sort()
 
 // ── Server-side formatting helpers ──
 
 function fmtShortDate(dateStr: string): string {
-  const [, m, d] = dateStr.split('-').map(Number);
-  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-  return `${months[m - 1]} ${d}`;
+  const [, m, d] = dateStr.split('-').map(Number)
+  const months = [
+    'Jan',
+    'Feb',
+    'Mar',
+    'Apr',
+    'May',
+    'Jun',
+    'Jul',
+    'Aug',
+    'Sep',
+    'Oct',
+    'Nov',
+    'Dec'
+  ]
+  return `${months[m - 1]} ${d}`
 }
 
 function fmtAudDateRange(aud: AuditionEvent): string {
-  const dates = aud.auditionDates;
-  if (!dates.length) return '';
-  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const dates = aud.auditionDates
+  if (!dates.length) return ''
+  const months = [
+    'Jan',
+    'Feb',
+    'Mar',
+    'Apr',
+    'May',
+    'Jun',
+    'Jul',
+    'Aug',
+    'Sep',
+    'Oct',
+    'Nov',
+    'Dec'
+  ]
   if (dates.length === 1) {
-    const [y, m, d] = dates[0].date.split('-').map(Number);
-    return `${months[m - 1]} ${d}, ${y}`;
+    const [y, m, d] = dates[0].date.split('-').map(Number)
+    return `${months[m - 1]} ${d}, ${y}`
   }
-  const [fy, fm, fd] = dates[0].date.split('-').map(Number);
-  const [ly, lm, ld] = dates[dates.length - 1].date.split('-').map(Number);
+  const [fy, fm, fd] = dates[0].date.split('-').map(Number)
+  const [ly, lm, ld] = dates[dates.length - 1].date.split('-').map(Number)
   if (fy === ly) {
-    if (fm === lm) return `${months[fm - 1]} ${fd}–${ld}, ${fy}`;
-    return `${months[fm - 1]} ${fd} – ${months[lm - 1]} ${ld}, ${fy}`;
+    if (fm === lm) return `${months[fm - 1]} ${fd}–${ld}, ${fy}`
+    return `${months[fm - 1]} ${fd} – ${months[lm - 1]} ${ld}, ${fy}`
   }
-  return `${months[fm - 1]} ${fd}, ${fy} – ${months[lm - 1]} ${ld}, ${ly}`;
+  return `${months[fm - 1]} ${fd}, ${fy} – ${months[lm - 1]} ${ld}, ${ly}`
 }
 
 function fmt12(t: string): string {
-  if (!t) return '';
-  const [hStr, mStr] = t.replace('.', ':').split(':');
-  const h = Number(hStr);
-  const m = mStr !== undefined ? Number(mStr) : 0;
-  return m === 0 ? String(h % 12 || 12) : `${h % 12 || 12}:${String(m).padStart(2, '0')}`;
+  if (!t) return ''
+  const [hStr, mStr] = t.replace('.', ':').split(':')
+  const h = Number(hStr)
+  const m = mStr !== undefined ? Number(mStr) : 0
+  return m === 0 ? String(h % 12 || 12) : `${h % 12 || 12}:${String(m).padStart(2, '0')}`
 }
 
 function fmtTimeRange(start: string, end: string): string {
-  if (!start && !end) return '';
-  if (!start || !end) return fmt12(start || end);
-  const sh = Number(start.split(':')[0]);
-  const eh = Number(end.split(':')[0]);
-  const sp = sh < 12 ? 'am' : 'pm';
-  const ep = eh < 12 ? 'am' : 'pm';
-  return sp === ep ? `${fmt12(start)}–${fmt12(end)} ${ep}` : `${fmt12(start)} ${sp}–${fmt12(end)} ${ep}`;
+  if (!start && !end) return ''
+  if (!start || !end) return fmt12(start || end)
+  const sh = Number(start.split(':')[0])
+  const eh = Number(end.split(':')[0])
+  const sp = sh < 12 ? 'am' : 'pm'
+  const ep = eh < 12 ? 'am' : 'pm'
+  return sp === ep
+    ? `${fmt12(start)}–${fmt12(end)} ${ep}`
+    : `${fmt12(start)} ${sp}–${fmt12(end)} ${ep}`
 }
 
 function fmtFullDate(dateStr: string): string {
-  const [y, m, d] = dateStr.split('-').map(Number);
+  const [y, m, d] = dateStr.split('-').map(Number)
   return new Date(y, m - 1, d).toLocaleDateString('en-US', {
-    weekday: 'short', month: 'short', day: 'numeric',
-  });
+    weekday: 'short',
+    month: 'short',
+    day: 'numeric'
+  })
 }
 
 function rolesSum(aud: AuditionEvent): string {
-  let female = 0, male = 0, any = 0, hasEnsemble = false;
+  let female = 0,
+    male = 0,
+    any = 0,
+    hasEnsemble = false
   for (const r of aud.rolesAvailable) {
-    if (r.type === 'ensemble') { hasEnsemble = true; continue; }
-    if (r.gender === 'female') female++;
-    else if (r.gender === 'male') male++;
-    else any++;
+    if (r.type === 'ensemble') {
+      hasEnsemble = true
+      continue
+    }
+    if (r.gender === 'female') female++
+    else if (r.gender === 'male') male++
+    else any++
   }
-  const parts: string[] = [];
-  if (female > 0) parts.push(`${female} female`);
-  if (male > 0) parts.push(`${male} male`);
-  if (any > 0) parts.push(`${any} any`);
-  if (hasEnsemble) parts.push('ensemble');
-  return parts.join(' · ');
+  const parts: string[] = []
+  if (female > 0) parts.push(`${female} female`)
+  if (male > 0) parts.push(`${male} male`)
+  if (any > 0) parts.push(`${any} any`)
+  if (hasEnsemble) parts.push('ensemble')
+  return parts.join(' · ')
 }
 
 function latestDate(aud: AuditionEvent): string {
-  return [...aud.auditionDates].sort((a, b) => b.date.localeCompare(a.date))[0]?.date ?? '';
+  return [...aud.auditionDates].sort((a, b) => b.date.localeCompare(a.date))[0]?.date ?? ''
 }
 
 function dotVar(company: string): string {
@@ -93,19 +129,19 @@ function dotVar(company: string): string {
     MCT: 'var(--dot-mct)',
     Renegade: 'var(--dot-renegade)',
     Cabrillo: 'var(--dot-cabrillo)',
-    ABT: 'var(--dot-abt)',
-  };
-  return map[company] ?? 'var(--dot-other)';
+    ABT: 'var(--dot-abt)'
+  }
+  return map[company] ?? 'var(--dot-other)'
 }
 
 function genreClass(genre: string): string {
-  return `genre-${genre.toLowerCase()}`;
+  return `genre-${genre.toLowerCase()}`
 }
 
 function roleTypeLabel(type: string): string {
-  if (type === 'lead') return 'Lead';
-  if (type === 'supporting') return 'Supp.';
-  return 'Ensemble';
+  if (type === 'lead') return 'Lead'
+  if (type === 'supporting') return 'Supp.'
+  return 'Ensemble'
 }
 ---
 
@@ -139,18 +175,14 @@ function roleTypeLabel(type: string): string {
             <label for="filter-company">Company</label>
             <select id="filter-company">
               <option value="">All</option>
-              {filterCompanies.map(c => (
-                <option value={c.abvName}>{c.name}</option>
-              ))}
+              {filterCompanies.map((c) => <option value={c.abvName}>{c.name}</option>)}
             </select>
           </div>
           <div class="filter-group">
             <label for="filter-genre">Genre</label>
             <select id="filter-genre">
               <option value="">All</option>
-              {filterGenres.map(g => (
-                <option value={g}>{g}</option>
-              ))}
+              {filterGenres.map((g) => <option value={g}>{g}</option>)}
             </select>
           </div>
           <div class="filter-group">
@@ -165,184 +197,208 @@ function roleTypeLabel(type: string): string {
         <div class="filter-count" id="filter-count" aria-live="polite"></div>
       </div>
 
-      {auditions.length === 0 ? (
-        <div class="aud-no-data">No audition listings yet. Check back soon.</div>
-      ) : (
-        <div class="aud-list" id="aud-list">
-          {auditions.map((aud) => {
-            const showVoice = aud.genre === 'Musical';
-            const companyName = companyNameMap[aud.company] ?? aud.company;
-            const latest = latestDate(aud);
-            return (
-              <div
-                class="aud-card"
-                data-company={aud.company}
-                data-genre={aud.genre}
-                data-latest-date={latest}
-              >
-                {/* ── Collapsed summary ── */}
-                <button class="aud-summary" aria-expanded="false">
-                  <div class="aud-main">
-                    <div class="aud-title-row">
-                      <span class="company-dot" style={`background:${dotVar(aud.company)}`}></span>
-                      <span class="aud-title">{aud.production}</span>
-                      {aud.genre && (
-                        <span class={`genre-badge ${genreClass(aud.genre)}`}>{aud.genre}</span>
-                      )}
+      {
+        auditions.length === 0 ? (
+          <div class="aud-no-data">No audition listings yet. Check back soon.</div>
+        ) : (
+          <div class="aud-list" id="aud-list">
+            {auditions.map((aud) => {
+              const showVoice = aud.genre === 'Musical'
+              const companyName = companyNameMap[aud.company] ?? aud.company
+              const latest = latestDate(aud)
+              return (
+                <div
+                  class="aud-card"
+                  data-company={aud.company}
+                  data-genre={aud.genre}
+                  data-latest-date={latest}
+                >
+                  {/* ── Collapsed summary ── */}
+                  <button class="aud-summary" aria-expanded="false">
+                    <div class="aud-main">
+                      <div class="aud-title-row">
+                        <span class="company-dot" style={`background:${dotVar(aud.company)}`} />
+                        <span class="aud-title">{aud.production}</span>
+                        {aud.genre && (
+                          <span class={`genre-badge ${genreClass(aud.genre)}`}>{aud.genre}</span>
+                        )}
+                      </div>
+                      <div class="aud-meta-row">
+                        {companyName}
+                        {aud.openingDate && ` · Opens ${fmtShortDate(aud.openingDate)}`}
+                      </div>
+                      <div class="aud-roles-row">{rolesSum(aud)}</div>
                     </div>
-                    <div class="aud-meta-row">
-                      {companyName}
-                      {aud.openingDate && ` · Opens ${fmtShortDate(aud.openingDate)}`}
+                    <div class="aud-aside">
+                      <span class="aud-date-range">{fmtAudDateRange(aud)}</span>
+                      <span class="aud-chevron" aria-hidden="true" />
                     </div>
-                    <div class="aud-roles-row">{rolesSum(aud)}</div>
-                  </div>
-                  <div class="aud-aside">
-                    <span class="aud-date-range">{fmtAudDateRange(aud)}</span>
-                    <span class="aud-chevron" aria-hidden="true"></span>
-                  </div>
-                </button>
+                  </button>
 
-                {/* ── Expanded detail ── */}
-                <div class="aud-detail" hidden>
-                  <div class="detail-grid">
-                    {/* Left column */}
-                    <div class="detail-left">
-                      <section class="detail-section">
-                        <h4 class="detail-section-head">Audition dates</h4>
-                        {aud.auditionDates.map(ad => (
-                          <div class="detail-date-row">
-                            <span class="detail-date-label">{fmtFullDate(ad.date)}</span>
-                            <span class="detail-time-label">{fmtTimeRange(ad.startTime, ad.endTime)}</span>
-                            {ad.notes && <span class="detail-date-note">{ad.notes}</span>}
-                            {ad.location && (
-                              <div class="detail-date-location">
-                                <span class="detail-location-name">{ad.location.name}</span>
-                                {ad.location.address && (
-                                  <span class="detail-sub"> · {ad.location.address}</span>
-                                )}
+                  {/* ── Expanded detail ── */}
+                  <div class="aud-detail" hidden>
+                    <div class="detail-grid">
+                      {/* Left column */}
+                      <div class="detail-left">
+                        <section class="detail-section">
+                          <h4 class="detail-section-head">Audition dates</h4>
+                          {aud.auditionDates.map((ad) => (
+                            <div class="detail-date-row">
+                              <span class="detail-date-label">{fmtFullDate(ad.date)}</span>
+                              <span class="detail-time-label">
+                                {fmtTimeRange(ad.startTime, ad.endTime)}
+                              </span>
+                              {ad.notes && <span class="detail-date-note">{ad.notes}</span>}
+                              {ad.location && (
+                                <div class="detail-date-location">
+                                  <span class="detail-location-name">{ad.location.name}</span>
+                                  {ad.location.address && (
+                                    <span class="detail-sub"> · {ad.location.address}</span>
+                                  )}
+                                </div>
+                              )}
+                            </div>
+                          ))}
+                        </section>
+
+                        {aud.prep && (
+                          <section class="detail-section">
+                            <h4 class="detail-section-head">Prepare</h4>
+                            {aud.prep.acting && (
+                              <div class="detail-prep-row">
+                                <span class="prep-label">Acting</span>
+                                <span>{aud.prep.acting}</span>
                               </div>
                             )}
-                          </div>
-                        ))}
-                      </section>
+                            {aud.prep.singing && (
+                              <div class="detail-prep-row">
+                                <span class="prep-label">Singing</span>
+                                <span>{aud.prep.singing}</span>
+                              </div>
+                            )}
+                            {aud.prep.dance && (
+                              <div class="detail-prep-row">
+                                <span class="prep-label">Dance</span>
+                                <span>{aud.prep.dance}</span>
+                              </div>
+                            )}
+                            {aud.prep.bring && aud.prep.bring.length > 0 && (
+                              <div class="detail-prep-row">
+                                <span class="prep-label">Bring</span>
+                                <span>{aud.prep.bring.join(', ')}</span>
+                              </div>
+                            )}
+                          </section>
+                        )}
 
-                      {aud.prep && (
-                        <section class="detail-section">
-                          <h4 class="detail-section-head">Prepare</h4>
-                          {aud.prep.acting && (
-                            <div class="detail-prep-row">
-                              <span class="prep-label">Acting</span>
-                              <span>{aud.prep.acting}</span>
-                            </div>
+                        {aud.contact &&
+                          (aud.contact.name || aud.contact.email || aud.contact.phone) && (
+                            <section class="detail-section">
+                              <h4 class="detail-section-head">Contact</h4>
+                              {aud.contact.name && (
+                                <div class="detail-contact-name">{aud.contact.name}</div>
+                              )}
+                              {aud.contact.email && (
+                                <div>
+                                  <a
+                                    href={`mailto:${aud.contact.email}`}
+                                    class="detail-link-inline"
+                                  >
+                                    {aud.contact.email}
+                                  </a>
+                                </div>
+                              )}
+                              {aud.contact.phone && (
+                                <div class="detail-sub">{aud.contact.phone}</div>
+                              )}
+                            </section>
                           )}
-                          {aud.prep.singing && (
-                            <div class="detail-prep-row">
-                              <span class="prep-label">Singing</span>
-                              <span>{aud.prep.singing}</span>
-                            </div>
-                          )}
-                          {aud.prep.dance && (
-                            <div class="detail-prep-row">
-                              <span class="prep-label">Dance</span>
-                              <span>{aud.prep.dance}</span>
-                            </div>
-                          )}
-                          {aud.prep.bring && aud.prep.bring.length > 0 && (
-                            <div class="detail-prep-row">
-                              <span class="prep-label">Bring</span>
-                              <span>{aud.prep.bring.join(', ')}</span>
-                            </div>
-                          )}
-                        </section>
-                      )}
+                      </div>
 
-                      {aud.contact && (aud.contact.name || aud.contact.email || aud.contact.phone) && (
-                        <section class="detail-section">
-                          <h4 class="detail-section-head">Contact</h4>
-                          {aud.contact.name && <div class="detail-contact-name">{aud.contact.name}</div>}
-                          {aud.contact.email && (
-                            <div>
-                              <a href={`mailto:${aud.contact.email}`} class="detail-link-inline">
-                                {aud.contact.email}
-                              </a>
-                            </div>
-                          )}
-                          {aud.contact.phone && <div class="detail-sub">{aud.contact.phone}</div>}
-                        </section>
+                      {/* Right column — roles table */}
+                      {aud.rolesAvailable?.length > 0 && (
+                        <div class="detail-right">
+                          <section class="detail-section">
+                            <h4 class="detail-section-head">Roles available</h4>
+                            <table class="roles-table">
+                              <thead>
+                                <tr>
+                                  <th>Role</th>
+                                  <th>Type</th>
+                                  <th>Age</th>
+                                  {showVoice && <th>Voice</th>}
+                                </tr>
+                              </thead>
+                              <tbody>
+                                {aud.rolesAvailable.map((role) => (
+                                  <tr>
+                                    <td class="role-name-cell">
+                                      {role.role}
+                                      {role.description && (
+                                        <span class="role-desc">{role.description}</span>
+                                      )}
+                                    </td>
+                                    <td class={`role-type role-${role.type}`}>
+                                      {roleTypeLabel(role.type)}
+                                    </td>
+                                    <td class="role-age">{role.ageRange ?? ''}</td>
+                                    {showVoice && (
+                                      <td class="role-voice">{role.voicePart ?? ''}</td>
+                                    )}
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
+                          </section>
+                        </div>
                       )}
                     </div>
 
-                    {/* Right column — roles table */}
-                    {aud.rolesAvailable?.length > 0 && (
-                    <div class="detail-right">
-                      <section class="detail-section">
-                        <h4 class="detail-section-head">Roles available</h4>
-                        <table class="roles-table">
-                          <thead>
-                            <tr>
-                              <th>Role</th>
-                              <th>Type</th>
-                              <th>Age</th>
-                              {showVoice && <th>Voice</th>}
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {aud.rolesAvailable.map(role => (
-                              <tr>
-                                <td class="role-name-cell">
-                                  {role.role}
-                                  {role.description && (
-                                    <span class="role-desc">{role.description}</span>
-                                  )}
-                                </td>
-                                <td class={`role-type role-${role.type}`}>
-                                  {roleTypeLabel(role.type)}
-                                </td>
-                                <td class="role-age">{role.ageRange ?? ''}</td>
-                                {showVoice && <td class="role-voice">{role.voicePart ?? ''}</td>}
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
-                      </section>
-                    </div>
+                    {aud.notes && <div class="detail-notes-full">{aud.notes}</div>}
+
+                    {(aud.auditionNoticeUrl || aud.productionUrl) && (
+                      <div class="detail-links-row">
+                        {aud.auditionNoticeUrl && (
+                          <a
+                            href={aud.auditionNoticeUrl}
+                            class="detail-action-link"
+                            target="_blank"
+                            rel="noopener"
+                          >
+                            Audition notice →
+                          </a>
+                        )}
+                        {aud.productionUrl && (
+                          <a
+                            href={aud.productionUrl}
+                            class="detail-action-link"
+                            target="_blank"
+                            rel="noopener"
+                          >
+                            Production info →
+                          </a>
+                        )}
+                      </div>
                     )}
                   </div>
-
-                  {aud.notes && (
-                    <div class="detail-notes-full">{aud.notes}</div>
-                  )}
-
-                  {(aud.auditionNoticeUrl || aud.productionUrl) && (
-                    <div class="detail-links-row">
-                      {aud.auditionNoticeUrl && (
-                        <a href={aud.auditionNoticeUrl} class="detail-action-link" target="_blank" rel="noopener">
-                          Audition notice →
-                        </a>
-                      )}
-                      {aud.productionUrl && (
-                        <a href={aud.productionUrl} class="detail-action-link" target="_blank" rel="noopener">
-                          Production info →
-                        </a>
-                      )}
-                    </div>
-                  )}
                 </div>
-              </div>
-            );
-          })}
+              )
+            })}
 
-          <div class="aud-empty" id="aud-empty" hidden>
-            No auditions match the current filters.
+            <div class="aud-empty" id="aud-empty" hidden>
+              No auditions match the current filters.
+            </div>
           </div>
-        </div>
-      )}
+        )
+      }
     </main>
   </body>
 </html>
 
 <style>
-  *, *::before, *::after {
+  *,
+  *::before,
+  *::after {
     box-sizing: border-box;
     margin: 0;
     padding: 0;
@@ -496,7 +552,9 @@ function roleTypeLabel(type: string): string {
     border: 1px solid var(--border);
     border-radius: var(--radius);
     overflow: hidden;
-    transition: border-color 0.15s, box-shadow 0.15s;
+    transition:
+      border-color 0.15s,
+      box-shadow 0.15s;
   }
 
   .aud-card.open {
@@ -566,10 +624,22 @@ function roleTypeLabel(type: string): string {
     letter-spacing: 0.02em;
   }
 
-  .genre-musical  { background: #dce4fb; color: #2c3e9a; }
-  .genre-drama    { background: #fbe5e1; color: #8c3a2e; }
-  .genre-comedy   { background: #dff4d6; color: #2d6020; }
-  .genre-other    { background: #f0ece6; color: var(--ink-muted); }
+  .genre-musical {
+    background: #dce4fb;
+    color: #2c3e9a;
+  }
+  .genre-drama {
+    background: #fbe5e1;
+    color: #8c3a2e;
+  }
+  .genre-comedy {
+    background: #dff4d6;
+    color: #2d6020;
+  }
+  .genre-other {
+    background: #f0ece6;
+    color: var(--ink-muted);
+  }
 
   .aud-meta-row {
     font-size: 12px;
@@ -783,9 +853,17 @@ function roleTypeLabel(type: string): string {
     white-space: nowrap;
   }
 
-  .role-lead      { color: #6c3bb5; font-weight: 500; }
-  .role-supporting { color: var(--ink-muted); }
-  .role-ensemble  { color: var(--ink-subtle); font-style: italic; }
+  .role-lead {
+    color: #6c3bb5;
+    font-weight: 500;
+  }
+  .role-supporting {
+    color: var(--ink-muted);
+  }
+  .role-ensemble {
+    color: var(--ink-subtle);
+    font-style: italic;
+  }
 
   .role-age,
   .role-voice {
@@ -877,60 +955,58 @@ function roleTypeLabel(type: string): string {
 </style>
 
 <script is:inline>
-  const TODAY = new Date().toISOString().slice(0, 10);
+  const TODAY = new Date().toISOString().slice(0, 10)
 
-  const cards = Array.from(document.querySelectorAll('.aud-card'));
-  const countEl = document.getElementById('filter-count');
-  const filterCompany = document.getElementById('filter-company');
-  const filterGenre = document.getElementById('filter-genre');
-  const filterWhen = document.getElementById('filter-when');
-  const emptyEl = document.getElementById('aud-empty');
+  const cards = Array.from(document.querySelectorAll('.aud-card'))
+  const countEl = document.getElementById('filter-count')
+  const filterCompany = document.getElementById('filter-company')
+  const filterGenre = document.getElementById('filter-genre')
+  const filterWhen = document.getElementById('filter-when')
+  const emptyEl = document.getElementById('aud-empty')
 
   function updateFilters() {
-    const co = filterCompany.value;
-    const ge = filterGenre.value;
-    const wh = filterWhen.value;
-    let visible = 0;
+    const co = filterCompany.value
+    const ge = filterGenre.value
+    const wh = filterWhen.value
+    let visible = 0
 
-    cards.forEach(card => {
-      const matchCo = !co || card.dataset.company === co;
-      const matchGe = !ge || card.dataset.genre === ge;
-      const latest = card.dataset.latestDate ?? '';
+    cards.forEach((card) => {
+      const matchCo = !co || card.dataset.company === co
+      const matchGe = !ge || card.dataset.genre === ge
+      const latest = card.dataset.latestDate ?? ''
       const matchWh =
-        wh === 'all'      ? true :
-        wh === 'past'     ? latest < TODAY :
-        /* upcoming */      latest >= TODAY;
+        wh === 'all' ? true : wh === 'past' ? latest < TODAY : /* upcoming */ latest >= TODAY
 
-      const show = matchCo && matchGe && matchWh;
-      card.style.display = show ? '' : 'none';
-      if (show) visible++;
-    });
+      const show = matchCo && matchGe && matchWh
+      card.style.display = show ? '' : 'none'
+      if (show) visible++
+    })
 
     if (countEl) {
-      countEl.textContent = `${visible} ${visible === 1 ? 'audition' : 'auditions'}`;
+      countEl.textContent = `${visible} ${visible === 1 ? 'audition' : 'auditions'}`
     }
     if (emptyEl) {
-      emptyEl.hidden = visible > 0;
+      emptyEl.hidden = visible > 0
     }
   }
 
   // Default to upcoming
-  if (filterWhen) filterWhen.value = 'upcoming';
-  updateFilters();
+  if (filterWhen) filterWhen.value = 'upcoming'
+  updateFilters()
 
-  filterCompany?.addEventListener('change', updateFilters);
-  filterGenre?.addEventListener('change', updateFilters);
-  filterWhen?.addEventListener('change', updateFilters);
+  filterCompany?.addEventListener('change', updateFilters)
+  filterGenre?.addEventListener('change', updateFilters)
+  filterWhen?.addEventListener('change', updateFilters)
 
   // Expand / collapse
-  document.querySelectorAll('.aud-summary').forEach(btn => {
+  document.querySelectorAll('.aud-summary').forEach((btn) => {
     btn.addEventListener('click', () => {
-      const card = btn.closest('.aud-card');
-      const detail = card?.querySelector('.aud-detail');
-      if (!card || !detail) return;
-      const isOpen = card.classList.toggle('open');
-      detail.hidden = !isOpen;
-      btn.setAttribute('aria-expanded', String(isOpen));
-    });
-  });
+      const card = btn.closest('.aud-card')
+      const detail = card?.querySelector('.aud-detail')
+      if (!card || !detail) return
+      const isOpen = card.classList.toggle('open')
+      detail.hidden = !isOpen
+      btn.setAttribute('aria-expanded', String(isOpen))
+    })
+  })
 </script>

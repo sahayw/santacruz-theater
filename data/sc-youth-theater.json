@@ -1,0 +1,12 @@
+{
+  "companies": [
+    {
+      "id": "aat",
+      "abvName": "AAT",
+      "name": "All About Theatre",
+      "primaryVenue": "Colligan",
+      "website": "https://allabouttheatre.org/",
+      "logo": "/images/companies/aat-logo.png",
+      "logoDark": true
+    }
+  ]}

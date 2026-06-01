@@ -1,4 +1,4 @@
-import { IS_DEV, apiFetch, apiPut } from './api.js'
+import { IS_DEV, apiFetch, apiPut, buildCompanyOptions } from './api.js'
 
 const PERF_TYPES = ['', 'Preview', 'Opening', 'Closing', 'Talk-back']
 const MONTH_MAP = {
@@ -26,6 +26,7 @@ let pendingCompanyId = null
 let currentCompanyId = null
 let currentYear = CURRENT_YEAR
 let currentCompanyAbv = ''
+let venuesList = []
 let isDirty = false
 let isAdminContext = false
 let _resizeMouseMove = null
@@ -178,6 +179,18 @@ const CAL_CSS = `
   pointer-events: none;
   border-color: var(--border);
 }
+.cal-venue-dropdown {
+  position: fixed; z-index: 1000;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 3px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  overflow-y: auto; max-height: 180px;
+}
+.cal-venue-item {
+  padding: 6px 10px; font-size: 12px; font-family: 'IBM Plex Sans', sans-serif;
+  cursor: pointer; border-bottom: 1px solid var(--border); color: var(--ink);
+}
+.cal-venue-item:last-child { border-bottom: none; }
+.cal-venue-item:hover { background: var(--bg); }
 .desc-section {
   padding: 6px 16px 8px;
   background: var(--bg);
@@ -429,7 +442,7 @@ const CAL_HTML = `
   <div class="sidebar" id="calSidebar">
     <div class="sidebar-header">
       <span class="sidebar-label">Runs</span>
-      <button class="btn btn-green btn-sm" onclick="cal.newRun()">+ New</button>
+      <button class="btn btn-green btn-sm" id="newRunBtn" onclick="cal.newRun()" style="display:none">+ New</button>
     </div>
     <div class="run-list" id="runList"></div>
   </div>
@@ -467,15 +480,10 @@ const CAL_HTML = `
         </div>
         <div class="field-group">
           <label class="field-label">Venue</label>
-          <select class="field-select" id="f-venue" onchange="cal.runFieldChanged()">
-            <option value="">-</option>
-            <option value="G">The Grove (SCS)</option>
-            <option value="VMB">Veterans Memorial Building</option>
-            <option value="PH">Park Hall (MCT)</option>
-            <option value="AT">Actors' Theatre</option>
-            <option value="CCT">Cabrillo Crocker Theater</option>
-            <option value="Other">Other</option>
-          </select>
+          <input class="field-input" id="f-venue" placeholder="Venue name" autocomplete="off"
+            oninput="cal.onVenueInput(this)" onfocus="cal.onVenueInput(this)"
+            onblur="setTimeout(()=>cal.hideCalVenueDropdown(),150)"
+            onkeydown="cal.venueKeyDown(event,this)">
         </div>
         <div class="field-group" style="grid-column:span 1">
           <label class="field-label">Full Show Title</label>
@@ -616,6 +624,7 @@ async function loadCompanyFile(coId, year) {
     currentCompanyAbv = allCompanies.find((c) => c.id === coId)?.abvName || coId
     isDirty = false
     activeRunIdx = runs.length > 0 ? 0 : -1
+    document.getElementById('newRunBtn')?.setAttribute('style', '')
     renderSidebar()
     loadRunEditor()
     updateStatus()
@@ -625,12 +634,15 @@ async function loadCompanyFile(coId, year) {
   }
 }
 
-function showFileControls(_visible) { /* buttons removed; keep for future reinstatement */ }
+function showFileControls(_visible) {
+  /* buttons removed; keep for future reinstatement */
+}
 
 function updateEmptyState() {
   const el = document.getElementById('emptyState')
   if (!el) return
   if (!currentCompanyId) {
+    document.getElementById('newRunBtn')?.setAttribute('style', 'display:none')
     if (isAdminContext) {
       el.innerHTML = `<div class="empty-state-icon">📅</div>
         <h2>Select a company / year</h2>
@@ -652,6 +664,9 @@ async function initFromContext(context) {
   isAdminContext = context.isAdmin
   allCompanies = context.allCompanies || []
   updateEmptyState()
+  venuesList = await apiFetch('sc-theater-venues.json')
+    .then((d) => d.venues || [])
+    .catch(() => [])
   try {
     allShowFiles = await loadShowsDir()
   } catch (e) {
@@ -660,22 +675,7 @@ async function initFromContext(context) {
   }
   if (context.isAdmin) {
     const compSel = document.getElementById('companySelect')
-    const SKIP = new Set(['admin'])
-    const uniqueIds = [
-      ...new Set(allShowFiles.filter((f) => !SKIP.has(f.companyId)).map((f) => f.companyId))
-    ].sort((a, b) => {
-      const aAbv = allCompanies.find((c) => c.id === a)?.abvName || a
-      const bAbv = allCompanies.find((c) => c.id === b)?.abvName || b
-      return aAbv.localeCompare(bAbv)
-    })
-    compSel.innerHTML =
-      '<option value="">— Company —</option>' +
-      uniqueIds
-        .map((id) => {
-          const abv = allCompanies.find((c) => c.id === id)?.abvName || id
-          return `<option value="${id}">${abv}</option>`
-        })
-        .join('')
+    compSel.innerHTML = buildCompanyOptions(allCompanies)
     compSel.style.display = ''
   } else {
     pendingCompanyId = context.company.id
@@ -836,13 +836,7 @@ function renderSidebar() {
   const list = document.getElementById('runList')
   if (!list) return
   if (!runs.length) {
-    let msg
-    if (!currentCompanyId) {
-      msg = isAdminContext ? 'Select a company to load data.' : 'Select a year to load data.'
-    } else {
-      msg = 'No runs yet.<br>Click + New to add one.'
-    }
-    list.innerHTML = `<div class="sidebar-empty">${msg}</div>`
+    list.innerHTML = ''
     return
   }
   const openingDate = (r) =>
@@ -884,7 +878,8 @@ function loadRunEditor() {
   document.getElementById('f-showAbv').value = r.showAbv || ''
   document.getElementById('f-show').value = r.show || ''
   document.getElementById('f-genre').value = r.genre || ''
-  document.getElementById('f-venue').value = r.venue || ''
+  document.getElementById('f-venue').value =
+    venuesList.find((v) => v.code === r.venue)?.name || r.venue || ''
   document.getElementById('f-price').value = r.price || ''
   document.getElementById('f-discounts').value = r.discounts || ''
   document.getElementById('f-infoUrl').value = r.infoUrl || ''
@@ -951,10 +946,6 @@ function fmtDesc(type) {
 
 // ── RUN CRUD ──
 function newRun() {
-  if (!currentCompanyId) {
-    alert('Please select a company and year first.')
-    return
-  }
   const run = {
     id: `run-${Date.now()}`,
     company: currentCompanyAbv,
@@ -1004,7 +995,11 @@ function clearEditor() {
 // ── VALIDATION ──
 function normalizeDate(v) {
   if (!v) return v
-  const parts = v.trim().replace(/[/.]/g, '-').split('-').map(s => s.trim())
+  const parts = v
+    .trim()
+    .replace(/[/.]/g, '-')
+    .split('-')
+    .map((s) => s.trim())
   if (parts.length !== 3) return v
   let [y, m, d] = parts
   if (y.length === 2) y = '20' + y
@@ -1032,8 +1027,10 @@ function collectErrors() {
   runs.forEach((run, ri) => {
     const label = run.show || `Run ${ri + 1}`
     run.performances.forEach((p, pi) => {
-      if (!isValidDate(p.date)) errors.push(`"${label}" — row ${pi + 1}: date "${p.date || '(empty)'}"`)
-      if (!isValidTime(p.time)) errors.push(`"${label}" — row ${pi + 1}: time "${p.time || '(empty)'}"`)
+      if (!isValidDate(p.date))
+        errors.push(`"${label}" — row ${pi + 1}: date "${p.date || '(empty)'}"`)
+      if (!isValidTime(p.time))
+        errors.push(`"${label}" — row ${pi + 1}: time "${p.time || '(empty)'}"`)
     })
   })
   return errors
@@ -1343,6 +1340,76 @@ function downloadJSON() {
   URL.revokeObjectURL(url)
 }
 
+// ── VENUE AUTOCOMPLETE ──
+function getCalVenueDropdown() {
+  let el = document.getElementById('cal-venue-dropdown')
+  if (!el) {
+    el = document.createElement('div')
+    el.id = 'cal-venue-dropdown'
+    el.className = 'cal-venue-dropdown'
+    el.style.display = 'none'
+    document.body.appendChild(el)
+  }
+  return el
+}
+
+function onVenueInput(inputEl) {
+  if (!venuesList.length) return
+  const query = inputEl.value.trim().toLowerCase()
+  const matches = venuesList.filter((v) => !query || v.name.toLowerCase().includes(query))
+  const dd = getCalVenueDropdown()
+  if (!matches.length) {
+    dd.style.display = 'none'
+    return
+  }
+  dd.innerHTML = matches
+    .map(
+      (v) =>
+        `<div class="cal-venue-item" onmousedown="cal.selectVenueForRun('${v.code}')">${v.name}</div>`
+    )
+    .join('')
+  const rect = inputEl.getBoundingClientRect()
+  dd.style.left = rect.left + 'px'
+  dd.style.top = rect.bottom + 2 + 'px'
+  dd.style.width = Math.max(rect.width, 200) + 'px'
+  dd.style.display = 'block'
+}
+
+function hideCalVenueDropdown() {
+  const dd = document.getElementById('cal-venue-dropdown')
+  if (dd) dd.style.display = 'none'
+}
+
+function selectVenueForRun(code) {
+  const venue = venuesList.find((v) => v.code === code)
+  if (!venue) {
+    hideCalVenueDropdown()
+    return
+  }
+  const el = document.getElementById('f-venue')
+  if (el) el.value = venue.name
+  hideCalVenueDropdown()
+  runFieldChanged()
+}
+
+function venueKeyDown(event, inputEl) {
+  if (event.key === 'Escape') {
+    hideCalVenueDropdown()
+    return
+  }
+  if (event.key === 'Enter' || event.key === 'Tab') {
+    const dd = document.getElementById('cal-venue-dropdown')
+    if (dd && dd.style.display !== 'none' && dd.children.length === 1) {
+      event.preventDefault()
+      const code = dd.children[0].getAttribute('onmousedown').match(/'([^']+)'\)$/)?.[1]
+      if (code) {
+        selectVenueForRun(code)
+        return
+      }
+    }
+  }
+}
+
 // ── MODULE API ──
 export function mount(container, context) {
   injectStyles()
@@ -1373,7 +1440,11 @@ export function mount(container, context) {
     togglePattern,
     generatePattern,
     togglePaste,
-    parsePaste
+    parsePaste,
+    onVenueInput,
+    hideCalVenueDropdown,
+    selectVenueForRun,
+    venueKeyDown
   }
 
   // Delegated listeners that can't use inline handlers
@@ -1392,7 +1463,7 @@ export function mount(container, context) {
   })
 
   const sidebarHandle = document.getElementById('sidebarHandle')
-  const calSidebar    = document.getElementById('calSidebar')
+  const calSidebar = document.getElementById('calSidebar')
   sidebarHandle.addEventListener('mousedown', (e) => {
     const startX = e.clientX
     const startW = calSidebar.offsetWidth
@@ -1424,10 +1495,11 @@ export function mount(container, context) {
 
 export function unmount() {
   if (_resizeMouseMove) document.removeEventListener('mousemove', _resizeMouseMove)
-  if (_resizeMouseUp)   document.removeEventListener('mouseup',   _resizeMouseUp)
+  if (_resizeMouseUp) document.removeEventListener('mouseup', _resizeMouseUp)
   _resizeMouseMove = null
-  _resizeMouseUp   = null
+  _resizeMouseUp = null
   delete window.cal
+  document.getElementById('cal-venue-dropdown')?.remove()
   runs = []
   activeRunIdx = -1
   allCompanies = []
@@ -1436,6 +1508,7 @@ export function unmount() {
   currentCompanyId = null
   currentYear = CURRENT_YEAR
   currentCompanyAbv = ''
+  venuesList = []
   isDirty = false
   isAdminContext = false
 }

@@ -206,7 +206,7 @@ body {
 <!-- APP SHELL -->
 <div id="app" style="display:none">
   <div class="topbar">
-    <div class="topbar-title">Santa Cruz Theater <span>Data Editor</span></div>
+    <div class="topbar-title">Santa Cruz Theater <span id="topbarSubtitle">Data Editor</span></div>
     <button class="btn btn-ghost btn-sm" id="hubBtn" onclick="goHub()" style="display:none">← Editors</button>
     <span id="userLabel" class="topbar-user"></span>
     <button class="btn btn-ghost btn-sm" onclick="signOut()">Sign out</button>
@@ -230,8 +230,8 @@ let userAccess   = null;
 let currentEditor = null;
 
 const EDITORS = {
-  calendar:  { label: 'Calendar Editor',  desc: 'Manage show runs and performances', icon: '📅', mount: mountCalendar,  unmount: unmountCalendar  },
-  auditions: { label: 'Auditions Editor', desc: 'Manage audition listings',          icon: '🎤', mount: mountAuditions, unmount: unmountAuditions },
+  calendar:  { label: 'Calendar Editor',  headerTitle: 'Edit Performances', desc: 'Manage show runs and performances', icon: '📅', mount: mountCalendar,  unmount: unmountCalendar  },
+  auditions: { label: 'Auditions Editor', headerTitle: 'Edit Auditions',    desc: 'Manage audition listings',          icon: '🎤', mount: mountAuditions, unmount: unmountAuditions },
 };
 
 async function init() {
@@ -264,6 +264,7 @@ function showApp() {
 
 function showHub() {
   document.getElementById('hubBtn').style.display = 'none';
+  document.getElementById('topbarSubtitle').textContent = 'Data Editor';
   document.getElementById('hubView').style.display = '';
   document.getElementById('editorContainer').style.display = 'none';
   if (currentEditor) {
@@ -291,6 +292,7 @@ window.openEditor = function(key) {
   const ed = EDITORS[key];
   if (!ed) return;
   document.getElementById('hubView').style.display = 'none';
+  document.getElementById('topbarSubtitle').textContent = ed.headerTitle || ed.label;
   const container = document.getElementById('editorContainer');
   container.style.display = '';
   document.getElementById('hubBtn').style.display = '';

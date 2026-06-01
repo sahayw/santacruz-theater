@@ -1,13 +1,4 @@
-// Constrained string unions matching the editor's dropdown options exactly.
-// Empty string is a valid value for all of these (editor allows unset).
-
-export type Company = 'SCS' | 'AT' | 'MCT' | 'Renegade' | 'Cabrillo' | 'ABT' | 'Other' | ''
-
 export type Genre = 'Drama' | 'Musical' | 'Comedy' | 'Other' | ''
-
-// G = The Grove (SCS), VMB = Veterans Memorial Building, PH = Park Hall (MCT),
-// AT = Actors' Theatre, CCT = Cabrillo Crocker Theater
-export type Venue = 'G' | 'VMB' | 'PH' | 'AT' | 'CCT' | 'Other' | ''
 
 export type PerfType = '' | 'Preview' | 'Opening' | 'Closing' | 'Talk-back'
 
@@ -23,12 +14,12 @@ export interface Performance {
 /** A single production run — the unit produced and consumed by the editor. */
 export interface Run {
   id: string // "run-<timestamp>", stable identifier
-  company: Company
+  company: string
   showAbv: string // short display label, e.g. "Much Ado"
   show: string // full title, e.g. "Much Ado About Nothing (Shakespeare)"
   description?: string // optional narrative paragraph; supports **bold** and *italic*
   genre: Genre
-  venue: Venue
+  venue: string
   price: string
   discounts: string
   infoUrl: string
@@ -38,7 +29,7 @@ export interface Run {
 
 /** Shape of each data/shows/<year>/<company>-<year>.json file. */
 export interface ShowsFile {
-  company: Company
+  company: string
   year: number
   runs: Run[]
 }
@@ -49,7 +40,7 @@ export interface CompanyEditor {
   datasets: string[] // e.g. ['calendar', 'auditions']
 }
 
-/** Shape of data/companies/sc-theater-companies.json. */
+/** Shape of data/sc-theater-companies.json. */
 export interface CompanyEntry {
   id: string
   abvName: string
@@ -70,16 +61,16 @@ export interface AuditionRole {
   role: string
   type: AuditionRoleType
   gender: AuditionGender
-  ageRange?: string    // e.g. "30s", "20s–40s", "18+", "Any"
-  voicePart?: string   // e.g. "Soprano", "Baritone" — musicals only
+  ageRange?: string // e.g. "30s", "20s–40s", "18+", "Any"
+  voicePart?: string // e.g. "Soprano", "Baritone" — musicals only
   description?: string
 }
 
 export interface AuditionDate {
-  date: string       // YYYY-MM-DD
-  startTime: string  // HH:MM 24-hour
-  endTime: string    // HH:MM 24-hour
-  notes?: string     // e.g. "First come, first served"
+  date: string // YYYY-MM-DD
+  startTime: string // HH:MM 24-hour
+  endTime: string // HH:MM 24-hour
+  notes?: string // e.g. "First come, first served"
   location?: AuditionLocation
 }
 
@@ -102,15 +93,15 @@ export interface AuditionPrep {
 }
 
 export interface Audition {
-  id: string              // "audition-<timestamp>"
+  id: string // "audition-<timestamp>"
   production: string
   genre: Genre
-  productionId?: string   // soft ref to a Run id in shows data
+  productionId?: string // soft ref to a Run id in shows data
   auditionDates: AuditionDate[]
   rolesAvailable: AuditionRole[]
   prep?: AuditionPrep
   rehearsalStart?: string // YYYY-MM-DD
-  openingDate?: string    // YYYY-MM-DD
+  openingDate?: string // YYYY-MM-DD
   contact?: AuditionContact
   auditionNoticeUrl?: string
   productionUrl?: string
@@ -120,7 +111,7 @@ export interface Audition {
 }
 
 export interface AuditionsFile {
-  company: Company
+  company: string
   year: number
   auditions: Audition[]
 }
@@ -132,12 +123,12 @@ export interface AuditionsFile {
  */
 export interface PerformanceEvent {
   runId: string
-  company: Company
+  company: string
   showAbv: string
   show: string
   description: string
   genre: Genre
-  venue: Venue
+  venue: string
   price: string
   discounts: string
   infoUrl: string

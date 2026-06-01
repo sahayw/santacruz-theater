@@ -32,8 +32,24 @@ export async function apiPut(file, payload) {
 }
 
 export async function loadCompanies() {
-  const data = await apiFetch('companies/sc-theater-companies.json')
+  const data = await apiFetch('sc-theater-companies.json')
   return data.companies || []
+}
+
+// Returns sorted <option> HTML for a company <select>, excluding the admin sentinel.
+// 'Other' is always last. Used by both calendar and auditions editors.
+export function buildCompanyOptions(allCompanies) {
+  const sorted = (allCompanies || [])
+    .filter((c) => c.id !== 'admin')
+    .sort((a, b) => {
+      if (a.id === 'other') return 1
+      if (b.id === 'other') return -1
+      return (a.abvName || a.name).localeCompare(b.abvName || b.name)
+    })
+  return (
+    '<option value="">— Company —</option>' +
+    sorted.map((c) => `<option value="${c.id}">${c.abvName || c.name}</option>`).join('')
+  )
 }
 
 // Returns { isAdmin, datasets, company } or null if no access.

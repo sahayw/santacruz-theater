@@ -54,18 +54,9 @@
       "logoDark": true
     },
     {
-      "id": "aat",
-      "abvName": "AAT",
-      "name": "All About Theatre",
-      "primaryVenue": "Colligan",
-      "website": "https://allabouttheatre.org/",
-      "logo": "/images/companies/aat-logo.png",
-      "logoDark": true
-    },
-    {
       "id": "landing",
       "abvName": "Landing",
-      "name": "The Landing",
+      "name": "The Landing, SV",
       "website": "https://thelandingsv.org/",
       "logo": "/images/companies/landing-logo.png",
       "logoDark": true

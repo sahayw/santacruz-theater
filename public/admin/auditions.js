@@ -1,4 +1,4 @@
-import { IS_DEV, apiFetch, apiPut } from './api.js'
+import { IS_DEV, apiFetch, apiPut, buildCompanyOptions } from './api.js'
 
 const ROLE_TYPES = ['lead', 'supporting', 'ensemble']
 const ROLE_GENDERS = ['any', 'female', 'male']
@@ -328,7 +328,7 @@ const AUD_HTML = `
   <div class="aud-sidebar" id="audSidebar">
     <div class="aud-sidebar-header">
       <span class="aud-sidebar-label">Auditions</span>
-      <button class="btn btn-green btn-sm" onclick="aud.newAudition()">+ New</button>
+      <button class="btn btn-green btn-sm" id="newAudBtn" onclick="aud.newAudition()" style="display:none">+ New</button>
     </div>
     <div class="aud-list" id="audList"></div>
   </div>
@@ -522,6 +522,7 @@ async function loadCompanyFile(coId, year) {
     currentCompanyAbv = allCompanies.find((c) => c.id === coId)?.abvName || coId
     isDirty = false
     activeAudIdx = auditions.length > 0 ? 0 : -1
+    document.getElementById('newAudBtn')?.setAttribute('style', '')
     renderSidebar()
     loadAudEditor()
     updateStatus()
@@ -535,6 +536,7 @@ async function loadCompanyFile(coId, year) {
 function updateEmptyState() {
   const el = document.getElementById('audEmptyState')
   if (!el) return
+  if (!currentCompanyId) document.getElementById('newAudBtn')?.setAttribute('style', 'display:none')
   el.innerHTML = !currentCompanyId
     ? isAdminContext
       ? `<div class="aud-empty-icon">🎤</div><h2>Select a company / year</h2><p>from the toolbar above to load auditions</p>`
@@ -558,16 +560,7 @@ async function initFromContext(context) {
     .catch(() => [])
   if (context.isAdmin) {
     const compSel = document.getElementById('audCompanySelect')
-    const sorted = allCompanies
-      .filter((c) => c.id !== 'admin')
-      .sort((a, b) => {
-        if (a.id === 'other') return 1
-        if (b.id === 'other') return -1
-        return (a.abvName || a.name).localeCompare(b.abvName || b.name)
-      })
-    compSel.innerHTML =
-      '<option value="">— Company —</option>' +
-      sorted.map((c) => `<option value="${c.id}">${c.abvName || c.name}</option>`).join('')
+    compSel.innerHTML = buildCompanyOptions(allCompanies)
     compSel.style.display = ''
   } else {
     pendingCompanyId = context.company.id
@@ -765,12 +758,7 @@ function renderSidebar() {
   const list = document.getElementById('audList')
   if (!list) return
   if (!auditions.length) {
-    const msg = !currentCompanyId
-      ? isAdminContext
-        ? 'Select a company to load data.'
-        : 'Select a year to load data.'
-      : 'No auditions yet.<br>Click + New to add one.'
-    list.innerHTML = `<div class="aud-list-empty">${msg}</div>`
+    list.innerHTML = ''
     return
   }
   const firstDate = (a) => a.auditionDates?.[0]?.date || '9999-99-99'
@@ -904,10 +892,6 @@ function toggleNotesExpand() {
 
 // ── AUDITION CRUD ──
 function newAudition() {
-  if (!currentCompanyId) {
-    alert('Please select a company and year first.')
-    return
-  }
   const now = new Date().toISOString()
   auditions.push({
     id: `audition-${Date.now()}`,

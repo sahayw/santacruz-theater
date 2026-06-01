@@ -239,7 +239,7 @@ Hand-editable. The `/companies` page reads this at build time and filters out `a
 | Field          | Type                  | Notes                                                                                                                                                                                         |
 | -------------- | --------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `id`           | `string`              | Kebab-case slug, e.g. `"scs"`                                                                                                                                                                 |
-| `abvName`      | `string`              | Short key; matches `Run.company` for calendar-linked companies                                                                                                                                |
+| `abvName`      | `string`              | Short display label used in selectors and sidebar chips; `id` is used for data linkage                                                                                                        |
 | `name`         | `string`              | Full company name                                                                                                                                                                             |
 | `primaryVenue` | `string?`             | Main performing venue (display string)                                                                                                                                                        |
 | `venueCode`    | `string?`             | Venue code from the [venue list](#venue-list) in Calendar — Shows, or a custom string for new venues                                                                                          |
@@ -250,6 +250,8 @@ Hand-editable. The `/companies` page reads this at build time and filters out `a
 | `adminOnly`    | `boolean?`            | `true` for the admin sentinel entry — excluded from public companies page                                                                                                                     |
 
 The first entry (`id: "admin"`, `adminOnly: true`) is a sentinel used by the editor to grant site-wide access; it is never rendered on the public `/companies` page. The entry for 'Other Companies' (`id: "other"`, `adminOnly: true`) is used to manage file of runs for companies that are not explicitly named in the system. These runs are editable by admin user only and there is no corresponding entry on the Companies page.
+
+**Entry ordering** — the order of entries in this file determines the display order in company filter dropdowns (no sort is applied in code); keep these in the desired display order with `admin` first and `other` last. Editor selectors (`buildCompanyOptions` in `api.js`) sort independently by `abvName` with `other` last, so JSON order does not affect them.
 
 ## Required Netlify environment variables
 

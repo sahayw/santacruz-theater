@@ -1,10 +1,10 @@
 {
-  "company": "SCS",
+  "company": "scs",
   "year": 2026,
   "runs": [
     {
       "id": "run-1779381324149",
-      "company": "SCS",
+      "company": "scs",
       "showAbv": "Much Ado",
       "show": "Much Ado About Nothing",
       "genre": "Comedy",
@@ -173,7 +173,7 @@
     },
     {
       "id": "run-1779381472331",
-      "company": "SCS",
+      "company": "scs",
       "showAbv": "Macbeth",
       "show": "Macbeth",
       "genre": "Drama",
@@ -321,7 +321,7 @@
     },
     {
       "id": "run-1779381661531",
-      "company": "SCS",
+      "company": "scs",
       "showAbv": "Fences",
       "show": "Fences (August Wilson)",
       "genre": "Drama",
@@ -434,7 +434,7 @@
     },
     {
       "id": "run-1779615960772",
-      "company": "SCS",
+      "company": "scs",
       "showAbv": "Vincent",
       "show": "Vincent",
       "genre": "Drama",
@@ -582,7 +582,7 @@
     },
     {
       "id": "run-1779616158788",
-      "company": "SCS",
+      "company": "scs",
       "showAbv": "Private Lives",
       "show": "Private Lives (Noel Coward)",
       "genre": "Comedy",
@@ -709,7 +709,7 @@
     },
     {
       "id": "run-1779616512534",
-      "company": "SCS",
+      "company": "scs",
       "showAbv": "Last Five Years",
       "show": "The Last Five Years (Jason Robert Brown)",
       "genre": "Musical",
@@ -794,7 +794,7 @@
     },
     {
       "id": "run-1779616903213",
-      "company": "SCS",
+      "company": "scs",
       "showAbv": "Christmas Carol",
       "show": "A Christmas Carol",
       "genre": "Musical",

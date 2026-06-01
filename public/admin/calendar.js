@@ -112,7 +112,7 @@ const CAL_CSS = `
   transition: background 0.1s;
 }
 .run-item:hover { background: var(--bg); }
-.run-item.active { background: var(--bg); border-left-color: var(--accent); }
+.run-item.active { background: var(--bg); border-left-color: var(--ink); }
 .run-item-company {
   font-size: 9px;
   font-weight: 500;
@@ -848,7 +848,7 @@ function renderSidebar() {
     .map(
       ({ r, i }) => `
     <div class="run-item ${i === activeRunIdx ? 'active' : ''}" onclick="cal.selectRun(${i})">
-      <div class="run-item-company">${r.company || '—'}</div>
+      <div class="run-item-company">${allCompanies.find((c) => c.id === r.company)?.abvName || r.company || '—'}</div>
       <div class="run-item-show">${r.showAbv || r.show || 'Untitled'}</div>
       <div class="run-item-count">${r.performances.length} perf${r.performances.length !== 1 ? 's' : ''}</div>
     </div>`
@@ -894,7 +894,7 @@ function loadRunEditor() {
 function updateEditorTitle() {
   const r = runs[activeRunIdx]
   document.getElementById('editorTitleText').textContent = r.showAbv || r.show || 'Untitled'
-  document.getElementById('editorSubtitle').textContent = r.company ? ` · ${r.company}` : ''
+  document.getElementById('editorSubtitle').textContent = r.company ? ` · ${allCompanies.find((c) => c.id === r.company)?.abvName || r.company}` : ''
 }
 
 function runFieldChanged() {

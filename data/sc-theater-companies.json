@@ -8,12 +8,6 @@
       "adminOnly": true
     },
     {
-      "id": "other",
-      "abvName": "Other",
-      "name": "Other Companies",
-      "adminOnly": true
-    },
-    {
       "id": "scs",
       "abvName": "SCS",
       "name": "Santa Cruz Shakespeare",
@@ -60,6 +54,12 @@
       "website": "https://thelandingsv.org/",
       "logo": "/images/companies/landing-logo.png",
       "logoDark": true
+    },
+    {
+      "id": "other",
+      "abvName": "Other",
+      "name": "Other Companies",
+      "adminOnly": true
     }
   ]
 }

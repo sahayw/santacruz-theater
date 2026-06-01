@@ -1,10 +1,10 @@
 {
-  "company": "Other",
+  "company": "other",
   "year": 2026,
   "runs": [
     {
       "id": "run-1779397816337",
-      "company": "Other",
+      "company": "other",
       "showAbv": "R&G",
       "show": "Rosencrantz and Guildenstern are Dead",
       "genre": "Drama",
@@ -96,7 +96,7 @@
     },
     {
       "id": "run-1779619220498",
-      "company": "Other",
+      "company": "other",
       "showAbv": "Whole Monkey Show",
       "show": "The Whole Monkey Show (Christopher Michael Palermo)",
       "genre": "Drama",
@@ -139,7 +139,7 @@
     },
     {
       "id": "run-1779710174290",
-      "company": "Other",
+      "company": "other",
       "showAbv": "Matt & Ben",
       "show": "Matt & Ben (Kaling /Withers)",
       "description": "A playful, \"what-if\" spoof imagining Matt Damon and Ben Affleck struggling to write their cinematic masterpiece after a magical script literally falls from the ceiling of their apartment.",

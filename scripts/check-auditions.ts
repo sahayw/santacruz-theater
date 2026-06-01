@@ -16,10 +16,9 @@ const companiesJson = JSON.parse(
   readFileSync(resolve(root, 'data/sc-theater-companies.json'), 'utf8')
 )
 
-const VALID_COMPANIES = new Set<string>([
-  ...companiesJson.companies.map((c: { abvName: string }) => c.abvName),
-  ''
-])
+const VALID_COMPANIES = new Set<string>(
+  companiesJson.companies.map((c: { id: string }) => c.id)
+)
 const VALID_GENRES = new Set<Genre>(['Drama', 'Musical', 'Comedy', 'Tragedy', 'Other', ''])
 const VALID_ROLE_TYPES = new Set<AuditionRoleType>(['lead', 'supporting', 'ensemble'])
 const VALID_GENDERS = new Set<AuditionGender>(['female', 'male', 'any'])

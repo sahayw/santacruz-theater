@@ -8,9 +8,8 @@ interface Props {
 
 const { performances } = Astro.props
 
-// Companies that appear in this year's performance data, preserving JSON order
 const activeCompanyCodes = new Set<string>(performances.map(p => p.company).filter(Boolean))
-const filterCompanies = companiesData.companies.filter(c => activeCompanyCodes.has(c.abvName))
+const filterCompanies = companiesData.companies.filter(c => activeCompanyCodes.has(c.id))
 ---
 
 <div class="cal-bar">
@@ -28,7 +27,7 @@ const filterCompanies = companiesData.companies.filter(c => activeCompanyCodes.h
         <select id="filterCompany">
           <option value="">All</option>
           {filterCompanies.map(c => (
-            <option value={c.abvName}>{c.name}</option>
+            <option value={c.id}>{c.name}</option>
           ))}
         </select>
       </div>
@@ -1025,12 +1024,13 @@ const filterCompanies = companiesData.companies.filter(c => activeCompanyCodes.h
   const PERFORMANCES = performances
   const TODAY = new Date().toISOString().slice(0, 10)
   const COMPANY_COLORS = {
-    SCS: 'var(--col-scs)',
-    AT: 'var(--col-at)',
-    MCT: 'var(--col-mct)',
-    Renegade: 'var(--col-renegade)'
+    scs: 'var(--col-scs)',
+    at: 'var(--col-at)',
+    mct: 'var(--col-mct)',
+    renegade: 'var(--col-renegade)'
   }
-  const COMPANY_NAMES = Object.fromEntries(companies.map(c => [c.abvName, c.name]))
+  const COMPANY_NAMES = Object.fromEntries(companies.map(c => [c.id, c.name]))
+  const COMPANY_ABV = Object.fromEntries(companies.map(c => [c.id, c.abvName]))
 const MONTHS = [
     'January',
     'February',
@@ -1073,19 +1073,19 @@ const MONTHS = [
     return COMPANY_COLORS[co] || 'var(--col-other)'
   }
   const COMPANY_DOTS = {
-    SCS: 'var(--dot-scs)',
-    AT: 'var(--dot-at)',
-    MCT: 'var(--dot-mct)',
-    Renegade: 'var(--dot-renegade)'
+    scs: 'var(--dot-scs)',
+    at: 'var(--dot-at)',
+    mct: 'var(--dot-mct)',
+    renegade: 'var(--dot-renegade)'
   }
   function dotColor(co) {
     return COMPANY_DOTS[co] || 'var(--dot-other)'
   }
   const COMPANY_ACCS = {
-    SCS: 'var(--acc-scs)',
-    AT: 'var(--acc-at)',
-    MCT: 'var(--acc-mct)',
-    Renegade: 'var(--acc-renegade)'
+    scs: 'var(--acc-scs)',
+    at: 'var(--acc-at)',
+    mct: 'var(--acc-mct)',
+    renegade: 'var(--acc-renegade)'
   }
   function accentColor(co) {
     return COMPANY_ACCS[co] || 'var(--acc-other)'
@@ -1143,7 +1143,7 @@ const MONTHS = [
       html += `<div class="hover-panel-row">
         <div class="hover-panel-show">
           <div class="hover-panel-dot" style="background:${dotColor(p.company)}"></div>
-          <span>${p.company} · ${p.showAbv}</span>
+          <span>${COMPANY_ABV[p.company] || p.company} · ${p.showAbv}</span>
         </div>
         <div class="hover-panel-meta">${fmtTime(p.time)} · ${venue}</div>
       </div>`

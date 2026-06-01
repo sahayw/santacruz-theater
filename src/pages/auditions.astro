@@ -7,12 +7,12 @@ import type { AuditionEvent } from '../lib/data.ts'
 const auditions = getAuditions()
 
 const companyNameMap: Record<string, string> = Object.fromEntries(
-  companiesData.companies.map((c) => [c.abvName, c.name])
+  companiesData.companies.map((c) => [c.id, c.name])
 )
 
 const audCompanyCodes = new Set<string>(auditions.map((a) => a.company))
 const filterCompanies = companiesData.companies.filter(
-  (c) => !c.adminOnly && audCompanyCodes.has(c.abvName as string)
+  (c) => !c.adminOnly && audCompanyCodes.has(c.id)
 )
 const filterGenres = [...new Set(auditions.map((a) => a.genre).filter(Boolean))].sort()
 
@@ -124,12 +124,12 @@ function latestDate(aud: AuditionEvent): string {
 
 function dotVar(company: string): string {
   const map: Record<string, string> = {
-    SCS: 'var(--dot-scs)',
-    AT: 'var(--dot-at)',
-    MCT: 'var(--dot-mct)',
-    Renegade: 'var(--dot-renegade)',
-    Cabrillo: 'var(--dot-cabrillo)',
-    ABT: 'var(--dot-abt)'
+    scs: 'var(--dot-scs)',
+    at: 'var(--dot-at)',
+    mct: 'var(--dot-mct)',
+    renegade: 'var(--dot-renegade)',
+    cabrillo: 'var(--dot-cabrillo)',
+    abt: 'var(--dot-abt)'
   }
   return map[company] ?? 'var(--dot-other)'
 }
@@ -175,7 +175,7 @@ function roleTypeLabel(type: string): string {
             <label for="filter-company">Company</label>
             <select id="filter-company">
               <option value="">All</option>
-              {filterCompanies.map((c) => <option value={c.abvName}>{c.name}</option>)}
+              {filterCompanies.map((c) => <option value={c.id}>{c.name}</option>)}
             </select>
           </div>
           <div class="filter-group">

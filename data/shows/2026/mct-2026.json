@@ -1,10 +1,10 @@
 {
-  "company": "MCT",
+  "company": "mct",
   "year": 2026,
   "runs": [
     {
       "id": "run-1779379400969",
-      "company": "MCT",
+      "company": "mct",
       "showAbv": "Virginia Woolf",
       "show": "Who's Afraid of Virginia Woolf (Albee)",
       "genre": "Drama",
@@ -103,7 +103,7 @@
     },
     {
       "id": "run-1779380782967",
-      "company": "MCT",
+      "company": "mct",
       "showAbv": "Rumors",
       "show": "Rumors (Neil Simon)",
       "genre": "Comedy",
@@ -202,7 +202,7 @@
     },
     {
       "id": "run-1779617218671",
-      "company": "MCT",
+      "company": "mct",
       "showAbv": "Spitfire Grill",
       "show": "The Spitfire Grill (Valcq/Alley)",
       "genre": "",
@@ -322,7 +322,7 @@
     },
     {
       "id": "run-1779617377368",
-      "company": "MCT",
+      "company": "mct",
       "showAbv": "New Works Weekend",
       "show": "New Works Weekend",
       "genre": "Drama",
@@ -358,7 +358,7 @@
     },
     {
       "id": "run-1779617466366",
-      "company": "MCT",
+      "company": "mct",
       "showAbv": "Coney Island C'mas",
       "show": "Coney Island Christmas",
       "genre": "Comedy",

@@ -1,10 +1,10 @@
 {
-  "company": "Renegade",
+  "company": "renegade",
   "year": 2026,
   "runs": [
     {
       "id": "run-1779381946580",
-      "company": "Renegade",
+      "company": "renegade",
       "showAbv": "Rocky Horror",
       "show": "The Rocky Horror Show",
       "genre": "Musical",
@@ -117,7 +117,7 @@
     },
     {
       "id": "run-1779382295563",
-      "company": "Renegade",
+      "company": "renegade",
       "showAbv": "Cry Baby",
       "show": "Cry Baby (Teen show)",
       "genre": "Musical",
@@ -167,7 +167,7 @@
     },
     {
       "id": "run-1779618248131",
-      "company": "Renegade",
+      "company": "renegade",
       "showAbv": "She Kills Monsters",
       "show": "She Kills Monsters",
       "genre": "Musical",
@@ -245,7 +245,7 @@
     },
     {
       "id": "run-1779619078600",
-      "company": "Renegade",
+      "company": "renegade",
       "showAbv": "Reefer Madness",
       "show": "Reefer Madness",
       "genre": "Musical",
@@ -323,7 +323,7 @@
     },
     {
       "id": "run-1779619152098",
-      "company": "Renegade",
+      "company": "renegade",
       "showAbv": "The Prom",
       "show": "The Prom",
       "genre": "Musical",

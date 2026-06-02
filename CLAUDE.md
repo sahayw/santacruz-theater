@@ -162,3 +162,11 @@ Import and Export buttons have been removed from the toolbar UI; the underlying 
 | `GITHUB_OWNER`  | GitHub repository owner                   |
 | `GITHUB_REPO`   | GitHub repository name                    |
 | `GITHUB_BRANCH` | Branch to commit to (default: `main`)     |
+
+## Git workflow
+
+- For bug fixes and small enhancements: branch from `main`,
+  open PR targeting `main`
+- For major features: branch from `dev`, open PR targeting `dev`
+- Never commit directly to `main` or `dev`
+- Netlify deploys from `main` — PRs to main trigger a production deploy when merged, so only merge when the fix is verified

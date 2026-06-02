@@ -10,8 +10,8 @@ interface Props {
 const { performances } = Astro.props
 
 // Companies that appear in this year's performance data, preserving JSON order
-const activeCompanyCodes = new Set<string>(performances.map(p => p.company).filter(Boolean))
-const filterCompanies = companiesData.companies.filter(c => activeCompanyCodes.has(c.abvName))
+const activeCompanyCodes = new Set<string>(performances.map((p) => p.company).filter(Boolean))
+const filterCompanies = companiesData.companies.filter((c) => activeCompanyCodes.has(c.abvName))
 ---
 
 <div class="cal-bar">
@@ -22,15 +22,15 @@ const filterCompanies = companiesData.companies.filter(c => activeCompanyCodes.h
     <button class="year-step" id="yearNext" aria-label="Next year">›</button>
   </div>
   <div class="filter-area">
-    <button class="filter-toggle-btn" id="filterToggleBtn"><span id="filterLabel">Filters</span></button>
+    <button class="filter-toggle-btn" id="filterToggleBtn"
+      ><span id="filterLabel">Filters</span></button
+    >
     <div class="filter-dropdown" id="filterDropdown">
       <div class="filter-row">
         <label>Company</label>
         <select id="filterCompany">
           <option value="">All</option>
-          {filterCompanies.map(c => (
-            <option value={c.abvName}>{c.name}</option>
-          ))}
+          {filterCompanies.map((c) => <option value={c.abvName}>{c.name}</option>)}
         </select>
       </div>
       <div class="filter-row">
@@ -103,6 +103,7 @@ const filterCompanies = companiesData.companies.filter(c => activeCompanyCodes.h
     --ink-muted: #6b6259;
     --border: #e0d9d0;
     --month-header-bg: #fffcf2;
+    --card-description-lines: 4;
     /* day fill colors — flat muted tints */
     --col-scs: #e9c1be; /* Carnation   7°   SCS      */
     --col-at: #afbfee; /* Dusk      225°   AT       */
@@ -181,8 +182,12 @@ const filterCompanies = companiesData.companies.filter(c => activeCompanyCodes.h
     -webkit-tap-highlight-color: transparent;
     transition: color 0.14s;
   }
-  .back-annual-btn:hover { color: #fff; }
-  body.scroll-mode .back-annual-btn { display: block; }
+  .back-annual-btn:hover {
+    color: #fff;
+  }
+  body.scroll-mode .back-annual-btn {
+    display: block;
+  }
 
   /* Year navigator */
   .year-nav {
@@ -214,9 +219,15 @@ const filterCompanies = companiesData.companies.filter(c => activeCompanyCodes.h
     -webkit-tap-highlight-color: transparent;
     transition: color 0.14s;
   }
-  .year-step:hover { color: #fff; }
-  .year-step.dimmed { opacity: 0.3; }
-  .year-step.hidden { visibility: hidden; }
+  .year-step:hover {
+    color: #fff;
+  }
+  .year-step.dimmed {
+    opacity: 0.3;
+  }
+  .year-step.hidden {
+    visibility: hidden;
+  }
 
   /* Filter toggle button */
   .filter-area {
@@ -236,7 +247,10 @@ const filterCompanies = companiesData.companies.filter(c => activeCompanyCodes.h
     cursor: pointer;
     white-space: nowrap;
     -webkit-tap-highlight-color: transparent;
-    transition: background 0.14s, border-color 0.14s, color 0.14s;
+    transition:
+      background 0.14s,
+      border-color 0.14s,
+      color 0.14s;
   }
   @media (hover: hover) {
     .filter-toggle-btn:hover {
@@ -253,7 +267,6 @@ const filterCompanies = companiesData.companies.filter(c => activeCompanyCodes.h
 
   /* Filter dropdown panel */
   .filter-dropdown {
-    display: none;
     position: absolute;
     top: calc(100% + 6px);
     right: 0;
@@ -264,8 +277,25 @@ const filterCompanies = companiesData.companies.filter(c => activeCompanyCodes.h
     padding: 4px 0;
     z-index: 120;
     min-width: 210px;
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transform: translateY(-4px);
+    transition:
+      opacity 0.75s ease,
+      transform 0.75s ease,
+      visibility 0s linear 0.75s;
   }
-  .filter-dropdown.open { display: block; }
+  .filter-dropdown.open {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+    transform: translateY(0);
+    transition:
+      opacity 0.75s ease,
+      transform 0.75s ease,
+      visibility 0s linear 0s;
+  }
   .filter-row {
     display: flex;
     align-items: center;
@@ -819,6 +849,52 @@ const filterCompanies = companiesData.companies.filter(c => activeCompanyCodes.h
     margin-bottom: 6px;
     line-height: 1.3;
   }
+  .card-description {
+    font-size: 13px;
+    line-height: 1.5;
+    color: var(--ink-muted);
+  }
+  .card-description-wrap {
+    position: relative;
+    margin-bottom: 10px;
+  }
+  .card-description.clamped {
+    max-height: calc(1.5em * var(--card-description-lines));
+    overflow: hidden;
+  }
+  .card-description strong {
+    color: var(--ink);
+  }
+  .card-description em {
+    font-style: italic;
+  }
+  .card-description-more {
+    display: none;
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    align-items: baseline;
+    gap: 0.2em;
+    padding: 0 0 0 10px;
+    border: none;
+    background: var(--surface);
+    font: inherit;
+    font-size: 13px;
+    line-height: 1.5;
+    font-weight: 600;
+    cursor: pointer;
+    z-index: 2;
+  }
+  .card-description-more.visible {
+    display: inline-flex;
+  }
+  .card-description-more-ellipsis {
+    color: var(--ink-muted);
+    font-weight: 400;
+  }
+  .card-description-more-label {
+    color: var(--acc-at);
+  }
   .card-meta {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -1023,8 +1099,12 @@ const filterCompanies = companiesData.companies.filter(c => activeCompanyCodes.h
   }
 </style>
 
-<script define:vars={{ performances, companies: companiesData.companies, venues: venuesData.venues }} is:inline>
+<script
+  define:vars={{ performances, companies: companiesData.companies, venues: venuesData.venues }}
+  is:inline
+>
   const PERFORMANCES = performances
+  const CARD_DESCRIPTION_LINES = 4
   const TODAY = new Date().toISOString().slice(0, 10)
   const COMPANY_COLORS = {
     SCS: 'var(--col-scs)',
@@ -1032,8 +1112,8 @@ const filterCompanies = companiesData.companies.filter(c => activeCompanyCodes.h
     MCT: 'var(--col-mct)',
     Renegade: 'var(--col-renegade)'
   }
-  const COMPANY_NAMES = Object.fromEntries(companies.map(c => [c.abvName, c.name]))
-  const VENUE_NAMES = Object.fromEntries(venues.map(v => [v.code, v.name]))
+  const COMPANY_NAMES = Object.fromEntries(companies.map((c) => [c.abvName, c.name]))
+  const VENUE_NAMES = Object.fromEntries(venues.map((v) => [v.code, v.name]))
   const MONTHS = [
     'January',
     'February',
@@ -1052,14 +1132,16 @@ const filterCompanies = companiesData.companies.filter(c => activeCompanyCodes.h
 
   let filteredPerfs = [...PERFORMANCES]
   const EARLIEST_YEAR = 2026
+  const FILTER_AUTO_CLOSE_DELAY = 500
   let displayYear = EARLIEST_YEAR
+  let filterCloseTimer = null
 
   function updateYearNav() {
     document.getElementById('yearDisplay').textContent = displayYear
     const prevBtn = document.getElementById('yearPrev')
     const nextBtn = document.getElementById('yearNext')
     prevBtn.classList.toggle('hidden', displayYear <= EARLIEST_YEAR)
-    const hasNextYear = PERFORMANCES.some(p => p.date.startsWith(String(displayYear + 1)))
+    const hasNextYear = PERFORMANCES.some((p) => p.date.startsWith(String(displayYear + 1)))
     nextBtn.classList.toggle('dimmed', !hasNextYear)
   }
 
@@ -1192,11 +1274,12 @@ const filterCompanies = companiesData.companies.filter(c => activeCompanyCodes.h
 
   function showDescPanel(s, chipEl, isTouch = false) {
     const panel = document.getElementById('showDescPanel')
+    const description = (s.description || '').trimEnd()
     let html = `<div class="desc-panel-header">
       <div class="desc-panel-company">${COMPANY_NAMES[s.company] || s.company}</div>
       <div class="desc-panel-title">${s.show}</div>
     </div>
-    <div class="desc-panel-body">${renderMd(s.description)}</div>`
+    <div class="desc-panel-body">${renderMd(description)}</div>`
     if (isTouch) html += `<div class="desc-panel-footer">Tap to dismiss</div>`
     panel.innerHTML = html
     const rect = chipEl.getBoundingClientRect()
@@ -1223,6 +1306,25 @@ const filterCompanies = companiesData.companies.filter(c => activeCompanyCodes.h
     activeDescRunId = null
   }
 
+  function updateCardDescriptionButtons(root) {
+    root.querySelectorAll('.card-description').forEach((descEl) => {
+      const wrapper = descEl.parentElement
+      const button = wrapper?.querySelector('.card-description-more')
+      if (!button) return
+      descEl.classList.remove('clamped')
+      wrapper?.classList.remove('truncated')
+      button.classList.remove('visible')
+      const exceedsClamp =
+        descEl.scrollHeight >
+        Math.ceil(parseFloat(getComputedStyle(descEl).lineHeight) * CARD_DESCRIPTION_LINES) + 1
+      if (exceedsClamp) {
+        descEl.classList.add('clamped')
+        wrapper?.classList.add('truncated')
+        button.classList.add('visible')
+      }
+    })
+  }
+
   function perfsByDate(perfs) {
     const m = {}
     perfs.forEach((p) => {
@@ -1239,7 +1341,13 @@ const filterCompanies = companiesData.companies.filter(c => activeCompanyCodes.h
       .forEach((p) => {
         if (!seen.has(p.runId)) {
           seen.add(p.runId)
-          result.push({ runId: p.runId, showAbv: p.showAbv, company: p.company, show: p.show, description: p.description || '' })
+          result.push({
+            runId: p.runId,
+            showAbv: p.showAbv,
+            company: p.company,
+            show: p.show,
+            description: p.description || ''
+          })
         }
       })
     return result
@@ -1259,10 +1367,11 @@ const filterCompanies = companiesData.companies.filter(c => activeCompanyCodes.h
     updateFilterBadge()
     renderAnnual()
     buildScrollView()
+    scheduleFilterDropdownClose()
   }
 
   const LEGEND_ENTRIES = [
-    ...Object.keys(COMPANY_COLORS).map(code => ({
+    ...Object.keys(COMPANY_COLORS).map((code) => ({
       color: `var(--dot-${code.toLowerCase()})`,
       label: COMPANY_NAMES[code] || code
     })),
@@ -1368,13 +1477,13 @@ const filterCompanies = companiesData.companies.filter(c => activeCompanyCodes.h
     const allShows = orderedShows(filteredPerfs)
 
     // Span all years present in the full dataset (not just filtered)
-    const dataYears = PERFORMANCES.map(p => parseInt(p.date.slice(0, 4)))
+    const dataYears = PERFORMANCES.map((p) => parseInt(p.date.slice(0, 4)))
     const firstYear = EARLIEST_YEAR
     const maxDataYear = Math.max(EARLIEST_YEAR, ...dataYears)
     const lastYear = Math.max(maxDataYear + 1, displayYear)
 
     // Reset anchor map
-    Object.keys(monthAnchorIds).forEach(k => delete monthAnchorIds[k])
+    Object.keys(monthAnchorIds).forEach((k) => delete monthAnchorIds[k])
 
     let cursor = new Date(firstYear, 0, 1)
     cursor.setDate(cursor.getDate() - dowMon(cursor))
@@ -1473,9 +1582,7 @@ const filterCompanies = companiesData.companies.filter(c => activeCompanyCodes.h
 
         const col = document.createElement('div')
         col.className =
-          'day-col' +
-          (!inMonth ? ' other-month' : '') +
-          (dayPerfs.length ? ' has-perf' : '')
+          'day-col' + (!inMonth ? ' other-month' : '') + (dayPerfs.length ? ' has-perf' : '')
         col.style.gridRow = `1 / span ${nRows + 1}`
 
         const numRow = document.createElement('div')
@@ -1531,16 +1638,21 @@ const filterCompanies = companiesData.companies.filter(c => activeCompanyCodes.h
 
   function fixedChromeHeight() {
     const cs = getComputedStyle(document.documentElement)
-    return (parseInt(cs.getPropertyValue('--nav-h')) || 0) +
-           (parseInt(cs.getPropertyValue('--bar-h')) || 44) +
-           (parseInt(cs.getPropertyValue('--col-header-h')) || 28)
+    return (
+      (parseInt(cs.getPropertyValue('--nav-h')) || 0) +
+      (parseInt(cs.getPropertyValue('--bar-h')) || 44) +
+      (parseInt(cs.getPropertyValue('--col-header-h')) || 28)
+    )
   }
 
   function scrollToAnchorEl(el) {
     if (!el) return
     let target = 0
     let node = el
-    while (node) { target += node.offsetTop; node = node.offsetParent }
+    while (node) {
+      target += node.offsetTop
+      node = node.offsetParent
+    }
     window.scrollTo({ top: Math.max(0, target - fixedChromeHeight()), behavior: 'smooth' })
   }
 
@@ -1572,7 +1684,8 @@ const filterCompanies = companiesData.companies.filter(c => activeCompanyCodes.h
     document.body.classList.remove('annual-mode')
     document.body.classList.add('scroll-mode')
     buildFixedFooter('drill')
-    const doScroll = () => scrollToAnchorEl(document.getElementById(monthAnchorIds[displayYear]?.[m]))
+    const doScroll = () =>
+      scrollToAnchorEl(document.getElementById(monthAnchorIds[displayYear]?.[m]))
     if (rebuilt) {
       requestAnimationFrame(() => requestAnimationFrame(doScroll))
     } else {
@@ -1599,11 +1712,14 @@ const filterCompanies = companiesData.companies.filter(c => activeCompanyCodes.h
     ).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })
     const cards = document.getElementById('sheetCards')
     cards.innerHTML = ''
+    let previousRunId = null
     perfs.forEach((p) => {
       const card = document.createElement('div')
       card.className = 'perf-card'
       const [h, min] = p.time.split(':').map(Number)
       const timeStr = `${h > 12 ? h - 12 : h || 12}:${String(min).padStart(2, '0')}${h >= 12 ? 'pm' : 'am'}`
+      const description = (p.description || '').trimEnd()
+      const showDescription = description && previousRunId !== p.runId
       card.innerHTML = `
       <div class="perf-card-company">
         <div class="company-badge" style="background:${accentColor(p.company)}"></div>
@@ -1611,6 +1727,7 @@ const filterCompanies = companiesData.companies.filter(c => activeCompanyCodes.h
         ${p.perfType ? `<span class="perf-type-tag" data-type="${p.perfType}">${p.perfType}</span>` : ''}
       </div>
       <div class="card-show-title">${p.show}</div>
+      ${showDescription ? `<div class="card-description-wrap"><div class="card-description">${renderMd(description)}</div><button type="button" class="card-description-more"><span class="card-description-more-ellipsis">...</span><span class="card-description-more-label">More</span></button></div>` : ''}
       <div class="card-meta">
         <div class="card-meta-item"><span class="card-meta-label">Time&nbsp;</span>${timeStr}</div>
         <div class="card-meta-item"><span class="card-meta-label">Venue&nbsp;</span>${VENUE_NAMES[p.venue] || p.venue}</div>
@@ -1631,10 +1748,21 @@ const filterCompanies = companiesData.companies.filter(c => activeCompanyCodes.h
         }
       </div>`
       cards.appendChild(card)
+      const descEl = card.querySelector('.card-description')
+      const moreBtn = card.querySelector('.card-description-more')
+      if (descEl && moreBtn) {
+        moreBtn.addEventListener('click', () => {
+          descEl.classList.remove('clamped')
+          descEl.parentElement?.classList.remove('truncated')
+          moreBtn.remove()
+        })
+      }
+      previousRunId = p.runId
     })
     document.getElementById('overlay').classList.add('open')
     document.getElementById('bottomSheet').classList.add('open')
     document.documentElement.style.overflow = 'hidden'
+    requestAnimationFrame(() => updateCardDescriptionButtons(cards))
   }
 
   function closeSheet() {
@@ -1652,9 +1780,38 @@ const filterCompanies = companiesData.companies.filter(c => activeCompanyCodes.h
 
   const filterToggleBtn = document.getElementById('filterToggleBtn')
   const filterDropdown = document.getElementById('filterDropdown')
+  function clearFilterDropdownCloseTimer() {
+    if (filterCloseTimer !== null) {
+      window.clearTimeout(filterCloseTimer)
+      filterCloseTimer = null
+    }
+  }
+
+  function closeFilterDropdown() {
+    clearFilterDropdownCloseTimer()
+    filterDropdown.classList.remove('open')
+  }
+
+  function openFilterDropdown() {
+    clearFilterDropdownCloseTimer()
+    filterDropdown.classList.add('open')
+  }
+
+  function scheduleFilterDropdownClose() {
+    if (!filterDropdown.classList.contains('open')) return
+    clearFilterDropdownCloseTimer()
+    filterCloseTimer = window.setTimeout(() => {
+      closeFilterDropdown()
+    }, FILTER_AUTO_CLOSE_DELAY)
+  }
+
   filterToggleBtn.addEventListener('click', (e) => {
     e.stopPropagation()
-    filterDropdown.classList.toggle('open')
+    if (filterDropdown.classList.contains('open')) {
+      closeFilterDropdown()
+      return
+    }
+    openFilterDropdown()
   })
 
   document.getElementById('yearPrev').addEventListener('click', () => {
@@ -1696,11 +1853,15 @@ const filterCompanies = companiesData.companies.filter(c => activeCompanyCodes.h
     document.body.style.paddingBottom = footerEl.offsetHeight + 8 + 'px'
   }).observe(footerEl)
 
-  document.addEventListener('scroll', () => {
-    hideHoverPanel()
-    hideDescPanel()
-    if (document.body.classList.contains('scroll-mode')) updateYearFromScroll()
-  }, { passive: true })
+  document.addEventListener(
+    'scroll',
+    () => {
+      hideHoverPanel()
+      hideDescPanel()
+      if (document.body.classList.contains('scroll-mode')) updateYearFromScroll()
+    },
+    { passive: true }
+  )
 
   document.getElementById('scroll-view').addEventListener(
     'scroll',
@@ -1725,12 +1886,16 @@ const filterCompanies = companiesData.companies.filter(c => activeCompanyCodes.h
 
   document.addEventListener('click', (e) => {
     if (!e.target.closest('.filter-area')) {
-      filterDropdown.classList.remove('open')
+      closeFilterDropdown()
     }
     if (activePanelDate && !e.target.closest('#hoverPanel') && !e.target.closest('.mini-day')) {
       hideHoverPanel()
     }
-    if (activeDescRunId && !e.target.closest('#showDescPanel') && !e.target.closest('.show-chip.has-desc')) {
+    if (
+      activeDescRunId &&
+      !e.target.closest('#showDescPanel') &&
+      !e.target.closest('.show-chip.has-desc')
+    ) {
       hideDescPanel()
     }
   })

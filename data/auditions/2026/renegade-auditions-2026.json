@@ -1,123 +1,122 @@
 {
-  "company": "renegade",
+  "company": "Renegade",
   "year": 2026,
-    "auditions": [
-      {
-        "id": "audition-1735000000005",
-        "production": "The Rocky Horror Show",
-        "genre": "Musical",
-        "auditionDates": [
-          {
-            "date": "2026-05-03",
-            "startTime": "00:00",
-            "endTime": "24:00",
-            "notes": "Individual Auditions"
-          },
-          {
-            "date": "2026-05-06",
-            "startTime": "00:00",
-            "endTime": "24:00",
-            "notes": "Dance Auditions"
-          },
-          {
-            "date": "2026-05-13",
-            "startTime": "00:00",
-            "endTime": "24:00",
-            "notes": "Callbacks (invitation only)"
-          }
-        ],
-        "rolesAvailable": [
-          {
-            "role": "Dr. Frank N. Furter",
-            "type": "lead",
-            "gender": "any",
-            "voicePart": "Baritone D3–G4",
-            "description": "Self-indulgent cross-dressing mad scientist. Impeccable comedic timing, irresistible charisma."
-          },
-          {
-            "role": "Brad",
-            "type": "lead",
-            "gender": "any",
-            "voicePart": "Bari-Tenor Bb2–G4",
-            "description": "Straight-laced, optimistic All-American man. Until he isn't."
-          },
-          {
-            "role": "Janet",
-            "type": "lead",
-            "gender": "any",
-            "voicePart": "Mezzo-Soprano A3–Eb5",
-            "description": "Naive, wholesome All-American girl. Until she isn't."
-          },
-          {
-            "role": "Riff Raff",
-            "type": "lead",
-            "gender": "any",
-            "voicePart": "Rock Tenor D3–B4",
-            "description": "Disgruntled underling. Must have strong rock vocals."
-          },
-          {
-            "role": "Magenta",
-            "type": "lead",
-            "gender": "any",
-            "voicePart": "Mezzo-Soprano Bb3–Eb5",
-            "description": "Maid in the castle. Slightly scary, overtly sexual."
-          },
-          {
-            "role": "Columbia",
-            "type": "supporting",
-            "gender": "any",
-            "voicePart": "Mezzo-Soprano E4–E5",
-            "description": "A groupie who falls in love with Eddie. Quirky, lost soul."
-          },
-          {
-            "role": "Rocky",
-            "type": "supporting",
-            "gender": "any",
-            "description": "Frank's creation — his epitome of the perfect man."
-          },
-          {
-            "role": "Eddie",
-            "type": "supporting",
-            "gender": "any",
-            "voicePart": "Baritone F3–F#4",
-            "description": "Rock and roll madness. Emerges from the deep freeze with half his brain."
-          },
-          {
-            "role": "Dr. Scott",
-            "type": "supporting",
-            "gender": "any",
-            "voicePart": "Baritone F3–F#4",
-            "description": "Strong comedic timing, possible German accent."
-          },
-          {
-            "role": "Narrator",
-            "type": "supporting",
-            "gender": "any",
-            "description": "Non-singing. Must be great with improv — direct interaction with a sometimes very vocal audience."
-          },
-          {
-            "role": "Phantoms (ensemble)",
-            "type": "ensemble",
-            "gender": "any",
-            "voicePart": "SATB",
-            "description": "Ever-present inhabitants of the castle. Must be able to move well."
-          }
-        ],
-        "prep": {
-          "singing": "Prepare a song showcasing your vocal range",
-          "acting": "Cold reading from script may be requested"
+  "auditions": [
+    {
+      "id": "audition-1735000000005",
+      "production": "The Rocky Horror Show",
+      "genre": "Musical",
+      "auditionDates": [
+        {
+          "date": "2026-05-03",
+          "startTime": "00:00",
+          "endTime": "23:59",
+          "notes": "Individual Auditions"
         },
-        "openingDate": "2026-07-31",
-        "contact": {
-          "name": "Renegade Theater Co.",
-          "email": "renegadetheaterco@gmail.com",
-          "phone": "831-713-9392"
+        {
+          "date": "2026-05-06",
+          "startTime": "00:00",
+          "endTime": "23:59",
+          "notes": "Dance Auditions"
         },
-        "auditionNoticeUrl": "https://renegadetheaterco.org/2026/rocky-horror-show.html",
-        "productionUrl": "https://renegadetheaterco.org/2026/rocky-horror-show.html",
-        "notes": "Rated R. All roles open to all gender identities. All body types welcome. 18+ only. Over 20 cast members and a live band. Directed by Izzy Pedego, Music Director Jorge Torres.",
-        "createdAt": "2026-06-02T00:00:00Z",
-        "updatedAt": "2026-06-02T00:00:00Z"
-      }
-    ]
+        {
+          "date": "2026-05-13",
+          "startTime": "00:00",
+          "endTime": "23:59",
+          "notes": "Callbacks (invitation only)"
+        }
+      ],
+      "rolesAvailable": [
+        {
+          "role": "Dr. Frank N. Furter",
+          "type": "lead",
+          "gender": "any",
+          "voicePart": "Baritone D3–G4",
+          "description": "Self-indulgent cross-dressing mad scientist. Impeccable comedic timing, irresistible charisma."
+        },
+        {
+          "role": "Brad",
+          "type": "lead",
+          "gender": "any",
+          "voicePart": "Bari-Tenor Bb2–G4",
+          "description": "Straight-laced, optimistic All-American man. Until he isn't."
+        },
+        {
+          "role": "Janet",
+          "type": "lead",
+          "gender": "any",
+          "voicePart": "Mezzo-Soprano A3–Eb5",
+          "description": "Naive, wholesome All-American girl. Until she isn't."
+        },
+        {
+          "role": "Riff Raff",
+          "type": "lead",
+          "gender": "any",
+          "voicePart": "Rock Tenor D3–B4",
+          "description": "Disgruntled underling. Must have strong rock vocals."
+        },
+        {
+          "role": "Magenta",
+          "type": "lead",
+          "gender": "any",
+          "voicePart": "Mezzo-Soprano Bb3–Eb5",
+          "description": "Maid in the castle. Slightly scary, overtly sexual."
+        },
+        {
+          "role": "Columbia",
+          "type": "supporting",
+          "gender": "any",
+          "voicePart": "Mezzo-Soprano E4–E5",
+          "description": "A groupie who falls in love with Eddie. Quirky, lost soul."
+        },
+        {
+          "role": "Rocky",
+          "type": "supporting",
+          "gender": "any",
+          "description": "Frank's creation — his epitome of the perfect man."
+        },
+        {
+          "role": "Eddie",
+          "type": "supporting",
+          "gender": "any",
+          "voicePart": "Baritone F3–F#4",
+          "description": "Rock and roll madness. Emerges from the deep freeze with half his brain."
+        },
+        {
+          "role": "Dr. Scott",
+          "type": "supporting",
+          "gender": "any",
+          "voicePart": "Baritone F3–F#4",
+          "description": "Strong comedic timing, possible German accent."
+        },
+        {
+          "role": "Narrator",
+          "type": "supporting",
+          "gender": "any",
+          "description": "Non-singing. Must be great with improv — direct interaction with a sometimes very vocal audience."
+        },
+        {
+          "role": "Phantoms (ensemble)",
+          "type": "ensemble",
+          "gender": "any",
+          "voicePart": "SATB",
+          "description": "Ever-present inhabitants of the castle. Must be able to move well."
+        }
+      ],
+      "prep": {
+        "acting": "Cold reading from script may be requested",
+        "singing": "Prepare a song showcasing your vocal range"
+      },
+      "openingDate": "2026-07-31",
+      "contact": {
+        "email": "renegadetheaterco@gmail.com",
+        "phone": "831-713-9392"
+      },
+      "auditionNoticeUrl": "https://renegadetheaterco.org/2026/rocky-horror-show.html",
+      "productionUrl": "https://renegadetheaterco.org/2026/rocky-horror-show.html",
+      "notes": "Rated R. All roles open to all gender identities. All body types welcome. 18+ only. Over 20 cast members and a live band. Directed by Izzy Pedego, Music Director Jorge Torres.",
+      "createdAt": "2026-06-02T00:00:00Z",
+      "updatedAt": "2026-06-02T20:20:40.560Z"
+    }
+  ]
 }

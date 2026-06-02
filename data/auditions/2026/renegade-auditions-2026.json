@@ -9,20 +9,20 @@
         "auditionDates": [
           {
             "date": "2026-05-03",
-            "startTime": "",
-            "endTime": "",
+            "startTime": "00:00",
+            "endTime": "24:00",
             "notes": "Individual Auditions"
           },
           {
             "date": "2026-05-06",
-            "startTime": "",
-            "endTime": "",
+            "startTime": "00:00",
+            "endTime": "24:00",
             "notes": "Dance Auditions"
           },
           {
             "date": "2026-05-13",
-            "startTime": "",
-            "endTime": "",
+            "startTime": "00:00",
+            "endTime": "24:00",
             "notes": "Callbacks (invitation only)"
           }
         ],

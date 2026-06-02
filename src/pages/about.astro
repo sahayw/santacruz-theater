@@ -1,20 +1,15 @@
 ---
+import BaseHead from '../components/BaseHead.astro'
 import SiteNav from '../components/SiteNav.astro'
 ---
 
 <!doctype html>
 <html lang="en">
   <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="generator" content={Astro.generator} />
-    <title>About — Santa Cruz Theater</title>
-    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=DM+Sans:wght@300;400;500&display=swap"
-      rel="stylesheet"
+    <BaseHead
+      title="About — Santa Cruz Theater"
+      description="About Santa Cruz Theater — a community resource for theater patrons and makers in Santa Cruz County."
+      canonicalPath="/about"
     />
   </head>
   <body>
@@ -128,7 +123,9 @@ import SiteNav from '../components/SiteNav.astro'
       })
       form.hidden = true
       if (success) success.hidden = false
-      setTimeout(() => { window.location.href = '/' }, 5000)
+      setTimeout(() => {
+        window.location.href = '/'
+      }, 5000)
     } catch {
       btn.disabled = false
       btn.textContent = 'Send message'

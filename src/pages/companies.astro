@@ -1,25 +1,20 @@
 ---
-import SiteNav from '../components/SiteNav.astro';
-import companiesData from '../../data/companies/sc-theater-companies.json';
-import venuesData from '../../data/sc-theater-venues.json';
+import BaseHead from '../components/BaseHead.astro'
+import SiteNav from '../components/SiteNav.astro'
+import companiesData from '../../data/companies/sc-theater-companies.json'
+import venuesData from '../../data/sc-theater-venues.json'
 
-const companies = companiesData.companies.filter(c => !c.adminOnly);
-const venueNames = Object.fromEntries(venuesData.venues.map(v => [v.code, v.name]));
+const companies = companiesData.companies.filter((c) => !c.adminOnly)
+const venueNames = Object.fromEntries(venuesData.venues.map((v) => [v.code, v.name]))
 ---
 
 <!doctype html>
 <html lang="en">
   <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="generator" content={Astro.generator} />
-    <title>Theater Companies — Santa Cruz Theater</title>
-    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=DM+Sans:wght@300;400;500&display=swap"
-      rel="stylesheet"
+    <BaseHead
+      title="Theater Companies — Santa Cruz Theater"
+      description="Profiles of Santa Cruz County theater companies, venues, and contact information."
+      canonicalPath="/companies"
     />
   </head>
   <body>
@@ -32,33 +27,42 @@ const venueNames = Object.fromEntries(venuesData.venues.map(v => [v.code, v.name
       </header>
 
       <div class="companies-grid">
-        {companies.map((company) => (
-          <a
-            href={company.website}
-            class={`company-card${company.logoDark ? ' card--dark-logo' : ''}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            aria-label={company.name}
-          >
-            <div class="card-logo-area">
-              {company.logo
-                ? <img src={company.logo} alt={`${company.name} logo`} class="company-logo" />
-                : <span class="logo-placeholder">{company.abvName}</span>
-              }
-            </div>
-            <div class="card-overlay" aria-hidden="true">
-              <span class="overlay-name">{company.name}</span>
-              <span class="overlay-venue">{company.primaryVenue ? venueNames[company.primaryVenue] ?? company.primaryVenue : ''}</span>
-            </div>
-          </a>
-        ))}
+        {
+          companies.map((company) => (
+            <a
+              href={company.website}
+              class={`company-card${company.logoDark ? ' card--dark-logo' : ''}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label={company.name}
+            >
+              <div class="card-logo-area">
+                {company.logo ? (
+                  <img src={company.logo} alt={`${company.name} logo`} class="company-logo" />
+                ) : (
+                  <span class="logo-placeholder">{company.abvName}</span>
+                )}
+              </div>
+              <div class="card-overlay" aria-hidden="true">
+                <span class="overlay-name">{company.name}</span>
+                <span class="overlay-venue">
+                  {company.primaryVenue
+                    ? (venueNames[company.primaryVenue] ?? company.primaryVenue)
+                    : ''}
+                </span>
+              </div>
+            </a>
+          ))
+        }
       </div>
     </main>
   </body>
 </html>
 
 <style>
-  *, *::before, *::after {
+  *,
+  *::before,
+  *::after {
     box-sizing: border-box;
     margin: 0;
     padding: 0;
@@ -116,7 +120,9 @@ const venueNames = Object.fromEntries(venuesData.venues.map(v => [v.code, v.name
     display: block;
     box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
     border-top: 3px solid #c8a96e;
-    transition: box-shadow 0.2s, transform 0.2s;
+    transition:
+      box-shadow 0.2s,
+      transform 0.2s;
     -webkit-tap-highlight-color: transparent;
   }
 
@@ -193,7 +199,6 @@ const venueNames = Object.fromEntries(venuesData.venues.map(v => [v.code, v.name
     text-align: center;
     letter-spacing: 0.02em;
   }
-
 
   /* ── TABLET ── */
   @media (max-width: 860px) {

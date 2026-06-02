@@ -1,0 +1,76 @@
+{
+  "company": "Cabrillo",
+  "year": 2026,
+    "auditions": [
+      {
+        "id": "audition-1735000000002",
+        "production": "Sister Act, The Musical",
+        "genre": "Musical",
+        "auditionDates": [
+          {
+            "date": "2026-03-07",
+            "startTime": "10:00",
+            "endTime": "18:00",
+            "notes": "By appointment — book online via Cabrillo Stage website",
+            "location": {
+              "name": "Cabrillo Crocker Theater",
+              "address": "6500 Soquel Dr, Aptos, CA"
+            }
+          },
+          {
+            "date": "2026-03-08",
+            "startTime": "10:00",
+            "endTime": "18:00",
+            "notes": "By appointment — book online via Cabrillo Stage website",
+            "location": {
+              "name": "Cabrillo Crocker Theater",
+              "address": "6500 Soquel Dr, Aptos, CA"
+            }
+          },
+          {
+            "date": "2026-03-14",
+            "startTime": "10:00",
+            "endTime": "18:00",
+            "notes": "By appointment — book online via Cabrillo Stage website",
+            "location": {
+              "name": "Cabrillo Crocker Theater",
+              "address": "6500 Soquel Dr, Aptos, CA"
+            }
+          },
+          {
+            "date": "2026-03-15",
+            "startTime": "10:00",
+            "endTime": "18:00",
+            "notes": "By appointment — book online via Cabrillo Stage website",
+            "location": {
+              "name": "Cabrillo Crocker Theater",
+              "address": "6500 Soquel Dr, Aptos, CA"
+            }
+          }
+        ],
+        "rolesAvailable": [
+          {
+            "role": "All roles",
+            "type": "ensemble",
+            "gender": "any",
+            "ageRange": "Any",
+            "description": "Full cast for Sister Act. Cabrillo Stage is non-union."
+          }
+        ],
+        "prep": {
+          "singing": "Prepare a vocal piece that highlights your range and style",
+          "dance": "Movement audition component expected"
+        },
+        "rehearsalStart": "2026-05-23",
+        "openingDate": "2026-07-09",
+        "contact": {
+          "email": "info@cabrillostage.com"
+        },
+        "auditionNoticeUrl": "https://www.cabrillostage.com/jobs",
+        "productionUrl": "https://www.cabrillostage.com/",
+        "notes": "Rehearsals run May 23 through July 3, 2026. Cabrillo Stage does not provide housing or travel for out-of-town talent. Full orchestra under conductor Dan Goldsmith. Directed by Rebecca Haley Clark, choreography by Babe Payne.",
+        "createdAt": "2026-06-02T00:00:00Z",
+        "updatedAt": "2026-06-02T00:00:00Z"
+      }
+    ]
+}

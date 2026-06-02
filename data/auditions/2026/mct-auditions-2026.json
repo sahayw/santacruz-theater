@@ -1,202 +1,121 @@
 {
-  "company": "mct",
+  "company": "MCT",
   "year": 2026,
   "auditions": [
     {
-      "id": "audition-1750464000000",
-      "production": "Hamlet (TEST DATA)",
-      "genre": "Drama",
+      "id": "audition-1735000000003",
+      "production": "Rumors",
+      "genre": "Comedy",
       "auditionDates": [
         {
-          "date": "2026-06-20",
-          "startTime": "14:00",
-          "endTime": "18:00",
-          "notes": "Open call",
+          "date": "2026-04-27",
+          "startTime": "18:30",
+          "endTime": "20:30",
           "location": {
-            "name": "St Andrews Hall",
-            "address": "101 Riverside Ave, Ben Lomond, CA 95005"
+            "name": "St. Andrew's Episcopal Church",
+            "address": "101 Riverside Ave, Ben Lomond, CA"
           }
         },
         {
-          "date": "2026-06-21",
-          "startTime": "14:00",
-          "endTime": "17:00",
-          "notes": "Callbacks",
+          "date": "2026-04-28",
+          "startTime": "18:30",
+          "endTime": "20:30",
           "location": {
-            "name": "Park Hall",
-            "address": "9400 Mill St, Ben Lomond, CA 95005"
+            "name": "Actors' Theatre",
+            "address": "1001 Center St, Santa Cruz, CA"
+          }
+        },
+        {
+          "date": "2026-04-30",
+          "startTime": "18:30",
+          "endTime": "21:00",
+          "notes": "Callbacks (invitation only)",
+          "location": {
+            "name": "St. Andrew's Episcopal Church",
+            "address": "101 Riverside Ave, Ben Lomond, CA"
           }
         }
       ],
       "rolesAvailable": [
         {
-          "role": "Hamlet",
-          "type": "lead",
-          "gender": "any",
-          "ageRange": "20s–30s",
-          "description": "Intellectually nimble; must navigate comedy, grief, and rage with equal conviction"
-        },
-        {
-          "role": "Claudius",
+          "role": "Ken Gorman",
           "type": "lead",
           "gender": "male",
-          "ageRange": "40s–50s"
+          "ageRange": "20s–60s"
         },
         {
-          "role": "Gertrude",
+          "role": "Chris Gorman",
           "type": "lead",
           "gender": "female",
-          "ageRange": "40s–50s"
+          "ageRange": "20s–60s"
         },
         {
-          "role": "Ophelia",
+          "role": "Lenny Ganz",
           "type": "lead",
-          "gender": "female",
-          "ageRange": "20s"
-        },
-        {
-          "role": "Horatio",
-          "type": "supporting",
-          "gender": "any",
-          "ageRange": "20s–30s"
-        },
-        {
-          "role": "Laertes",
-          "type": "supporting",
           "gender": "male",
-          "ageRange": "20s–30s"
+          "ageRange": "20s–60s"
         },
         {
-          "role": "Polonius",
+          "role": "Claire Ganz",
+          "type": "lead",
+          "gender": "female",
+          "ageRange": "20s–60s"
+        },
+        {
+          "role": "Ernie Cusack",
+          "type": "lead",
+          "gender": "male",
+          "ageRange": "20s–60s"
+        },
+        {
+          "role": "Cookie Cusack",
+          "type": "lead",
+          "gender": "female",
+          "ageRange": "20s–60s"
+        },
+        {
+          "role": "Glenn Cooper",
+          "type": "lead",
+          "gender": "male",
+          "ageRange": "20s–60s"
+        },
+        {
+          "role": "Cassie Cooper",
+          "type": "lead",
+          "gender": "female",
+          "ageRange": "20s–60s"
+        },
+        {
+          "role": "Officer Welch",
           "type": "supporting",
           "gender": "any",
-          "ageRange": "50s+"
+          "ageRange": "20s–60s"
         },
         {
-          "role": "Players / Court",
-          "type": "ensemble",
-          "gender": "any"
+          "role": "Officer Pudney",
+          "type": "supporting",
+          "gender": "any",
+          "ageRange": "20s–60s"
         }
       ],
       "prep": {
-        "acting": "Two contrasting monologues — one Shakespeare, one contemporary (90 seconds each)"
-      },
-      "rehearsalStart": "2026-08-08",
-      "openingDate": "2026-09-19",
-      "contact": {
-        "name": "MCT Casting",
-        "email": "casting@mctshows.org"
-      },
-      "productionUrl": "https://mctshows.org/",
-      "notes": "MCT welcomes all experience levels. Hamlet will be set in a contemporary environment. Sides provided at audition.",
-      "createdAt": "2026-05-10T00:00:00Z",
-      "updatedAt": "2026-05-31T20:56:56.040Z"
-    },
-    {
-      "id": "audition-1754956800000",
-      "production": "The Music Man (TEST DATA)",
-      "genre": "Musical",
-      "auditionDates": [
-        {
-          "date": "2026-08-15",
-          "startTime": "13:00",
-          "endTime": "17:00",
-          "notes": "Open call; no appointment required",
-          "location": {
-            "name": "Park Hall",
-            "address": "9400 Mill St, Ben Lomond, CA 95005"
-          }
-        },
-        {
-          "date": "2026-08-16",
-          "startTime": "10:00",
-          "endTime": "14:00",
-          "notes": "Callbacks",
-          "location": {
-            "name": "Park Hall",
-            "address": "9400 Mill St, Ben Lomond, CA 95005"
-          }
-        }
-      ],
-      "rolesAvailable": [
-        {
-          "role": "Harold Hill",
-          "type": "lead",
-          "gender": "male",
-          "ageRange": "30s–40s",
-          "voicePart": "Baritone",
-          "description": "Charismatic con man — strong acting and comedy; charm is everything"
-        },
-        {
-          "role": "Marian Paroo",
-          "type": "lead",
-          "gender": "female",
-          "ageRange": "20s–30s",
-          "voicePart": "Soprano"
-        },
-        {
-          "role": "Mayor Shinn",
-          "type": "supporting",
-          "gender": "male",
-          "ageRange": "40s–50s",
-          "voicePart": "Bass-Baritone"
-        },
-        {
-          "role": "Eulalie Shinn",
-          "type": "supporting",
-          "gender": "female",
-          "ageRange": "40s–50s",
-          "voicePart": "Alto"
-        },
-        {
-          "role": "Winthrop Paroo",
-          "type": "supporting",
-          "gender": "male",
-          "ageRange": "8–14",
-          "voicePart": "Unchanged tenor",
-          "description": "Child role — must be comfortable performing with a lisp"
-        },
-        {
-          "role": "Marcellus Washburn",
-          "type": "supporting",
-          "gender": "male",
-          "ageRange": "30s",
-          "voicePart": "Baritone"
-        },
-        {
-          "role": "The Buffalo Bills (barbershop quartet)",
-          "type": "supporting",
-          "gender": "male",
-          "ageRange": "Any",
-          "voicePart": "TTBB",
-          "description": "Strong a cappella barbershop singers; groups may audition together"
-        },
-        {
-          "role": "Townspeople",
-          "type": "ensemble",
-          "gender": "any",
-          "voicePart": "All parts"
-        }
-      ],
-      "prep": {
-        "singing": "16–32 bars in classic musical theater style; accompanist provided",
-        "dance": "Basic tap or movement — no dance experience required for ensemble",
+        "acting": "1–2 minute comedic monologue required for new participants or those unfamiliar with director; monologues 6:30–7pm, script readings 7–8:30pm",
         "bring": [
-          "Headshot and résumé if available",
-          "Conflict calendar Oct 2026–Jan 2027"
+          "Completed audition form (link on audition notice page)",
+          "Headshot and resume if available"
         ]
       },
-      "rehearsalStart": "2026-10-01",
-      "openingDate": "2026-11-07",
+      "rehearsalStart": "2026-08-03",
+      "openingDate": "2026-09-18",
       "contact": {
-        "name": "MCT Casting",
-        "email": "casting@mctshows.org",
-        "phone": "(831) 555-0229"
+        "name": "Daria Troxell",
+        "email": "slvdaria24@gmail.com"
       },
-      "auditionNoticeUrl": "https://mctshows.org/auditions",
+      "auditionNoticeUrl": "https://mctshows.org/auditions/",
       "productionUrl": "https://mctshows.org/",
-      "createdAt": "2026-06-15T00:00:00Z",
-      "updatedAt": "2026-05-31T20:57:15.108Z"
+      "notes": "Directed by MarNae Taylor. Performances Sept 18–Oct 11, 2026: Fri & Sat at 8pm, Sun at 2pm at Park Hall, Ben Lomond.",
+      "createdAt": "2026-06-02T00:00:00Z",
+      "updatedAt": "2026-06-02T15:16:27.005Z"
     }
   ]
 }

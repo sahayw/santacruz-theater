@@ -1,5 +1,5 @@
 {
-  "company": "other",
+  "company": "Other",
   "year": 2026,
   "auditions": [
     {
@@ -12,17 +12,42 @@
           "startTime": "19:00",
           "endTime": "21:00",
           "location": {
-            "name": "Actors' Theatre",
-            "address": "1001 Center St, Santa Cruz, CA 95060"
+            "name": "Scratch Studios",
+            "address": "02B 303 Potrero St, Santa Cruz, CA 95060"
           },
           "notes": "Open Call"
+        },
+        {
+          "date": "2026-07-11",
+          "startTime": "12:00",
+          "endTime": "14:00",
+          "location": {
+            "name": "Scratch Studios",
+            "address": "02B 303 Potrero St, Santa Cruz, CA 95060"
+          },
+          "notes": "Open Call"
+        },
+        {
+          "date": "2026-07-12",
+          "startTime": "12:00",
+          "endTime": "15:00",
+          "location": {
+            "name": "Scratch Studios",
+            "address": "02B 303 Potrero St, Santa Cruz, CA 95060"
+          },
+          "notes": "Callbacks"
         }
       ],
       "rolesAvailable": [],
       "createdAt": "2026-05-31T21:09:08.445Z",
-      "updatedAt": "2026-05-31T21:18:42.659Z",
+      "updatedAt": "2026-06-02T15:43:01.965Z",
       "rehearsalStart": "2026-08-26",
-      "openingDate": "2026-10-03"
+      "openingDate": "2026-10-03",
+      "notes": "Directed by Simon Hayward. Performances Oct 9 - 25 Fri-Sun at Vets Hall, Santa Cruz",
+      "contact": {
+        "name": "Simon Hayward",
+        "email": "sh.theater@icloud.com"
+      }
     }
   ]
 }

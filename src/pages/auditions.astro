@@ -242,23 +242,30 @@ function roleTypeLabel(type: string): string {
                       <div class="detail-left">
                         <section class="detail-section">
                           <h4 class="detail-section-head">Audition dates</h4>
-                          {aud.auditionDates.map((ad) => (
-                            <div class="detail-date-row">
-                              <span class="detail-date-label">{fmtFullDate(ad.date)}</span>
-                              <span class="detail-time-label">
-                                {fmtTimeRange(ad.startTime, ad.endTime)}
-                              </span>
-                              {ad.notes && <span class="detail-date-note">{ad.notes}</span>}
-                              {ad.location && (
-                                <div class="detail-date-location">
-                                  <span class="detail-location-name">{ad.location.name}</span>
-                                  {ad.location.address && (
-                                    <span class="detail-sub"> · {ad.location.address}</span>
-                                  )}
-                                </div>
-                              )}
-                            </div>
-                          ))}
+                          {aud.auditionDates.map((ad, i) => {
+                            const locationSeenBefore =
+                              i > 0 &&
+                              aud.auditionDates
+                                .slice(0, i)
+                                .some((prev) => prev.location?.name === ad.location?.name)
+                            return (
+                              <div class="detail-date-row">
+                                <span class="detail-date-label">{fmtFullDate(ad.date)}</span>
+                                <span class="detail-time-label">
+                                  {fmtTimeRange(ad.startTime, ad.endTime)}
+                                </span>
+                                {ad.notes && <span class="detail-date-note">{ad.notes}</span>}
+                                {ad.location && (
+                                  <div class="detail-date-location">
+                                    <span class="detail-location-name">{ad.location.name}</span>
+                                    {!locationSeenBefore && ad.location.address && (
+                                      <span class="detail-sub"> · {ad.location.address}</span>
+                                    )}
+                                  </div>
+                                )}
+                              </div>
+                            )
+                          })}
                         </section>
 
                         {aud.prep && (

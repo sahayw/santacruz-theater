@@ -1,0 +1,70 @@
+{
+  "company": "SCS",
+  "year": 2026,
+  "auditions": [
+    {
+      "id": "audition-1735000000001",
+      "production": "2026 Festival Season (Much Ado About Nothing, Macbeth, Private Lives, The Last Five Years, Fences)",
+      "genre": "Drama",
+      "auditionDates": [
+        {
+          "date": "2026-01-25",
+          "startTime": "11:00",
+          "endTime": "18:00",
+          "notes": "Walk-in, no appointment needed. Sign-ups begin 10:30am. Everyone will be seen.",
+          "location": {
+            "name": "Veterans Memorial Building",
+            "address": "846 Front St, Santa Cruz, CA"
+          }
+        },
+        {
+          "date": "2026-02-06",
+          "startTime": "09:00",
+          "endTime": "17:00",
+          "notes": "Equity members by appointment via AEA website. Non-union join waiting list day-of.",
+          "location": {
+            "name": "Actors' Equity Building",
+            "address": "5636 Tujunga Ave, North Hollywood, CA"
+          }
+        }
+      ],
+      "rolesAvailable": [
+        {
+          "role": "Doubles",
+          "type": "supporting",
+          "gender": "any",
+          "voicePart": "Top Bb4 / bottom A2",
+          "description": "Doubles across The Last Five Years, Private Lives, Much Ado About Nothing, and Macbeth"
+        },
+        {
+          "role": "Fences characters",
+          "type": "supporting",
+          "gender": "any",
+          "description": "All characters in Fences yet to be cast are Black. Doubles with Macbeth."
+        },
+        {
+          "role": "Ensemble",
+          "type": "ensemble",
+          "gender": "any",
+          "description": "Various roles across all five productions in repertory"
+        }
+      ],
+      "prep": {
+        "acting": "Two contrasting pieces under three minutes total, at least one Shakespeare. Shorter is better.",
+        "bring": [
+          "Headshot and resume"
+        ]
+      },
+      "rehearsalStart": "2026-06-09",
+      "openingDate": "2026-07-11",
+      "contact": {
+        "email": "auditions@santacruzshakespeare.org"
+      },
+      "auditionNoticeUrl": "https://santacruzshakespeare.org/auditions/",
+      "productionUrl": "https://santacruzshakespeare.org/",
+      "notes": "Video submissions also accepted: upload to YouTube (no Vimeo or Google Drive), under three minutes, two contrasting pieces at least one Shakespeare. Send link to auditions@santacruzshakespeare.org. First rehearsal June 9; all shows rehearse in repertory. LOA contract, $839 weekly minimum (2025 rates).",
+      "createdAt": "2026-06-02T00:00:00Z",
+      "updatedAt": "2026-06-02T15:24:28.420Z"
+    }
+  ]
+}

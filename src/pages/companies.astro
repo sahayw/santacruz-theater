@@ -1,4 +1,5 @@
 ---
+import BaseHead from '../components/BaseHead.astro'
 import SiteNav from '../components/SiteNav.astro'
 import companiesData from '../../data/sc-theater-companies.json'
 import venuesData from '../../data/sc-theater-venues.json'
@@ -10,16 +11,10 @@ const venueNames = Object.fromEntries(venuesData.venues.map((v) => [v.code, v.na
 <!doctype html>
 <html lang="en">
   <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="generator" content={Astro.generator} />
-    <title>Theater Companies — Santa Cruz Theater</title>
-    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=DM+Sans:wght@300;400;500&display=swap"
-      rel="stylesheet"
+    <BaseHead
+      title="Theater Companies — Santa Cruz Theater"
+      description="Profiles of Santa Cruz County theater companies, venues, and contact information."
+      canonicalPath="/companies"
     />
   </head>
   <body>

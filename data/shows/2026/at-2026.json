@@ -369,6 +369,77 @@
         }
       ],
       "description": "Staged readings of the runners up from this years 8 x 10s Festival submissions."
+    },
+    {
+      "id": "run-1780383358514",
+      "company": "AT",
+      "showAbv": "Feathers and Teeth",
+      "show": "Feathers and Teeth",
+      "description": "Directed by Miguel Reyna",
+      "genre": "Drama",
+      "venue": "AT",
+      "price": "",
+      "discounts": "",
+      "infoUrl": "",
+      "ticketsUrl": "",
+      "performances": [
+        {
+          "date": "2026-10-16",
+          "time": "20:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-10-17",
+          "time": "20:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-10-18",
+          "time": "20:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-10-23",
+          "time": "20:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-10-24",
+          "time": "20:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-10-25",
+          "time": "20:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-10-30",
+          "time": "20:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-10-31",
+          "time": "20:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        }
+      ]
     }
   ]
 }

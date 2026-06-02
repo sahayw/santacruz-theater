@@ -1,20 +1,14 @@
 ---
-
+import BaseHead from '../components/BaseHead.astro'
 ---
 
 <!doctype html>
 <html lang="en">
   <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="generator" content={Astro.generator} />
-    <title>Santa Cruz Theater Hub</title>
-    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=DM+Sans:wght@300;400;500&display=swap"
-      rel="stylesheet"
+    <BaseHead
+      title="Santa Cruz Theater Hub"
+      description="Live theater performances, companies, and auditions across Santa Cruz County."
+      canonicalPath="/"
     />
     <!-- Netlify Identity widget: handles invite/recovery tokens in URL fragment -->
     <script src="https://unpkg.com/netlify-identity-widget@1/build/netlify-identity-widget.js"
@@ -190,7 +184,7 @@
   .page-bg {
     position: absolute;
     inset: 0;
-    background-image: url('https://images.unsplash.com/photo-1767811556101-d4dacddc8cb6?auto=format&fit=crop&w=1920&q=80');
+    background-image: url('/images/home/hero.jpg');
     background-size: cover;
     background-position: center top;
   }

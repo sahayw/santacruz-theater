@@ -1,18 +1,19 @@
 ---
-import CalendarView from '../components/calendar.astro';
-import SiteNav from '../components/SiteNav.astro';
-import { getPerformances } from '../lib/data.ts';
+import BaseHead from '../components/BaseHead.astro'
+import CalendarView from '../components/calendar.astro'
+import SiteNav from '../components/SiteNav.astro'
+import { getPerformances } from '../lib/data.ts'
 
-const performances = await getPerformances();
+const performances = await getPerformances()
 ---
 
 <html lang="en">
   <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="generator" content={Astro.generator} />
-    <title>Calendar — Santa Cruz Theater 2026</title>
-    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <BaseHead
+      title="Calendar — Santa Cruz Theater"
+      description="Browse upcoming theater performances across Santa Cruz County by month, company, and genre."
+      canonicalPath="/calendar"
+    />
   </head>
   <body>
     <SiteNav currentPage="calendar" />

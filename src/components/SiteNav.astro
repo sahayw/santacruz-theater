@@ -89,7 +89,7 @@ const { currentPage } = Astro.props;
     color: #e2d5b8;
     text-decoration: none;
     letter-spacing: 0.03em;
-    flex: 1;
+    flex: 0 0 auto;
     white-space: nowrap;
     transition: color 0.14s;
   }
@@ -99,6 +99,7 @@ const { currentPage } = Astro.props;
 
   .nav-toggle {
     display: none;
+    margin-left: auto;
     flex-direction: column;
     justify-content: center;
     gap: 4px;
@@ -125,8 +126,10 @@ const { currentPage } = Astro.props;
   .nav-links {
     list-style: none;
     display: flex;
+    margin-left: auto;
     gap: 2px;
-    margin: 0;
+    margin-top: 0;
+    margin-bottom: 0;
     padding: 0;
   }
 

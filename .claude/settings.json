@@ -29,7 +29,8 @@
       "Bash(curl -sL \"https://thelandingsv.org/wp-content/uploads/2025/06/The-Landing-Logo_white-500x413.png\" -o /tmp/landing-logo-tagline.png)",
       "Bash(node -e ' *)",
       "Bash(npx tsx *)",
-      "Bash(git -C \"/Users/simonhayward/Dev Projects/Santa Cruz theater/santacruz-theater\" status -s)"
+      "Bash(git -C \"/Users/simonhayward/Dev Projects/Santa Cruz theater/santacruz-theater\" status -s)",
+      "Bash(git fetch *)"
     ],
     "additionalDirectories": [
       "/private/tmp"

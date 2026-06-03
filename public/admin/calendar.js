@@ -112,7 +112,7 @@ const CAL_CSS = `
   transition: background 0.1s;
 }
 .run-item:hover { background: var(--bg); }
-.run-item.active { background: var(--bg); border-left-color: var(--ink); }
+.run-item.active { background: var(--bg); border-left-color: var(--sidebar-active); }
 .run-item-company {
   font-size: 9px;
   font-weight: 500;

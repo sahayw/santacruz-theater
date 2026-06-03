@@ -96,7 +96,7 @@ const AUD_CSS = `
   transition: background 0.1s;
 }
 .aud-list-item:hover  { background: var(--bg); }
-.aud-list-item.active { background: var(--bg); border-left-color: var(--accent); }
+.aud-list-item.active { background: var(--bg); border-left-color: var(--sidebar-active); }
 .aud-item-genre { font-size: 9px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.07em; color: var(--ink-faint); margin-bottom: 1px; }
 .aud-item-title { font-size: 12px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .aud-item-count { font-size: 10px; color: var(--ink-faint); font-family: 'IBM Plex Mono', monospace; }

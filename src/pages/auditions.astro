@@ -295,7 +295,7 @@ function roleTypeLabel(type: string): string {
 
                         {aud.contact &&
                           (aud.contact.name || aud.contact.email || aud.contact.phone) && (
-                            <section class="detail-section">
+                            <section class="detail-section contact-section">
                               <h4 class="detail-section-head">Contact</h4>
                               {aud.contact.name && (
                                 <div class="detail-contact-name">{aud.contact.name}</div>
@@ -333,21 +333,25 @@ function roleTypeLabel(type: string): string {
                               </thead>
                               <tbody>
                                 {aud.rolesAvailable.map((role) => (
-                                  <tr>
-                                    <td class="role-name-cell">
-                                      {role.role}
-                                      {role.description && (
-                                        <span class="role-desc">{role.description}</span>
+                                  <>
+                                    <tr class={role.description ? 'has-desc' : undefined}>
+                                      <td class="role-name-cell">{role.role}</td>
+                                      <td class={`role-type role-${role.type}`}>
+                                        {roleTypeLabel(role.type)}
+                                      </td>
+                                      <td class="role-age">{role.ageRange ?? ''}</td>
+                                      {showVoice && (
+                                        <td class="role-voice">{role.voicePart ?? ''}</td>
                                       )}
-                                    </td>
-                                    <td class={`role-type role-${role.type}`}>
-                                      {roleTypeLabel(role.type)}
-                                    </td>
-                                    <td class="role-age">{role.ageRange ?? ''}</td>
-                                    {showVoice && (
-                                      <td class="role-voice">{role.voicePart ?? ''}</td>
+                                    </tr>
+                                    {role.description && (
+                                      <tr class="role-desc-row">
+                                        <td class="role-desc-cell" colspan={showVoice ? 4 : 3}>
+                                          <span class="role-desc">{role.description}</span>
+                                        </td>
+                                      </tr>
                                     )}
-                                  </tr>
+                                  </>
                                 ))}
                               </tbody>
                             </table>
@@ -702,6 +706,11 @@ function roleTypeLabel(type: string): string {
     margin-bottom: 16px;
   }
 
+  .detail-left,
+  .detail-right {
+    min-width: 0;
+  }
+
   .detail-section {
     margin-bottom: 16px;
   }
@@ -717,6 +726,10 @@ function roleTypeLabel(type: string): string {
     letter-spacing: 0.08em;
     color: var(--ink-muted);
     margin-bottom: 8px;
+  }
+
+  .contact-section .detail-section-head {
+    margin-bottom: 4px;
   }
 
   /* Date rows */
@@ -744,7 +757,6 @@ function roleTypeLabel(type: string): string {
     font-size: 11px;
     color: var(--ink-subtle);
     font-style: italic;
-    white-space: nowrap;
   }
 
   /* Per-date location */
@@ -794,7 +806,6 @@ function roleTypeLabel(type: string): string {
   /* Contact */
   .detail-contact-name {
     font-size: 13px;
-    font-weight: 500;
     color: var(--ink);
     margin-bottom: 2px;
   }
@@ -841,14 +852,23 @@ function roleTypeLabel(type: string): string {
     color: var(--ink);
   }
 
+  .roles-table tr.has-desc td {
+    border-bottom: none;
+    padding-bottom: 2px;
+  }
+
+  .role-desc-cell {
+    padding-top: 0;
+  }
+
   .role-desc {
     display: block;
     font-size: 11px;
     font-weight: 400;
     color: var(--ink-muted);
     font-style: italic;
-    margin-top: 2px;
     line-height: 1.4;
+    max-width: 80%;
   }
 
   .role-type {
@@ -867,10 +887,13 @@ function roleTypeLabel(type: string): string {
     font-style: italic;
   }
 
-  .role-age,
-  .role-voice {
+  .role-age {
     color: var(--ink-muted);
     white-space: nowrap;
+  }
+
+  .role-voice {
+    color: var(--ink-muted);
   }
 
   /* ── DETAIL FOOTER ── */

@@ -1,5 +1,5 @@
 {
-  "company": "renegade",
+  "company": "Renegade",
   "year": 2026,
   "auditions": [
     {
@@ -96,7 +96,7 @@
           "description": "Non-singing. Must be great with improv — direct interaction with a sometimes very vocal audience."
         },
         {
-          "role": "Phantoms (ensemble)",
+          "role": "Phantoms",
           "type": "ensemble",
           "gender": "any",
           "voicePart": "SATB",

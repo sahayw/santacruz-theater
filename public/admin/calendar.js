@@ -738,7 +738,7 @@ async function onYearSelect() {
     const nextYear = existingYears.length > 0 ? Math.max(...existingYears) + 1 : CURRENT_YEAR
     const abv = allCompanies.find((c) => c.id === pendingCompanyId)?.abvName || pendingCompanyId
     const file = `shows/${nextYear}/${pendingCompanyId}-${nextYear}.json`
-    const payload = { company: abv, year: nextYear, runs: [] }
+    const payload = { company: pendingCompanyId, year: nextYear, runs: [] }
     try {
       await apiPut(file, payload)
     } catch (e) {
@@ -790,7 +790,7 @@ async function saveFile() {
   btn.textContent = 'Saving…'
   try {
     await apiPut(`shows/${currentYear}/${currentCompanyId}-${currentYear}.json`, {
-      company: currentCompanyAbv,
+      company: currentCompanyId,
       year: currentYear,
       runs
     })

@@ -608,7 +608,7 @@ async function autoCreateFirstFile(coId) {
   const abv = allCompanies.find((c) => c.id === coId)?.abvName || coId
   try {
     await apiPut(`auditions/${CURRENT_YEAR}/${coId}-auditions-${CURRENT_YEAR}.json`, {
-      company: abv,
+      company: coId,
       year: CURRENT_YEAR,
       auditions: []
     })
@@ -654,7 +654,7 @@ async function onYearSelect() {
     const abv = allCompanies.find((c) => c.id === pendingCompanyId)?.abvName || pendingCompanyId
     try {
       await apiPut(`auditions/${nextYear}/${pendingCompanyId}-auditions-${nextYear}.json`, {
-        company: abv,
+        company: pendingCompanyId,
         year: nextYear,
         auditions: []
       })
@@ -712,7 +712,7 @@ async function saveFile() {
       auditionDates: (a.auditionDates || []).filter((d) => !isEmptyDateRow(d))
     }))
     await apiPut(`auditions/${currentYear}/${currentCompanyId}-auditions-${currentYear}.json`, {
-      company: currentCompanyAbv,
+      company: currentCompanyId,
       year: currentYear,
       auditions: cleanAuditions
     })

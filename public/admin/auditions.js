@@ -14,9 +14,9 @@ let pendingCompanyId = null
 let currentCompanyId = null
 let currentYear = CURRENT_YEAR
 let currentCompanyAbv = ''
-let isDirty = false
 let isAdminContext = false
 let venuesList = []
+let audSnapshots = new Map() // audition id → JSON string (cleaned, updatedAt excluded)
 let _resizeMouseMove = null
 let _resizeMouseUp = null
 
@@ -349,6 +349,9 @@ const AUD_HTML = `
         <div class="aud-form-title">
           <span id="audTitleText"></span><small id="audSubtitle"></small>
         </div>
+        <button class="btn btn-sm" id="audRestoreBtn"
+          style="background:var(--bg);border:1px solid var(--border)"
+          onclick="aud.restoreAudition()">Restore</button>
         <button class="btn btn-sm" style="background:#fde;color:var(--accent);border:1px solid #fcc"
           onclick="aud.deleteAudition()">Delete</button>
       </div>
@@ -505,6 +508,18 @@ function isMusical() {
   return document.getElementById('af-genre')?.value === 'Musical'
 }
 
+// ── SNAPSHOT HELPERS ──
+function makeAuditionSnapshot(a) {
+  const clean = { ...a, auditionDates: (a.auditionDates || []).filter((d) => !isEmptyDateRow(d)) }
+  const { updatedAt, ...rest } = clean
+  return JSON.stringify(rest)
+}
+
+function refreshSnapshots() {
+  audSnapshots = new Map()
+  auditions.forEach((a) => audSnapshots.set(a.id, makeAuditionSnapshot(a)))
+}
+
 // ── DATA ACCESS ──
 async function loadAuditionsDir() {
   const resp = await fetch('/.netlify/functions/data?dir=auditions')
@@ -520,8 +535,8 @@ async function loadCompanyFile(coId, year) {
     currentCompanyId = coId
     currentYear = data.year || year
     currentCompanyAbv = allCompanies.find((c) => c.id === coId)?.abvName || coId
-    isDirty = false
     activeAudIdx = auditions.length > 0 ? 0 : -1
+    refreshSnapshots()
     document.getElementById('newAudBtn')?.setAttribute('style', '')
     renderSidebar()
     loadAudEditor()
@@ -582,7 +597,7 @@ async function onCompanySelect() {
     clearEditor()
     return
   }
-  if (isDirty && !confirm('You have unsaved changes. Discard and continue?')) {
+  if (computeIsDirty() && !confirm('You have unsaved changes. Discard and continue?')) {
     document.getElementById('audCompanySelect').value = pendingCompanyId || ''
     return
   }
@@ -642,7 +657,7 @@ function hideYearSelect() {
 async function onYearSelect() {
   const val = document.getElementById('audYearSelect').value
   if (!val || !pendingCompanyId) return
-  if (isDirty && !confirm('You have unsaved changes. Discard and continue?')) {
+  if (computeIsDirty() && !confirm('You have unsaved changes. Discard and continue?')) {
     document.getElementById('audYearSelect').value = currentYear || ''
     return
   }
@@ -675,17 +690,29 @@ async function onYearSelect() {
 }
 
 // ── PERSISTENCE ──
+function computeIsDirty() {
+  if (auditions.length !== audSnapshots.size) return true
+  for (const a of auditions) {
+    const snap = audSnapshots.get(a.id)
+    if (!snap) return true
+    const clean = { ...a, auditionDates: (a.auditionDates || []).filter((d) => !isEmptyDateRow(d)) }
+    const { updatedAt, ...rest } = clean
+    if (snap !== JSON.stringify(rest)) return true
+  }
+  return false
+}
+
 function markDirty() {
   if (!currentCompanyId) return
-  isDirty = true
   updateStatus()
   updateSaveBtn()
+  updateRestoreBtn()
 }
 
 function updateSaveBtn() {
   const btn = document.getElementById('audSaveBtn')
   if (!btn) return
-  const can = isDirty && !!currentCompanyId
+  const can = !!currentCompanyId && computeIsDirty()
   btn.disabled = !can
   btn.style.background = can ? 'var(--yellow)' : 'transparent'
   btn.style.color = can ? '#1c1a17' : 'rgba(28,26,23,0.4)'
@@ -707,16 +734,21 @@ async function saveFile() {
   btn.disabled = true
   btn.textContent = 'Saving…'
   try {
-    const cleanAuditions = auditions.map((a) => ({
-      ...a,
-      auditionDates: (a.auditionDates || []).filter((d) => !isEmptyDateRow(d))
-    }))
+    const now = new Date().toISOString()
+    const cleanAuditions = auditions.map((a) => {
+      const cleaned = { ...a, auditionDates: (a.auditionDates || []).filter((d) => !isEmptyDateRow(d)) }
+      const { updatedAt, ...rest } = cleaned
+      const snap = audSnapshots.get(a.id)
+      const changed = !snap || snap !== JSON.stringify(rest)
+      return { ...cleaned, updatedAt: changed ? now : a.updatedAt }
+    })
     await apiPut(`auditions/${currentYear}/${currentCompanyId}-auditions-${currentYear}.json`, {
       company: currentCompanyId,
       year: currentYear,
       auditions: cleanAuditions
     })
-    isDirty = false
+    cleanAuditions.forEach((ca, i) => { auditions[i].updatedAt = ca.updatedAt })
+    refreshSnapshots()
     btn.textContent = 'Saved ✓'
     btn.style.background = 'var(--green)'
     btn.style.color = '#fff'
@@ -744,7 +776,7 @@ function updateStatus() {
   if (!currentCompanyId) {
     es.textContent = 'no file loaded'
     es.style.color = 'rgba(255,255,255,0.35)'
-  } else if (isDirty) {
+  } else if (computeIsDirty()) {
     es.textContent = 'unsaved changes'
     es.style.color = 'var(--yellow)'
   } else {
@@ -823,12 +855,21 @@ function loadAudEditor() {
   updateMusicLayout()
   renderDatesTable()
   renderRolesTable()
+  updateRestoreBtn()
 }
 
 function updateEditorTitle() {
   const a = auditions[activeAudIdx]
   document.getElementById('audTitleText').textContent = a.production || 'Untitled'
   document.getElementById('audSubtitle').textContent = a.genre ? ` · ${a.genre}` : ''
+}
+
+function updateRestoreBtn() {
+  const btn = document.getElementById('audRestoreBtn')
+  if (!btn) return
+  const a = activeAudIdx >= 0 ? auditions[activeAudIdx] : null
+  const snap = a ? audSnapshots.get(a.id) : null
+  btn.style.display = snap && snap !== makeAuditionSnapshot(a) ? '' : 'none'
 }
 
 // ── MUSICAL-ONLY FIELD VISIBILITY ──
@@ -875,7 +916,6 @@ function fieldChanged() {
   }
   a.contact = contact.name || contact.email || contact.phone ? contact : undefined
 
-  a.updatedAt = new Date().toISOString()
   updateEditorTitle()
   updateMusicLayout()
   renderSidebar()
@@ -893,7 +933,7 @@ function toggleNotesExpand() {
 // ── AUDITION CRUD ──
 function newAudition() {
   const now = new Date().toISOString()
-  auditions.push({
+  const newRec = {
     id: `audition-${Date.now()}`,
     production: '',
     genre: '',
@@ -901,12 +941,25 @@ function newAudition() {
     rolesAvailable: [],
     createdAt: now,
     updatedAt: now
-  })
+  }
+  auditions.push(newRec)
   activeAudIdx = auditions.length - 1
   renderSidebar()
   loadAudEditor()
   document.getElementById('af-production').focus()
   markDirty()
+}
+
+function restoreAudition() {
+  if (activeAudIdx < 0) return
+  const a = auditions[activeAudIdx]
+  const snap = audSnapshots.get(a.id)
+  if (!snap) return
+  if (!confirm(`Restore "${a.production || 'this audition'}" to its last saved state? Unsaved changes will be lost.`)) return
+  auditions[activeAudIdx] = { ...JSON.parse(snap), updatedAt: a.updatedAt }
+  loadAudEditor()
+  updateStatus()
+  updateSaveBtn()
 }
 
 function deleteAudition() {
@@ -922,9 +975,9 @@ function deleteAudition() {
 
 function clearEditor() {
   auditions = []
+  audSnapshots = new Map()
   currentCompanyId = null
   activeAudIdx = -1
-  isDirty = false
   renderSidebar()
   updateEmptyState()
   document.getElementById('audEmptyState').style.display = ''
@@ -1297,6 +1350,7 @@ export function mount(container, context) {
     saveFile,
     newAudition,
     selectAud,
+    restoreAudition,
     deleteAudition,
     fieldChanged,
     toggleNotesExpand,
@@ -1349,13 +1403,13 @@ export function unmount() {
   document.getElementById('aud-venue-dropdown')?.remove()
   delete window.aud
   auditions = []
+  audSnapshots = new Map()
   activeAudIdx = -1
   allCompanies = []
   allAudFiles = []
   pendingCompanyId = currentCompanyId = null
   currentYear = CURRENT_YEAR
   currentCompanyAbv = ''
-  isDirty = false
   isAdminContext = false
   venuesList = []
 }

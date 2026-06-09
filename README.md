@@ -50,17 +50,29 @@ Company data lives in `data/sc-theater-companies.json`. Logos are downloaded loc
 
 ## Auditions
 
-The `/auditions` page lists upcoming open calls from Santa Cruz County theater companies. Cards are collapsed by default, showing the production title, genre badge, company colour dot, opening date, a roles summary, and the audition date range. Clicking a card expands a detail panel with full audition dates and times, locations, preparation requirements, contact info, and a roles table. Past audition cards show a small "Past" pill in the collapsed header.
+The `/auditions` page lists upcoming open calls from Santa Cruz County theater companies. Cards are collapsed by default, showing the production title, genre badge, company colour dot, opening date, a roles summary, and the audition date range. Clicking a card expands a detail panel with full audition dates and times, locations, preparation requirements, contact info, and a roles table. Past audition cards show a small "Past" pill in the collapsed header. Cards for auditions updated since they were first posted show a blue "Updated" pill.
 
 A filter bar with Company, Genre, and When controls (Upcoming / All dates / Past only) narrows the list client-side. Filter defaults to Upcoming.
 
 A `?id=<timestamp>` URL parameter opens a single audition record directly (filter bar hidden, all other cards hidden, target card expanded). An unrecognised id shows an error message.
+
+A subscribe widget is shown below the page header (hidden in deep-link and not-found modes). The standalone `/subscribe` page provides the same form with additional context. Both submit to `/.netlify/functions/subscribe`, which adds the address to the Buttondown subscriber list. Buttondown sends a double opt-in confirmation email automatically; unsubscribe links are included in every email.
 
 ### Auditions data
 
 Data lives in `data/auditions/<year>/<company-id>-auditions-<year>.json` — one file per company per year. `getAuditions()` in `src/lib/data.ts` imports all files at build time and returns a flat, sorted `AuditionEvent[]`. The upcoming/past distinction is determined client-side from the user's current date.
 
 Location is stored per `AuditionDate`, so different sessions of the same audition can be in different venues. Collapsed cards show only the date range; location appears in the expanded detail per date row. Voice Part is only shown for Musical genre auditions; Singing and Dance prep fields are similarly Musical-only.
+
+### Email notifications
+
+A daily digest email is sent to subscribers when new or updated auditions have been posted since the previous digest. Delivered via **Buttondown**.
+
+**Subscribing** — an email form appears on `/auditions` (below the header) and on the standalone `/subscribe` page. Submissions go to `/.netlify/functions/subscribe`, which calls the Buttondown API. Buttondown sends a double opt-in confirmation; unsubscribe links are included in every outgoing email.
+
+**Digest** — `netlify/functions/send-audition-digest.mts` runs at 02:00 UTC. It reads current audition data from the GitHub API, compares `createdAt`/`updatedAt` timestamps against a "last sent" value stored in Netlify Blob Storage, and sends a digest if anything is new or updated. New and updated auditions are presented in separate sections; each entry links directly to the audition record on the site. The last-sent timestamp is updated only after a successful send.
+
+Setting `DRY_RUN=true` in Netlify environment variables causes the function to log what it would send without calling Buttondown.
 
 ---
 
@@ -208,13 +220,19 @@ src/
     calendar.astro            # calendar interface
     SiteNav.astro             # shared site navigation
   lib/data.ts                 # build-time data loading
+  lib/
+    data.ts                   # build-time data loading
+    audition-format.ts        # shared audition formatting (Astro + Netlify functions + browser)
   pages/
     index.astro               # home page
     calendar.astro            # calendar route
     companies.astro           # company directory
     auditions.astro           # auditions route
+    subscribe.astro           # email subscription page
     about.astro               # about and contact page
     services.astro            # stub
+    admin/
+      audition-format.js.ts   # Astro endpoint serving shared module as browser ES module
   types.ts                    # shared TypeScript interfaces
 data/
   shows/<year>/               # one JSON file per company per year, e.g. scs-2026.json
@@ -233,6 +251,10 @@ netlify/
   functions/
     data.mjs                  # data read/write endpoint
     fetch-page.mjs            # page-fetch proxy
+    subscribe.mjs             # Buttondown subscription handler
+    send-audition-digest.mts  # scheduled daily digest (02:00 UTC)
+    lib/
+      email-template.mts      # email HTML template for digest
 scripts/
   check-shows.ts              # show data validation
   check-auditions.ts          # audition data validation
@@ -272,14 +294,16 @@ Netlify CI watches `main` and deploys on every push, using the config in `netlif
 
 ### Netlify environment variables
 
-Required for the `data.mjs` function (set in Netlify → Site configuration → Environment variables):
+Required (set in Netlify → Site configuration → Environment variables):
 
-| Variable        | Value                                 |
-| --------------- | ------------------------------------- |
-| `GITHUB_TOKEN`  | Fine-grained PAT, Contents r/w        |
-| `GITHUB_OWNER`  | Repository owner (GitHub username)    |
-| `GITHUB_REPO`   | Repository name                       |
-| `GITHUB_BRANCH` | Branch to commit to (default: `main`) |
+| Variable             | Purpose                                                       |
+| -------------------- | ------------------------------------------------------------- |
+| `GITHUB_TOKEN`       | Fine-grained PAT, Contents r/w (used by `data.mjs`)          |
+| `GITHUB_OWNER`       | Repository owner (GitHub username)                            |
+| `GITHUB_REPO`        | Repository name                                               |
+| `GITHUB_BRANCH`      | Branch to commit to (default: `main`)                         |
+| `BUTTONDOWN_API_KEY` | Buttondown API key (used by `subscribe.mjs` and digest)       |
+| `DRY_RUN`            | Optional. `true` runs the digest without sending or recording |
 
 ### Netlify Identity
 

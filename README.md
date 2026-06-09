@@ -50,9 +50,11 @@ Company data lives in `data/sc-theater-companies.json`. Logos are downloaded loc
 
 ## Auditions
 
-The `/auditions` page lists upcoming open calls from Santa Cruz County theater companies. Cards are collapsed by default, showing the production title, genre badge, company colour dot, opening date, a roles summary, and the audition date range. Clicking a card expands a detail panel with full audition dates and times, locations, preparation requirements, contact info, and a roles table.
+The `/auditions` page lists upcoming open calls from Santa Cruz County theater companies. Cards are collapsed by default, showing the production title, genre badge, company colour dot, opening date, a roles summary, and the audition date range. Clicking a card expands a detail panel with full audition dates and times, locations, preparation requirements, contact info, and a roles table. Past audition cards show a small "Past" pill in the collapsed header.
 
 A filter bar with Company, Genre, and When controls (Upcoming / All dates / Past only) narrows the list client-side. Filter defaults to Upcoming.
+
+A `?id=<timestamp>` URL parameter opens a single audition record directly (filter bar hidden, all other cards hidden, target card expanded). An unrecognised id shows an error message.
 
 ### Auditions data
 
@@ -191,6 +193,10 @@ Inline-editable table of roles being cast. Columns: Role, Type, Gender, Age Rang
 ### Musical-only fields
 
 When Genre is set to Musical, Singing and Dance fields appear in the Prepare section and the Voice Part column appears in the roles table. Switching away from Musical hides these fields and clears them from the saved data.
+
+### Restore
+
+A **Restore** button appears in the record header when the active record has unsaved changes. It reverts the record to its last saved state. The button is hidden when the record is clean and not shown at all for newly created records.
 
 ---
 

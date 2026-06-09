@@ -209,6 +209,12 @@ One file per company per year. Top-level shape:
 
 The `/auditions` page is "upcoming" by default — an audition is upcoming when its latest `auditionDate.date` is ≥ today's date. Past/all filtering is handled client-side.
 
+Past audition cards show a small "Past" pill in the collapsed header (right side, above the date range), applied client-side via a `.past` CSS class.
+
+#### Deep-linking
+
+A `?id=<timestamp>` URL parameter targets a specific audition record (the `audition-` prefix is stripped from the id for brevity; the page re-adds it when looking up the card). When a valid id is provided the page switches to single-card mode: the filter bar and subtitle are hidden, the page title changes to "Audition" at a reduced size, all other cards are hidden, and the target card is shown expanded. If the id is not recognised the list and filter bar are hidden and an error message is shown. URL format: `https://santacruz.theater/auditions?id=1735000000002`.
+
 ### Auditions editor (`auditions.js`)
 
 Follows the same mount/unmount pattern as `calendar.js`. The company selector is populated from every company except the admin sentinel entry in `sc-theater-companies.json` via the shared `buildCompanyOptions()` function in `api.js`, with `Other` listed last. If the selected company has no existing file, one is created automatically for the current year. If existing files are all for the current year or earlier and the current year is present, it is auto-loaded without requiring a year selection.
@@ -221,6 +227,16 @@ The form is split into a fixed header (production title, company badge, delete b
 - **Roles table** — inline-editable; Voice Part column is shown only for Musical genre. Role count is hidden in the sidebar when no roles are defined.
 - **Musical-only fields** — Singing and Dance prep rows, and the Voice Part column in the roles table, are shown only when genre is Musical.
 - **Roles Available section** — suppressed entirely (header and table) when no roles are defined, both in the editor and on the public `/auditions` page.
+
+#### Save and dirty-check
+
+The Save button and status bar ("unsaved changes" / "saved") are driven by `computeIsDirty()`, which compares the current state of every audition in the loaded file against a snapshot taken on load (and refreshed after each successful save). The comparison uses `JSON.stringify` on the cleaned record (empty date rows filtered, `updatedAt` excluded). If all records match their snapshots and no records have been added or deleted, the file is considered clean — so opening a record and saving without making any changes does not advance `updatedAt` or show unsaved-changes state.
+
+`updatedAt` is only advanced at save time, and only for records whose content has actually changed since the last save.
+
+#### Restore button
+
+A **Restore** button appears in the record header (to the left of Delete) when the active record has unsaved changes — i.e. its current state differs from its snapshot. Clicking Restore re-applies the snapshot, discarding in-editor changes. The button is hidden for newly created records (which have no snapshot) and whenever the record matches its snapshot.
 
 ## Companies
 

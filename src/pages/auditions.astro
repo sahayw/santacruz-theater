@@ -204,6 +204,7 @@ function roleTypeLabel(type: string): string {
               return (
                 <div
                   class="aud-card"
+                  data-id={aud.id}
                   data-company={aud.company}
                   data-genre={aud.genre}
                   data-latest-date={latest}
@@ -225,6 +226,9 @@ function roleTypeLabel(type: string): string {
                       <div class="aud-roles-row">{rolesSum(aud)}</div>
                     </div>
                     <div class="aud-aside">
+                      <span class="aud-past-pip" aria-hidden="true">
+                        Past
+                      </span>
                       <span class="aud-date-range">{fmtAudDateRange(aud)}</span>
                       <span class="aud-chevron" aria-hidden="true" />
                     </div>
@@ -397,6 +401,8 @@ function roleTypeLabel(type: string): string {
           </div>
         )
       }
+
+      <div class="aud-not-found" id="aud-not-found" hidden></div>
     </main>
   </body>
 </html>
@@ -535,7 +541,8 @@ function roleTypeLabel(type: string): string {
 
   /* ── EMPTY STATES ── */
   .aud-no-data,
-  .aud-empty {
+  .aud-empty,
+  .aud-not-found {
     padding: 48px 24px;
     text-align: center;
     font-size: 14px;
@@ -645,6 +652,23 @@ function roleTypeLabel(type: string): string {
   .genre-other {
     background: #f0ece6;
     color: var(--ink-muted);
+  }
+
+  .aud-past-pip {
+    display: none;
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--ink-subtle);
+    background: rgba(0, 0, 0, 0.06);
+    padding: 2px 7px;
+    border-radius: 8px;
+    flex-shrink: 0;
+  }
+
+  .aud-card.past .aud-past-pip {
+    display: inline-block;
   }
 
   .aud-meta-row {
@@ -989,6 +1013,11 @@ function roleTypeLabel(type: string): string {
   const filterWhen = document.getElementById('filter-when')
   const emptyEl = document.getElementById('aud-empty')
 
+  // Mark past cards (drives the Past pip via CSS)
+  cards.forEach((card) => {
+    if ((card.dataset.latestDate ?? '') < TODAY) card.classList.add('past')
+  })
+
   function updateFilters() {
     const co = filterCompany.value
     const ge = filterGenre.value
@@ -1015,13 +1044,52 @@ function roleTypeLabel(type: string): string {
     }
   }
 
-  // Default to upcoming
-  if (filterWhen) filterWhen.value = 'upcoming'
-  updateFilters()
+  function openCard(card) {
+    const btn = card.querySelector('.aud-summary')
+    const detail = card.querySelector('.aud-detail')
+    if (!btn || !detail) return
+    card.classList.add('open')
+    detail.hidden = false
+    btn.setAttribute('aria-expanded', 'true')
+  }
 
-  filterCompany?.addEventListener('change', updateFilters)
-  filterGenre?.addEventListener('change', updateFilters)
-  filterWhen?.addEventListener('change', updateFilters)
+  // Deep-link: ?id=<timestamp> (prefix "audition-" stripped from URL for brevity)
+  const deepId = new URLSearchParams(location.search).get('id')
+  const deepCard = deepId
+    ? (cards.find((c) => c.dataset.id === 'audition-' + deepId) ?? null)
+    : null
+
+  if (deepId && deepCard) {
+    // Single-card mode: show only the linked record, no filters
+    const titleEl = document.querySelector('.page-title')
+    titleEl.textContent = 'Audition'
+    titleEl.style.fontSize = '18px'
+    document.querySelector('.page-subtitle').style.display = 'none'
+    document.querySelector('.filter-bar').style.display = 'none'
+    cards.forEach((c) => {
+      if (c !== deepCard) c.style.display = 'none'
+    })
+    openCard(deepCard)
+    // Re-enable the Auditions nav link so it navigates back to the full list
+    const audNav = document.querySelector('a.nav-link--active[href="/auditions"]')
+    if (audNav) audNav.style.pointerEvents = 'auto'
+  } else if (deepId) {
+    // Unrecognised id — show error, suppress list and filters
+    document.querySelector('.filter-bar').style.display = 'none'
+    document.getElementById('aud-list')?.style.setProperty('display', 'none')
+    const notFound = document.getElementById('aud-not-found')
+    notFound.textContent = `audition-${deepId} not found`
+    notFound.hidden = false
+    const audNav = document.querySelector('a.nav-link--active[href="/auditions"]')
+    if (audNav) audNav.style.pointerEvents = 'auto'
+  } else {
+    // Normal list mode
+    filterWhen.value = 'upcoming'
+    updateFilters()
+    filterCompany?.addEventListener('change', updateFilters)
+    filterGenre?.addEventListener('change', updateFilters)
+    filterWhen?.addEventListener('change', updateFilters)
+  }
 
   // Expand / collapse
   document.querySelectorAll('.aud-summary').forEach((btn) => {

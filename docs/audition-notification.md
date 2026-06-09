@@ -144,17 +144,14 @@ does not currently support deep-linking — there are no URL parameters. This mu
 implemented before the email system goes live.
 
 **Proposed approach:** Add `?id=<audition-id>` parameter support to the `/auditions` page.
-On page load, client-side JS checks for this parameter, finds the matching card, scrolls
-it into view, and expands it if the page uses an expand/collapse pattern. The email
-template constructs these URLs for each audition block (e.g.
-`https://santacruz.theater/auditions?id=audition-1234`). If the audition has already
-passed by the time the subscriber clicks the link, the card will still be shown - the filter on the page should be changed to "All dates" if necessary. Add a marker to audition cards that flags they are in the past so this is obvious - pip on RHS on same line as heading.
+On page load, client-side JS checks for this parameter, finds the matching card and displays it. The email template constructs these URLs for each audition block (e.g.
+`https://santacruz.theater/auditions?id=1234`). URL id uses just the timestamp number without "audition-" prefix. Error displayed if no matching audition id found.
 
 ### Implementation Sequence
 
 0. - Editor dirty-check: snapshot record on load, compare before save, advance `updatedAt`
      only if data has changed.
-   - Deep-linking to audition records and add past market to audition cards.
+   - Deep-linking to audition records and add past marker to audition cards.
 1. Buttondown account setup; API key stored as Netlify environment variable
    (`BUTTONDOWN_API_KEY`).
 2. Subscription form component + Netlify Function to add subscribers via Buttondown API,

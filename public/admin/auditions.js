@@ -308,6 +308,96 @@ const AUD_CSS = `
 .aud-venue-item:hover { background: var(--bg); }
 .aud-venue-item-name { font-size: 12px; font-family: 'IBM Plex Sans', sans-serif; color: var(--ink); }
 .aud-venue-item-addr { font-size: 10px; font-family: 'IBM Plex Mono', monospace; color: var(--ink-faint); margin-top: 2px; }
+
+/* ── PREVIEW MODAL ── */
+.aud-preview-overlay {
+  position: fixed; inset: 0; z-index: 9000;
+  background: rgba(0,0,0,0.55);
+  display: flex; align-items: flex-start; justify-content: center;
+  padding: 40px 20px 40px; overflow-y: auto;
+}
+.aud-preview-modal {
+  background: #f0ede8; border-radius: 8px;
+  width: 100%; max-width: 820px;
+  box-shadow: 0 8px 40px rgba(0,0,0,0.35);
+  overflow: hidden; flex-shrink: 0;
+}
+.aud-preview-modal-hd {
+  background: #2e2a26; padding: 9px 14px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.aud-preview-modal-label {
+  font-size: 11px; font-weight: 500; text-transform: uppercase;
+  letter-spacing: 0.08em; color: rgba(255,255,255,0.5);
+  font-family: 'IBM Plex Sans', sans-serif;
+}
+.aud-preview-close {
+  width: 24px; height: 24px; border: none; background: none;
+  cursor: pointer; color: rgba(255,255,255,0.55); font-size: 20px; line-height: 1;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 3px; padding: 0;
+}
+.aud-preview-close:hover { color: #fff; background: rgba(255,255,255,0.1); }
+.aud-preview-modal-body { padding: 20px; }
+
+/* Card shell */
+.pv-card {
+  background: #fff; border: 1px solid #c8a96e; border-radius: 6px;
+  overflow: hidden; box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+}
+/* Summary row */
+.pv-summary {
+  display: flex; align-items: center; gap: 16px; padding: 14px 16px;
+}
+.pv-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+.pv-title-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.pv-dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
+.pv-title { font-family: 'Playfair Display', Georgia, serif; font-size: 16px; font-weight: 600; color: #1a1612; line-height: 1.25; }
+.pv-genre-badge { font-size: 11px; font-weight: 500; padding: 2px 8px; border-radius: 10px; flex-shrink: 0; letter-spacing: 0.02em; }
+.pv-meta-row { font-size: 12px; color: #6b6259; }
+.pv-roles-row { font-size: 12px; color: #9c9189; }
+.pv-aside { flex-shrink: 0; display: flex; flex-direction: column; align-items: flex-end; gap: 3px; min-width: 80px; }
+.pv-date-range { font-size: 13px; font-weight: 500; color: #1a1612; white-space: nowrap; }
+.pv-past-pip {
+  font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em;
+  color: #9c9189; background: rgba(0,0,0,0.06); padding: 2px 7px; border-radius: 8px;
+}
+/* Detail panel */
+.pv-detail { background: #f7f4ef; border-top: 1px solid #e0d9d0; padding: 20px 16px 16px; font-family: 'DM Sans', system-ui, sans-serif; }
+.pv-detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px 32px; margin-bottom: 16px; }
+.pv-detail-left, .pv-detail-right { min-width: 0; }
+.pv-section { margin-bottom: 16px; }
+.pv-section:last-child { margin-bottom: 0; }
+.pv-section-head { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: #6b6259; margin-bottom: 8px; }
+.pv-date-row { display: flex; align-items: baseline; flex-wrap: wrap; gap: 6px; margin-bottom: 5px; font-size: 13px; }
+.pv-date-label { font-weight: 500; color: #1a1612; white-space: nowrap; }
+.pv-time-label { color: #6b6259; white-space: nowrap; }
+.pv-date-note { font-size: 11px; color: #9c9189; font-style: italic; }
+.pv-date-location { width: 100%; font-size: 12px; color: #6b6259; margin-top: 1px; }
+.pv-location-name { font-weight: 500; }
+.pv-sub { font-size: 12px; color: #6b6259; line-height: 1.5; }
+.pv-prep-row { display: flex; gap: 6px; font-size: 13px; margin-bottom: 5px; line-height: 1.45; }
+.pv-prep-row:last-child { margin-bottom: 0; }
+.pv-prep-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: #6b6259; white-space: nowrap; padding-top: 2px; flex-shrink: 0; min-width: 48px; }
+.pv-contact-section .pv-section-head { margin-bottom: 4px; }
+.pv-contact-name { font-size: 13px; color: #1a1612; margin-bottom: 2px; }
+.pv-link-inline { font-size: 12px; color: #4f5ce0; text-decoration: none; }
+.pv-link-inline:hover { text-decoration: underline; }
+.pv-roles-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.pv-roles-table th { text-align: left; font-size: 11px; font-weight: 600; color: #6b6259; padding: 0 10px 5px 0; border-bottom: 1px solid #e0d9d0; white-space: nowrap; }
+.pv-roles-table td { padding: 6px 10px 6px 0; border-bottom: 1px solid #e0d9d0; vertical-align: top; line-height: 1.4; }
+.pv-roles-table tr:last-child td { border-bottom: none; }
+.pv-roles-table tr.has-desc td { border-bottom: none; padding-bottom: 2px; }
+.pv-role-name { font-weight: 500; color: #1a1612; }
+.pv-role-lead { color: #6c3bb5; font-weight: 500; }
+.pv-role-supporting { color: #6b6259; }
+.pv-role-ensemble { color: #9c9189; font-style: italic; }
+.pv-role-age, .pv-role-voice { color: #6b6259; white-space: nowrap; }
+.pv-role-desc { display: block; font-size: 11px; color: #6b6259; font-style: italic; line-height: 1.4; max-width: 80%; }
+.pv-notes-full { font-size: 13px; color: #6b6259; line-height: 1.6; padding: 12px 0 8px; border-top: 1px solid #e0d9d0; margin-top: 4px; font-style: italic; }
+.pv-links-row { display: flex; gap: 16px; flex-wrap: wrap; padding-top: 12px; border-top: 1px solid #e0d9d0; margin-top: 4px; }
+.pv-action-link { font-size: 13px; font-weight: 500; color: #4f5ce0; text-decoration: none; }
+.pv-action-link:hover { color: #2c3e9a; text-decoration: underline; }
 `
 
 // ── HTML TEMPLATE ──
@@ -349,6 +439,9 @@ const AUD_HTML = `
         <div class="aud-form-title">
           <span id="audTitleText"></span><small id="audSubtitle"></small>
         </div>
+        <button class="btn btn-sm" id="audPreviewBtn"
+          style="background:var(--bg);border:1px solid var(--border)"
+          onclick="aud.openPreview()">Preview</button>
         <button class="btn btn-sm" id="audRestoreBtn"
           style="background:var(--bg);border:1px solid var(--border)"
           onclick="aud.restoreAudition()">Restore</button>
@@ -497,6 +590,16 @@ const AUD_HTML = `
   <span class="aud-status-item"><span class="aud-status-key">Auditions</span><span id="ast-count">0</span></span>
   <span class="aud-status-item"><span class="aud-status-key">Total roles</span><span id="ast-roles">0</span></span>
   <span class="aud-status-item"><span class="aud-status-key">Status</span><span id="ast-saved" style="color:rgba(255,255,255,0.35)">no file loaded</span></span>
+</div>
+
+<div class="aud-preview-overlay" id="audPreviewOverlay" style="display:none" onclick="aud.closePreviewOutside(event)">
+  <div class="aud-preview-modal">
+    <div class="aud-preview-modal-hd">
+      <span class="aud-preview-modal-label">Preview</span>
+      <button class="aud-preview-close" onclick="aud.closePreview()">×</button>
+    </div>
+    <div class="aud-preview-modal-body" id="audPreviewBody"></div>
+  </div>
 </div>
 `
 
@@ -865,11 +968,14 @@ function updateEditorTitle() {
 }
 
 function updateRestoreBtn() {
-  const btn = document.getElementById('audRestoreBtn')
-  if (!btn) return
+  const restoreBtn = document.getElementById('audRestoreBtn')
+  const deleteBtn = restoreBtn?.nextElementSibling
+  if (!restoreBtn || !deleteBtn) return
   const a = activeAudIdx >= 0 ? auditions[activeAudIdx] : null
   const snap = a ? audSnapshots.get(a.id) : null
-  btn.style.display = snap && snap !== makeAuditionSnapshot(a) ? '' : 'none'
+  const restoreActive = !!(snap && snap !== makeAuditionSnapshot(a))
+  restoreBtn.style.display = restoreActive ? '' : 'none'
+  deleteBtn.style.display = restoreActive ? 'none' : ''
 }
 
 // ── MUSICAL-ONLY FIELD VISIBILITY ──
@@ -1337,6 +1443,184 @@ function selectVenueItem(rowIdx, code) {
   document.getElementById(`dc-${rowIdx}-notes`)?.focus()
 }
 
+// ── PREVIEW ──
+const PV_DOT_COLORS = {
+  scs: '#ce8481', at: '#7b8bc4', mct: '#71c75f',
+  renegade: '#5dadbe', cabrillo: '#c8a96e', abt: '#a57bc4'
+}
+const PV_GENRE_STYLES = {
+  Musical: 'background:#dce4fb;color:#2c3e9a',
+  Drama:   'background:#fbe5e1;color:#8c3a2e',
+  Comedy:  'background:#dff4d6;color:#2d6020',
+  Other:   'background:#f0ece6;color:#6b6259'
+}
+const PV_MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
+
+function pvFmt12(t) {
+  if (!t) return ''
+  const [hStr, mStr] = t.replace('.', ':').split(':')
+  const h = Number(hStr), m = mStr !== undefined ? Number(mStr) : 0
+  return m === 0 ? String(h % 12 || 12) : `${h % 12 || 12}:${String(m).padStart(2, '0')}`
+}
+function pvFmtTime(start, end) {
+  if (!start && !end) return ''
+  if (!start || !end) return pvFmt12(start || end)
+  const sh = Number(start.split(':')[0]), eh = Number(end.split(':')[0])
+  const sp = sh < 12 ? 'am' : 'pm', ep = eh < 12 ? 'am' : 'pm'
+  return sp === ep
+    ? `${pvFmt12(start)}–${pvFmt12(end)} ${ep}`
+    : `${pvFmt12(start)} ${sp}–${pvFmt12(end)} ${ep}`
+}
+function pvFmtFullDate(dateStr) {
+  const [y, m, d] = dateStr.split('-').map(Number)
+  return new Date(y, m - 1, d).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })
+}
+function pvFmtShortDate(dateStr) {
+  const [, m, d] = dateStr.split('-').map(Number)
+  return `${PV_MONTHS[m - 1]} ${d}`
+}
+function pvFmtDateRange(dates) {
+  const ds = (dates || []).filter((d) => d.date)
+  if (!ds.length) return ''
+  if (ds.length === 1) {
+    const [y, m, d] = ds[0].date.split('-').map(Number)
+    return `${PV_MONTHS[m - 1]} ${d}, ${y}`
+  }
+  const [fy, fm, fd] = ds[0].date.split('-').map(Number)
+  const [ly, lm, ld] = ds[ds.length - 1].date.split('-').map(Number)
+  if (fy === ly) {
+    return fm === lm
+      ? `${PV_MONTHS[fm - 1]} ${fd}–${ld}, ${fy}`
+      : `${PV_MONTHS[fm - 1]} ${fd} – ${PV_MONTHS[lm - 1]} ${ld}, ${fy}`
+  }
+  return `${PV_MONTHS[fm - 1]} ${fd}, ${fy} – ${PV_MONTHS[lm - 1]} ${ld}, ${ly}`
+}
+function pvRolesSum(roles) {
+  let female = 0, male = 0, any = 0, hasEnsemble = false
+  for (const r of (roles || [])) {
+    if (r.type === 'ensemble') { hasEnsemble = true; continue }
+    if (r.gender === 'female') female++
+    else if (r.gender === 'male') male++
+    else any++
+  }
+  const parts = []
+  if (female) parts.push(`${female} female`)
+  if (male) parts.push(`${male} male`)
+  if (any) parts.push(`${any} any`)
+  if (hasEnsemble) parts.push('ensemble')
+  return parts.join(' · ')
+}
+
+function openPreview() {
+  if (activeAudIdx < 0) return
+  const a = auditions[activeAudIdx]
+  const companyName = allCompanies.find((c) => c.id === currentCompanyId)?.name || currentCompanyAbv
+  const dotColor = PV_DOT_COLORS[currentCompanyId] || '#cbcbcb'
+  const genreStyle = PV_GENRE_STYLES[a.genre] || ''
+  const TODAY = new Date().toISOString().slice(0, 10)
+  const latestD = [...(a.auditionDates || [])].sort((x, y) => y.date.localeCompare(x.date))[0]?.date ?? ''
+  const isPast = latestD && latestD < TODAY
+  const showVoice = a.genre === 'Musical'
+
+  // Audition dates
+  const datesHtml = (a.auditionDates || []).filter((d) => d.date).map((ad, i, arr) => {
+    const seenBefore = i > 0 && arr.slice(0, i).some((p) => p.location?.name === ad.location?.name)
+    return `<div class="pv-date-row">
+      <span class="pv-date-label">${pvFmtFullDate(ad.date)}</span>
+      <span class="pv-time-label">${pvFmtTime(ad.startTime, ad.endTime)}</span>
+      ${ad.notes ? `<span class="pv-date-note">${esc(ad.notes)}</span>` : ''}
+      ${ad.location ? `<div class="pv-date-location">
+        <span class="pv-location-name">${esc(ad.location.name)}</span>
+        ${!seenBefore && ad.location.address ? `<span class="pv-sub"> · ${esc(ad.location.address)}</span>` : ''}
+      </div>` : ''}
+    </div>`
+  }).join('') || '<div class="pv-sub">No dates set</div>'
+
+  // Prep
+  let prepHtml = ''
+  if (a.prep) {
+    const rows = []
+    if (a.prep.acting)        rows.push(`<div class="pv-prep-row"><span class="pv-prep-label">Acting</span><span>${esc(a.prep.acting)}</span></div>`)
+    if (a.prep.singing)       rows.push(`<div class="pv-prep-row"><span class="pv-prep-label">Singing</span><span>${esc(a.prep.singing)}</span></div>`)
+    if (a.prep.dance)         rows.push(`<div class="pv-prep-row"><span class="pv-prep-label">Dance</span><span>${esc(a.prep.dance)}</span></div>`)
+    if (a.prep.bring?.length) rows.push(`<div class="pv-prep-row"><span class="pv-prep-label">Bring</span><span>${esc(a.prep.bring.join(', '))}</span></div>`)
+    if (rows.length) prepHtml = `<section class="pv-section"><h4 class="pv-section-head">Prepare</h4>${rows.join('')}</section>`
+  }
+
+  // Contact
+  let contactHtml = ''
+  if (a.contact && (a.contact.name || a.contact.email || a.contact.phone)) {
+    contactHtml = `<section class="pv-section pv-contact-section"><h4 class="pv-section-head">Contact</h4>
+      ${a.contact.name  ? `<div class="pv-contact-name">${esc(a.contact.name)}</div>` : ''}
+      ${a.contact.email ? `<div><a href="mailto:${esc(a.contact.email)}" class="pv-link-inline">${esc(a.contact.email)}</a></div>` : ''}
+      ${a.contact.phone ? `<div class="pv-sub">${esc(a.contact.phone)}</div>` : ''}
+    </section>`
+  }
+
+  // Roles
+  let rolesHtml = ''
+  if (a.rolesAvailable?.length) {
+    const typeLabel = (t) => t === 'lead' ? 'Lead' : t === 'supporting' ? 'Supp.' : 'Ensemble'
+    const rows = a.rolesAvailable.map((r) => `
+      <tr class="${r.description ? 'has-desc' : ''}">
+        <td class="pv-role-name">${esc(r.role)}</td>
+        <td class="pv-role-${r.type}">${typeLabel(r.type)}</td>
+        <td class="pv-role-age">${esc(r.ageRange || '')}</td>
+        ${showVoice ? `<td class="pv-role-voice">${esc(r.voicePart || '')}</td>` : ''}
+        <td>${r.description ? `<span class="pv-role-desc">${esc(r.description)}</span>` : ''}</td>
+      </tr>`).join('')
+    rolesHtml = `<section class="pv-section"><h4 class="pv-section-head">Roles available</h4>
+      <table class="pv-roles-table"><thead><tr>
+        <th>Role</th><th>Type</th><th>Age</th>${showVoice ? '<th>Voice</th>' : ''}<th>Description</th>
+      </tr></thead><tbody>${rows}</tbody></table></section>`
+  }
+
+  // Links
+  const linksHtml = (a.auditionNoticeUrl || a.productionUrl) ? `<div class="pv-links-row">
+    ${a.auditionNoticeUrl ? `<a href="${esc(a.auditionNoticeUrl)}" class="pv-action-link" target="_blank" rel="noopener">Audition notice →</a>` : ''}
+    ${a.productionUrl     ? `<a href="${esc(a.productionUrl)}"     class="pv-action-link" target="_blank" rel="noopener">Production info →</a>` : ''}
+  </div>` : ''
+
+  document.getElementById('audPreviewBody').innerHTML = `
+    <div class="pv-card">
+      <div class="pv-summary">
+        <div class="pv-main">
+          <div class="pv-title-row">
+            <span class="pv-dot" style="background:${dotColor}"></span>
+            <span class="pv-title">${esc(a.production || 'Untitled')}</span>
+            ${a.genre ? `<span class="pv-genre-badge" style="${genreStyle}">${esc(a.genre)}</span>` : ''}
+          </div>
+          <div class="pv-meta-row">${esc(companyName)}${a.openingDate ? ` · Opens ${pvFmtShortDate(a.openingDate)}` : ''}</div>
+          <div class="pv-roles-row">${pvRolesSum(a.rolesAvailable)}</div>
+        </div>
+        <div class="pv-aside">
+          ${isPast ? '<span class="pv-past-pip">Past</span>' : ''}
+          <span class="pv-date-range">${pvFmtDateRange(a.auditionDates)}</span>
+        </div>
+      </div>
+      <div class="pv-detail">
+        <div class="pv-detail-grid">
+          <div class="pv-detail-left">
+            <section class="pv-section"><h4 class="pv-section-head">Audition dates</h4>${datesHtml}</section>
+            ${prepHtml}${contactHtml}
+          </div>
+          ${rolesHtml ? `<div class="pv-detail-right">${rolesHtml}</div>` : ''}
+        </div>
+        ${a.notes ? `<div class="pv-notes-full">${esc(a.notes)}</div>` : ''}
+        ${linksHtml}
+      </div>
+    </div>`
+  document.getElementById('audPreviewOverlay').style.display = ''
+}
+
+function closePreview() {
+  document.getElementById('audPreviewOverlay').style.display = 'none'
+}
+
+function closePreviewOutside(e) {
+  if (e.target === document.getElementById('audPreviewOverlay')) closePreview()
+}
+
 // ── MODULE API ──
 export function mount(container, context) {
   injectStyles()
@@ -1365,7 +1649,10 @@ export function mount(container, context) {
     onLocNameInput,
     hideVenueDropdown,
     selectVenueItem,
-    normalizeHeaderDate
+    normalizeHeaderDate,
+    openPreview,
+    closePreview,
+    closePreviewOutside
   }
 
   const handle = document.getElementById('audResizeHandle')
@@ -1401,6 +1688,7 @@ export function unmount() {
   if (_resizeMouseUp) document.removeEventListener('mouseup', _resizeMouseUp)
   _resizeMouseMove = _resizeMouseUp = null
   document.getElementById('aud-venue-dropdown')?.remove()
+  closePreview()
   delete window.aud
   auditions = []
   audSnapshots = new Map()

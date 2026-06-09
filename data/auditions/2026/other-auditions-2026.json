@@ -38,9 +38,47 @@
           "notes": "Callbacks"
         }
       ],
-      "rolesAvailable": [],
+      "rolesAvailable": [
+        {
+          "role": "Oscar Wilde",
+          "type": "lead",
+          "gender": "any",
+          "ageRange": "35-45"
+        },
+        {
+          "role": "Lord Alfred Douglas",
+          "type": "supporting",
+          "gender": "male",
+          "ageRange": "20s"
+        },
+        {
+          "role": "Sir Edward Clarke",
+          "type": "supporting",
+          "gender": "male",
+          "ageRange": "50-70"
+        },
+        {
+          "role": "Edward Carlson",
+          "type": "supporting",
+          "gender": "male",
+          "ageRange": "50-70"
+        },
+        {
+          "role": "Marquess of Queensberry",
+          "type": "supporting",
+          "gender": "male",
+          "ageRange": "50-60"
+        },
+        {
+          "role": "Narrators and other characters",
+          "type": "ensemble",
+          "gender": "any",
+          "ageRange": "any",
+          "description": "May double roles above. 9+ total cast size"
+        }
+      ],
       "createdAt": "2026-05-31T21:09:08.445Z",
-      "updatedAt": "2026-06-09T10:18:49.816Z",
+      "updatedAt": "2026-06-09T18:24:51.865Z",
       "rehearsalStart": "2026-08-26",
       "openingDate": "2026-10-03",
       "notes": "Play by Moises Kaufman (also wrote \"The Laramie Project\"). Directed by Simon Hayward. Performances Oct 9 - 25 Fri-Sun at Vets Hall, Santa Cruz",

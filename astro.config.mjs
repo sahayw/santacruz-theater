@@ -59,9 +59,10 @@ export default defineConfig({
             if (dirParam === 'shows' || dirParam === 'auditions') {
               try {
                 const dataDir = path.join(process.cwd(), 'data', dirParam)
-                const fileRe = dirParam === 'auditions'
-                  ? /^(.+)-auditions-(\d{4})\.json$/
-                  : /^(.+)-(\d{4})\.json$/
+                const fileRe =
+                  dirParam === 'auditions'
+                    ? /^(.+)-auditions-(\d{4})\.json$/
+                    : /^(.+)-(\d{4})\.json$/
                 const result = []
                 for (const yearEntry of fs.readdirSync(dataDir, { withFileTypes: true })) {
                   if (!yearEntry.isDirectory()) continue
@@ -162,7 +163,7 @@ export default defineConfig({
               res.end(html)
             } catch (e) {
               res.statusCode = 502
-              res.end(`Fetch failed: ${e.message}`)
+              res.end(`Fetch failed: ${e instanceof Error ? e.message : String(e)}`)
             }
           })
         }

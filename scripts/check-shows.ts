@@ -18,10 +18,8 @@ const companiesJson = JSON.parse(
 )
 const venuesJson = JSON.parse(readFileSync(resolve(root, 'data/sc-theater-venues.json'), 'utf8'))
 
-const VALID_COMPANIES = new Set<string>(
-  companiesJson.companies.map((c: { id: string }) => c.id)
-)
-const VALID_GENRES = new Set<Genre>(['Drama', 'Musical', 'Comedy', 'Tragedy', 'Other', ''])
+const VALID_COMPANIES = new Set<string>(companiesJson.companies.map((c: { id: string }) => c.id))
+const VALID_GENRES = new Set<Genre>(['Drama', 'Musical', 'Comedy', 'Other', ''])
 const VALID_VENUES = new Set<string>([
   ...venuesJson.venues.map((v: { name: string }) => v.name),
   'Other',
@@ -58,9 +56,9 @@ function validateShowsFile(
     const loc = `${filePath}: runs[${runIndex}]`
     assert(isRecord(runValue), `${loc} must be an object`)
 
-    const company = expectString(runValue.company, `${loc}.company`) as Company
+    const company = expectString(runValue.company, `${loc}.company`)
     const genre = expectString(runValue.genre, `${loc}.genre`) as Genre
-    const venue = expectString(runValue.venue, `${loc}.venue`) as Venue
+    const venue = expectString(runValue.venue, `${loc}.venue`)
 
     assert(VALID_COMPANIES.has(company), `${loc}.company has invalid value: ${company}`)
     assert(VALID_GENRES.has(genre), `${loc}.genre has invalid value: ${genre}`)
@@ -101,7 +99,7 @@ function validateShowsFile(
     })
   })
 
-  return Object.assign(value as ShowsFile, { __orderingWarnings: orderingWarnings })
+  return Object.assign(value as unknown as ShowsFile, { __orderingWarnings: orderingWarnings })
 }
 
 function flattenAndSort(runs: Run[]): PerformanceEvent[] {

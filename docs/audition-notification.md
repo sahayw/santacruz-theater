@@ -149,29 +149,42 @@ On page load, client-side JS checks for this parameter, finds the matching card 
 
 ### Implementation Sequence
 
-0. - Editor dirty-check: snapshot record on load, compare before save, advance `updatedAt`
-     only if data has changed.
-   - Deep-linking to audition records and add past marker to audition cards.
-1. Buttondown account setup; API key stored as Netlify environment variable
+0. ✅ Editor dirty-check: snapshot record on load, compare before save, advance `updatedAt`
+     only if data has changed. Save button and status bar derived directly from
+     `computeIsDirty()` so they always reflect actual state. Restore button appears in the
+     record header when unsaved changes exist, replacing Delete while active. Editor preview
+     modal (Preview button, left of Restore) renders the record as it appears on the public
+     auditions page.
+   ✅ Deep-linking to audition records (`?id=<timestamp>`, `audition-` prefix stripped from
+     URL). Single-card display mode: filter bar hidden, only target card shown expanded,
+     page title reduced. Unrecognised id shows `audition-xxxx not found`. Auditions nav
+     link re-enabled in both modes so users can return to the full list.
+   ✅ Past marker on audition cards: "Past" pill in the collapsed card header (right side,
+     above date range), applied client-side.
+1. ✅ Buttondown account setup; API key stored as Netlify environment variable
    (`BUTTONDOWN_API_KEY`).
-2. Subscription form component + Netlify Function to add subscribers via Buttondown API,
-   with error handling per the table above.
-3. Scheduled function and email template:
-   - **3a.** Scheduled function scaffold: reads audition data from GitHub API,
-     reads/writes last-sent timestamp in Blob Storage. Dry-run mode logs which records
-     would be included (and in which section) without sending. Verify timestamp comparison
-     and new/updated classification end-to-end.
-   - **3b.** Shared data-transformation module (`src/lib/audition-format.ts`) + email HTML
-     template (`netlify/functions/lib/email-template.mts`). Refactor Astro audition card
-     to consume the shared module. Implement deep-link URL parameter support on the
-     `/auditions` page. Generate and inspect sample email output locally.
-   - **3c.** Wire 3a and 3b: format digest HTML, POST to Buttondown broadcast API, update
-     stored timestamp on success only.
-4. Subscription widget placed on the auditions page (below the page header, above the
-   audition listing).
-5. "Updated" indicator on public audition cards — a small badge visible when `updatedAt`
-   differs from `createdAt` by more than a trivial threshold (e.g. > 1 minute, to exclude
-   same-session saves on creation).
+   ✅ Subscription form component + Netlify Function (`netlify/functions/subscribe.mjs`) to
+      add subscribers via Buttondown API, with error handling per the table above. Form
+      placed on the auditions page between the header and filter bar. Hidden in deep-link
+      and not-found modes.
+   ✅ Scheduled function and email template:
+   - **3a.** ✅ Scheduled function (`netlify/functions/send-audition-digest.mts`): reads
+     audition data from GitHub API, reads/writes last-sent timestamp in Blob Storage.
+     `DRY_RUN=true` logs which records would be included without sending. Schedule set to
+     `0 2 * * *` (02:00 UTC) in `netlify.toml`. `@netlify/blobs` added to dependencies.
+   - **3b.** ✅ Shared data-transformation module (`src/lib/audition-format.ts`) + email HTML
+     template (`netlify/functions/lib/email-template.mts`). Astro audition card refactored
+     to import `fmtShortDate`, `fmtAudDateRange`, `fmtFullDate`, `fmtTimeRange`, `rolesSum`
+     from the shared module. Editor `pv*` functions removed; `auditions.js` imports the
+     same functions from `/admin/audition-format.js` (Astro endpoint at
+     `src/pages/admin/audition-format.js.ts` strips TypeScript from the source and serves
+     it as a browser ES module).
+   - **3c.** ✅ Wired: digest HTML formatted via `buildDigestHtml`, POSTed to Buttondown
+     broadcast API (`status: "about_to_send"`), timestamp updated on success only.
+   ✅ Subscription widget placed on the auditions page (below the page header, above the
+      filter bar).
+   ✅ "Updated" indicator on public audition cards — blue "Updated" pip in the collapsed
+      card header, applied client-side when `updatedAt − createdAt > 1 minute`.
 
 ### Open questions
 

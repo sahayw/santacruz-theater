@@ -4,6 +4,7 @@ import SiteNav from '../components/SiteNav.astro'
 import companiesData from '../../data/sc-theater-companies.json'
 import { getAuditions } from '../lib/data.ts'
 import type { AuditionEvent } from '../lib/data.ts'
+import { fmtShortDate, fmtAudDateRange, fmtFullDate, fmtTimeRange, rolesSum } from '../lib/audition-format.ts'
 
 const auditions = getAuditions()
 
@@ -16,108 +17,6 @@ const filterCompanies = companiesData.companies.filter(
   (c) => !c.adminOnly && audCompanyCodes.has(c.id)
 )
 const filterGenres = [...new Set(auditions.map((a) => a.genre).filter(Boolean))].sort()
-
-// ── Server-side formatting helpers ──
-
-function fmtShortDate(dateStr: string): string {
-  const [, m, d] = dateStr.split('-').map(Number)
-  const months = [
-    'Jan',
-    'Feb',
-    'Mar',
-    'Apr',
-    'May',
-    'Jun',
-    'Jul',
-    'Aug',
-    'Sep',
-    'Oct',
-    'Nov',
-    'Dec'
-  ]
-  return `${months[m - 1]} ${d}`
-}
-
-function fmtAudDateRange(aud: AuditionEvent): string {
-  const dates = aud.auditionDates
-  if (!dates.length) return ''
-  const months = [
-    'Jan',
-    'Feb',
-    'Mar',
-    'Apr',
-    'May',
-    'Jun',
-    'Jul',
-    'Aug',
-    'Sep',
-    'Oct',
-    'Nov',
-    'Dec'
-  ]
-  if (dates.length === 1) {
-    const [y, m, d] = dates[0].date.split('-').map(Number)
-    return `${months[m - 1]} ${d}, ${y}`
-  }
-  const [fy, fm, fd] = dates[0].date.split('-').map(Number)
-  const [ly, lm, ld] = dates[dates.length - 1].date.split('-').map(Number)
-  if (fy === ly) {
-    if (fm === lm) return `${months[fm - 1]} ${fd}–${ld}, ${fy}`
-    return `${months[fm - 1]} ${fd} – ${months[lm - 1]} ${ld}, ${fy}`
-  }
-  return `${months[fm - 1]} ${fd}, ${fy} – ${months[lm - 1]} ${ld}, ${ly}`
-}
-
-function fmt12(t: string): string {
-  if (!t) return ''
-  const [hStr, mStr] = t.replace('.', ':').split(':')
-  const h = Number(hStr)
-  const m = mStr !== undefined ? Number(mStr) : 0
-  return m === 0 ? String(h % 12 || 12) : `${h % 12 || 12}:${String(m).padStart(2, '0')}`
-}
-
-function fmtTimeRange(start: string, end: string): string {
-  if (!start && !end) return ''
-  if (!start || !end) return fmt12(start || end)
-  const sh = Number(start.split(':')[0])
-  const eh = Number(end.split(':')[0])
-  const sp = sh < 12 ? 'am' : 'pm'
-  const ep = eh < 12 ? 'am' : 'pm'
-  return sp === ep
-    ? `${fmt12(start)}–${fmt12(end)} ${ep}`
-    : `${fmt12(start)} ${sp}–${fmt12(end)} ${ep}`
-}
-
-function fmtFullDate(dateStr: string): string {
-  const [y, m, d] = dateStr.split('-').map(Number)
-  return new Date(y, m - 1, d).toLocaleDateString('en-US', {
-    weekday: 'short',
-    month: 'short',
-    day: 'numeric'
-  })
-}
-
-function rolesSum(aud: AuditionEvent): string {
-  let female = 0,
-    male = 0,
-    any = 0,
-    hasEnsemble = false
-  for (const r of aud.rolesAvailable) {
-    if (r.type === 'ensemble') {
-      hasEnsemble = true
-      continue
-    }
-    if (r.gender === 'female') female++
-    else if (r.gender === 'male') male++
-    else any++
-  }
-  const parts: string[] = []
-  if (female > 0) parts.push(`${female} female`)
-  if (male > 0) parts.push(`${male} male`)
-  if (any > 0) parts.push(`${any} any`)
-  if (hasEnsemble) parts.push('ensemble')
-  return parts.join(' · ')
-}
 
 function latestDate(aud: AuditionEvent): string {
   return [...aud.auditionDates].sort((a, b) => b.date.localeCompare(a.date))[0]?.date ?? ''
@@ -164,6 +63,24 @@ function roleTypeLabel(type: string): string {
         <p class="page-subtitle">Open calls from Santa Cruz County theater companies</p>
       </header>
 
+      <div class="aud-subscribe" id="aud-subscribe">
+        <div class="subscribe-inner">
+          <p class="subscribe-prompt">Get notified when new auditions are posted.</p>
+          <form id="subscribe-form" class="subscribe-form" novalidate>
+            <input
+              type="email"
+              id="subscribe-email"
+              class="subscribe-input"
+              placeholder="your@email.com"
+              autocomplete="email"
+              required
+            />
+            <button type="submit" id="subscribe-btn" class="subscribe-btn">Notify me</button>
+          </form>
+          <div id="subscribe-status" class="subscribe-status" hidden aria-live="polite"></div>
+        </div>
+      </div>
+
       <div class="filter-bar">
         <div class="filter-controls">
           <div class="filter-group">
@@ -208,6 +125,8 @@ function roleTypeLabel(type: string): string {
                   data-company={aud.company}
                   data-genre={aud.genre}
                   data-latest-date={latest}
+                  data-created-at={aud.createdAt}
+                  data-updated-at={aud.updatedAt}
                 >
                   {/* ── Collapsed summary ── */}
                   <button class="aud-summary" aria-expanded="false">
@@ -223,13 +142,12 @@ function roleTypeLabel(type: string): string {
                         {companyName}
                         {aud.openingDate && ` · Opens ${fmtShortDate(aud.openingDate)}`}
                       </div>
-                      <div class="aud-roles-row">{rolesSum(aud)}</div>
+                      <div class="aud-roles-row">{rolesSum(aud.rolesAvailable)}</div>
                     </div>
                     <div class="aud-aside">
-                      <span class="aud-past-pip" aria-hidden="true">
-                        Past
-                      </span>
-                      <span class="aud-date-range">{fmtAudDateRange(aud)}</span>
+                      <span class="aud-updated-pip" aria-hidden="true">Updated</span>
+                      <span class="aud-past-pip" aria-hidden="true">Past</span>
+                      <span class="aud-date-range">{fmtAudDateRange(aud.auditionDates)}</span>
                       <span class="aud-chevron" aria-hidden="true" />
                     </div>
                   </button>
@@ -539,6 +457,91 @@ function roleTypeLabel(type: string): string {
     flex-shrink: 0;
   }
 
+  /* ── SUBSCRIBE WIDGET ── */
+  .aud-subscribe {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 14px 18px;
+    margin-bottom: 16px;
+  }
+
+  .subscribe-inner {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    flex-wrap: wrap;
+  }
+
+  .subscribe-prompt {
+    font-size: 13px;
+    color: var(--ink-muted);
+    flex-shrink: 0;
+    margin: 0;
+  }
+
+  .subscribe-form {
+    display: flex;
+    gap: 6px;
+    flex: 1;
+    min-width: 200px;
+  }
+
+  .subscribe-input {
+    font-family: inherit;
+    font-size: 13px;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 6px 10px;
+    flex: 1;
+    color: var(--ink);
+    background: var(--bg);
+    min-width: 0;
+  }
+
+  .subscribe-input:focus {
+    outline: none;
+    border-color: var(--border-primary);
+  }
+
+  .subscribe-btn {
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 500;
+    background: var(--ink);
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    padding: 6px 14px;
+    cursor: pointer;
+    white-space: nowrap;
+    flex-shrink: 0;
+    transition: background 0.15s;
+  }
+
+  .subscribe-btn:hover:not(:disabled) {
+    background: #333;
+  }
+
+  .subscribe-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
+  .subscribe-status {
+    font-size: 13px;
+    width: 100%;
+    margin-top: 4px;
+  }
+
+  .subscribe-status.ok {
+    color: #2d6020;
+  }
+
+  .subscribe-status.err {
+    color: #8c3a2e;
+  }
+
   /* ── EMPTY STATES ── */
   .aud-no-data,
   .aud-empty,
@@ -654,17 +657,30 @@ function roleTypeLabel(type: string): string {
     color: var(--ink-muted);
   }
 
+  .aud-updated-pip,
   .aud-past-pip {
     display: none;
     font-size: 10px;
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.06em;
-    color: var(--ink-subtle);
-    background: rgba(0, 0, 0, 0.06);
     padding: 2px 7px;
     border-radius: 8px;
     flex-shrink: 0;
+  }
+
+  .aud-updated-pip {
+    color: #2c3e9a;
+    background: #dce4fb;
+  }
+
+  .aud-past-pip {
+    color: var(--ink-subtle);
+    background: rgba(0, 0, 0, 0.06);
+  }
+
+  .aud-card.updated .aud-updated-pip {
+    display: inline-block;
   }
 
   .aud-card.past .aud-past-pip {
@@ -1018,6 +1034,14 @@ function roleTypeLabel(type: string): string {
     if ((card.dataset.latestDate ?? '') < TODAY) card.classList.add('past')
   })
 
+  // Mark updated cards — updatedAt differs from createdAt by more than 1 minute
+  cards.forEach((card) => {
+    const c = card.dataset.createdAt, u = card.dataset.updatedAt
+    if (c && u && new Date(u).getTime() - new Date(c).getTime() > 60_000) {
+      card.classList.add('updated')
+    }
+  })
+
   function updateFilters() {
     const co = filterCompany.value
     const ge = filterGenre.value
@@ -1066,6 +1090,7 @@ function roleTypeLabel(type: string): string {
     titleEl.style.fontSize = '18px'
     document.querySelector('.page-subtitle').style.display = 'none'
     document.querySelector('.filter-bar').style.display = 'none'
+    document.getElementById('aud-subscribe').style.display = 'none'
     cards.forEach((c) => {
       if (c !== deepCard) c.style.display = 'none'
     })
@@ -1076,6 +1101,7 @@ function roleTypeLabel(type: string): string {
   } else if (deepId) {
     // Unrecognised id — show error, suppress list and filters
     document.querySelector('.filter-bar').style.display = 'none'
+    document.getElementById('aud-subscribe').style.display = 'none'
     document.getElementById('aud-list')?.style.setProperty('display', 'none')
     const notFound = document.getElementById('aud-not-found')
     notFound.textContent = `audition-${deepId} not found`
@@ -1101,5 +1127,42 @@ function roleTypeLabel(type: string): string {
       detail.hidden = !isOpen
       btn.setAttribute('aria-expanded', String(isOpen))
     })
+  })
+
+  // Subscribe form
+  const subscribeForm = document.getElementById('subscribe-form')
+  const subscribeEmail = document.getElementById('subscribe-email')
+  const subscribeBtn = document.getElementById('subscribe-btn')
+  const subscribeStatus = document.getElementById('subscribe-status')
+
+  subscribeForm?.addEventListener('submit', async (e) => {
+    e.preventDefault()
+    const email = subscribeEmail.value.trim()
+    if (!email) return
+    subscribeBtn.disabled = true
+    subscribeBtn.textContent = 'Sending…'
+    subscribeStatus.hidden = true
+    try {
+      const resp = await fetch('/.netlify/functions/subscribe', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email })
+      })
+      const data = await resp.json()
+      subscribeStatus.textContent = data.message || (resp.ok ? 'Subscribed!' : 'Something went wrong.')
+      subscribeStatus.className = `subscribe-status ${resp.ok ? 'ok' : 'err'}`
+      subscribeStatus.hidden = false
+      if (resp.ok) {
+        subscribeEmail.value = ''
+        subscribeForm.style.display = 'none'
+      }
+    } catch {
+      subscribeStatus.textContent = 'Something went wrong — please try again shortly.'
+      subscribeStatus.className = 'subscribe-status err'
+      subscribeStatus.hidden = false
+    } finally {
+      subscribeBtn.disabled = false
+      subscribeBtn.textContent = 'Notify me'
+    }
   })
 </script>

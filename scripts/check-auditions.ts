@@ -16,10 +16,8 @@ const companiesJson = JSON.parse(
   readFileSync(resolve(root, 'data/sc-theater-companies.json'), 'utf8')
 )
 
-const VALID_COMPANIES = new Set<string>(
-  companiesJson.companies.map((c: { id: string }) => c.id)
-)
-const VALID_GENRES = new Set<Genre>(['Drama', 'Musical', 'Comedy', 'Tragedy', 'Other', ''])
+const VALID_COMPANIES = new Set<string>(companiesJson.companies.map((c: { id: string }) => c.id))
+const VALID_GENRES = new Set<Genre>(['Drama', 'Musical', 'Comedy', 'Other', ''])
 const VALID_ROLE_TYPES = new Set<AuditionRoleType>(['lead', 'supporting', 'ensemble'])
 const VALID_GENDERS = new Set<AuditionGender>(['female', 'male', 'any'])
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/
@@ -118,7 +116,7 @@ function validateAuditionsFile(
     }
   })
 
-  return Object.assign(value as AuditionsFile, { __orderingWarnings: orderingWarnings })
+  return Object.assign(value as unknown as AuditionsFile, { __orderingWarnings: orderingWarnings })
 }
 
 // Read and validate all AuditionsFiles

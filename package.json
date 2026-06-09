@@ -14,6 +14,7 @@
     "check-auditions": "tsx scripts/check-auditions.ts"
   },
   "dependencies": {
+    "@netlify/blobs": "^8.2.0",
     "astro": "^6.3.7"
   },
   "devDependencies": {

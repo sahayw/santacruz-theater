@@ -91,7 +91,7 @@ import BaseHead from '../components/BaseHead.astro'
             <span class="card-cta">Explore &rarr;</span>
           </a>
 
-          <a href="/auditions" class="section-card card--sub">
+          <div class="section-card card--sub card--auditions">
             <div class="card-accent"></div>
             <div class="card-icon">
               <svg
@@ -115,8 +115,11 @@ import BaseHead from '../components/BaseHead.astro'
             </div>
             <h2 class="card-title">Auditions</h2>
             <p class="card-desc">Find upcoming audition calls from Santa Cruz theater companies.</p>
-            <span class="card-cta">Explore &rarr;</span>
-          </a>
+            <div class="card-links">
+              <a href="/auditions" class="card-cta card-explore">Explore &rarr;</a>
+              <a href="/subscribe" class="card-subscribe">Subscribe &rarr;</a>
+            </div>
+          </div>
 
           <a href="/services" class="section-card card--sub card--soon">
             <div class="card-accent"></div>
@@ -361,6 +364,45 @@ import BaseHead from '../components/BaseHead.astro'
     font-weight: 500;
     color: #c8a96e;
     letter-spacing: 0.02em;
+    text-decoration: none;
+    flex-shrink: 0;
+  }
+
+  /* ── AUDITIONS CARD — two-link layout ── */
+  .card--auditions {
+    position: relative;
+    cursor: pointer;
+  }
+
+  /* Stretched link: clicking anywhere on the card body goes to /auditions */
+  .card--auditions .card-explore::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+  }
+
+  .card-links {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 20px 16px;
+  }
+
+  /* card-cta padding override inside card-links */
+  .card-links .card-cta {
+    padding: 0;
+  }
+
+  .card-subscribe {
+    position: relative;
+    z-index: 1;
+    font-size: 12px;
+    font-weight: 500;
+    color: #c8a96e;
+    text-decoration: none;
+    letter-spacing: 0.02em;
+    margin-left: auto;
     flex-shrink: 0;
   }
 

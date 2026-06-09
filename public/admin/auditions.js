@@ -1,4 +1,5 @@
 import { IS_DEV, apiFetch, apiPut, buildCompanyOptions } from './api.js'
+import { fmt12, fmtTimeRange, fmtFullDate, fmtShortDate, fmtAudDateRange, rolesSum } from '/admin/audition-format.js'
 
 const ROLE_TYPES = ['lead', 'supporting', 'ensemble']
 const ROLE_GENDERS = ['any', 'female', 'male']
@@ -1454,62 +1455,6 @@ const PV_GENRE_STYLES = {
   Comedy:  'background:#dff4d6;color:#2d6020',
   Other:   'background:#f0ece6;color:#6b6259'
 }
-const PV_MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
-
-function pvFmt12(t) {
-  if (!t) return ''
-  const [hStr, mStr] = t.replace('.', ':').split(':')
-  const h = Number(hStr), m = mStr !== undefined ? Number(mStr) : 0
-  return m === 0 ? String(h % 12 || 12) : `${h % 12 || 12}:${String(m).padStart(2, '0')}`
-}
-function pvFmtTime(start, end) {
-  if (!start && !end) return ''
-  if (!start || !end) return pvFmt12(start || end)
-  const sh = Number(start.split(':')[0]), eh = Number(end.split(':')[0])
-  const sp = sh < 12 ? 'am' : 'pm', ep = eh < 12 ? 'am' : 'pm'
-  return sp === ep
-    ? `${pvFmt12(start)}–${pvFmt12(end)} ${ep}`
-    : `${pvFmt12(start)} ${sp}–${pvFmt12(end)} ${ep}`
-}
-function pvFmtFullDate(dateStr) {
-  const [y, m, d] = dateStr.split('-').map(Number)
-  return new Date(y, m - 1, d).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })
-}
-function pvFmtShortDate(dateStr) {
-  const [, m, d] = dateStr.split('-').map(Number)
-  return `${PV_MONTHS[m - 1]} ${d}`
-}
-function pvFmtDateRange(dates) {
-  const ds = (dates || []).filter((d) => d.date)
-  if (!ds.length) return ''
-  if (ds.length === 1) {
-    const [y, m, d] = ds[0].date.split('-').map(Number)
-    return `${PV_MONTHS[m - 1]} ${d}, ${y}`
-  }
-  const [fy, fm, fd] = ds[0].date.split('-').map(Number)
-  const [ly, lm, ld] = ds[ds.length - 1].date.split('-').map(Number)
-  if (fy === ly) {
-    return fm === lm
-      ? `${PV_MONTHS[fm - 1]} ${fd}–${ld}, ${fy}`
-      : `${PV_MONTHS[fm - 1]} ${fd} – ${PV_MONTHS[lm - 1]} ${ld}, ${fy}`
-  }
-  return `${PV_MONTHS[fm - 1]} ${fd}, ${fy} – ${PV_MONTHS[lm - 1]} ${ld}, ${ly}`
-}
-function pvRolesSum(roles) {
-  let female = 0, male = 0, any = 0, hasEnsemble = false
-  for (const r of (roles || [])) {
-    if (r.type === 'ensemble') { hasEnsemble = true; continue }
-    if (r.gender === 'female') female++
-    else if (r.gender === 'male') male++
-    else any++
-  }
-  const parts = []
-  if (female) parts.push(`${female} female`)
-  if (male) parts.push(`${male} male`)
-  if (any) parts.push(`${any} any`)
-  if (hasEnsemble) parts.push('ensemble')
-  return parts.join(' · ')
-}
 
 function openPreview() {
   if (activeAudIdx < 0) return
@@ -1526,8 +1471,8 @@ function openPreview() {
   const datesHtml = (a.auditionDates || []).filter((d) => d.date).map((ad, i, arr) => {
     const seenBefore = i > 0 && arr.slice(0, i).some((p) => p.location?.name === ad.location?.name)
     return `<div class="pv-date-row">
-      <span class="pv-date-label">${pvFmtFullDate(ad.date)}</span>
-      <span class="pv-time-label">${pvFmtTime(ad.startTime, ad.endTime)}</span>
+      <span class="pv-date-label">${fmtFullDate(ad.date)}</span>
+      <span class="pv-time-label">${fmtTimeRange(ad.startTime, ad.endTime)}</span>
       ${ad.notes ? `<span class="pv-date-note">${esc(ad.notes)}</span>` : ''}
       ${ad.location ? `<div class="pv-date-location">
         <span class="pv-location-name">${esc(ad.location.name)}</span>
@@ -1590,12 +1535,12 @@ function openPreview() {
             <span class="pv-title">${esc(a.production || 'Untitled')}</span>
             ${a.genre ? `<span class="pv-genre-badge" style="${genreStyle}">${esc(a.genre)}</span>` : ''}
           </div>
-          <div class="pv-meta-row">${esc(companyName)}${a.openingDate ? ` · Opens ${pvFmtShortDate(a.openingDate)}` : ''}</div>
-          <div class="pv-roles-row">${pvRolesSum(a.rolesAvailable)}</div>
+          <div class="pv-meta-row">${esc(companyName)}${a.openingDate ? ` · Opens ${fmtShortDate(a.openingDate)}` : ''}</div>
+          <div class="pv-roles-row">${rolesSum(a.rolesAvailable)}</div>
         </div>
         <div class="pv-aside">
           ${isPast ? '<span class="pv-past-pip">Past</span>' : ''}
-          <span class="pv-date-range">${pvFmtDateRange(a.auditionDates)}</span>
+          <span class="pv-date-range">${fmtAudDateRange(a.auditionDates)}</span>
         </div>
       </div>
       <div class="pv-detail">

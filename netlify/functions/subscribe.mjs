@@ -43,9 +43,27 @@ export const handler = async (event) => {
       body: JSON.stringify({ email_address: email, type: 'regular' })
     })
 
-    if (resp.status === 201) return json(200, 'Thanks — check your inbox to confirm your subscription.')
-    if (resp.status === 422) return json(422, 'That address is already subscribed.')
-    if (resp.status === 400) return json(400, 'Please enter a valid email address.')
+    if (resp.status === 201)
+      return json(200, 'Thanks — check your inbox to confirm your subscription.')
+    if (resp.status === 409 || resp.status === 422)
+      return json(409, 'That address is already subscribed.')
+    if (resp.status === 400) {
+      // 400 from Buttondown typically means a subscriber collision (existing email),
+      // not an invalid address — parse the body to surface a useful message.
+      let detail = ''
+      try {
+        detail = JSON.stringify(await resp.json())
+      } catch {
+        /* ignore */
+      }
+      if (detail && /unsubscrib|exist|collision|already/i.test(detail)) {
+        return json(
+          409,
+          'That address is already in our system. If you previously unsubscribed and want to re-subscribe, please contact us.'
+        )
+      }
+      return json(400, 'Something went wrong — please try again shortly.')
+    }
     return json(500, 'Something went wrong — please try again shortly.')
   } catch {
     return json(500, 'Something went wrong — please try again shortly.')

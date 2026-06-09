@@ -59,7 +59,7 @@ export const handler = async (event) => {
       if (detail && /unsubscrib|exist|collision|already/i.test(detail)) {
         return json(
           409,
-          'That address is already in our system. If you previously unsubscribed and want to re-subscribe, please contact us.'
+          'That address is already in our system. If you previously unsubscribed and want to re-subscribe, please contact us at admin@santacruz.theater'
         )
       }
       return json(400, 'Something went wrong — please try again shortly.')

@@ -1,7 +1,7 @@
 /**
  * Scheduled function — sends a daily email digest of new/updated auditions.
  *
- * Runs at 02:00 UTC daily (schedule set in netlify.toml).
+ * Runs at 02:00 UTC daily (schedule defined via schedule() helper; netlify.toml entry is redundant).
  * Reads auditions from GitHub, compares against the last-sent timestamp stored
  * in Netlify Blob Storage, formats a digest via email-template.mts, and sends
  * to all subscribers via the Buttondown broadcast API.
@@ -12,6 +12,7 @@
  *                    BUTTONDOWN_API_KEY
  */
 
+import { schedule } from '@netlify/functions'
 import { getStore } from '@netlify/blobs'
 import { buildDigestHtml, type DigestAudition } from './lib/email-template.mts'
 import type { AuditionsFile } from '../../src/types.ts'
@@ -21,7 +22,7 @@ const BLOB_KEY = 'last-sent'
 const BUTTONDOWN_URL = 'https://api.buttondown.email/v1/emails'
 const SITE_URL = 'https://santacruz.theater'
 
-export const handler = async () => {
+export const handler = schedule('0 2 * * *', async () => {
   const {
     GITHUB_TOKEN, GITHUB_OWNER, GITHUB_REPO,
     GITHUB_BRANCH = 'main',
@@ -171,4 +172,9 @@ export const handler = async () => {
   } catch (e) {
     console.error('send-audition-digest: failed to update timestamp:', e)
   }
-}
+
+  // ── 6. Ping healthcheck monitor ──────────────────────────────────────────
+  if (process.env.HEALTHCHECK_URL) {
+    await fetch(process.env.HEALTHCHECK_URL).catch(() => {})
+  }
+})

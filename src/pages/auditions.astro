@@ -125,8 +125,7 @@ function roleTypeLabel(type: string): string {
                   data-company={aud.company}
                   data-genre={aud.genre}
                   data-latest-date={latest}
-                  data-created-at={aud.createdAt}
-                  data-updated-at={aud.updatedAt}
+
                 >
                   {/* ── Collapsed summary ── */}
                   <button class="aud-summary" aria-expanded="false">
@@ -145,7 +144,7 @@ function roleTypeLabel(type: string): string {
                       <div class="aud-roles-row">{rolesSum(aud.rolesAvailable)}</div>
                     </div>
                     <div class="aud-aside">
-                      <span class="aud-updated-pip" aria-hidden="true">Updated</span>
+
                       <span class="aud-past-pip" aria-hidden="true">Past</span>
                       <span class="aud-date-range">{fmtAudDateRange(aud.auditionDates)}</span>
                       <span class="aud-chevron" aria-hidden="true" />
@@ -657,7 +656,6 @@ function roleTypeLabel(type: string): string {
     color: var(--ink-muted);
   }
 
-  .aud-updated-pip,
   .aud-past-pip {
     display: none;
     font-size: 10px;
@@ -667,20 +665,8 @@ function roleTypeLabel(type: string): string {
     padding: 2px 7px;
     border-radius: 8px;
     flex-shrink: 0;
-  }
-
-  .aud-updated-pip {
-    color: #2c3e9a;
-    background: #dce4fb;
-  }
-
-  .aud-past-pip {
     color: var(--ink-subtle);
     background: rgba(0, 0, 0, 0.06);
-  }
-
-  .aud-card.updated .aud-updated-pip {
-    display: inline-block;
   }
 
   .aud-card.past .aud-past-pip {
@@ -1034,13 +1020,7 @@ function roleTypeLabel(type: string): string {
     if ((card.dataset.latestDate ?? '') < TODAY) card.classList.add('past')
   })
 
-  // Mark updated cards — updatedAt differs from createdAt by more than 1 minute
-  cards.forEach((card) => {
-    const c = card.dataset.createdAt, u = card.dataset.updatedAt
-    if (c && u && new Date(u).getTime() - new Date(c).getTime() > 60_000) {
-      card.classList.add('updated')
-    }
-  })
+
 
   function updateFilters() {
     const co = filterCompany.value

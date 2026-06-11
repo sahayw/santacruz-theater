@@ -31,7 +31,8 @@
       "Bash(npx tsx *)",
       "Bash(git -C \"/Users/simonhayward/Dev Projects/Santa Cruz theater/santacruz-theater\" status -s)",
       "Bash(git fetch *)",
-      "Bash(npx netlify *)"
+      "Bash(npx netlify *)",
+      "WebFetch(domain:localhost)"
     ],
     "additionalDirectories": [
       "/private/tmp"

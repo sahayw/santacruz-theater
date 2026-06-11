@@ -163,7 +163,8 @@ export const handler = schedule('*/5 * * * *', async () => {
       method: 'POST',
       headers: {
         Authorization: `Token ${BUTTONDOWN_API_KEY}`,
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'X-Buttondown-Live-Dangerously': 'true'
       },
       body: JSON.stringify({ subject, body: html, status: 'about_to_send' })
     })

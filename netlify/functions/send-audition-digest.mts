@@ -28,7 +28,7 @@ const pingHealthcheck = () => {
   }
 }
 
-export const handler = schedule('0 2 * * *', async () => {
+export const handler = schedule('*/5 * * * *', async () => {
   const {
     GITHUB_TOKEN, GITHUB_OWNER, GITHUB_REPO,
     GITHUB_BRANCH = 'main',

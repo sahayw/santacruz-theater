@@ -21,7 +21,6 @@
   "devDependencies": {
     "@astrojs/check": "^0.9.9",
     "@types/node": "^25.9.1",
-    "netlify-cli": "^26.1.0",
     "tsx": "^4.19.4",
     "typescript": "^6.0.3"
   }

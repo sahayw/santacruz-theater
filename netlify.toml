@@ -10,9 +10,3 @@
   [headers.values]
     X-Frame-Options = "DENY"
     X-Content-Type-Options = "nosniff"
-
-# Daily audition digest — 02:00 UTC. To change the schedule, update the cron
-# expression here and redeploy. Set DRY_RUN=true in environment variables to
-# log which records would be included without sending.
-[functions."send-audition-digest"]
-  schedule = "0 2 * * *"

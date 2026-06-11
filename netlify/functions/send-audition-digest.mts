@@ -1,7 +1,7 @@
 /**
  * Scheduled function — sends a daily email digest of new/updated auditions.
  *
- * Runs at 02:00 UTC daily (schedule defined via schedule() helper; netlify.toml entry is redundant).
+ * Runs at 02:00 UTC daily. Schedule is the cron expression in the schedule() call below.
  * Reads auditions from GitHub, compares against the last-sent timestamp stored
  * in Netlify Blob Storage, formats a digest via email-template.mts, and sends
  * to all subscribers via the Buttondown broadcast API.
@@ -21,6 +21,12 @@ const BLOB_STORE = 'audition-notifications'
 const BLOB_KEY = 'last-sent'
 const BUTTONDOWN_URL = 'https://api.buttondown.email/v1/emails'
 const SITE_URL = 'https://santacruz.theater'
+
+const pingHealthcheck = () => {
+  if (process.env.HEALTHCHECK_URL) {
+    return fetch(process.env.HEALTHCHECK_URL).catch(() => {})
+  }
+}
 
 export const handler = schedule('0 2 * * *', async () => {
   const {
@@ -122,6 +128,7 @@ export const handler = schedule('0 2 * * *', async () => {
 
   if (newAuditions.length === 0 && updatedAuditions.length === 0) {
     console.log('send-audition-digest: nothing to send')
+    await pingHealthcheck()
     return
   }
 
@@ -174,7 +181,5 @@ export const handler = schedule('0 2 * * *', async () => {
   }
 
   // ── 6. Ping healthcheck monitor ──────────────────────────────────────────
-  if (process.env.HEALTHCHECK_URL) {
-    await fetch(process.env.HEALTHCHECK_URL).catch(() => {})
-  }
+  await pingHealthcheck()
 })

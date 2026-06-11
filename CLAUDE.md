@@ -325,6 +325,8 @@ The first entry (`id: "admin"`, `adminOnly: true`) is a sentinel used by the edi
 | `GITHUB_REPO`        | GitHub repository name                                           |
 | `GITHUB_BRANCH`      | Branch to commit to (default: `main`)                            |
 | `BUTTONDOWN_API_KEY` | Buttondown API key — used by `subscribe.mjs` and `send-audition-digest.mts` |
+| `NETLIFY_SITE_ID`    | Site ID — must be set manually; scheduled functions do not receive it automatically |
+| `NETLIFY_TOKEN`      | Netlify personal access token — required by `send-audition-digest.mts` for Blob Storage access (scheduled functions don't get an injected token) |
 | `DRY_RUN`            | Optional. Set to `true` to run the digest function without sending email or updating the timestamp |
 
 ## Git workflow

@@ -9,7 +9,7 @@
  * Set DRY_RUN=true to log which records would be included without sending.
  *
  * Required env vars: GITHUB_TOKEN, GITHUB_OWNER, GITHUB_REPO, GITHUB_BRANCH,
- *                    BUTTONDOWN_API_KEY
+ *                    BUTTONDOWN_API_KEY, NETLIFY_SITE_ID, NETLIFY_TOKEN
  */
 
 import { schedule } from '@netlify/functions'
@@ -47,6 +47,12 @@ export const handler = schedule('0 2 * * *', async () => {
     return
   }
 
+  const { NETLIFY_SITE_ID, NETLIFY_TOKEN } = process.env
+  if (!NETLIFY_SITE_ID || !NETLIFY_TOKEN) {
+    console.error('send-audition-digest: missing NETLIFY_SITE_ID or NETLIFY_TOKEN (required for Blob Storage)')
+    return
+  }
+
   const ghHeaders = {
     Authorization: `Bearer ${GITHUB_TOKEN}`,
     Accept: 'application/vnd.github+json',
@@ -54,7 +60,7 @@ export const handler = schedule('0 2 * * *', async () => {
   }
 
   // ── 1. Read last-sent timestamp ──────────────────────────────────────────
-  const store = getStore(BLOB_STORE)
+  const store = getStore({ name: BLOB_STORE, siteID: NETLIFY_SITE_ID, token: NETLIFY_TOKEN })
   const lastSentStr = await store.get(BLOB_KEY)
   const lastSent = lastSentStr ? new Date(lastSentStr) : new Date(0)
   console.log(`send-audition-digest: last sent ${lastSent.toISOString()}`)

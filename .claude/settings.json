@@ -30,7 +30,8 @@
       "Bash(node -e ' *)",
       "Bash(npx tsx *)",
       "Bash(git -C \"/Users/simonhayward/Dev Projects/Santa Cruz theater/santacruz-theater\" status -s)",
-      "Bash(git fetch *)"
+      "Bash(git fetch *)",
+      "Bash(npx netlify *)"
     ],
     "additionalDirectories": [
       "/private/tmp"

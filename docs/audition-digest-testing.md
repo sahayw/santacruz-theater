@@ -33,6 +33,8 @@ The healthcheck ping fires on every successful execution (both "nothing to send"
 | `GITHUB_REPO`        | Yes      | GitHub repository name                                               |
 | `GITHUB_BRANCH`      | No       | Branch to read from; defaults to `main`                              |
 | `BUTTONDOWN_API_KEY` | Yes      | Buttondown API key                                                   |
+| `NETLIFY_SITE_ID`    | Yes      | Site ID — find it in `netlify status` or the Netlify dashboard. Netlify does not auto-inject this for scheduled functions |
+| `NETLIFY_TOKEN`      | Yes      | Netlify personal access token (User settings → Applications → Personal access tokens). Required for Blob Storage access from scheduled functions |
 | `HEALTHCHECK_URL`    | No       | Healthchecks.io ping URL; omitting disables monitoring silently      |
 | `DRY_RUN`            | No       | Set to `true` to log without sending, updating timestamp, or pinging |
 
@@ -44,9 +46,11 @@ The healthcheck ping fires on every successful execution (both "nothing to send"
 
 The timestamp is only written after Buttondown confirms a successful send. If the Buttondown call fails, the timestamp is left unchanged so the same records will be retried next run.
 
-### Why the function uses `schedule()` from `@netlify/functions`
+### Why Blob Storage requires explicit credentials
 
-Netlify only injects the Blobs context environment variable (`NETLIFY_BLOBS_CONTEXT`) into on-demand (HTTP-triggered) functions, not scheduled ones. Wrapping the handler with the `schedule()` helper from `@netlify/functions` ensures the context is injected correctly. Without it, `getStore()` throws `MissingBlobsEnvironmentError` at runtime.
+Netlify injects a short-lived Blobs token (`NETLIFY_BLOBS_CONTEXT`) automatically for on-demand (HTTP-triggered) functions, but not for scheduled functions. There is no workaround for this platform limitation — `getStore()` must be given `siteID` and `token` explicitly, supplied via `NETLIFY_SITE_ID` and `NETLIFY_TOKEN`.
+
+The `schedule()` helper from `@netlify/functions` is still used to wrap the handler — it validates that the invocation is a legitimate Netlify scheduler event — but it does not inject the Blobs context.
 
 ## Monitoring (Healthchecks.io)
 

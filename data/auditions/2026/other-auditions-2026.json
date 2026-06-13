@@ -4,7 +4,7 @@
   "auditions": [
     {
       "id": "audition-1780261748445",
-      "production": "Gross Indecency: The 3 Trials of Oscar Wilde",
+      "production": "Gross Indecency: The Three Trials of Oscar Wilde",
       "genre": "Drama",
       "auditionDates": [
         {
@@ -78,7 +78,7 @@
         }
       ],
       "createdAt": "2026-05-31T21:09:08.445Z",
-      "updatedAt": "2026-06-11T16:14:22.282Z",
+      "updatedAt": "2026-06-13T17:16:15.660Z",
       "rehearsalStart": "2026-08-26",
       "openingDate": "2026-10-03",
       "notes": "Play by Moises Kaufman (also wrote \"The Laramie Project\"). Directed by Simon Hayward. Performances Oct 9 - 25 Fri-Sun at Vets Hall, Santa Cruz",
@@ -87,6 +87,7 @@
         "email": "sh.theater@icloud.com"
       },
       "prep": {
+        "acting": "Cold read from sides",
         "bring": [
           "Headshot and resume"
         ]

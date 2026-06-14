@@ -32,7 +32,14 @@
       "Bash(git -C \"/Users/simonhayward/Dev Projects/Santa Cruz theater/santacruz-theater\" status -s)",
       "Bash(git fetch *)",
       "Bash(npx netlify *)",
-      "WebFetch(domain:localhost)"
+      "WebFetch(domain:localhost)",
+      "WebFetch(domain:www.onthestage.tickets)",
+      "WebFetch(domain:milorep.org)",
+      "WebFetch(domain:www.gayinnocentheartless.com)",
+      "Bash(magick /tmp/svpa-cropped.png -fuzz 8% -transparent white -trim +repage -bordercolor transparent -border 10x8 \"/Users/simonhayward/Dev Projects/Santa Cruz theater/santacruz-theater/public/images/companies/svpa-logo.png\")",
+      "Bash(identify \"/Users/simonhayward/Dev Projects/Santa Cruz theater/santacruz-theater/public/images/companies/svpa-logo.png\")",
+      "Bash(magick /tmp/svpa-cropped.png -fuzz 8% -transparent white -trim +repage -bordercolor transparent -border 10x8 -resize 900x \"/Users/simonhayward/Dev Projects/Santa Cruz theater/santacruz-theater/public/images/companies/svpa-logo.png\")",
+      "Bash(identify \"/Users/simonhayward/Dev Projects/Santa Cruz theater/santacruz-theater/public/images/companies/gih-logo.png\")"
     ],
     "additionalDirectories": [
       "/private/tmp"

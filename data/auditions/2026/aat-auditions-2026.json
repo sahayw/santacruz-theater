@@ -1,0 +1,62 @@
+{
+  "company": "aat",
+  "year": 2026,
+  "auditions": [
+    {
+      "id": "audition-1781520135171",
+      "production": "Dear Evan Hansen",
+      "genre": [
+        "Musical"
+      ],
+      "auditionDates": [
+        {
+          "date": "2026-06-29",
+          "startTime": "17:30",
+          "endTime": "22:00",
+          "location": {
+            "name": "Colligan Theater",
+            "address": "1050 River St, Santa Cruz, CA 95060"
+          },
+          "notes": "Vocal"
+        },
+        {
+          "date": "2026-06-30",
+          "startTime": "17:30",
+          "endTime": "22:00",
+          "location": {
+            "name": "Colligan Theater",
+            "address": "1050 River St, Santa Cruz, CA 95060"
+          },
+          "notes": "Vocal"
+        },
+        {
+          "date": "2026-07-01",
+          "startTime": "17:30",
+          "endTime": "22:00",
+          "location": {
+            "name": "Colligan Theater",
+            "address": "1050 River St, Santa Cruz, CA 95060"
+          },
+          "notes": "Acting & Dancing"
+        },
+        {
+          "date": "2026-07-02",
+          "startTime": "17:30",
+          "endTime": "22:00",
+          "location": {
+            "name": "Colligan Theater",
+            "address": "1050 River St, Santa Cruz, CA 95060"
+          },
+          "notes": "Call-backs"
+        }
+      ],
+      "rolesAvailable": [],
+      "createdAt": "2026-06-15T10:42:15.168Z",
+      "updatedAt": "2026-06-15T10:51:09.457Z",
+      "rehearsalStart": "2026-07-05",
+      "openingDate": "2026-08-13",
+      "auditionNoticeUrl": "https://allabouttheatre.org/dear-evan-hansen",
+      "notes": "Dear Evan Hansen is a Tony-winning-coming-of-age musical about a lonely high school student with social anxiety. Evan fabricates a friendship with a deceased classmate to gain social acceptance. The lie spirals, forcing Evan to confront the consequences of his actions.\nIt is a powerful piece exploring mental health, grief, the impact of social media, loneliness, and the struggle for connection.\nOne teen cast and one adult."
+    }
+  ]
+}

@@ -732,7 +732,6 @@ async function onCompanySelect() {
 }
 
 async function autoCreateFirstFile(coId) {
-  const abv = allCompanies.find((c) => c.id === coId)?.abvName || coId
   try {
     await apiPut(`auditions/${CURRENT_YEAR}/${coId}-auditions-${CURRENT_YEAR}.json`, {
       company: coId,

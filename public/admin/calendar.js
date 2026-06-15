@@ -982,7 +982,7 @@ function fmtDesc(type) {
 function newRun() {
   const run = {
     id: `run-${Date.now()}`,
-    company: currentCompanyAbv,
+    company: currentCompanyId,
     showAbv: '',
     show: '',
     description: '',
@@ -1451,7 +1451,7 @@ function handleImport(event) {
 function openExport() {
   document.getElementById('exportModal').classList.add('open')
   const payload = currentCompanyId
-    ? { company: currentCompanyAbv, year: currentYear, runs }
+    ? { company: currentCompanyId, year: currentYear, runs }
     : { runs }
   document.getElementById('jsonOutput').textContent = JSON.stringify(payload, null, 2)
 }

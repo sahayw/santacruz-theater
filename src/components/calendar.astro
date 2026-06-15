@@ -1357,7 +1357,7 @@ const filterCompanies = companiesData.companies.filter(c => activeCompanyCodes.h
     const ti = document.getElementById('filterTime').value
     filteredPerfs = PERFORMANCES.filter((p) => {
       if (co && p.company !== co) return false
-      if (ge && p.genre !== ge) return false
+      if (ge && !p.genre.includes(ge)) return false
       if (ti === 'Mat' && !isMat(p.time)) return false
       if (ti === 'Eve' && isMat(p.time)) return false
       return true
@@ -1731,7 +1731,7 @@ const filterCompanies = companiesData.companies.filter(c => activeCompanyCodes.h
         <div class="card-meta-item"><span class="card-meta-label">Time&nbsp;</span>${timeStr}</div>
         <div class="card-meta-item"><span class="card-meta-label">Venue&nbsp;</span>${p.venue}</div>
         <div class="card-meta-item"><span class="card-meta-label">Price&nbsp;</span>${p.price}</div>
-        <div class="card-meta-item"><span class="card-meta-label">Genre&nbsp;</span>${p.genre}</div>
+        ${p.genre.length ? `<div class="card-meta-item"><span class="card-meta-label">Genre&nbsp;</span>${p.genre.join(' / ')}</div>` : ''}
       </div>
       ${p.discounts ? `<div class="card-discounts">Discounts: ${p.discounts}</div>` : ''}
       <div class="card-buttons">

@@ -40,6 +40,7 @@ let currentYear = CURRENT_YEAR
 let currentCompanyAbv = ''
 let venuesList = []
 let isDirty = false
+let prevCalGenreVals = []
 let isAdminContext = false
 let _resizeMouseMove = null
 let _resizeMouseUp = null
@@ -183,6 +184,7 @@ const CAL_CSS = `
   width: 100%;
 }
 .field-input:focus, .field-select:focus { outline: none; border-color: var(--accent2); }
+.field-select-multi { padding: 2px; height: auto; }
 .field-input.mono { font-family: 'IBM Plex Mono', monospace; font-size: 11px; }
 .field-input.field-readonly {
   background: rgba(0,0,0,0.06);
@@ -485,8 +487,7 @@ const CAL_HTML = `
         </div>
         <div class="field-group">
           <label class="field-label">Genre</label>
-          <select class="field-select" id="f-genre" onchange="cal.runFieldChanged()">
-            <option value="">-</option>
+          <select class="field-select field-select-multi" id="f-genre" multiple size="4" onchange="cal.genreChanged()">
             <option>Drama</option><option>Musical</option><option>Comedy</option><option>Other</option>
           </select>
         </div>
@@ -889,7 +890,10 @@ function loadRunEditor() {
   document.getElementById('f-company').value = r.company || ''
   document.getElementById('f-showAbv').value = r.showAbv || ''
   document.getElementById('f-show').value = r.show || ''
-  document.getElementById('f-genre').value = r.genre || ''
+  const genreSel = document.getElementById('f-genre')
+  const genreArr = Array.isArray(r.genre) ? r.genre : (r.genre ? [r.genre] : [])
+  Array.from(genreSel.options).forEach((o) => { o.selected = genreArr.includes(o.value) })
+  prevCalGenreVals = genreArr
   document.getElementById('f-venue').value = r.venue || ''
   document.getElementById('f-price').value = r.price || ''
   document.getElementById('f-discounts').value = r.discounts || ''
@@ -911,12 +915,29 @@ function updateEditorTitle() {
     : ''
 }
 
+const MAX_GENRES = 2
+
+function genreChanged() {
+  const sel = document.getElementById('f-genre')
+  const current = Array.from(sel.selectedOptions).map((o) => o.value)
+  if (current.length > MAX_GENRES) {
+    const added = current.filter((v) => !prevCalGenreVals.includes(v))
+    const keptPrev = prevCalGenreVals.filter((v) => current.includes(v)).slice(-(MAX_GENRES - added.length))
+    const kept = [...keptPrev, ...added].slice(0, MAX_GENRES)
+    Array.from(sel.options).forEach((o) => { o.selected = kept.includes(o.value) })
+    prevCalGenreVals = kept
+  } else {
+    prevCalGenreVals = current
+  }
+  runFieldChanged()
+}
+
 function runFieldChanged() {
   if (activeRunIdx < 0) return
   const r = runs[activeRunIdx]
   r.showAbv = document.getElementById('f-showAbv').value
   r.show = document.getElementById('f-show').value
-  r.genre = document.getElementById('f-genre').value
+  r.genre = Array.from(document.getElementById('f-genre').selectedOptions).map((o) => o.value)
   r.venue = document.getElementById('f-venue').value
   r.price = document.getElementById('f-price').value
   r.discounts = document.getElementById('f-discounts').value
@@ -965,7 +986,7 @@ function newRun() {
     showAbv: '',
     show: '',
     description: '',
-    genre: '',
+    genre: [],
     venue: '',
     price: '',
     discounts: '',
@@ -1540,6 +1561,7 @@ export function mount(container, context) {
     newRun,
     selectRun,
     deleteRun,
+    genreChanged,
     runFieldChanged,
     toggleDescExpand,
     fmtDesc,

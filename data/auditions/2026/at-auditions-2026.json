@@ -74,10 +74,13 @@
     {
       "id": "audition-1735000000006",
       "production": "8 Tens @ 8 Short Play Festival (2027)",
-      "genre": "Other",
+      "genre": [
+        "Drama",
+        "Comedy"
+      ],
       "auditionDates": [
         {
-          "date": "2026-09-01",
+          "date": "2026-09-20",
           "startTime": "00:00",
           "endTime": "00:00",
           "notes": "Exact dates TBA — auditions take place annually in September. Check santacruzactorstheatre.org/auditions for the posted notice.",
@@ -106,7 +109,7 @@
       "productionUrl": "https://www.santacruzactorstheatre.org/8-tens-at-8-festival",
       "notes": "The 8 Tens @ 8 is the world's longest-running festival of its kind, now in its 30th year. 16 ten-minute plays chosen from a global playwriting contest. Festival runs January–February 2027. Playwrights contest submissions close June 30, 2026. Scripts available at Santa Cruz Main Library (224 Church St) approximately two weeks before auditions",
       "createdAt": "2026-06-02T00:00:00Z",
-      "updatedAt": "2026-06-14T17:30:59.829Z",
+      "updatedAt": "2026-06-15T08:33:17.135Z",
       "openingDate": "2027-01-15"
     }
   ]

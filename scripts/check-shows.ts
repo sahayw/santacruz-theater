@@ -19,7 +19,8 @@ const companiesJson = JSON.parse(
 const venuesJson = JSON.parse(readFileSync(resolve(root, 'data/sc-theater-venues.json'), 'utf8'))
 
 const VALID_COMPANIES = new Set<string>(companiesJson.companies.map((c: { id: string }) => c.id))
-const VALID_GENRES = new Set<Genre>(['Drama', 'Musical', 'Comedy', 'Other', ''])
+const VALID_GENRES = new Set<Genre>(['Drama', 'Musical', 'Comedy', 'Other'])
+const MAX_GENRES = 2
 const VALID_VENUES = new Set<string>([
   ...venuesJson.venues.map((v: { name: string }) => v.name),
   'Other',
@@ -57,12 +58,21 @@ function validateShowsFile(
     assert(isRecord(runValue), `${loc} must be an object`)
 
     const company = expectString(runValue.company, `${loc}.company`)
-    const genre = expectString(runValue.genre, `${loc}.genre`) as Genre
     const venue = expectString(runValue.venue, `${loc}.venue`)
 
     assert(VALID_COMPANIES.has(company), `${loc}.company has invalid value: ${company}`)
-    assert(VALID_GENRES.has(genre), `${loc}.genre has invalid value: ${genre}`)
     assert(VALID_VENUES.has(venue), `${loc}.venue has invalid value: ${venue}`)
+
+    const rawGenre = runValue.genre
+    const genres: Genre[] = Array.isArray(rawGenre)
+      ? (rawGenre as unknown[]).map((g) => {
+          assert(typeof g === 'string' && VALID_GENRES.has(g as Genre), `${loc}.genre contains invalid value: ${g}`)
+          return g as Genre
+        })
+      : typeof rawGenre === 'string' && rawGenre !== ''
+        ? (assert(VALID_GENRES.has(rawGenre as Genre), `${loc}.genre has invalid value: ${rawGenre}`), [rawGenre as Genre])
+        : (assert(rawGenre === '' || rawGenre === undefined || Array.isArray(rawGenre), `${loc}.genre must be an array or empty string`), [])
+    assert(genres.length <= MAX_GENRES, `${loc}.genre has more than ${MAX_GENRES} values`)
 
     expectString(runValue.id, `${loc}.id`)
     expectString(runValue.showAbv, `${loc}.showAbv`)

@@ -16,7 +16,7 @@ const audCompanyCodes = new Set<string>(auditions.map((a) => a.company))
 const filterCompanies = companiesData.companies.filter(
   (c) => !c.adminOnly && audCompanyCodes.has(c.id)
 )
-const filterGenres = [...new Set(auditions.map((a) => a.genre).filter(Boolean))].sort()
+const filterGenres = [...new Set(auditions.flatMap((a) => a.genre))].sort()
 
 function latestDate(aud: AuditionEvent): string {
   return [...aud.auditionDates].sort((a, b) => b.date.localeCompare(a.date))[0]?.date ?? ''
@@ -115,7 +115,7 @@ function roleTypeLabel(type: string): string {
         ) : (
           <div class="aud-list" id="aud-list">
             {auditions.map((aud) => {
-              const showVoice = aud.genre === 'Musical'
+              const showVoice = aud.genre.includes('Musical')
               const companyName = companyNameMap[aud.company] ?? aud.company
               const latest = latestDate(aud)
               return (
@@ -123,7 +123,7 @@ function roleTypeLabel(type: string): string {
                   class="aud-card"
                   data-id={aud.id}
                   data-company={aud.company}
-                  data-genre={aud.genre}
+                  data-genre={aud.genre.join(',')}
                   data-latest-date={latest}
 
                 >
@@ -133,9 +133,9 @@ function roleTypeLabel(type: string): string {
                       <div class="aud-title-row">
                         <span class="company-dot" style={`background:${dotVar(aud.company)}`} />
                         <span class="aud-title">{aud.production}</span>
-                        {aud.genre && (
-                          <span class={`genre-badge ${genreClass(aud.genre)}`}>{aud.genre}</span>
-                        )}
+                        {aud.genre.map((g) => (
+                          <span class={`genre-badge ${genreClass(g)}`}>{g}</span>
+                        ))}
                       </div>
                       <div class="aud-meta-row">
                         {companyName}
@@ -1031,7 +1031,7 @@ function roleTypeLabel(type: string): string {
 
     cards.forEach((card) => {
       const matchCo = !co || card.dataset.company === co
-      const matchGe = !ge || card.dataset.genre === ge
+      const matchGe = !ge || (card.dataset.genre || '').split(',').filter(Boolean).includes(ge)
       const latest = card.dataset.latestDate ?? ''
       const matchWh =
         wh === 'all' ? true : wh === 'past' ? latest < TODAY : /* upcoming */ latest >= TODAY

@@ -18,6 +18,7 @@ let currentCompanyAbv = ''
 let isAdminContext = false
 let venuesList = []
 let audSnapshots = new Map() // audition id → JSON string (cleaned, updatedAt excluded)
+let prevAudGenreVals = []
 let _resizeMouseMove = null
 let _resizeMouseUp = null
 
@@ -99,9 +100,7 @@ const AUD_CSS = `
 .aud-list-item:hover  { background: var(--bg); }
 .aud-list-item.active { background: var(--bg); border-left-color: var(--sidebar-active); }
 .aud-item-genre { font-size: 9px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.07em; color: var(--ink-faint); margin-bottom: 1px; }
-.aud-item-title { font-size: 12px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.aud-item-count { font-size: 10px; color: var(--ink-faint); font-family: 'IBM Plex Mono', monospace; }
-.aud-list-empty { padding: 20px 12px; font-size: 12px; color: var(--ink-faint); text-align: center; line-height: 1.6; }
+.aud-item-title { font-size: 12px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }.aud-list-empty { padding: 20px 12px; font-size: 12px; color: var(--ink-faint); text-align: center; line-height: 1.6; }
 .aud-main       { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
 .aud-empty-state {
   flex: 1; display: flex; flex-direction: column;
@@ -147,6 +146,7 @@ const AUD_CSS = `
   background: var(--surface); color: var(--ink); width: 100%;
 }
 .aud-field-input:focus, .aud-field-select:focus { outline: none; border-color: var(--accent2); }
+.aud-field-select-multi { padding: 2px; height: auto; }
 .aud-field-input.mono { font-family: 'IBM Plex Mono', monospace; font-size: 11px; }
 .aud-field-input.invalid { border-color: #c0392b !important; background: #fef2f2 !important; }
 .aud-field-readonly {
@@ -464,8 +464,7 @@ const AUD_HTML = `
         </div>
         <div class="aud-field-group">
           <label class="aud-field-label">Genre</label>
-          <select class="aud-field-select" id="af-genre" onchange="aud.fieldChanged()">
-            <option value="">-</option>
+          <select class="aud-field-select aud-field-select-multi" id="af-genre" multiple size="4" onchange="aud.genreChanged()">
             <option>Drama</option><option>Musical</option><option>Comedy</option><option>Other</option>
           </select>
         </div>
@@ -617,7 +616,8 @@ function esc(v) {
   return (v || '').replace(/&/g, '&amp;').replace(/"/g, '&quot;')
 }
 function isMusical() {
-  return document.getElementById('af-genre')?.value === 'Musical'
+  const sel = document.getElementById('af-genre')
+  return sel ? Array.from(sel.selectedOptions).some((o) => o.value === 'Musical') : false
 }
 
 // ── SNAPSHOT HELPERS ──
@@ -913,9 +913,8 @@ function renderSidebar() {
     .map(
       ({ a, i }) => `
     <div class="aud-list-item ${i === activeAudIdx ? 'active' : ''}" onclick="aud.selectAud(${i})">
-      <div class="aud-item-genre">${a.genre || '—'}</div>
+      <div class="aud-item-genre">${(Array.isArray(a.genre) ? a.genre : a.genre ? [a.genre] : []).join(' / ') || '—'}</div>
       <div class="aud-item-title">${a.production || 'Untitled'}</div>
-      ${(a.rolesAvailable?.length || 0) > 0 ? `<div class="aud-item-count">${a.rolesAvailable.length} role${a.rolesAvailable.length !== 1 ? 's' : ''}</div>` : ''}
     </div>`
     )
     .join('')
@@ -943,7 +942,10 @@ function loadAudEditor() {
   const a = auditions[activeAudIdx]
 
   document.getElementById('af-company').value = currentCompanyAbv || ''
-  document.getElementById('af-genre').value = a.genre || ''
+  const audGenreSel = document.getElementById('af-genre')
+  const audGenreArr = Array.isArray(a.genre) ? a.genre : (a.genre ? [a.genre] : [])
+  Array.from(audGenreSel.options).forEach((o) => { o.selected = audGenreArr.includes(o.value) })
+  prevAudGenreVals = audGenreArr
   document.getElementById('af-rehearsal').value = a.rehearsalStart || ''
   document.getElementById('af-opening').value = a.openingDate || ''
   document.getElementById('af-production').value = a.production || ''
@@ -973,7 +975,8 @@ function loadAudEditor() {
 function updateEditorTitle() {
   const a = auditions[activeAudIdx]
   document.getElementById('audTitleText').textContent = a.production || 'Untitled'
-  document.getElementById('audSubtitle').textContent = a.genre ? ` · ${a.genre}` : ''
+  const genreLabel = (Array.isArray(a.genre) ? a.genre : a.genre ? [a.genre] : []).join(' / ')
+  document.getElementById('audSubtitle').textContent = genreLabel ? ` · ${genreLabel}` : ''
 }
 
 function updateRestoreBtn() {
@@ -998,12 +1001,29 @@ function updateMusicLayout() {
 }
 
 // ── FIELD SYNC (form → data) ──
+const MAX_GENRES = 2
+
+function genreChanged() {
+  const sel = document.getElementById('af-genre')
+  const current = Array.from(sel.selectedOptions).map((o) => o.value)
+  if (current.length > MAX_GENRES) {
+    const added = current.filter((v) => !prevAudGenreVals.includes(v))
+    const keptPrev = prevAudGenreVals.filter((v) => current.includes(v)).slice(-(MAX_GENRES - added.length))
+    const kept = [...keptPrev, ...added].slice(0, MAX_GENRES)
+    Array.from(sel.options).forEach((o) => { o.selected = kept.includes(o.value) })
+    prevAudGenreVals = kept
+  } else {
+    prevAudGenreVals = current
+  }
+  fieldChanged()
+}
+
 function fieldChanged() {
   if (activeAudIdx < 0) return
   const a = auditions[activeAudIdx]
 
   a.production = document.getElementById('af-production').value
-  a.genre = document.getElementById('af-genre').value
+  a.genre = Array.from(document.getElementById('af-genre').selectedOptions).map((o) => o.value)
   a.rehearsalStart = document.getElementById('af-rehearsal').value || undefined
   a.openingDate = document.getElementById('af-opening').value || undefined
   a.auditionNoticeUrl = document.getElementById('af-notice-url').value || undefined
@@ -1015,7 +1035,7 @@ function fieldChanged() {
     .value.split('\n')
     .map((s) => s.trim())
     .filter(Boolean)
-  const musical = a.genre === 'Musical'
+  const musical = (Array.isArray(a.genre) ? a.genre : []).includes('Musical')
   const prep = {
     acting: document.getElementById('af-prep-acting').value || undefined,
     singing: musical ? document.getElementById('af-prep-singing').value || undefined : undefined,
@@ -1051,7 +1071,7 @@ function newAudition() {
   const newRec = {
     id: `audition-${Date.now()}`,
     production: '',
-    genre: '',
+    genre: [],
     auditionDates: [],
     rolesAvailable: [],
     createdAt: now,
@@ -1186,10 +1206,11 @@ function collectErrors() {
           errors.push(`"${label}" — date row ${di + 1}: end time "${d.endTime || '(empty)'}"`)
       })
     }
-    if (a.openingDate && isValidDate(a.openingDate)) {
-      const yr = parseInt(a.openingDate.slice(0, 4), 10)
+    const firstAudDate = (a.auditionDates || []).find((d) => isValidDate(d.date))?.date
+    if (firstAudDate) {
+      const yr = parseInt(firstAudDate.slice(0, 4), 10)
       if (yr !== currentYear)
-        errors.push(`"${label}": opening date ${a.openingDate} is in ${yr} — use the year selector to edit the ${yr} file`)
+        errors.push(`"${label}": first audition date ${firstAudDate} is in ${yr} — use the year selector to edit the ${yr} file`)
     }
   })
   return errors
@@ -1548,11 +1569,11 @@ function openPreview() {
   const a = auditions[activeAudIdx]
   const companyName = allCompanies.find((c) => c.id === currentCompanyId)?.name || currentCompanyAbv
   const dotColor = PV_DOT_COLORS[currentCompanyId] || '#cbcbcb'
-  const genreStyle = PV_GENRE_STYLES[a.genre] || ''
+  const genreArr = Array.isArray(a.genre) ? a.genre : (a.genre ? [a.genre] : [])
   const TODAY = new Date().toISOString().slice(0, 10)
   const latestD = [...(a.auditionDates || [])].sort((x, y) => y.date.localeCompare(x.date))[0]?.date ?? ''
   const isPast = latestD && latestD < TODAY
-  const showVoice = a.genre === 'Musical'
+  const showVoice = genreArr.includes('Musical')
 
   // Audition dates
   const datesHtml = (a.auditionDates || []).filter((d) => d.date).map((ad, i, arr) => {
@@ -1620,7 +1641,7 @@ function openPreview() {
           <div class="pv-title-row">
             <span class="pv-dot" style="background:${dotColor}"></span>
             <span class="pv-title">${esc(a.production || 'Untitled')}</span>
-            ${a.genre ? `<span class="pv-genre-badge" style="${genreStyle}">${esc(a.genre)}</span>` : ''}
+            ${genreArr.map((g) => `<span class="pv-genre-badge" style="${PV_GENRE_STYLES[g] || ''}">${esc(g)}</span>`).join('')}
           </div>
           <div class="pv-meta-row">${esc(companyName)}${a.openingDate ? ` · Opens ${fmtShortDate(a.openingDate)}` : ''}${a.rehearsalStart ? ` · Rehearsals start ${fmtShortDate(a.rehearsalStart)}` : ''}</div>
           <div class="pv-roles-row">${rolesSum(a.rolesAvailable)}</div>
@@ -1668,6 +1689,7 @@ export function mount(container, context) {
     selectAud,
     restoreAudition,
     deleteAudition,
+    genreChanged,
     fieldChanged,
     toggleNotesExpand,
     addDateRow,

@@ -17,7 +17,8 @@ const companiesJson = JSON.parse(
 )
 
 const VALID_COMPANIES = new Set<string>(companiesJson.companies.map((c: { id: string }) => c.id))
-const VALID_GENRES = new Set<Genre>(['Drama', 'Musical', 'Comedy', 'Other', ''])
+const VALID_GENRES = new Set<Genre>(['Drama', 'Musical', 'Comedy', 'Other'])
+const MAX_GENRES = 2
 const VALID_ROLE_TYPES = new Set<AuditionRoleType>(['lead', 'supporting', 'ensemble'])
 const VALID_GENDERS = new Set<AuditionGender>(['female', 'male', 'any'])
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/
@@ -58,8 +59,16 @@ function validateAuditionsFile(
     expectString(audValue.createdAt, `${loc}.createdAt`)
     expectString(audValue.updatedAt, `${loc}.updatedAt`)
 
-    const genre = expectString(audValue.genre, `${loc}.genre`) as Genre
-    assert(VALID_GENRES.has(genre), `${loc}.genre has invalid value: ${genre}`)
+    const rawGenre = audValue.genre
+    const genres: Genre[] = Array.isArray(rawGenre)
+      ? (rawGenre as unknown[]).map((g) => {
+          assert(typeof g === 'string' && VALID_GENRES.has(g as Genre), `${loc}.genre contains invalid value: ${g}`)
+          return g as Genre
+        })
+      : typeof rawGenre === 'string' && rawGenre !== ''
+        ? (assert(VALID_GENRES.has(rawGenre as Genre), `${loc}.genre has invalid value: ${rawGenre}`), [rawGenre as Genre])
+        : (assert(rawGenre === '' || rawGenre === undefined || Array.isArray(rawGenre), `${loc}.genre must be an array or empty string`), [])
+    assert(genres.length <= MAX_GENRES, `${loc}.genre has more than ${MAX_GENRES} values`)
 
     assert(Array.isArray(audValue.auditionDates), `${loc}.auditionDates must be an array`)
     assert(

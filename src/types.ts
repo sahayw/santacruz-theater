@@ -1,4 +1,4 @@
-export type Genre = 'Drama' | 'Musical' | 'Comedy' | 'Other' | ''
+export type Genre = 'Drama' | 'Musical' | 'Comedy' | 'Other'
 
 export type PerfType = '' | 'Preview' | 'Opening' | 'Closing' | 'Talk-back'
 
@@ -18,7 +18,7 @@ export interface Run {
   showAbv: string // short display label, e.g. "Much Ado"
   show: string // full title, e.g. "Much Ado About Nothing (Shakespeare)"
   description?: string // optional narrative paragraph; supports **bold** and *italic*
-  genre: Genre
+  genre: Genre[]
   venue: string
   price: string
   discounts: string
@@ -95,7 +95,7 @@ export interface AuditionPrep {
 export interface Audition {
   id: string // "audition-<timestamp>"
   production: string
-  genre: Genre
+  genre: Genre[]
   productionId?: string // soft ref to a Run id in shows data
   auditionDates: AuditionDate[]
   rolesAvailable: AuditionRole[]
@@ -127,7 +127,7 @@ export interface PerformanceEvent {
   showAbv: string
   show: string
   description: string
-  genre: Genre
+  genre: Genre[]
   venue: string
   price: string
   discounts: string

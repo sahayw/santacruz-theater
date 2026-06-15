@@ -50,7 +50,7 @@ Company data lives in `data/sc-theater-companies.json`. Logos are downloaded loc
 
 ## Auditions
 
-The `/auditions` page lists upcoming open calls from Santa Cruz County theater companies. Cards are collapsed by default, showing the production title, genre badge, company colour dot, opening date, a roles summary, and the audition date range. Clicking a card expands a detail panel with full audition dates and times, locations, preparation requirements, contact info, and a roles table. Past audition cards show a small "Past" pill in the collapsed header. Cards for auditions updated since they were first posted show a blue "Updated" pill.
+The `/auditions` page lists upcoming open calls from Santa Cruz County theater companies. Cards are collapsed by default, showing the production title, genre badge(s), company colour dot, opening date, a roles summary, and the audition date range. Clicking a card expands a detail panel with full audition dates and times, locations, preparation requirements, contact info, and a roles table. Past audition cards show a small "Past" pill in the collapsed header. Cards for auditions updated since they were first posted show a blue "Updated" pill.
 
 A filter bar with Company, Genre, and When controls (Upcoming / All dates / Past only) narrows the list client-side. Filter defaults to Upcoming.
 
@@ -62,7 +62,7 @@ A subscribe widget is shown below the page header (hidden in deep-link and not-f
 
 Data lives in `data/auditions/<year>/<company-id>-auditions-<year>.json` — one file per company per year. `getAuditions()` in `src/lib/data.ts` imports all files at build time and returns a flat, sorted `AuditionEvent[]`. The upcoming/past distinction is determined client-side from the user's current date.
 
-Location is stored per `AuditionDate`, so different sessions of the same audition can be in different venues. Collapsed cards show only the date range; location appears in the expanded detail per date row. Voice Part is only shown for Musical genre auditions; Singing and Dance prep fields are similarly Musical-only.
+Location is stored per `AuditionDate`, so different sessions of the same audition can be in different venues. Collapsed cards show only the date range; location appears in the expanded detail per date row. Voice Part is only shown when Musical is one of the selected genres; Singing and Dance prep fields are similarly Musical-only.
 
 ### Email notifications
 
@@ -124,7 +124,7 @@ Venue names and addresses are maintained in `data/sc-theater-venues.json` (hand-
 
 ### Genre
 
-Hard coded: `Drama`, `Musical`, `Comedy`, `Other`.
+Hard coded: `Drama`, `Musical`, `Comedy`, `Other`. Up to 2 genres can be selected per show or audition using a multi-select input; selecting a third deselects the oldest choice. The field stores an array (`Genre[]`); existing single-string values in JSON files are coerced to a single-item array on read.
 
 ---
 
@@ -200,11 +200,11 @@ Each audition record has one or more date rows, each with a date, start/end time
 
 ### Roles table
 
-Inline-editable table of roles being cast. Columns: Role, Type, Gender, Age Range, Description — plus Voice Part for Musical genre productions only. If no roles are specified the section is hidden on the public page and the role count is omitted from the editor sidebar.
+Inline-editable table of roles being cast. Columns: Role, Type, Gender, Age Range, Description — plus Voice Part when Musical is one of the selected genres. If no roles are specified the section is hidden on the public page.
 
 ### Musical-only fields
 
-When Genre is set to Musical, Singing and Dance fields appear in the Prepare section and the Voice Part column appears in the roles table. Switching away from Musical hides these fields and clears them from the saved data.
+When Musical is one of the selected genres, Singing and Dance fields appear in the Prepare section and the Voice Part column appears in the roles table. Removing Musical from the genre selection hides these fields and clears them from the saved data.
 
 ### Restore
 

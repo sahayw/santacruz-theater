@@ -567,9 +567,9 @@ const CAL_HTML = `
             <label style="font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.06em;color:var(--accent2)">Default time for pasted dates</label>
             <input type="time" class="pattern-input" id="paste-time" value="19:30" style="width:100px;border-color:#c8d8e8">
           </div>
-          <textarea class="paste-textarea" id="pasteArea" placeholder="Paste dates, one per line, e.g.:&#10;July 11 2026&#10;2026-07-14&#10;Saturday, July 18, 2026 at 8:00 PM"></textarea>
+          <textarea class="paste-textarea" id="pasteArea" placeholder="Paste dates e.g.:&#10;Friday, Oct. 30&#10;October 24, 25, 29, 30, 31, Nov 1&#10;Saturday, July 18, 2026 at 8:00 PM"></textarea>
           <div style="display:flex;flex-direction:column;gap:6px">
-            <div class="paste-hint">Accepts most date formats. Time in line overrides default. Times can be 12-hour (7:30pm, 10am) or 24-hour (19:30).</div>
+            <div class="paste-hint">Times can be 12-hour (7:30pm, 10am) or 24-hour (19:30). Time in line overrides default.</div>
             <button class="btn btn-blue btn-sm" onclick="cal.parsePaste()">Import dates</button>
             <button class="btn btn-sm" style="background:transparent;border:1px solid #c8d8e8;color:var(--accent2)" onclick="cal.togglePaste()">Cancel</button>
           </div>
@@ -1035,9 +1035,9 @@ function normalizeTime(v) {
     let h = parseInt(ap[1], 10)
     const mins = ap[2] || '00'
     if (ap[3].toLowerCase() === 'am') {
-      if (h === 12) h = 0          // 12am → 00:xx
+      if (h === 12) h = 0 // 12am → 00:xx
     } else {
-      if (h !== 12) h += 12        // 1–11pm → 13–23; 12pm stays 12
+      if (h !== 12) h += 12 // 1–11pm → 13–23; 12pm stays 12
     }
     return `${String(h).padStart(2, '0')}:${mins}`
   }
@@ -1046,7 +1046,7 @@ function normalizeTime(v) {
   if (!/^\d{1,2}:\d{2}$/.test(norm)) return v
   let [hStr, mins] = norm.split(':')
   let h = parseInt(hStr, 10)
-  if (h >= 1 && h <= 11) h += 12  // 12 stays as noon; 13–23 already 24-hour
+  if (h >= 1 && h <= 11) h += 12 // 12 stays as noon; 13–23 already 24-hour
   return `${String(h).padStart(2, '0')}:${mins}`
 }
 function isValidTime(v) {
@@ -1286,6 +1286,49 @@ function sortPerformances(a, b) {
   return a.date !== b.date ? a.date.localeCompare(b.date) : a.time.localeCompare(b.time)
 }
 
+// Parses "Oct 24, 25, 29, Nov 1" style lines into an array of YYYY-MM-DD strings.
+// Returns null if the line isn't a comma list, so the caller falls through to parseDate.
+function parseCommaSeparatedDates(line) {
+  if (!line.includes(',')) return null
+  // Treat "and" as an additional separator so "30, 31 and Nov 1" works
+  const tokens = line
+    .replace(/\band\b/gi, ',')
+    .split(',')
+    .map((t) => t.trim())
+    .filter(Boolean)
+  if (tokens.length < 2) return null
+  let month = null
+  const dates = []
+  for (const token of tokens) {
+    let segMonth = null,
+      segDay = null
+    for (const word of token.split(/\s+/).filter(Boolean)) {
+      const w = word.replace(/[.,]/g, '').toLowerCase()
+      if (!w) continue
+      if (MONTH_MAP[w] !== undefined) {
+        segMonth = MONTH_MAP[w]
+        continue
+      }
+      if (/^\d{4}$/.test(w)) continue // year — context only
+      if (/^\d{1,2}$/.test(w) && parseInt(w) <= 31) {
+        segDay = parseInt(w)
+        continue
+      }
+      if (/^(mon|tue|wed|thu|fri|sat|sun)(day)?$/i.test(w)) continue // day-of-week
+      return null // unrecognised word — bail and let parseDate handle the line
+    }
+    if (segMonth !== null) month = segMonth
+    if (segDay !== null) {
+      if (month === null) return null // day number with no month context yet
+      dates.push(
+        `${currentYear}-${String(month).padStart(2, '0')}-${String(segDay).padStart(2, '0')}`
+      )
+    }
+  }
+  // Require at least 2 dates; single-date lines (e.g. "November 1, 2026") go to parseDate
+  return dates.length > 1 ? dates : null
+}
+
 function parsePaste() {
   const defaultTime = document.getElementById('paste-time').value || '19:30'
   const lines = document
@@ -1297,6 +1340,14 @@ function parsePaste() {
     failed = []
   lines.forEach((line) => {
     if (/student matinee/i.test(line)) return
+    // Try comma-list expansion first: "Oct 24, 25, 29, Nov 1"
+    const multi = parseCommaSeparatedDates(line)
+    if (multi) {
+      multi.forEach((date) =>
+        perfs.push({ date, time: defaultTime, perfType: '', discounts: '', ticketsUrl: '' })
+      )
+      return
+    }
     const result = parseDate(line)
     if (!result) {
       failed.push(line)

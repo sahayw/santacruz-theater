@@ -8,7 +8,10 @@
       "showAbv": "8x10s",
       "show": "8 Tens @ 8 Short Play Festival",
       "description": "The 8 Tens @ 8 is the world's longest-running festival of its kind, now in its 30th year. \n16 ten-minute plays chosen from a global playwriting contest.",
-      "genre": "Other",
+      "genre": [
+        "Drama",
+        "Comedy"
+      ],
       "venue": "Actors' Theatre",
       "price": "",
       "discounts": "",

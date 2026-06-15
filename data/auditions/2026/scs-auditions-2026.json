@@ -5,7 +5,10 @@
     {
       "id": "audition-1735000000001",
       "production": "2026 Festival Season (Much Ado About Nothing, Macbeth, Private Lives, The Last Five Years, Fences)",
-      "genre": "Drama",
+      "genre": [
+        "Drama",
+        "Comedy"
+      ],
       "auditionDates": [
         {
           "date": "2026-01-25",
@@ -64,7 +67,7 @@
       "productionUrl": "https://santacruzshakespeare.org/",
       "notes": "Video submissions also accepted: upload to YouTube (no Vimeo or Google Drive), under three minutes, two contrasting pieces at least one Shakespeare. Send link to auditions@santacruzshakespeare.org. First rehearsal June 9; all shows rehearse in repertory. LOA contract, $839 weekly minimum (2025 rates).",
       "createdAt": "2026-06-02T00:00:00Z",
-      "updatedAt": "2026-06-02T00:00:00Z"
+      "updatedAt": "2026-06-15T08:35:50.125Z"
     }
   ]
 }

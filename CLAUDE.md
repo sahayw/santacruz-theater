@@ -84,17 +84,17 @@ Both the calendar and auditions editors normalize and validate date/time fields 
 
 **Date normalization (cell inputs — auditions editor)** — `normalizeDate()` in `auditions.js` accepts the following formats and normalizes to `YYYY-MM-DD` on change:
 
-| Entered               | Stored as    |
-| --------------------- | ------------ |
-| `26/1/2`              | `2026-01-02` |
-| `2026/1/2`            | `2026-01-02` |
-| `26.01.02`            | `2026-01-02` |
-| `2026-1-2`            | `2026-01-02` |
-| `Oct 30`              | `2026-10-30` |
-| `Oct. 30`             | `2026-10-30` |
-| `Friday, Oct. 30`     | `2026-10-30` |
-| `Sat. Nov 7`          | `2026-11-07` |
-| `Oct 30 2026`         | `2026-10-30` |
+| Entered           | Stored as    |
+| ----------------- | ------------ |
+| `26/1/2`          | `2026-01-02` |
+| `2026/1/2`        | `2026-01-02` |
+| `26.01.02`        | `2026-01-02` |
+| `2026-1-2`        | `2026-01-02` |
+| `Oct 30`          | `2026-10-30` |
+| `Oct. 30`         | `2026-10-30` |
+| `Friday, Oct. 30` | `2026-10-30` |
+| `Sat. Nov 7`      | `2026-11-07` |
+| `Oct 30 2026`     | `2026-10-30` |
 
 Numeric format is assumed `Y-M-D`; 2-digit years are prefixed with `20`. Named-month formats accept full month names, 3-letter abbreviations, and optional trailing periods. Leading day-of-week tokens (e.g. `Friday,`, `Sat.`) are stripped silently. When no year is present, `currentYear` (the loaded file's year) is used.
 
@@ -102,22 +102,22 @@ Numeric format is assumed `Y-M-D`; 2-digit years are prefixed with `20`. Named-m
 
 **Time normalization** — `normalizeTime()` (shared logic in both editors) accepts 12-hour and 24-hour inputs:
 
-| Entered | Stored as | Notes |
-| ----------- | --------- | ----- |
-| `7pm` | `19:00` | whole-hour 12-hour with suffix |
-| `7.30` | `19:30` | dot separator, no suffix → assumes PM |
-| `2.00` | `14:00` | hours 1–11 without suffix assumed PM |
-| `10am` | `10:00` | explicit AM suffix |
-| `10:30 AM` | `10:30` | AM with colon separator |
-| `12pm` | `12:00` | noon |
-| `12am` | `00:00` | midnight |
-| `12.00` | `12:00` | no suffix, 12 stays as noon |
-| `19:30` | `19:30` | 24-hour unchanged |
-| `21.30` | `21:30` | 24-hour with dot separator |
+| Entered    | Stored as | Notes                                 |
+| ---------- | --------- | ------------------------------------- |
+| `7pm`      | `19:00`   | whole-hour 12-hour with suffix        |
+| `7.30`     | `19:30`   | dot separator, no suffix → assumes PM |
+| `2.00`     | `14:00`   | hours 1–11 without suffix assumed PM  |
+| `10am`     | `10:00`   | explicit AM suffix                    |
+| `10:30 AM` | `10:30`   | AM with colon separator               |
+| `12pm`     | `12:00`   | noon                                  |
+| `12am`     | `00:00`   | midnight                              |
+| `12.00`    | `12:00`   | no suffix, 12 stays as noon           |
+| `19:30`    | `19:30`   | 24-hour unchanged                     |
+| `21.30`    | `21:30`   | 24-hour with dot separator            |
 
 Rules: hours 1–11 with no AM/PM suffix are assumed PM (+12). Hour 12 with no suffix stays as `12:00` (noon). Hours 13–23 are taken as-is. Explicit `am`/`pm` suffix (case-insensitive, with or without space) overrides the default. Minutes are optional when using the AM/PM suffix (`7pm` → `19:00`). Separator can be `.` or `:`.
 
-**Validation** — after normalization, invalid entries (bad format, impossible calendar date, hour > 23, minute > 59) are highlighted with a red cell border. Dates outside `currentYear ± 1` are also flagged red. The auditions editor additionally shows a text error box beneath the dates table describing each invalid date and listing accepted formats. Empty required fields are not highlighted during editing but are caught at save time. Clicking **Save** runs a full scan and shows a specific error list if anything is invalid; this includes a check that the opening date (auditions) or earliest performance date (calendar) falls in `currentYear` — if not, the error message names the correct year file to use instead. The calendar editor checks every performance row; the auditions editor additionally rejects records with no audition date rows.
+**Validation** — after normalization, invalid entries (bad format, impossible calendar date, hour > 23, minute > 59) are highlighted with a red cell border. Dates outside `currentYear ± 1` are also flagged red. The auditions editor additionally shows a text error box beneath the dates table describing each invalid date and listing accepted formats. Empty required fields are not highlighted during editing but are caught at save time. Clicking **Save** runs a full scan and shows a specific error list if anything is invalid; this includes a check that the first audition date (auditions) or earliest performance date (calendar) falls in `currentYear` — if not, the error message names the correct year file to use instead. The calendar editor checks every performance row; the auditions editor additionally rejects records with no audition date rows.
 
 ## Calendar — Shows
 
@@ -131,20 +131,20 @@ One file per company per year. Top-level shape:
 
 #### `Run`
 
-| Field          | Type            | Notes                                                            |
-| -------------- | --------------- | ---------------------------------------------------------------- |
-| `id`           | `string`        | `"run-<timestamp>"` — stable, editor-assigned                    |
-| `company`      | `string`        | Company `abvName` from `sc-theater-companies.json`               |
-| `showAbv`      | `string`        | Short label shown in calendar chips                              |
-| `show`         | `string`        | Full production title                                            |
-| `description`  | `string?`       | Optional narrative paragraph; supports `**bold**` and `*italic*` |
-| `genre`        | `Genre`         | `Drama \| Musical \| Comedy \| Other \| ""`                      |
-| `venue`        | `string`        | Venue name from `sc-theater-venues.json`, or free text           |
-| `price`        | `string`        | Display string, e.g. `"$72-$92"`                                 |
-| `discounts`    | `string`        | Default discount text for all performances                       |
-| `infoUrl`      | `string`        | Show info page                                                   |
-| `ticketsUrl`   | `string`        | Default ticket link                                              |
-| `performances` | `Performance[]` | Ordered list of date/time slots                                  |
+| Field          | Type            | Notes                                                                                                                                             |
+| -------------- | --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `id`           | `string`        | `"run-<timestamp>"` — stable, editor-assigned                                                                                                     |
+| `company`      | `string`        | Company `abvName` from `sc-theater-companies.json`                                                                                                |
+| `showAbv`      | `string`        | Short label shown in calendar chips                                                                                                               |
+| `show`         | `string`        | Full production title                                                                                                                             |
+| `description`  | `string?`       | Optional narrative paragraph; supports `**bold**` and `*italic*`                                                                                  |
+| `genre`        | `Genre[]`       | Up to 2 values from `Drama \| Musical \| Comedy \| Other`; empty array when unset. Legacy string values are coerced to single-item array on read. |
+| `venue`        | `string`        | Venue name from `sc-theater-venues.json`, or free text                                                                                            |
+| `price`        | `string`        | Display string, e.g. `"$72-$92"`                                                                                                                  |
+| `discounts`    | `string`        | Default discount text for all performances                                                                                                        |
+| `infoUrl`      | `string`        | Show info page                                                                                                                                    |
+| `ticketsUrl`   | `string`        | Default ticket link                                                                                                                               |
+| `performances` | `Performance[]` | Ordered list of date/time slots                                                                                                                   |
 
 #### `Performance`
 
@@ -193,23 +193,23 @@ One file per company per year. Top-level shape:
 
 #### `Audition`
 
-| Field               | Type               | Notes                                                            |
-| ------------------- | ------------------ | ---------------------------------------------------------------- |
-| `id`                | `string`           | `"audition-<timestamp>"` — stable, editor-assigned               |
-| `production`        | `string`           | Full production title                                            |
-| `genre`             | `Genre`            | `Drama \| Musical \| Comedy \| Other \| ""`                      |
-| `productionId`      | `string?`          | Soft ref to a `Run` id in shows data (not exposed in editor UI)  |
-| `auditionDates`     | `AuditionDate[]`   | Ordered list of audition sessions; each carries its own location |
-| `rolesAvailable`    | `AuditionRole[]`   | Roles being cast                                                 |
-| `prep`              | `AuditionPrep?`    | `{ acting?, singing?, dance?, bring? }`                          |
-| `rehearsalStart`    | `string?`          | `YYYY-MM-DD`                                                     |
-| `openingDate`       | `string?`          | `YYYY-MM-DD`                                                     |
-| `contact`           | `AuditionContact?` | `{ name?, email?, phone? }`                                      |
-| `auditionNoticeUrl` | `string?`          | Link to full audition notice                                     |
-| `productionUrl`     | `string?`          | Link to production page                                          |
-| `notes`             | `string?`          | Full-width notes shown at bottom of expanded card                |
-| `createdAt`         | `string`           | ISO 8601 timestamp                                               |
-| `updatedAt`         | `string`           | ISO 8601 timestamp                                               |
+| Field               | Type               | Notes                                                                                                                                             |
+| ------------------- | ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `id`                | `string`           | `"audition-<timestamp>"` — stable, editor-assigned                                                                                                |
+| `production`        | `string`           | Full production title                                                                                                                             |
+| `genre`             | `Genre[]`          | Up to 2 values from `Drama \| Musical \| Comedy \| Other`; empty array when unset. Legacy string values are coerced to single-item array on read. |
+| `productionId`      | `string?`          | Soft ref to a `Run` id in shows data (not exposed in editor UI)                                                                                   |
+| `auditionDates`     | `AuditionDate[]`   | Ordered list of audition sessions; each carries its own location                                                                                  |
+| `rolesAvailable`    | `AuditionRole[]`   | Roles being cast                                                                                                                                  |
+| `prep`              | `AuditionPrep?`    | `{ acting?, singing?, dance?, bring? }`                                                                                                           |
+| `rehearsalStart`    | `string?`          | `YYYY-MM-DD`                                                                                                                                      |
+| `openingDate`       | `string?`          | `YYYY-MM-DD`                                                                                                                                      |
+| `contact`           | `AuditionContact?` | `{ name?, email?, phone? }`                                                                                                                       |
+| `auditionNoticeUrl` | `string?`          | Link to full audition notice                                                                                                                      |
+| `productionUrl`     | `string?`          | Link to production page                                                                                                                           |
+| `notes`             | `string?`          | Full-width notes shown at bottom of expanded card                                                                                                 |
+| `createdAt`         | `string`           | ISO 8601 timestamp                                                                                                                                |
+| `updatedAt`         | `string`           | ISO 8601 timestamp                                                                                                                                |
 
 #### `AuditionDate`
 
@@ -253,8 +253,8 @@ The **+ New** button in the auditions sidebar is hidden until a company file is 
 The form is split into a fixed header (production title, company badge, delete button) and a fixed fields row (company, genre, rehearsal start, opening date, production title, URLs), followed by a scrollable body containing: Audition Dates → Roles Available → Prepare/Contact → Notes.
 
 - **Audition dates table** — inline-editable rows for date, start/end time, location name, address, and session notes. Date and time fields use the shared normalization and validation described under [Date and time input](#date-and-time-input--normalization-and-validation); start time and end time are both required.
-- **Roles table** — inline-editable; Voice Part column is shown only for Musical genre. Role count is hidden in the sidebar when no roles are defined.
-- **Musical-only fields** — Singing and Dance prep rows, and the Voice Part column in the roles table, are shown only when genre is Musical.
+- **Roles table** — inline-editable; Voice Part column is shown only when Musical is one of the selected genres.
+- **Musical-only fields** — Singing and Dance prep rows, and the Voice Part column in the roles table, are shown only when Musical is one of the selected genres.
 - **Roles Available section** — suppressed entirely (header and table) when no roles are defined, both in the editor and on the public `/auditions` page.
 
 #### Save and dirty-check
@@ -307,7 +307,6 @@ The subscribe widget appears on `/auditions` (below the header, above the filter
 
 The browser module at `/admin/audition-format.js` is generated by `src/pages/admin/audition-format.js.ts` using Vite `?raw` + two regexes to strip TypeScript syntax. Do not create a separate hand-maintained file at `public/admin/audition-format.js`.
 
-
 ## Companies
 
 ### Data schema (`data/sc-theater-companies.json`)
@@ -341,21 +340,21 @@ The first entry (`id: "admin"`, `adminOnly: true`) is a sentinel used by the edi
 
 ## Required Netlify environment variables
 
-| Variable             | Purpose                                                          |
-| -------------------- | ---------------------------------------------------------------- |
-| `GITHUB_TOKEN`       | Fine-grained PAT with Contents read/write                        |
-| `GITHUB_OWNER`       | GitHub repository owner                                          |
-| `GITHUB_REPO`        | GitHub repository name                                           |
-| `GITHUB_BRANCH`      | Branch to commit to (default: `main`)                            |
-| `BUTTONDOWN_API_KEY` | Buttondown API key — used by `subscribe.mjs` and `send-audition-digest.mts` |
-| `NETLIFY_SITE_ID`    | Site ID — must be set manually; scheduled functions do not receive it automatically |
+| Variable             | Purpose                                                                                                                                          |
+| -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `GITHUB_TOKEN`       | Fine-grained PAT with Contents read/write                                                                                                        |
+| `GITHUB_OWNER`       | GitHub repository owner                                                                                                                          |
+| `GITHUB_REPO`        | GitHub repository name                                                                                                                           |
+| `GITHUB_BRANCH`      | Branch to commit to (default: `main`)                                                                                                            |
+| `BUTTONDOWN_API_KEY` | Buttondown API key — used by `subscribe.mjs` and `send-audition-digest.mts`                                                                      |
+| `NETLIFY_SITE_ID`    | Site ID — must be set manually; scheduled functions do not receive it automatically                                                              |
 | `NETLIFY_TOKEN`      | Netlify personal access token — required by `send-audition-digest.mts` for Blob Storage access (scheduled functions don't get an injected token) |
-| `DRY_RUN`            | Optional. Set to `true` to run the digest function without sending email or updating the timestamp |
+| `DRY_RUN`            | Optional. Set to `true` to run the digest function without sending email or updating the timestamp                                               |
 
 ## Git workflow
 
-- For bug fixes and small enhancements: branch from `main`,
-  open PR targeting `main`
-- For major features: branch from `dev`, open PR targeting `dev`
+- For bug fixes and small enhancements: branch from `main`, merge back into `main` when verified
+- For major features: branch from `dev`, merge back into `dev`
+- No PRs — merge directly; always confirm the current branch with `git branch` before committing
 - Never commit directly to `main` or `dev`
-- Netlify deploys from `main` — PRs to main trigger a production deploy when merged, so only merge when the fix is verified
+- Netlify deploys from `main` — only merge to `main` when the fix is verified

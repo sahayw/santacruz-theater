@@ -375,12 +375,12 @@
       "company": "at",
       "showAbv": "Feathers and Teeth",
       "show": "Feathers and Teeth",
-      "description": "Directed by Miguel Reyna",
+      "description": "This fairytale concoction of teen angst and devastating loss make for a grisly good time in this unhinged “Horrordey” — a stew of dark comedy, family drama and over-the-top carnage. Angsty teenager Chris is reeling from her mom’s illness and recent death. Throw in dad’s new girlfriend (mom’s ex-nurse!), a few vicious creatures and the kid next door, and things really get twisted. Part creature tale and part revenge tragedy, this highly theatrical show delivers a riveting exploration of grief and obsession. With a heavy helping of blood.\nDirected by Miguel Reyna",
       "genre": "Drama",
       "venue": "Actors' Theatre",
       "price": "",
       "discounts": "",
-      "infoUrl": "",
+      "infoUrl": "https://www.santacruzactorstheatre.org/",
       "ticketsUrl": "",
       "performances": [
         {
@@ -399,7 +399,7 @@
         },
         {
           "date": "2026-10-18",
-          "time": "20:00",
+          "time": "14:00",
           "perfType": "",
           "discounts": "",
           "ticketsUrl": ""
@@ -420,7 +420,7 @@
         },
         {
           "date": "2026-10-25",
-          "time": "20:00",
+          "time": "14:00",
           "perfType": "",
           "discounts": "",
           "ticketsUrl": ""

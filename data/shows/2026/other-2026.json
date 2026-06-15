@@ -193,6 +193,169 @@
           "ticketsUrl": ""
         }
       ]
+    },
+    {
+      "id": "run-1781470398513",
+      "company": "other",
+      "showAbv": "Machinal",
+      "show": "Machinal",
+      "description": "Play by Sophie Treadwell.\nDirected by Robin Aronson.\nFirst performed on Broadway in 1928 and inspired by a sensational, media-frenzied murder trial, Machinal is a rare treasure of American Expressionism by a female playwright that tells the electrifying story of a Young Woman who, trapped by stifling expectations in a hard, mechanized society, performs an act of desperation to free herself, only to pay the ultimate price.",
+      "genre": "Drama",
+      "venue": "Cabrillo Crocker Theater",
+      "price": "",
+      "discounts": "",
+      "infoUrl": "",
+      "ticketsUrl": "",
+      "performances": [
+        {
+          "date": "2026-10-30",
+          "time": "19:30",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-11-01",
+          "time": "19:30",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-11-06",
+          "time": "19:30",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-11-07",
+          "time": "19:30",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-11-08",
+          "time": "19:30",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-11-13",
+          "time": "19:30",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-11-14",
+          "time": "19:30",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-11-15",
+          "time": "19:30",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-11-07",
+          "time": "14:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-11-14",
+          "time": "14:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        }
+      ]
+    },
+    {
+      "id": "run-1781503044353",
+      "company": "other",
+      "showAbv": "Oscar Wilde",
+      "show": "Gross Indecency: The Three Trials of Oscar Wilde",
+      "description": "Play by Moises Kaufman, writer of The Laramie Project. Follows the 3 trials of Oscar Wilde that marked his downfall from the height of fame and success to his death following imprisonment in Reading Gaol.",
+      "genre": "Drama",
+      "venue": "Veterans Memorial Building",
+      "price": "",
+      "discounts": "",
+      "infoUrl": "",
+      "ticketsUrl": "",
+      "performances": [
+        {
+          "date": "2026-10-09",
+          "time": "19:30",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-10-10",
+          "time": "19:30",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-10-11",
+          "time": "14:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-10-16",
+          "time": "19:30",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-10-17",
+          "time": "19:30",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-10-18",
+          "time": "14:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-10-23",
+          "time": "19:30",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-10-24",
+          "time": "19:30",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-10-25",
+          "time": "14:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        }
+      ]
     }
   ]
 }

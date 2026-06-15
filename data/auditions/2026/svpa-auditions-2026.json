@@ -1,0 +1,63 @@
+{
+  "company": "svpa",
+  "year": 2026,
+  "auditions": [
+    {
+      "id": "audition-1781438400001",
+      "production": "Annie",
+      "genre": "Musical",
+      "auditionDates": [
+        {
+          "date": "2026-06-19",
+          "startTime": "18:00",
+          "endTime": "21:00",
+          "notes": "Ages 10 and up",
+          "location": {
+            "name": "St. Phillips Episcopal Church",
+            "address": "5721 Scotts Valley Drive, Scotts Valley, CA 95066"
+          }
+        },
+        {
+          "date": "2026-06-20",
+          "startTime": "13:00",
+          "endTime": "15:00",
+          "notes": "Ages 6–9",
+          "location": {
+            "name": "St. Phillips Episcopal Church",
+            "address": "5721 Scotts Valley Drive, Scotts Valley, CA 95066"
+          }
+        },
+        {
+          "date": "2026-06-20",
+          "startTime": "16:00",
+          "endTime": "18:00",
+          "notes": "Ages 10 and up",
+          "location": {
+            "name": "St. Phillips Episcopal Church",
+            "address": "5721 Scotts Valley Drive, Scotts Valley, CA 95066"
+          }
+        },
+        {
+          "date": "2026-06-22",
+          "startTime": "18:00",
+          "endTime": "21:00",
+          "notes": "Callbacks (by invitation)",
+          "location": {
+            "name": "St. Phillips Episcopal Church",
+            "address": "5721 Scotts Valley Drive, Scotts Valley, CA 95066"
+          }
+        }
+      ],
+      "rolesAvailable": [],
+      "prep": {
+        "singing": "Prepare a 1-minute song that shows your vocal range; bring a backing track ready to connect to a Bluetooth speaker"
+      },
+      "openingDate": "2026-09-18",
+      "auditionNoticeUrl": "https://www.onthestage.tickets/show/scotts-valley-performing-arts/6a1b286467d38677bc7e7c41",
+      "productionUrl": "https://www.svpashows.org/",
+      "notes": "Annie is an ideal show for a largely female cast. Callbacks go out Sunday June 21st evening — keep that date open if auditioning.",
+      "createdAt": "2026-06-14T12:00:00.000Z",
+      "updatedAt": "2026-06-14T12:00:00.000Z"
+    }
+  ]
+}

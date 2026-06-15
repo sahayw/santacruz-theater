@@ -202,6 +202,13 @@ const AUD_CSS = `
 }
 .aud-cell-input:focus { outline: none; border-color: var(--accent2); background: var(--surface); }
 .aud-cell-input.invalid { border-color: #c0392b !important; background: #fef2f2 !important; }
+.aud-date-errors {
+  margin: 4px 0 0; padding: 5px 10px; border-radius: 3px;
+  background: #fef2f2; border: 1px solid #f8d0d0;
+  font-size: 11px; color: #b91c1c; line-height: 1.6;
+}
+.aud-date-errors ul { margin: 0; padding: 0 0 0 14px; }
+.aud-date-errors li { margin: 0; }
 .aud-cell-select {
   font-family: 'IBM Plex Sans', sans-serif; font-size: 11px;
   padding: 3px 4px; border: 1px solid transparent; border-radius: 2px;
@@ -512,6 +519,7 @@ const AUD_HTML = `
               <tbody id="audDatesBody"></tbody>
             </table>
           </div>
+          <div id="audDateErrors" class="aud-date-errors" style="display:none"></div>
         </div>
 
         <!-- 2. Roles available -->
@@ -1094,13 +1102,37 @@ function clearEditor() {
 }
 
 // ── VALIDATION ──
+const MONTH_MAP = {
+  jan: 1, january: 1, feb: 2, february: 2, mar: 3, march: 3,
+  apr: 4, april: 4, may: 5, jun: 6, june: 6, jul: 7, july: 7,
+  aug: 8, august: 8, sep: 9, sept: 9, september: 9,
+  oct: 10, october: 10, nov: 11, november: 11, dec: 12, december: 12,
+}
 function normalizeDate(v) {
   if (!v) return v
-  const parts = v
-    .trim()
-    .replace(/[/.]/g, '-')
-    .split('-')
-    .map((s) => s.trim())
+  const s = v.trim()
+  // Named-month path: any letters present
+  if (/[A-Za-z]/.test(s)) {
+    let month = null, day = null, year = null
+    const tokens = s.split(/[\s,]+/).map((t) => t.replace(/\.$/, '').trim()).filter(Boolean)
+    for (const token of tokens) {
+      const low = token.toLowerCase()
+      if (MONTH_MAP[low] !== undefined) { month = MONTH_MAP[low]; continue }
+      if (/^\d+$/.test(token)) {
+        const n = parseInt(token, 10)
+        if (token.length === 4 || n > 31) { year = n; continue }
+        if (day === null) { day = n; continue }
+      }
+      // day-of-week or unrecognised token — skip
+    }
+    if (month !== null && day !== null) {
+      if (year === null) year = currentYear
+      if (String(year).length === 2) year = 2000 + year
+      return `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`
+    }
+  }
+  // Numeric path
+  const parts = s.replace(/[/.]/g, '-').split('-').map((p) => p.trim()).filter(Boolean)
   if (parts.length !== 3) return v
   let [y, m, d] = parts
   if (y.length === 2) y = '20' + y
@@ -1111,7 +1143,8 @@ function isValidDate(v) {
   if (!v || !/^\d{4}-\d{2}-\d{2}$/.test(v)) return false
   const [y, m, d] = v.split('-').map(Number)
   const dt = new Date(y, m - 1, d)
-  return dt.getFullYear() === y && dt.getMonth() === m - 1 && dt.getDate() === d
+  if (!(dt.getFullYear() === y && dt.getMonth() === m - 1 && dt.getDate() === d)) return false
+  return y >= currentYear - 1 && y <= currentYear + 1
 }
 function isValidTime(v) {
   if (!v) return false
@@ -1153,11 +1186,43 @@ function collectErrors() {
           errors.push(`"${label}" — date row ${di + 1}: end time "${d.endTime || '(empty)'}"`)
       })
     }
+    if (a.openingDate && isValidDate(a.openingDate)) {
+      const yr = parseInt(a.openingDate.slice(0, 4), 10)
+      if (yr !== currentYear)
+        errors.push(`"${label}": opening date ${a.openingDate} is in ${yr} — use the year selector to edit the ${yr} file`)
+    }
   })
   return errors
 }
 
 // ── AUDITION DATES TABLE ──
+function updateDateErrors() {
+  const el = document.getElementById('audDateErrors')
+  if (!el) return
+  if (activeAudIdx < 0) { el.style.display = 'none'; return }
+  const dates = auditions[activeAudIdx].auditionDates || []
+  const msgs = []
+  dates.forEach((d, i) => {
+    if (!d.date) return
+    const v = d.date
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(v)) {
+      msgs.push(`Row ${i + 1}: "${v}" — unrecognized date. Accepted: YYYY-MM-DD, "Oct 30", "Fri Oct 30", "Oct 30 2026"`)
+      return
+    }
+    const [y, m, dv] = v.split('-').map(Number)
+    const dt = new Date(y, m - 1, dv)
+    if (!(dt.getFullYear() === y && dt.getMonth() === m - 1 && dt.getDate() === dv)) {
+      msgs.push(`Row ${i + 1}: "${v}" — not a valid calendar date`)
+    } else if (y < currentYear - 1 || y > currentYear + 1) {
+      msgs.push(`Row ${i + 1}: "${v}" — year ${y} is not valid for this ${currentYear} file`)
+    }
+  })
+  if (!msgs.length) { el.style.display = 'none'; return }
+  el.innerHTML = msgs.length === 1
+    ? `⚠ ${esc(msgs[0])}`
+    : `⚠ Date issues:<ul>${msgs.map((m) => `<li>${esc(m)}</li>`).join('')}</ul>`
+  el.style.display = ''
+}
 function renderDatesTable() {
   if (activeAudIdx < 0) return
   hideVenueDropdown()
@@ -1171,10 +1236,10 @@ function renderDatesTable() {
       <td><input class="aud-cell-input" value="${esc(d.date)}" placeholder="2026-06-13"
           onchange="aud.dateCellChanged(${i},'date',this.value)"
           onkeydown="aud.dateCellKey(event,${i},'date')" id="dc-${i}-date"></td>
-      <td><input class="aud-cell-input" value="${esc(d.startTime)}" placeholder="19:00"
+      <td><input class="aud-cell-input" value="${esc(d.startTime)}" placeholder="7pm"
           onchange="aud.dateCellChanged(${i},'startTime',this.value)"
           onkeydown="aud.dateCellKey(event,${i},'startTime')" id="dc-${i}-startTime"></td>
-      <td><input class="aud-cell-input" value="${esc(d.endTime)}" placeholder="21:30"
+      <td><input class="aud-cell-input" value="${esc(d.endTime)}" placeholder="9pm"
           onchange="aud.dateCellChanged(${i},'endTime',this.value)"
           onkeydown="aud.dateCellKey(event,${i},'endTime')" id="dc-${i}-endTime"></td>
       <td><input class="aud-cell-input" value="${esc(d.location?.name)}" placeholder="Veterans Memorial Bldg"
@@ -1197,10 +1262,31 @@ function renderDatesTable() {
     if (d.startTime) setAudInvalid(`dc-${i}-startTime`, !isValidTime(d.startTime))
     if (d.endTime) setAudInvalid(`dc-${i}-endTime`, !isValidTime(d.endTime))
   })
+  updateDateErrors()
 }
 
 function normalizeTime(v) {
-  return v ? v.replace('.', ':') : v
+  if (!v) return v
+  const s = v.trim()
+  // Explicit AM/PM suffix: "10am", "7:30 PM", "7.30pm"
+  const ap = s.match(/^(\d{1,2})(?:[.:](\d{2}))?\s*(am|pm)$/i)
+  if (ap) {
+    let h = parseInt(ap[1], 10)
+    const mins = ap[2] || '00'
+    if (ap[3].toLowerCase() === 'am') {
+      if (h === 12) h = 0          // 12am → 00:xx
+    } else {
+      if (h !== 12) h += 12        // 1–11pm → 13–23; 12pm stays 12
+    }
+    return `${String(h).padStart(2, '0')}:${mins}`
+  }
+  // No suffix: normalise separator then assume PM for hours 1–11
+  const norm = s.replace('.', ':')
+  if (!/^\d{1,2}:\d{2}$/.test(norm)) return v
+  let [hStr, mins] = norm.split(':')
+  let h = parseInt(hStr, 10)
+  if (h >= 1 && h <= 11) h += 12  // 12 stays as noon; 13–23 already 24-hour
+  return `${String(h).padStart(2, '0')}:${mins}`
 }
 
 function dateCellChanged(idx, field, value) {
@@ -1231,6 +1317,7 @@ function dateCellChanged(idx, field, value) {
     if (del && del.value !== value) del.value = value
     d.date = value || undefined
     if (value) setAudInvalid(`dc-${idx}-date`, !isValidDate(value))
+    updateDateErrors()
   } else {
     d[field] = value || (field === 'notes' ? undefined : value)
   }
@@ -1535,7 +1622,7 @@ function openPreview() {
             <span class="pv-title">${esc(a.production || 'Untitled')}</span>
             ${a.genre ? `<span class="pv-genre-badge" style="${genreStyle}">${esc(a.genre)}</span>` : ''}
           </div>
-          <div class="pv-meta-row">${esc(companyName)}${a.openingDate ? ` · Opens ${fmtShortDate(a.openingDate)}` : ''}</div>
+          <div class="pv-meta-row">${esc(companyName)}${a.openingDate ? ` · Opens ${fmtShortDate(a.openingDate)}` : ''}${a.rehearsalStart ? ` · Rehearsals start ${fmtShortDate(a.rehearsalStart)}` : ''}</div>
           <div class="pv-roles-row">${rolesSum(a.rolesAvailable)}</div>
         </div>
         <div class="pv-aside">

@@ -1,0 +1,106 @@
+{
+  "company": "milo-rep",
+  "year": 2026,
+  "runs": [
+    {
+      "id": "run-1781501370635",
+      "company": "milo-rep",
+      "showAbv": "Romeo & Juliet",
+      "show": "Romeo and Juliet",
+      "description": "William Shakespeare’s tragedy about two young \"star-crossed lovers\" from feuding families, the Montagues and Capulets, whose deaths ultimately reconcile their warring households.",
+      "genre": "Drama",
+      "venue": "",
+      "price": "",
+      "discounts": "",
+      "infoUrl": "https://milorep.org/",
+      "ticketsUrl": "",
+      "performances": [
+        {
+          "date": "2026-07-17",
+          "time": "19:30",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-07-18",
+          "time": "14:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-07-19",
+          "time": "19:30",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-07-23",
+          "time": "19:30",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-07-26",
+          "time": "19:30",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-07-25",
+          "time": "14:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        }
+      ]
+    },
+    {
+      "id": "run-1781502144966",
+      "company": "milo-rep",
+      "showAbv": "Gruesome",
+      "show": "Gruesome Playground Injuries",
+      "description": "Play by Rajiv Joseph that chronicles the 30-year relationship between two friends, Kayleen and Doug, using their physical and emotional wounds as a framework to explore love, pain, and connection.",
+      "genre": "Drama",
+      "venue": "",
+      "price": "",
+      "discounts": "",
+      "infoUrl": "https://milorep.org/",
+      "ticketsUrl": "",
+      "performances": [
+        {
+          "date": "2026-07-18",
+          "time": "19:30",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-07-19",
+          "time": "14:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-07-24",
+          "time": "19:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-07-25",
+          "time": "14:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        }
+      ]
+    }
+  ]
+}

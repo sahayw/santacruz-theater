@@ -39,8 +39,8 @@
       "logo": "/images/companies/renegade-logo.png"
     },
     {
-      "id": "cabrillo",
-      "abvName": "Cabrillo",
+      "id": "cabstg",
+      "abvName": "Cabrillo Stg",
       "name": "Cabrillo Stage",
       "primaryVenue": "CCT",
       "website": "https://www.cabrillostage.com/",
@@ -48,18 +48,42 @@
       "logoDark": true
     },
     {
-      "id": "landing",
-      "abvName": "Landing",
-      "name": "The Landing, SV",
-      "website": "https://thelandingsv.org/",
-      "logo": "/images/companies/landing-logo.png",
+      "id": "aat",
+      "abvName": "AAT",
+      "name": "All About Theatre",
+      "primaryVenue": "Colligan",
+      "website": "https://allabouttheatre.org/",
+      "logo": "/images/companies/aat-logo.png",
+      "logoDark": true
+    },
+    {
+      "id": "svpa",
+      "abvName": "SVPA",
+      "name": "Scotts Valley Performing Arts",
+      "website": "https://www.svpashows.org/",
+      "logo": "/images/companies/svpa-logo.png"
+    },
+    {
+      "id": "milo-rep",
+      "abvName": "Milo Rep",
+      "name": "Milo Rep",
+      "website": "https://milorep.org/",
+      "logo": "/images/companies/milo-rep-logo.png"
+    },
+    {
+      "id": "gih",
+      "abvName": "GIH",
+      "name": "Gay Innocent Heartless",
+      "website": "https://www.gayinnocentheartless.com/",
+      "logo": "/images/companies/gih-logo.png",
       "logoDark": true
     },
     {
       "id": "other",
       "abvName": "Other",
       "name": "Other Companies",
-      "adminOnly": true
+      "adminOnly": true,
+      "editors": [{ "email": "josephine.czarnecki@gmail.com", "datasets": ["calendar", "auditions"] }]
     }
   ]
 }

@@ -82,20 +82,42 @@ The home page (`src/pages/index.astro`) loads the Identity widget so invite and 
 
 Both the calendar and auditions editors normalize and validate date/time fields on cell change:
 
-**Date normalization** — the editor accepts several entry formats and normalizes to `YYYY-MM-DD` on blur, updating the cell in place:
+**Date normalization (cell inputs — auditions editor)** — `normalizeDate()` in `auditions.js` accepts the following formats and normalizes to `YYYY-MM-DD` on change:
 
-| Entered    | Stored as    |
-| ---------- | ------------ |
-| `26/1/2`   | `2026-01-02` |
-| `2026/1/2` | `2026-01-02` |
-| `26.01.02` | `2026-01-02` |
-| `2026-1-2` | `2026-01-02` |
+| Entered               | Stored as    |
+| --------------------- | ------------ |
+| `26/1/2`              | `2026-01-02` |
+| `2026/1/2`            | `2026-01-02` |
+| `26.01.02`            | `2026-01-02` |
+| `2026-1-2`            | `2026-01-02` |
+| `Oct 30`              | `2026-10-30` |
+| `Oct. 30`             | `2026-10-30` |
+| `Friday, Oct. 30`     | `2026-10-30` |
+| `Sat. Nov 7`          | `2026-11-07` |
+| `Oct 30 2026`         | `2026-10-30` |
 
-Format assumed to be `Y-M-D` (or `YY-M-D`). 2-digit years are prefixed with `20`.
+Numeric format is assumed `Y-M-D`; 2-digit years are prefixed with `20`. Named-month formats accept full month names, 3-letter abbreviations, and optional trailing periods. Leading day-of-week tokens (e.g. `Friday,`, `Sat.`) are stripped silently. When no year is present, `currentYear` (the loaded file's year) is used.
 
-**Time normalization** — dot separator is accepted and converted to colon (e.g. `21.30` → `21:30`).
+**Date normalization (Paste Dates panel — calendar editor)** — `parseDate()` in `calendar.js` handles the same named-month formats above in the paste textarea, including optional day-of-week prefixes and abbreviated months with periods. Year defaults to `currentYear` when absent. The Pattern panel uses native `<input type="date">` pickers and requires no parsing.
 
-**Validation** — after normalization, invalid entries (bad format, impossible calendar date, hour > 23, minute > 59) are highlighted with a red cell border. Empty required fields are not highlighted during editing but are caught at save time. Clicking **Save** runs a full scan across all records in the file and shows a specific error list if anything is invalid. The calendar editor checks every performance row; the auditions editor additionally rejects records with no audition date rows.
+**Time normalization** — `normalizeTime()` (shared logic in both editors) accepts 12-hour and 24-hour inputs:
+
+| Entered | Stored as | Notes |
+| ----------- | --------- | ----- |
+| `7pm` | `19:00` | whole-hour 12-hour with suffix |
+| `7.30` | `19:30` | dot separator, no suffix → assumes PM |
+| `2.00` | `14:00` | hours 1–11 without suffix assumed PM |
+| `10am` | `10:00` | explicit AM suffix |
+| `10:30 AM` | `10:30` | AM with colon separator |
+| `12pm` | `12:00` | noon |
+| `12am` | `00:00` | midnight |
+| `12.00` | `12:00` | no suffix, 12 stays as noon |
+| `19:30` | `19:30` | 24-hour unchanged |
+| `21.30` | `21:30` | 24-hour with dot separator |
+
+Rules: hours 1–11 with no AM/PM suffix are assumed PM (+12). Hour 12 with no suffix stays as `12:00` (noon). Hours 13–23 are taken as-is. Explicit `am`/`pm` suffix (case-insensitive, with or without space) overrides the default. Minutes are optional when using the AM/PM suffix (`7pm` → `19:00`). Separator can be `.` or `:`.
+
+**Validation** — after normalization, invalid entries (bad format, impossible calendar date, hour > 23, minute > 59) are highlighted with a red cell border. Dates outside `currentYear ± 1` are also flagged red. The auditions editor additionally shows a text error box beneath the dates table describing each invalid date and listing accepted formats. Empty required fields are not highlighted during editing but are caught at save time. Clicking **Save** runs a full scan and shows a specific error list if anything is invalid; this includes a check that the opening date (auditions) or earliest performance date (calendar) falls in `currentYear` — if not, the error message names the correct year file to use instead. The calendar editor checks every performance row; the auditions editor additionally rejects records with no audition date rows.
 
 ## Calendar — Shows
 
@@ -244,6 +266,10 @@ The Save button and status bar ("unsaved changes" / "saved") are driven by `comp
 #### Restore button
 
 A **Restore** button appears in the record header (to the left of Delete) when the active record has unsaved changes — i.e. its current state differs from its snapshot. Clicking Restore re-applies the snapshot, discarding in-editor changes. The button is hidden for newly created records (which have no snapshot) and whenever the record matches its snapshot.
+
+#### Card preview
+
+The **Preview** button (toolbar) renders a modal (`#audPreviewBody`) showing what the collapsed audition card will look like on the public `/auditions` page. The preview HTML is built in `openPreview()` (`auditions.js`~line 1529) and must be kept in sync with the collapsed `<button class="aud-summary">` markup in `src/pages/auditions.astro`. Specifically, the `.pv-meta-row` line in the preview mirrors the `.aud-meta-row` div on the public page — any field added to one must be added to the other.
 
 ### Email notifications
 

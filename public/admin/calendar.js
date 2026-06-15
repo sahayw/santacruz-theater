@@ -2,17 +2,29 @@ import { IS_DEV, apiFetch, apiPut, buildCompanyOptions } from './api.js'
 
 const PERF_TYPES = ['', 'Preview', 'Opening', 'Closing', 'Talk-back']
 const MONTH_MAP = {
+  jan: 1,
   january: 1,
+  feb: 2,
   february: 2,
+  mar: 3,
   march: 3,
+  apr: 4,
   april: 4,
   may: 5,
+  jun: 6,
   june: 6,
+  jul: 7,
   july: 7,
+  aug: 8,
   august: 8,
+  sep: 9,
+  sept: 9,
   september: 9,
+  oct: 10,
   october: 10,
+  nov: 11,
   november: 11,
+  dec: 12,
   december: 12
 }
 const CURRENT_YEAR = 2026
@@ -555,9 +567,9 @@ const CAL_HTML = `
             <label style="font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.06em;color:var(--accent2)">Default time for pasted dates</label>
             <input type="time" class="pattern-input" id="paste-time" value="19:30" style="width:100px;border-color:#c8d8e8">
           </div>
-          <textarea class="paste-textarea" id="pasteArea" placeholder="Paste dates, one per line, e.g.:&#10;July 11 2026&#10;July 12 2026&#10;2026-07-14&#10;Saturday, July 18, 2026 at 8:00 PM"></textarea>
+          <textarea class="paste-textarea" id="pasteArea" placeholder="Paste dates, one per line, e.g.:&#10;July 11 2026&#10;2026-07-14&#10;Saturday, July 18, 2026 at 8:00 PM"></textarea>
           <div style="display:flex;flex-direction:column;gap:6px">
-            <div class="paste-hint">Accepts most date formats. Time in line overrides default. SCS-format lines (e.g. <em>Saturday, July 18, 2026 at 8:00 PM</em>) parsed automatically.</div>
+            <div class="paste-hint">Accepts most date formats. Time in line overrides default. Times can be 12-hour (7:30pm, 10am) or 24-hour (19:30).</div>
             <button class="btn btn-blue btn-sm" onclick="cal.parsePaste()">Import dates</button>
             <button class="btn btn-sm" style="background:transparent;border:1px solid #c8d8e8;color:var(--accent2)" onclick="cal.togglePaste()">Cancel</button>
           </div>
@@ -894,7 +906,9 @@ function loadRunEditor() {
 function updateEditorTitle() {
   const r = runs[activeRunIdx]
   document.getElementById('editorTitleText').textContent = r.showAbv || r.show || 'Untitled'
-  document.getElementById('editorSubtitle').textContent = r.company ? ` · ${allCompanies.find((c) => c.id === r.company)?.abvName || r.company}` : ''
+  document.getElementById('editorSubtitle').textContent = r.company
+    ? ` · ${allCompanies.find((c) => c.id === r.company)?.abvName || r.company}`
+    : ''
 }
 
 function runFieldChanged() {
@@ -1009,7 +1023,31 @@ function isValidDate(v) {
   if (!v || !/^\d{4}-\d{2}-\d{2}$/.test(v)) return false
   const [y, m, d] = v.split('-').map(Number)
   const dt = new Date(y, m - 1, d)
-  return dt.getFullYear() === y && dt.getMonth() === m - 1 && dt.getDate() === d
+  if (!(dt.getFullYear() === y && dt.getMonth() === m - 1 && dt.getDate() === d)) return false
+  return y >= currentYear - 1 && y <= currentYear + 1
+}
+function normalizeTime(v) {
+  if (!v) return v
+  const s = v.trim()
+  // Explicit AM/PM suffix: "10am", "7:30 PM", "7.30pm"
+  const ap = s.match(/^(\d{1,2})(?:[.:](\d{2}))?\s*(am|pm)$/i)
+  if (ap) {
+    let h = parseInt(ap[1], 10)
+    const mins = ap[2] || '00'
+    if (ap[3].toLowerCase() === 'am') {
+      if (h === 12) h = 0          // 12am → 00:xx
+    } else {
+      if (h !== 12) h += 12        // 1–11pm → 13–23; 12pm stays 12
+    }
+    return `${String(h).padStart(2, '0')}:${mins}`
+  }
+  // No suffix: normalise separator then assume PM for hours 1–11
+  const norm = s.replace('.', ':')
+  if (!/^\d{1,2}:\d{2}$/.test(norm)) return v
+  let [hStr, mins] = norm.split(':')
+  let h = parseInt(hStr, 10)
+  if (h >= 1 && h <= 11) h += 12  // 12 stays as noon; 13–23 already 24-hour
+  return `${String(h).padStart(2, '0')}:${mins}`
 }
 function isValidTime(v) {
   if (!v) return false
@@ -1031,6 +1069,17 @@ function collectErrors() {
       if (!isValidTime(p.time))
         errors.push(`"${label}" — row ${pi + 1}: time "${p.time || '(empty)'}"`)
     })
+    const validDates = run.performances
+      .map((p) => p.date)
+      .filter(isValidDate)
+      .sort()
+    if (validDates.length > 0) {
+      const yr = parseInt(validDates[0].slice(0, 4), 10)
+      if (yr !== currentYear)
+        errors.push(
+          `"${label}": first performance ${validDates[0]} is in ${yr} — use the year selector to edit the ${yr} file`
+        )
+    }
   })
   return errors
 }
@@ -1049,7 +1098,7 @@ function renderPerfTable() {
           onchange="cal.cellChanged(${i},'date',this.value)"
           onkeydown="cal.cellKey(event,${i},'date')"
           id="cell-${i}-date"></td>
-      <td><input class="cell-input" value="${p.time || ''}" placeholder="19:30" style="width:64px"
+      <td><input class="cell-input" value="${p.time || ''}" placeholder="7:30pm" style="width:64px"
           onchange="cal.cellChanged(${i},'time',this.value)"
           onkeydown="cal.cellKey(event,${i},'time')"
           id="cell-${i}-time"></td>
@@ -1081,7 +1130,7 @@ function cellChanged(idx, field, value) {
     if (el && el.value !== value) el.value = value
     if (value) setInvalid(`cell-${idx}-date`, !isValidDate(value))
   } else if (field === 'time') {
-    value = value.replace('.', ':')
+    value = normalizeTime(value)
     const el = document.getElementById(`cell-${idx}-time`)
     if (el && el.value !== value) el.value = value
     if (value) setInvalid(`cell-${idx}-time`, !isValidTime(value))
@@ -1194,20 +1243,31 @@ function togglePaste() {
 function parseDate(str) {
   str = str.trim()
   if (/^\d{4}-\d{2}-\d{2}$/.test(str)) return str
-  const full = str.match(/(\w+)\s+(\d{1,2}),?\s+(\d{4})(?:\s+at\s+([\d:]+\s*[AP]M))?/i)
+  // Strip leading day-of-week (e.g. "Friday, ", "Sat. ") — but not if it's a month name
+  str = str
+    .replace(/^([A-Za-z]+)\.?\s*,?\s*/, (match, word) =>
+      MONTH_MAP[word.toLowerCase()] !== undefined ? match : ''
+    )
+    .trim()
+  // "MonthName[.] Day[,] [Year] [at Time]"
+  const full = str.match(/([A-Za-z]+\.?)\s+(\d{1,2}),?\s*(\d{4})?(?:\s+at\s+([\d:]+\s*[AP]M))?/i)
   if (full) {
-    const m = MONTH_MAP[full[1].toLowerCase()]
+    const m = MONTH_MAP[full[1].replace(/\.$/, '').toLowerCase()]
     if (m) {
-      const dateStr = `${full[3]}-${String(m).padStart(2, '0')}-${String(parseInt(full[2])).padStart(2, '0')}`
+      const year = full[3] || String(currentYear)
+      const dateStr = `${year}-${String(m).padStart(2, '0')}-${String(parseInt(full[2])).padStart(2, '0')}`
       const timeStr = full[4] ? parseTimeStr(full[4]) : null
-      return { date: dateStr, time: timeStr }
+      return timeStr ? { date: dateStr, time: timeStr } : dateStr
     }
   }
-  const alt = str.match(/(\d{1,2})\s+(\w+)\s+(\d{4})/i)
+  // "Day MonthName[.] [Year]"
+  const alt = str.match(/(\d{1,2})\s+([A-Za-z]+\.?)\s*(\d{4})?/i)
   if (alt) {
-    const m = MONTH_MAP[alt[2].toLowerCase()]
-    if (m)
-      return `${alt[3]}-${String(m).padStart(2, '0')}-${String(parseInt(alt[1])).padStart(2, '0')}`
+    const m = MONTH_MAP[alt[2].replace(/\.$/, '').toLowerCase()]
+    if (m) {
+      const year = alt[3] || String(currentYear)
+      return `${year}-${String(m).padStart(2, '0')}-${String(parseInt(alt[1])).padStart(2, '0')}`
+    }
   }
   return null
 }

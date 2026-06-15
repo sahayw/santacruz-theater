@@ -3,6 +3,72 @@
   "year": 2026,
   "auditions": [
     {
+      "id": "audition-1781438400003",
+      "production": "Machinal",
+      "genre": "Drama",
+      "auditionDates": [
+        {
+          "date": "2026-08-25",
+          "startTime": "18:30",
+          "endTime": "20:30",
+          "location": {
+            "name": "Crocker Mainstage, Cabrillo College",
+            "address": "6500 Soquel Dr, Aptos, CA 95003"
+          }
+        },
+        {
+          "date": "2026-08-26",
+          "startTime": "18:30",
+          "endTime": "20:30",
+          "location": {
+            "name": "Crocker Mainstage, Cabrillo College",
+            "address": "6500 Soquel Dr, Aptos, CA 95003"
+          }
+        },
+        {
+          "date": "2026-08-27",
+          "startTime": "18:30",
+          "endTime": "21:00",
+          "notes": "Callbacks (notification same night as audition)",
+          "location": {
+            "name": "Crocker Mainstage, Cabrillo College",
+            "address": "6500 Soquel Dr, Aptos, CA 95003"
+          }
+        }
+      ],
+      "rolesAvailable": [
+        {
+          "role": "Young Woman",
+          "type": "lead",
+          "gender": "female",
+          "description": "Central protagonist"
+        },
+        {
+          "role": "Supporting and ensemble roles",
+          "type": "ensemble",
+          "gender": "any",
+          "description": "Many actors play multiple characters. 16–19 total cast"
+        }
+      ],
+      "prep": {
+        "acting": "60–90 second monologue (optional — attending without preparation is welcome)",
+        "bring": [
+          "Completed audition form (submit at https://forms.gle/pJQh69wEBrgG2gd99 by 6:30 PM on audition night)"
+        ]
+      },
+      "openingDate": "2026-10-30",
+      "contact": {
+        "name": "Robin Aronson",
+        "email": "roaronso@cabrillo.edu"
+      },
+      "auditionNoticeUrl": "https://www.cabrillo.edu/theatre-arts/upcoming-auditions/",
+      "productionUrl": "https://www.cabrillo.edu/theatre-arts/",
+      "notes": "Cabrillo College Theatre Arts production of Sophie Treadwell's Machinal, directed by Robin Aronson. Inclusive casting — all students and community actors welcome. Rehearsals Tuesday–Friday evenings 6:30–9:30 PM. Performances October 30 – November 15, 2026. College credit available (TA 29/529, TA 27/527).",
+      "createdAt": "2026-06-14T12:00:00.000Z",
+      "updatedAt": "2026-06-14T17:57:11.481Z",
+      "rehearsalStart": "2026-08-28"
+    },
+    {
       "id": "audition-1780261748445",
       "production": "Gross Indecency: The Three Trials of Oscar Wilde",
       "genre": "Drama",

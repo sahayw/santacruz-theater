@@ -140,6 +140,7 @@ function roleTypeLabel(type: string): string {
                       <div class="aud-meta-row">
                         {companyName}
                         {aud.openingDate && ` · Opens ${fmtShortDate(aud.openingDate)}`}
+                        {aud.rehearsalStart && ` · Rehearsals start ${fmtShortDate(aud.rehearsalStart)}`}
                       </div>
                       <div class="aud-roles-row">{rolesSum(aud.rolesAvailable)}</div>
                     </div>

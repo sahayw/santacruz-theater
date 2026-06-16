@@ -126,8 +126,12 @@ export const handler = schedule('0 2 * * *', async () => {
     .filter(a => new Date(a.createdAt) > lastSent)
     .sort(byDate)
 
+  const todayStr = new Date().toISOString().slice(0, 10)
+  const isUpcoming = (a: DigestAudition) =>
+    (a.auditionDates.map(d => d.date).filter(Boolean).sort().pop() ?? '') >= todayStr
+
   const updatedAuditions = auditions
-    .filter(a => new Date(a.updatedAt) > lastSent && new Date(a.createdAt) <= lastSent)
+    .filter(a => new Date(a.updatedAt) > lastSent && new Date(a.createdAt) <= lastSent && isUpcoming(a))
     .sort(byDate)
 
   console.log(`send-audition-digest: ${newAuditions.length} new, ${updatedAuditions.length} updated`)

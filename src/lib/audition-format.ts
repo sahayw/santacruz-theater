@@ -60,11 +60,3 @@ export function rolesSum(roles: AuditionRole[]) {
   if (hasEnsemble) parts.push('ensemble')
   return parts.join(' · ')
 }
-
-export function rolesSummaryEmail(roles: AuditionRole[]) {
-  const total = (roles || []).length
-  if (!total) return ''
-  const leads = (roles || []).filter(r => r.type === 'lead').length
-  if (leads === 0) return `${total} ${total === 1 ? 'role' : 'roles'} available`
-  return `${total} ${total === 1 ? 'role' : 'roles'} available, including ${leads} ${leads === 1 ? 'lead' : 'leads'}`
-}

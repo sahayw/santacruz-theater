@@ -1,4 +1,4 @@
-import { fmtAudDateRange, fmtFullDate, fmtTimeRange, fmtShortDate, rolesSummaryEmail } from '../../../src/lib/audition-format.ts'
+import { fmtAudDateRange, fmtFullDate, fmtTimeRange, fmtShortDate } from '../../../src/lib/audition-format.ts'
 import type { Audition } from '../../../src/types.ts'
 
 export interface DigestAudition extends Audition {
@@ -27,7 +27,6 @@ function auditionBlock(a: DigestAudition, isUpdated: boolean, baseUrl: string) {
     ? `<tr><td colspan="3" style="padding:2px 0;font-size:12px;color:#9c9189">+ ${a.auditionDates.length - 3} more date${a.auditionDates.length - 3 > 1 ? 's' : ''}</td></tr>`
     : ''
 
-  const rolesLine = rolesSummaryEmail(a.rolesAvailable)
   const openingLine = a.openingDate ? `Opens ${fmtShortDate(a.openingDate)}` : ''
 
   return `<div style="background:#ffffff;border:1px solid #e0d9d0;border-radius:6px;padding:16px 20px;margin-bottom:12px">
@@ -35,7 +34,6 @@ function auditionBlock(a: DigestAudition, isUpdated: boolean, baseUrl: string) {
     <div style="font-family:Georgia,\'Times New Roman\',serif;font-size:18px;font-weight:600;color:#1a1612;margin-bottom:3px">${esc(a.production)}</div>
     <div style="font-size:13px;color:#6b6259;margin-bottom:10px">${esc(a.companyName)}${openingLine ? ` &middot; ${openingLine}` : ''}</div>
     <table style="border-collapse:collapse;font-size:13px;margin-bottom:10px">${dateRows}${moreDates}</table>
-    ${rolesLine ? `<div style="font-size:12px;color:#6b6259;margin-bottom:12px">${esc(rolesLine)}</div>` : ''}
     <a href="${esc(url)}" style="display:inline-block;font-size:13px;font-weight:500;color:#4f5ce0;text-decoration:none">View audition details &rarr;</a>
   </div>`
 }

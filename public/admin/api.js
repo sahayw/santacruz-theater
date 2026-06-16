@@ -62,7 +62,7 @@ export function resolveUserAccess(email, companies) {
     if (match) return { isAdmin: true, datasets: match.datasets, company: null }
   }
   for (const co of companies) {
-    if (co.adminOnly) continue
+    if (co.id === 'admin') continue
     const match = co.editors?.find((e) => e.email === email)
     if (match) return { isAdmin: false, datasets: match.datasets, company: co }
   }

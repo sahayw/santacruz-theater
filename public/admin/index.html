@@ -313,7 +313,7 @@ window.openEditor = function(key) {
 };
 
 window.goHub    = function() { showHub(); };
-window.openLogin = function() { window.netlifyIdentity?.open(); };
+window.openLogin = function() { document.getElementById('loginError').style.display = 'none'; window.netlifyIdentity?.open(); };
 window.signOut  = function() {
   if (IS_DEV) return;
   if (confirm('Sign out?')) window.netlifyIdentity?.logout();
@@ -336,8 +336,8 @@ async function onLoggedIn(user) {
     allCompanies = await loadCompanies();
     const access = resolveUserAccess(user.email, allCompanies);
     if (!access) {
-      showLoginError('No editor access for this account.');
-      window.netlifyIdentity?.logout();
+      showLoginError('No editor access for this account. Contact the site administrator.');
+      setTimeout(() => window.netlifyIdentity?.logout(), 3000);
       return;
     }
     userAccess = access;

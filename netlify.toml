@@ -5,6 +5,9 @@
 [build.environment]
   NODE_VERSION = "20"
 
+[functions]
+  included_files = ["data/auditions/**/*.json", "data/sc-theater-companies.json"]
+
 [[headers]]
   for = "/*"
   [headers.values]

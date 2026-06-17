@@ -55,9 +55,10 @@ The site is structured as a hub (`/`) linking to four sections: **Calendar** (`/
 - `netlify/functions/` — serverless functions
   - `data.mjs` — data read/write endpoint
   - `fetch-page.mjs` — page-fetch proxy
-  - `subscribe.mjs` — Buttondown subscription handler (POST)
-  - `send-audition-digest.mts` — scheduled daily digest (02:00 UTC); reads auditions from GitHub, sends via Buttondown broadcast API, stores last-sent timestamp in Netlify Blob Storage
-  - `lib/email-template.mts` — inline-styled email HTML template for digest
+  - `subscribe.mts` — Buttondown subscription handler (POST), sends a welcome email on new subscriptions
+  - `send-audition-digest.mts` — scheduled daily digest (02:00 UTC); reads auditions from local data files, sends via Buttondown broadcast API, stores last-sent timestamp in Netlify Blob Storage
+  - `lib/email-template.mts` — inline-styled email HTML templates for the digest and welcome email
+  - `lib/auditions-data.mts` — shared local audition data loading (fs-based, not GitHub API) for the digest and welcome email
 
 ## Editor authentication & data flow
 
@@ -273,29 +274,37 @@ The **Preview** button (toolbar) renders a modal (`#audPreviewBody`) showing wha
 
 ### Email notifications
 
-Subscribers receive a daily digest when new or updated auditions have been posted since the last digest. Delivered via **Buttondown** (handles subscriber management, double opt-in, unsubscribe compliance, and delivery).
+Subscribers receive a daily digest when new or updated auditions have been posted since the last digest, plus a one-off welcome email on subscribing. Delivered via **Buttondown** (handles subscriber management, unsubscribe compliance, and delivery; subscribers are added with `type: "regular"` — no double opt-in).
+
+#### Local audition data access
+
+`netlify/functions/lib/auditions-data.mts` — reads `data/auditions/**/*.json` and `data/sc-theater-companies.json` directly via Node `fs` from the function bundle, rather than the GitHub Contents API. These files are shipped with the function bundle via `[functions].included_files` in `netlify.toml`, so this is current as of the last deploy with no network round-trips at request time. Exports `loadAllAuditions()`, `isUpcoming()`, `getUpcomingAuditions()`, and `classifyForDigest(auditions, lastSent)`. Shared by `send-audition-digest.mts` and `subscribe.mts` — this is the single source of truth for reading audition data in serverless functions; do not duplicate it or reintroduce GitHub API calls for this purpose.
 
 #### Subscription
 
-`netlify/functions/subscribe.mjs` — POST handler. Accepts `{ email }`, calls `POST https://api.buttondown.email/v1/subscribers`, and returns a user-facing message for each outcome (201 new, 422 already subscribed, 400/5xx errors). The submit button is disabled while the request is in flight.
+`netlify/functions/subscribe.mts` — POST handler. Accepts `{ email }`, calls `POST https://api.buttondown.email/v1/subscribers`, and returns a user-facing message for each outcome (201 new, 409/422 already subscribed, 400/5xx errors). The submit button is disabled while the request is in flight. On 201, triggers the welcome email (below) before returning the success response.
 
 The subscribe widget appears on `/auditions` (below the header, above the filter bar; hidden in deep-link and not-found modes) and on the standalone `/subscribe` page.
+
+#### Welcome email
+
+On a successful new subscription, `subscribe.mts` sends a one-off welcome email containing all current upcoming auditions (via `getUpcomingAuditions(loadAllAuditions())` and `buildWelcomeHtml`), using Buttondown's create-draft → send-draft → delete-draft flow (`POST /v1/emails`, `POST /v1/emails/{id}/send-draft` with `recipients: [email]`, `DELETE /v1/emails/{id}`). The draft is created first; if that fails, send/delete are skipped. Once a draft id exists, send-draft and delete run inside a `try/finally` so the delete is always attempted even if send-draft fails, preventing orphaned drafts. Failures at any step are logged and ping `SUBSCRIBE_HEALTHCHECK_URL` (if set) but never change the user-facing response — the subscription itself already succeeded. If there are no upcoming auditions, the email shows a single fallback line instead of an empty list.
 
 #### Scheduled digest
 
 `netlify/functions/send-audition-digest.mts` — runs at `0 2 * * *` (02:00 UTC, configured in `netlify.toml`). Steps:
 
 1. Read `last-sent` ISO timestamp from Netlify Blob Storage (store: `audition-notifications`, key: `last-sent`; missing key → treats all records as new).
-2. Fetch all audition files from the GitHub Contents API.
-3. Classify records: **new** if `createdAt` > last-sent; **updated** if `updatedAt` > last-sent and `createdAt` ≤ last-sent.
-4. If nothing to send, exit without touching the timestamp.
-5. `DRY_RUN=true` env var — logs what would be sent without calling Buttondown or updating the timestamp.
-6. POST digest HTML to `https://api.buttondown.email/v1/emails` with `status: "about_to_send"`.
-7. Write the new `last-sent` timestamp to Blob Storage only on success.
+2. Load all audition files via `loadAllAuditions()` and classify with `classifyForDigest()`: **new** if `createdAt` > last-sent; **updated** if `updatedAt` > last-sent and `createdAt` ≤ last-sent.
+3. If nothing to send, exit without touching the timestamp (still pings `DIGEST_HEALTHCHECK_URL` if set).
+4. `DRY_RUN=true` env var — logs what would be sent without calling Buttondown or updating the timestamp.
+5. POST digest HTML to `https://api.buttondown.email/v1/emails` with `status: "about_to_send"`.
+6. Write the new `last-sent` timestamp to Blob Storage only on success.
+7. Ping `DIGEST_HEALTHCHECK_URL` (if set).
 
 #### Email template
 
-`netlify/functions/lib/email-template.mts` — exports `buildDigestHtml(newAuditions, updatedAuditions, baseUrl)`. Inline styles only (email client compatibility). Two sections: **New Auditions** and **Updated Auditions** (Updated section omitted when empty). Each entry shows production title, company, up to 3 audition date rows (with overflow count), and a deep-link to the record on the public site.
+`netlify/functions/lib/email-template.mts` — exports `buildDigestHtml(newAuditions, updatedAuditions, baseUrl)` and `buildWelcomeHtml(auditions, baseUrl)`. Inline styles only (email client compatibility). The digest has two sections, **New Auditions** and **Updated Auditions** (Updated section omitted when empty); the welcome email is a single flat list (or a fallback line when empty), with no new/updated split. Each entry shows production title, company, up to 3 audition date rows (with overflow count), and a deep-link to the record on the public site.
 
 #### Shared formatting module
 
@@ -342,14 +351,16 @@ The first entry (`id: "admin"`, `adminOnly: true`) is a sentinel used by the edi
 
 | Variable             | Purpose                                                                                                                                          |
 | -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `GITHUB_TOKEN`       | Fine-grained PAT with Contents read/write                                                                                                        |
-| `GITHUB_OWNER`       | GitHub repository owner                                                                                                                          |
-| `GITHUB_REPO`        | GitHub repository name                                                                                                                           |
-| `GITHUB_BRANCH`      | Branch to commit to (default: `main`)                                                                                                            |
-| `BUTTONDOWN_API_KEY` | Buttondown API key — used by `subscribe.mjs` and `send-audition-digest.mts`                                                                      |
+| `GITHUB_TOKEN`       | Fine-grained PAT with Contents read/write — used by `data.mjs` for admin writes                                                                  |
+| `GITHUB_OWNER`       | GitHub repository owner — used by `data.mjs`                                                                                                     |
+| `GITHUB_REPO`        | GitHub repository name — used by `data.mjs`                                                                                                      |
+| `GITHUB_BRANCH`      | Branch to commit to (default: `main`) — used by `data.mjs`                                                                                       |
+| `BUTTONDOWN_API_KEY` | Buttondown API key — used by `subscribe.mts` and `send-audition-digest.mts`                                                                      |
 | `NETLIFY_SITE_ID`    | Site ID — must be set manually; scheduled functions do not receive it automatically                                                              |
 | `NETLIFY_TOKEN`      | Netlify personal access token — required by `send-audition-digest.mts` for Blob Storage access (scheduled functions don't get an injected token) |
 | `DRY_RUN`            | Optional. Set to `true` to run the digest function without sending email or updating the timestamp                                               |
+| `DIGEST_HEALTHCHECK_URL`   | Optional. Pinged by `send-audition-digest.mts` on completion (success, failure, or nothing-to-send), for external monitoring                |
+| `SUBSCRIBE_HEALTHCHECK_URL` | Optional. Pinged by `subscribe.mts` if the welcome email fails to send                                                                      |
 
 ## Git workflow
 

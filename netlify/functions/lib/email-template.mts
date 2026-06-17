@@ -86,3 +86,40 @@ export function buildDigestHtml(
 </body>
 </html>`
 }
+
+export function buildWelcomeHtml(auditions: DigestAudition[], baseUrl: string) {
+  const body = auditions.length > 0
+    ? auditions.map(a => auditionBlock(a, false, baseUrl)).join('')
+    : `<div style="font-size:14px;color:#6b6259;padding:8px 0 4px">Currently there are no upcoming auditions &mdash; you will receive a notification when any new or updated auditions are posted.</div>`
+
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Welcome &mdash; Santa Cruz Theater Audition Notices</title>
+</head>
+<body style="margin:0;padding:0;background:#f0ede8;font-family:'DM Sans',Arial,Helvetica,sans-serif;color:#1a1612">
+<div style="max-width:580px;margin:0 auto;padding:32px 16px">
+
+  <div style="margin-bottom:20px">
+    <div style="font-family:Georgia,'Times New Roman',serif;font-size:26px;font-weight:600;color:#1a1612;line-height:1.1">Santa Cruz Theater</div>
+    <div style="font-size:14px;color:#6b6259;margin-top:4px">Audition Notices</div>
+  </div>
+
+  <div style="font-size:14px;color:#1a1612;margin-bottom:20px;line-height:1.6">
+    You're now subscribed to audition notices from Santa Cruz Theater. Here's what's coming up:
+  </div>
+
+  ${body}
+
+  <div style="margin-top:28px;padding-top:16px;border-top:1px solid #e0d9d0;font-size:12px;color:#9c9189;line-height:1.6">
+    You're subscribed to audition notices from
+    <a href="${baseUrl}/auditions" style="color:#4f5ce0;text-decoration:none">santacruz.theater</a>.
+    Audition details may change &mdash; always check the site for current information.
+  </div>
+
+</div>
+</body>
+</html>`
+}

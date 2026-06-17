@@ -251,10 +251,11 @@ netlify/
   functions/
     data.mjs                  # data read/write endpoint
     fetch-page.mjs            # page-fetch proxy
-    subscribe.mjs             # Buttondown subscription handler
+    subscribe.mts             # Buttondown subscription handler + welcome email
     send-audition-digest.mts  # scheduled daily digest (02:00 UTC)
     lib/
-      email-template.mts      # email HTML template for digest
+      email-template.mts      # email HTML templates for digest + welcome email
+      auditions-data.mts      # shared local audition data loading (fs-based)
 scripts/
   check-shows.ts              # show data validation
   check-auditions.ts          # audition data validation
@@ -302,8 +303,12 @@ Required (set in Netlify → Site configuration → Environment variables):
 | `GITHUB_OWNER`       | Repository owner (GitHub username)                            |
 | `GITHUB_REPO`        | Repository name                                               |
 | `GITHUB_BRANCH`      | Branch to commit to (default: `main`)                         |
-| `BUTTONDOWN_API_KEY` | Buttondown API key (used by `subscribe.mjs` and digest)       |
+| `BUTTONDOWN_API_KEY` | Buttondown API key (used by `subscribe.mts` and digest)       |
+| `NETLIFY_SITE_ID`    | Site ID (required by digest function for Blob Storage)        |
+| `NETLIFY_TOKEN`      | Netlify personal access token (required by digest for Blob Storage) |
 | `DRY_RUN`            | Optional. `true` runs the digest without sending or recording |
+| `DIGEST_HEALTHCHECK_URL`   | Optional. Pinged by the digest function on completion   |
+| `SUBSCRIBE_HEALTHCHECK_URL` | Optional. Pinged if the welcome email fails to send     |
 
 ### Netlify Identity
 

@@ -16,7 +16,11 @@ const BUTTONDOWN_SUBSCRIBERS_URL = 'https://api.buttondown.email/v1/subscribers'
 const BUTTONDOWN_EMAILS_URL = 'https://api.buttondown.email/v1/emails'
 const SITE_URL = 'https://santacruz.theater'
 
-export const handler = async (event: { httpMethod: string; isBase64Encoded: boolean; body: string | null }) => {
+export const handler = async (event: {
+  httpMethod: string
+  isBase64Encoded: boolean
+  body: string | null
+}) => {
   if (event.httpMethod !== 'POST') {
     return { statusCode: 405, body: 'Method not allowed' }
   }
@@ -52,7 +56,10 @@ export const handler = async (event: { httpMethod: string; isBase64Encoded: bool
 
     if (resp.status === 201) {
       await sendWelcomeEmail(email, BUTTONDOWN_API_KEY)
-      return json(200, "Thanks for subscribing! We've sent you a welcome email with current upcoming auditions.")
+      return json(
+        200,
+        "Thanks for subscribing! We've sent you a welcome email with current upcoming auditions."
+      )
     }
     if (resp.status === 409 || resp.status === 422)
       return json(409, 'That address is already subscribed.')
@@ -87,7 +94,7 @@ const pingHealthcheck = () => {
 
 async function sendWelcomeEmail(email: string, apiKey: string) {
   const headers = {
-    Authorization: `Token ${apiKey}`,
+    'Authorization': `Token ${apiKey}`,
     'Content-Type': 'application/json'
   }
 
@@ -99,6 +106,7 @@ async function sendWelcomeEmail(email: string, apiKey: string) {
     const createResp = await fetch(BUTTONDOWN_EMAILS_URL, {
       method: 'POST',
       headers,
+      signal: AbortSignal.timeout(8000),
       body: JSON.stringify({
         subject: 'Welcome — Santa Cruz Theater Audition Notices',
         body: html,
@@ -106,7 +114,9 @@ async function sendWelcomeEmail(email: string, apiKey: string) {
       })
     })
     if (!createResp.ok) {
-      console.error(`subscribe: failed to create welcome draft (${createResp.status}): ${await createResp.text()}`)
+      console.error(
+        `subscribe: failed to create welcome draft (${createResp.status}): ${await createResp.text()}`
+      )
       await pingHealthcheck()
       return
     }
@@ -122,10 +132,13 @@ async function sendWelcomeEmail(email: string, apiKey: string) {
     const sendResp = await fetch(`${BUTTONDOWN_EMAILS_URL}/${draftId}/send-draft`, {
       method: 'POST',
       headers,
+      signal: AbortSignal.timeout(8000),
       body: JSON.stringify({ recipients: [email] })
     })
     if (!sendResp.ok) {
-      console.error(`subscribe: failed to send welcome draft (${sendResp.status}): ${await sendResp.text()}`)
+      console.error(
+        `subscribe: failed to send welcome draft (${sendResp.status}): ${await sendResp.text()}`
+      )
       await pingHealthcheck()
     }
   } catch (e) {
@@ -135,7 +148,8 @@ async function sendWelcomeEmail(email: string, apiKey: string) {
     try {
       const delResp = await fetch(`${BUTTONDOWN_EMAILS_URL}/${draftId}`, {
         method: 'DELETE',
-        headers
+        headers,
+        signal: AbortSignal.timeout(8000)
       })
       if (!delResp.ok && delResp.status !== 404) {
         console.error(`subscribe: failed to delete welcome draft ${draftId} (${delResp.status})`)

@@ -46,8 +46,8 @@ import SiteNav from '../components/SiteNav.astro'
         </div>
 
         <p class="sub-note">
-          Emails are sent as a daily digest when new or updated audition notices have been
-          posted. No other emails — just audition notices.
+          Emails are sent as a daily digest when new or updated audition notices have been posted.
+          No other emails — just audition notices.
         </p>
       </div>
     </main>
@@ -261,8 +261,14 @@ import SiteNav from '../components/SiteNav.astro'
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email })
       })
-      const data = await resp.json()
-      status.textContent = data.message || (resp.ok ? 'Subscribed!' : 'Something went wrong.')
+      let data = {}
+      try {
+        data = await resp.json()
+      } catch {}
+      const msg =
+        data.message ||
+        (resp.ok ? 'Subscribed!' : 'Something went wrong — please try again shortly.')
+      status.textContent = resp.ok ? msg : `${msg} [${resp.status}]`
       status.className = `sub-status ${resp.ok ? 'ok' : 'err'}`
       status.hidden = false
       if (resp.ok) {
@@ -270,7 +276,7 @@ import SiteNav from '../components/SiteNav.astro'
         form.style.display = 'none'
       }
     } catch {
-      status.textContent = 'Something went wrong — please try again shortly.'
+      status.textContent = 'Network error — please try again shortly.'
       status.className = 'sub-status err'
       status.hidden = false
     } finally {

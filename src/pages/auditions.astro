@@ -4,7 +4,13 @@ import SiteNav from '../components/SiteNav.astro'
 import companiesData from '../../data/sc-theater-companies.json'
 import { getAuditions } from '../lib/data.ts'
 import type { AuditionEvent } from '../lib/data.ts'
-import { fmtShortDate, fmtAudDateRange, fmtFullDate, fmtTimeRange, rolesSum } from '../lib/audition-format.ts'
+import {
+  fmtShortDate,
+  fmtAudDateRange,
+  fmtFullDate,
+  fmtTimeRange,
+  rolesSum
+} from '../lib/audition-format.ts'
 
 const auditions = getAuditions()
 
@@ -125,7 +131,6 @@ function roleTypeLabel(type: string): string {
                   data-company={aud.company}
                   data-genre={aud.genre.join(',')}
                   data-latest-date={latest}
-
                 >
                   {/* ── Collapsed summary ── */}
                   <button class="aud-summary" aria-expanded="false">
@@ -140,13 +145,15 @@ function roleTypeLabel(type: string): string {
                       <div class="aud-meta-row">
                         {companyName}
                         {aud.openingDate && ` · Opens ${fmtShortDate(aud.openingDate)}`}
-                        {aud.rehearsalStart && ` · Rehearsals start ${fmtShortDate(aud.rehearsalStart)}`}
+                        {aud.rehearsalStart &&
+                          ` · Rehearsals start ${fmtShortDate(aud.rehearsalStart)}`}
                       </div>
                       <div class="aud-roles-row">{rolesSum(aud.rolesAvailable)}</div>
                     </div>
                     <div class="aud-aside">
-
-                      <span class="aud-past-pip" aria-hidden="true">Past</span>
+                      <span class="aud-past-pip" aria-hidden="true">
+                        Past
+                      </span>
                       <span class="aud-date-range">{fmtAudDateRange(aud.auditionDates)}</span>
                       <span class="aud-chevron" aria-hidden="true" />
                     </div>
@@ -1021,8 +1028,6 @@ function roleTypeLabel(type: string): string {
     if ((card.dataset.latestDate ?? '') < TODAY) card.classList.add('past')
   })
 
-
-
   function updateFilters() {
     const co = filterCompany.value
     const ge = filterGenre.value
@@ -1129,8 +1134,14 @@ function roleTypeLabel(type: string): string {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email })
       })
-      const data = await resp.json()
-      subscribeStatus.textContent = data.message || (resp.ok ? 'Subscribed!' : 'Something went wrong.')
+      let data = {}
+      try {
+        data = await resp.json()
+      } catch {}
+      const msg =
+        data.message ||
+        (resp.ok ? 'Subscribed!' : 'Something went wrong — please try again shortly.')
+      subscribeStatus.textContent = resp.ok ? msg : `${msg} [${resp.status}]`
       subscribeStatus.className = `subscribe-status ${resp.ok ? 'ok' : 'err'}`
       subscribeStatus.hidden = false
       if (resp.ok) {
@@ -1138,7 +1149,7 @@ function roleTypeLabel(type: string): string {
         subscribeForm.style.display = 'none'
       }
     } catch {
-      subscribeStatus.textContent = 'Something went wrong — please try again shortly.'
+      subscribeStatus.textContent = 'Network error — please try again shortly.'
       subscribeStatus.className = 'subscribe-status err'
       subscribeStatus.hidden = false
     } finally {

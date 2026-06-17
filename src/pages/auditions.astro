@@ -549,6 +549,10 @@ function roleTypeLabel(type: string): string {
     color: #8c3a2e;
   }
 
+  .subscribe-status.pending {
+    color: #6b6259;
+  }
+
   /* ── EMPTY STATES ── */
   .aud-no-data,
   .aud-empty,
@@ -1127,7 +1131,9 @@ function roleTypeLabel(type: string): string {
     if (!email) return
     subscribeBtn.disabled = true
     subscribeBtn.textContent = 'Sending…'
-    subscribeStatus.hidden = true
+    subscribeStatus.textContent = 'Sending…'
+    subscribeStatus.className = 'subscribe-status pending'
+    subscribeStatus.hidden = false
     try {
       const resp = await fetch('/.netlify/functions/subscribe', {
         method: 'POST',

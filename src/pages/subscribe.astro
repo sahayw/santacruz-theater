@@ -218,6 +218,12 @@ import SiteNav from '../components/SiteNav.astro'
     color: #8c3a2e;
   }
 
+  .sub-status.pending {
+    background: #f7f4ef;
+    border: 1px solid #e0d9d0;
+    color: #6b6259;
+  }
+
   /* ── FOOTER NOTE ── */
   .sub-note {
     font-size: 12px;
@@ -253,7 +259,9 @@ import SiteNav from '../components/SiteNav.astro'
 
     btn.disabled = true
     btn.textContent = 'Sending…'
-    status.hidden = true
+    status.textContent = 'Sending…'
+    status.className = 'sub-status pending'
+    status.hidden = false
 
     try {
       const resp = await fetch('/.netlify/functions/subscribe', {

@@ -158,19 +158,21 @@ async function sendWelcomeEmail(email: string, apiKey: string) {
       signal: AbortSignal.timeout(8000),
       body: JSON.stringify({ recipients: [email] })
     })
-    console.log(`subscribe [${ts()}]: send-draft response ${sendResp.status}`)
+    const sendBody = await sendResp.text()
+    console.log(`subscribe [${ts()}]: send-draft response ${sendResp.status} body=${sendBody}`)
     if (!sendResp.ok) {
-      console.error(
-        `subscribe: failed to send welcome draft (${sendResp.status}): ${await sendResp.text()}`
-      )
+      console.error(`subscribe: failed to send welcome draft (${sendResp.status}): ${sendBody}`)
       await pingHealthcheck(true)
       return
     }
+    // Fire-and-forget DELETE — Buttondown requires the draft to be deleted to finalise delivery.
+    // We do not await it; the request just needs to reach Buttondown.
+    console.log(`subscribe [${ts()}]: firing delete for draft ${draftId}`)
+    fetch(`${BUTTONDOWN_EMAILS_URL}/${draftId}`, { method: 'DELETE', headers }).catch(() => {})
     console.log(`subscribe [${ts()}]: sendWelcomeEmail complete`)
     await pingHealthcheck()
   } catch (e) {
     console.error(`subscribe [${ts()}]: failed to send welcome draft:`, e)
     await pingHealthcheck(true)
   }
-  // Note: no explicit DELETE — Buttondown auto-deletes the draft as part of send-draft processing.
 }

@@ -58,7 +58,7 @@ export const handler = async (event: {
       console.log(
         `subscribe [${ts()}]: subscriber created, triggering welcome email background function`
       )
-      const deployUrl = process.env.DEPLOY_URL ?? ''
+      const deployUrl = process.env.DEPLOY_PRIME_URL ?? process.env.URL ?? ''
       await fetch(`${deployUrl}/.netlify/functions/send-welcome-email-background`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

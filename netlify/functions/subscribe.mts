@@ -21,6 +21,7 @@ export const handler = async (event: {
   isBase64Encoded: boolean
   body: string | null
 }) => {
+  console.log(`subscribe [${ts()}]: handler invoked method=${event.httpMethod}`)
   if (event.httpMethod !== 'POST') {
     return { statusCode: 405, body: 'Method not allowed' }
   }
@@ -45,6 +46,7 @@ export const handler = async (event: {
   }
 
   try {
+    console.log(`subscribe [${ts()}]: posting subscriber`)
     const resp = await fetch(BUTTONDOWN_SUBSCRIBERS_URL, {
       method: 'POST',
       headers: {
@@ -53,9 +55,12 @@ export const handler = async (event: {
       },
       body: JSON.stringify({ email_address: email, type: 'regular' })
     })
+    console.log(`subscribe [${ts()}]: subscriber POST response ${resp.status}`)
 
     if (resp.status === 201) {
+      console.log(`subscribe [${ts()}]: subscriber created, starting welcome email`)
       await sendWelcomeEmail(email, BUTTONDOWN_API_KEY)
+      console.log(`subscribe [${ts()}]: returning 200`)
       return json(
         200,
         "Thanks for subscribing! We've sent you a welcome email with current upcoming auditions."
@@ -92,7 +97,10 @@ const pingHealthcheck = () => {
   }
 }
 
+const ts = () => new Date().toISOString()
+
 async function sendWelcomeEmail(email: string, apiKey: string) {
+  console.log(`subscribe [${ts()}]: sendWelcomeEmail start`)
   const headers = {
     'Authorization': `Token ${apiKey}`,
     'Content-Type': 'application/json'
@@ -100,9 +108,12 @@ async function sendWelcomeEmail(email: string, apiKey: string) {
 
   let draftId: string | undefined
   try {
+    console.log(`subscribe [${ts()}]: loading auditions`)
     const auditions = getUpcomingAuditions(loadAllAuditions())
+    console.log(`subscribe [${ts()}]: building welcome HTML (${auditions.length} auditions)`)
     const html = buildWelcomeHtml(auditions, SITE_URL)
 
+    console.log(`subscribe [${ts()}]: creating draft`)
     const createResp = await fetch(BUTTONDOWN_EMAILS_URL, {
       method: 'POST',
       headers,
@@ -113,6 +124,7 @@ async function sendWelcomeEmail(email: string, apiKey: string) {
         status: 'draft'
       })
     })
+    console.log(`subscribe [${ts()}]: create draft response ${createResp.status}`)
     if (!createResp.ok) {
       console.error(
         `subscribe: failed to create welcome draft (${createResp.status}): ${await createResp.text()}`
@@ -122,19 +134,22 @@ async function sendWelcomeEmail(email: string, apiKey: string) {
     }
     const created = await createResp.json()
     draftId = created.id
+    console.log(`subscribe [${ts()}]: draft created id=${draftId}`)
   } catch (e) {
-    console.error('subscribe: failed to create welcome draft:', e)
+    console.error(`subscribe [${ts()}]: failed to create welcome draft:`, e)
     await pingHealthcheck()
     return
   }
 
   try {
+    console.log(`subscribe [${ts()}]: sending draft to ${email}`)
     const sendResp = await fetch(`${BUTTONDOWN_EMAILS_URL}/${draftId}/send-draft`, {
       method: 'POST',
       headers,
       signal: AbortSignal.timeout(8000),
       body: JSON.stringify({ recipients: [email] })
     })
+    console.log(`subscribe [${ts()}]: send-draft response ${sendResp.status}`)
     if (!sendResp.ok) {
       console.error(
         `subscribe: failed to send welcome draft (${sendResp.status}): ${await sendResp.text()}`
@@ -142,23 +157,26 @@ async function sendWelcomeEmail(email: string, apiKey: string) {
       await pingHealthcheck()
     }
   } catch (e) {
-    console.error('subscribe: failed to send welcome draft:', e)
+    console.error(`subscribe [${ts()}]: failed to send welcome draft:`, e)
     await pingHealthcheck()
   } finally {
     try {
+      console.log(`subscribe [${ts()}]: deleting draft ${draftId}`)
       const delResp = await fetch(`${BUTTONDOWN_EMAILS_URL}/${draftId}`, {
         method: 'DELETE',
         headers,
         signal: AbortSignal.timeout(8000)
       })
+      console.log(`subscribe [${ts()}]: delete draft response ${delResp.status}`)
       if (!delResp.ok && delResp.status !== 404) {
         console.error(`subscribe: failed to delete welcome draft ${draftId} (${delResp.status})`)
         await pingHealthcheck()
       }
     } catch (e) {
-      console.error(`subscribe: failed to delete welcome draft ${draftId}:`, e)
+      console.error(`subscribe [${ts()}]: failed to delete welcome draft ${draftId}:`, e)
       await pingHealthcheck()
     }
+    console.log(`subscribe [${ts()}]: sendWelcomeEmail complete`)
   }
 }
 

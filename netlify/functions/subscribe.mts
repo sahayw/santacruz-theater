@@ -1,20 +1,17 @@
 /**
- * Subscription endpoint — adds a subscriber to the Buttondown mailing list, then sends
- * them a one-off welcome email listing current upcoming auditions.
+ * Subscription endpoint — adds a subscriber to the Buttondown mailing list, then triggers
+ * the send-welcome-email-background function to send a welcome email asynchronously.
  *
  * POST /.netlify/functions/subscribe
  * Body: { "email": "user@example.com" }
  *
  * Required env var: BUTTONDOWN_API_KEY
- * Optional env var: SUBSCRIBE_HEALTHCHECK_URL — pinged if the welcome email fails to send
+ * Optional env var: SUBSCRIBE_HEALTHCHECK_URL — used by the background function, not here
  */
 
-import { buildWelcomeHtml } from './lib/email-template.mts'
-import { loadAllAuditions, getUpcomingAuditions } from './lib/auditions-data.mts'
-
 const BUTTONDOWN_SUBSCRIBERS_URL = 'https://api.buttondown.email/v1/subscribers'
-const BUTTONDOWN_EMAILS_URL = 'https://api.buttondown.email/v1/emails'
-const SITE_URL = 'https://santacruz.theater'
+
+const ts = () => new Date().toISOString()
 
 export const handler = async (event: {
   httpMethod: string
@@ -58,8 +55,18 @@ export const handler = async (event: {
     console.log(`subscribe [${ts()}]: subscriber POST response ${resp.status}`)
 
     if (resp.status === 201) {
-      console.log(`subscribe [${ts()}]: subscriber created, starting welcome email`)
-      await sendWelcomeEmail(email, BUTTONDOWN_API_KEY)
+      console.log(
+        `subscribe [${ts()}]: subscriber created, triggering welcome email background function`
+      )
+      const deployUrl = process.env.DEPLOY_URL ?? ''
+      await fetch(`${deployUrl}/.netlify/functions/send-welcome-email-background`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        signal: AbortSignal.timeout(3000),
+        body: JSON.stringify({ email })
+      }).catch((e) =>
+        console.error(`subscribe [${ts()}]: failed to invoke background function:`, e)
+      )
       console.log(`subscribe [${ts()}]: returning 200`)
       return json(
         200,
@@ -88,95 +95,6 @@ export const handler = async (event: {
     return json(500, 'Something went wrong — please try again shortly.')
   } catch {
     return json(500, 'Something went wrong — please try again shortly.')
-  }
-}
-
-const pingHealthcheck = () => {
-  if (process.env.SUBSCRIBE_HEALTHCHECK_URL) {
-    return fetch(process.env.SUBSCRIBE_HEALTHCHECK_URL).catch(() => {})
-  }
-}
-
-const ts = () => new Date().toISOString()
-
-async function sendWelcomeEmail(email: string, apiKey: string) {
-  console.log(`subscribe [${ts()}]: sendWelcomeEmail start`)
-  const headers = {
-    'Authorization': `Token ${apiKey}`,
-    'Content-Type': 'application/json'
-  }
-
-  let draftId: string | undefined
-  try {
-    console.log(`subscribe [${ts()}]: loading auditions`)
-    const auditions = getUpcomingAuditions(loadAllAuditions())
-    console.log(`subscribe [${ts()}]: building welcome HTML (${auditions.length} auditions)`)
-    const html = buildWelcomeHtml(auditions, SITE_URL)
-
-    console.log(`subscribe [${ts()}]: creating draft`)
-    const createResp = await fetch(BUTTONDOWN_EMAILS_URL, {
-      method: 'POST',
-      headers,
-      signal: AbortSignal.timeout(8000),
-      body: JSON.stringify({
-        subject: 'Welcome — Santa Cruz Theater Audition Notices',
-        body: html,
-        status: 'draft'
-      })
-    })
-    console.log(`subscribe [${ts()}]: create draft response ${createResp.status}`)
-    if (!createResp.ok) {
-      console.error(
-        `subscribe: failed to create welcome draft (${createResp.status}): ${await createResp.text()}`
-      )
-      await pingHealthcheck()
-      return
-    }
-    const created = await createResp.json()
-    draftId = created.id
-    console.log(`subscribe [${ts()}]: draft created id=${draftId}`)
-  } catch (e) {
-    console.error(`subscribe [${ts()}]: failed to create welcome draft:`, e)
-    await pingHealthcheck()
-    return
-  }
-
-  try {
-    console.log(`subscribe [${ts()}]: sending draft to ${email}`)
-    const sendResp = await fetch(`${BUTTONDOWN_EMAILS_URL}/${draftId}/send-draft`, {
-      method: 'POST',
-      headers,
-      signal: AbortSignal.timeout(8000),
-      body: JSON.stringify({ recipients: [email] })
-    })
-    console.log(`subscribe [${ts()}]: send-draft response ${sendResp.status}`)
-    if (!sendResp.ok) {
-      console.error(
-        `subscribe: failed to send welcome draft (${sendResp.status}): ${await sendResp.text()}`
-      )
-      await pingHealthcheck()
-    }
-  } catch (e) {
-    console.error(`subscribe [${ts()}]: failed to send welcome draft:`, e)
-    await pingHealthcheck()
-  } finally {
-    try {
-      console.log(`subscribe [${ts()}]: deleting draft ${draftId}`)
-      const delResp = await fetch(`${BUTTONDOWN_EMAILS_URL}/${draftId}`, {
-        method: 'DELETE',
-        headers,
-        signal: AbortSignal.timeout(8000)
-      })
-      console.log(`subscribe [${ts()}]: delete draft response ${delResp.status}`)
-      if (!delResp.ok && delResp.status !== 404) {
-        console.error(`subscribe: failed to delete welcome draft ${draftId} (${delResp.status})`)
-        await pingHealthcheck()
-      }
-    } catch (e) {
-      console.error(`subscribe [${ts()}]: failed to delete welcome draft ${draftId}:`, e)
-      await pingHealthcheck()
-    }
-    console.log(`subscribe [${ts()}]: sendWelcomeEmail complete`)
   }
 }
 

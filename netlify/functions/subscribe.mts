@@ -115,64 +115,39 @@ async function sendWelcomeEmail(email: string, apiKey: string) {
     'Content-Type': 'application/json'
   }
 
-  let draftId: string | undefined
   try {
     console.log(`subscribe [${ts()}]: loading auditions`)
     const auditions = getUpcomingAuditions(loadAllAuditions())
     console.log(`subscribe [${ts()}]: building welcome HTML (${auditions.length} auditions)`)
     const html = buildWelcomeHtml(auditions, SITE_URL)
 
-    console.log(`subscribe [${ts()}]: creating draft`)
-    const createResp = await fetch(BUTTONDOWN_EMAILS_URL, {
+    console.log(`subscribe [${ts()}]: sending welcome email`)
+    const resp = await fetch(BUTTONDOWN_EMAILS_URL, {
       method: 'POST',
       headers,
       signal: AbortSignal.timeout(8000),
       body: JSON.stringify({
         subject: 'Welcome — Santa Cruz Theater Audition Notices',
         body: html,
-        status: 'draft'
+        status: 'about_to_send',
+        filters: {
+          filters: [{ field: 'subscriber.email_address', operator: 'equals', value: email }],
+          groups: [],
+          predicate: 'and'
+        }
       })
     })
-    console.log(`subscribe [${ts()}]: create draft response ${createResp.status}`)
-    if (!createResp.ok) {
-      console.error(
-        `subscribe: failed to create welcome draft (${createResp.status}): ${await createResp.text()}`
-      )
+    const respBody = await resp.text()
+    console.log(`subscribe [${ts()}]: welcome email response ${resp.status} body=${respBody}`)
+    if (!resp.ok) {
+      console.error(`subscribe: failed to send welcome email (${resp.status}): ${respBody}`)
       await pingHealthcheck(true)
       return
     }
-    const created = await createResp.json()
-    draftId = created.id
-    console.log(`subscribe [${ts()}]: draft created id=${draftId}`)
-  } catch (e) {
-    console.error(`subscribe [${ts()}]: failed to create welcome draft:`, e)
-    await pingHealthcheck(true)
-    return
-  }
-
-  try {
-    console.log(`subscribe [${ts()}]: sending draft to ${email}`)
-    const sendResp = await fetch(`${BUTTONDOWN_EMAILS_URL}/${draftId}/send-draft`, {
-      method: 'POST',
-      headers,
-      signal: AbortSignal.timeout(8000),
-      body: JSON.stringify({ recipients: [email] })
-    })
-    const sendBody = await sendResp.text()
-    console.log(`subscribe [${ts()}]: send-draft response ${sendResp.status} body=${sendBody}`)
-    if (!sendResp.ok) {
-      console.error(`subscribe: failed to send welcome draft (${sendResp.status}): ${sendBody}`)
-      await pingHealthcheck(true)
-      return
-    }
-    // Fire-and-forget DELETE — Buttondown requires the draft to be deleted to finalise delivery.
-    // We do not await it; the request just needs to reach Buttondown.
-    console.log(`subscribe [${ts()}]: firing delete for draft ${draftId}`)
-    fetch(`${BUTTONDOWN_EMAILS_URL}/${draftId}`, { method: 'DELETE', headers }).catch(() => {})
     console.log(`subscribe [${ts()}]: sendWelcomeEmail complete`)
     await pingHealthcheck()
   } catch (e) {
-    console.error(`subscribe [${ts()}]: failed to send welcome draft:`, e)
+    console.error(`subscribe [${ts()}]: sendWelcomeEmail error:`, e)
     await pingHealthcheck(true)
   }
 }

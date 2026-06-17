@@ -1131,7 +1131,7 @@ function roleTypeLabel(type: string): string {
     if (!email) return
     subscribeBtn.disabled = true
     subscribeBtn.textContent = 'Sending…'
-    subscribeStatus.textContent = 'Sending…'
+    subscribeStatus.textContent = 'Processing subscription — please wait…'
     subscribeStatus.className = 'subscribe-status pending'
     subscribeStatus.hidden = false
     try {

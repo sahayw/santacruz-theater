@@ -55,6 +55,7 @@ export const handler = async (event: {
         'Authorization': `Token ${BUTTONDOWN_API_KEY}`,
         'Content-Type': 'application/json'
       },
+      signal: AbortSignal.timeout(10000),
       body: JSON.stringify({ email_address: email, type: 'regular' })
     })
     console.log(`subscribe [${ts()}]: subscriber POST response ${resp.status}`)
@@ -88,7 +89,8 @@ export const handler = async (event: {
       return json(400, 'Something went wrong — please try again shortly.')
     }
     return json(500, 'Something went wrong — please try again shortly.')
-  } catch {
+  } catch (e) {
+    console.error(`subscribe [${ts()}]: subscriber POST error:`, e)
     return json(500, 'Something went wrong — please try again shortly.')
   }
 }

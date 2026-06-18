@@ -297,18 +297,18 @@ Netlify CI watches `main` and deploys on every push, using the config in `netlif
 
 Required (set in Netlify → Site configuration → Environment variables):
 
-| Variable             | Purpose                                                       |
-| -------------------- | ------------------------------------------------------------- |
-| `GITHUB_TOKEN`       | Fine-grained PAT, Contents r/w (used by `data.mjs`)          |
-| `GITHUB_OWNER`       | Repository owner (GitHub username)                            |
-| `GITHUB_REPO`        | Repository name                                               |
-| `GITHUB_BRANCH`      | Branch to commit to (default: `main`)                         |
-| `BUTTONDOWN_API_KEY` | Buttondown API key (used by `subscribe.mts` and digest)       |
-| `NETLIFY_SITE_ID`    | Site ID (required by digest function for Blob Storage)        |
-| `NETLIFY_TOKEN`      | Netlify personal access token (required by digest for Blob Storage) |
-| `DRY_RUN`            | Optional. `true` runs the digest without sending or recording |
-| `DIGEST_HEALTHCHECK_URL`   | Optional. Pinged by the digest function on completion   |
-| `SUBSCRIBE_HEALTHCHECK_URL` | Optional. Pinged if the welcome email fails to send     |
+| Variable                    | Purpose                                                                        |
+| --------------------------- | ------------------------------------------------------------------------------ |
+| `GITHUB_TOKEN`              | Fine-grained PAT, Contents r/w (used by `data.mjs`)                            |
+| `GITHUB_OWNER`              | Repository owner (GitHub username)                                             |
+| `GITHUB_REPO`               | Repository name                                                                |
+| `GITHUB_BRANCH`             | Branch to commit to (default: `main`)                                          |
+| `BUTTONDOWN_API_KEY`        | Buttondown API key (used by `subscribe.mts` and digest)                        |
+| `NETLIFY_SITE_ID`           | Site ID (required by digest function for Blob Storage)                         |
+| `NETLIFY_TOKEN`             | Netlify personal access token (required by digest for Blob Storage)            |
+| `DRY_RUN`                   | Optional. `true` runs the digest without sending or recording                  |
+| `DIGEST_HEALTHCHECK_URL`    | Optional. Pinged by the digest function on completion                          |
+| `SUBSCRIBE_HEALTHCHECK_URL` | Optional. Pinged on welcome email success (base URL) or failure (`{url}/fail`) |
 
 ### Netlify Identity
 

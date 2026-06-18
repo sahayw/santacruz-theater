@@ -103,18 +103,17 @@ double opt-in.
 
 1. `POST /v1/emails` — create a draft with the welcome HTML body and subject; capture the
    returned `id`
-2. `POST /v1/emails/{id}/send-draft` with `recipients: [newEmail]` — sends to the new
-   subscriber only, not the full list
-3. `DELETE /v1/emails/{id}` — clean up the draft (drafts accumulate otherwise)
+2. `POST /v1/emails/{id}/send-draft` with `recipients: [newEmail]` — queues the send to the
+   new subscriber only, not the full list. Returns 200 with empty body.
+3. `DELETE /v1/emails/{id}` — this is what triggers Buttondown to finalise delivery.
+   Buttondown processes the deletion but does not return an HTTP response; the call is
+   awaited with a 12s timeout and the resulting timeout error is silently ignored.
 
-Step 1 is awaited first; if it fails, steps 2–3 are skipped (there is no draft to send or
-delete). If step 1 succeeds, steps 2 and 3 run inside a `try/finally` — the delete in
-step 3 is always attempted once a draft id exists, even if step 2 (send-draft) throws, so
-drafts don't accumulate on partial failure. Each step's failure is logged independently.
-None of this changes the user-facing response — the subscription itself already
-succeeded by the time the welcome flow runs. An optional `SUBSCRIBE_HEALTHCHECK_URL` env
-var, if set, is pinged on any failure in this flow, as an alert distinct from the
-digest's own healthcheck (see Required Netlify environment variables).
+Step 1 is awaited first; if it fails, steps 2–3 are skipped. If step 2 fails, step 3 is
+not attempted. Each step's failure is logged independently and pings
+`SUBSCRIBE_HEALTHCHECK_URL/fail`. A successful completion pings the base
+`SUBSCRIBE_HEALTHCHECK_URL` (no suffix). None of this changes the user-facing response —
+the subscription itself already succeeded by the time the welcome flow runs.
 
 **Template:** `buildWelcomeHtml(auditions, baseUrl)` in `email-template.mts` — a
 welcome-specific export distinct from `buildDigestHtml`. Structure:
@@ -286,12 +285,17 @@ On page load, client-side JS checks for this parameter, finds the matching card 
      tables for that reason).
    - ✅ `buildWelcomeHtml(auditions, baseUrl)` added to `email-template.mts`, including
      the empty-state line for zero upcoming auditions.
-   - ✅ 3-call Buttondown draft flow implemented in `subscribe.mts` (create, then
-     send-draft/delete in `try/finally` so cleanup runs even if send-draft fails); errors
-     logged per step; pings `SUBSCRIBE_HEALTHCHECK_URL` on any failure in this flow.
-   - ✅ Success message fixed to: "Thanks for subscribing! We've sent you a welcome email
-     with current upcoming auditions."
+   - ✅ 3-call Buttondown draft flow implemented in `subscribe.mts` (create draft, send-draft,
+     then awaited DELETE which triggers delivery); errors logged per step; pings
+     `SUBSCRIBE_HEALTHCHECK_URL/fail` on failure, base URL on success.
+   - ✅ UI shows "Processing subscription — please wait…" while the request is in flight;
+     error messages include the HTTP status code for diagnosis.
    - ✅ Digest function's healthcheck env var renamed `HEALTHCHECK_URL` →
      `DIGEST_HEALTHCHECK_URL`.
    - ✅ `DIGEST_HEALTHCHECK_URL` and `SUBSCRIBE_HEALTHCHECK_URL` added to the required env
      vars tables in `CLAUDE.md` and `README.md`.
+3. ✅ Reduced user-facing subscribe latency: migrated `subscribe.mts` to **Netlify Functions v2**
+   (`export default async (req: Request, context: Context)`). `context.waitUntil()` runs the
+   welcome-email flow after the HTTP response is returned, so the user waits only ~2.5s
+   (subscriber POST) rather than ~17s (subscriber POST + full draft/send-draft/DELETE flow).
+   UI pending state changed to "Subscribing…".

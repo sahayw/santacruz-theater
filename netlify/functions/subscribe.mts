@@ -2,6 +2,10 @@
  * Subscription endpoint — adds a subscriber to the Buttondown mailing list, then sends
  * them a one-off welcome email listing current upcoming auditions.
  *
+ * Netlify Functions v2. context.waitUntil() is used to send the welcome email after the
+ * HTTP response is returned to the user, so the user only waits for the subscriber POST
+ * (~2.5s) rather than the full email flow (~17s).
+ *
  * POST /.netlify/functions/subscribe
  * Body: { "email": "user@example.com" }
  *
@@ -9,6 +13,7 @@
  * Optional env var: SUBSCRIBE_HEALTHCHECK_URL — base URL; pinged on success, {url}/fail on error
  */
 
+import type { Config, Context } from '@netlify/functions'
 import { buildWelcomeHtml } from './lib/email-template.mts'
 import { loadAllAuditions, getUpcomingAuditions } from './lib/auditions-data.mts'
 
@@ -18,29 +23,23 @@ const SITE_URL = 'https://santacruz.theater'
 
 const ts = () => new Date().toISOString()
 
-export const handler = async (event: {
-  httpMethod: string
-  isBase64Encoded: boolean
-  body: string | null
-}) => {
-  console.log(`subscribe [${ts()}]: handler invoked method=${event.httpMethod}`)
-  if (event.httpMethod !== 'POST') {
-    return { statusCode: 405, body: 'Method not allowed' }
+export default async (req: Request, context: Context) => {
+  console.log(`subscribe [${ts()}]: handler invoked method=${req.method}`)
+  if (req.method !== 'POST') {
+    return new Response('Method not allowed', { status: 405 })
   }
 
   const { BUTTONDOWN_API_KEY } = process.env
   if (!BUTTONDOWN_API_KEY) {
-    return { statusCode: 500, body: 'Server misconfiguration: missing BUTTONDOWN_API_KEY' }
+    return new Response('Server misconfiguration: missing BUTTONDOWN_API_KEY', { status: 500 })
   }
 
   let email: string | undefined
   try {
-    const body = event.isBase64Encoded
-      ? Buffer.from(event.body ?? '', 'base64').toString('utf-8')
-      : event.body || ''
-    email = JSON.parse(body).email?.trim()
+    const body = await req.json()
+    email = body.email?.trim()
   } catch {
-    return { statusCode: 400, body: 'Invalid request body' }
+    return new Response('Invalid request body', { status: 400 })
   }
 
   if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
@@ -61,8 +60,8 @@ export const handler = async (event: {
     console.log(`subscribe [${ts()}]: subscriber POST response ${resp.status}`)
 
     if (resp.status === 201) {
-      console.log(`subscribe [${ts()}]: subscriber created, starting welcome email`)
-      await sendWelcomeEmail(email, BUTTONDOWN_API_KEY)
+      console.log(`subscribe [${ts()}]: subscriber created, scheduling welcome email via waitUntil`)
+      context.waitUntil(sendWelcomeEmail(email, BUTTONDOWN_API_KEY))
       console.log(`subscribe [${ts()}]: returning 200`)
       return json(
         200,
@@ -72,8 +71,6 @@ export const handler = async (event: {
     if (resp.status === 409 || resp.status === 422)
       return json(409, 'That address is already subscribed.')
     if (resp.status === 400) {
-      // 400 from Buttondown typically means a subscriber collision (existing email),
-      // not an invalid address — parse the body to surface a useful message.
       let detail = ''
       try {
         detail = JSON.stringify(await resp.json())
@@ -95,12 +92,99 @@ export const handler = async (event: {
   }
 }
 
+export const config: Config = {
+  path: '/.netlify/functions/subscribe'
+}
+
 function json(status: number, message: string) {
-  return {
-    statusCode: status,
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ message })
+  return new Response(JSON.stringify({ message }), {
+    status,
+    headers: { 'Content-Type': 'application/json' }
+  })
+}
+
+const pingHealthcheck = (fail = false) => {
+  const base = process.env.SUBSCRIBE_HEALTHCHECK_URL
+  if (!base) return Promise.resolve()
+  const url = fail ? `${base}/fail` : base
+  return fetch(url).catch(() => {})
+}
+
+async function sendWelcomeEmail(email: string, apiKey: string) {
+  console.log(`subscribe [${ts()}]: sendWelcomeEmail start`)
+  const headers = {
+    'Authorization': `Token ${apiKey}`,
+    'Content-Type': 'application/json'
   }
+
+  let draftId: string | undefined
+  try {
+    console.log(`subscribe [${ts()}]: loading auditions`)
+    const auditions = getUpcomingAuditions(loadAllAuditions())
+    console.log(`subscribe [${ts()}]: building welcome HTML (${auditions.length} auditions)`)
+    const html = buildWelcomeHtml(auditions, SITE_URL)
+
+    console.log(`subscribe [${ts()}]: creating draft`)
+    const createResp = await fetch(BUTTONDOWN_EMAILS_URL, {
+      method: 'POST',
+      headers,
+      signal: AbortSignal.timeout(8000),
+      body: JSON.stringify({
+        subject: 'Welcome — Santa Cruz Theater Audition Notices',
+        body: html,
+        status: 'draft'
+      })
+    })
+    console.log(`subscribe [${ts()}]: create draft response ${createResp.status}`)
+    if (!createResp.ok) {
+      console.error(
+        `subscribe: failed to create draft (${createResp.status}): ${await createResp.text()}`
+      )
+      await pingHealthcheck(true)
+      return
+    }
+    const created = await createResp.json()
+    draftId = created.id
+    console.log(`subscribe [${ts()}]: draft created id=${draftId}`)
+  } catch (e) {
+    console.error(`subscribe [${ts()}]: failed to create draft:`, e)
+    await pingHealthcheck(true)
+    return
+  }
+
+  try {
+    console.log(`subscribe [${ts()}]: sending draft to ${email}`)
+    const sendResp = await fetch(`${BUTTONDOWN_EMAILS_URL}/${draftId}/send-draft`, {
+      method: 'POST',
+      headers,
+      signal: AbortSignal.timeout(8000),
+      body: JSON.stringify({ recipients: [email] })
+    })
+    console.log(`subscribe [${ts()}]: send-draft response ${sendResp.status}`)
+    if (!sendResp.ok) {
+      console.error(
+        `subscribe: failed to send draft (${sendResp.status}): ${await sendResp.text()}`
+      )
+      await pingHealthcheck(true)
+      return
+    }
+  } catch (e) {
+    console.error(`subscribe [${ts()}]: failed to send draft:`, e)
+    await pingHealthcheck(true)
+    return
+  }
+
+  // The DELETE triggers Buttondown to finalise delivery. Buttondown processes it but
+  // never returns an HTTP response, so the timeout error is expected and ignored.
+  // The connection must stay open long enough for Buttondown to act (~8s observed).
+  console.log(`subscribe [${ts()}]: deleting draft to trigger delivery`)
+  await fetch(`${BUTTONDOWN_EMAILS_URL}/${draftId}`, {
+    method: 'DELETE',
+    headers,
+    signal: AbortSignal.timeout(12000)
+  }).catch(() => {})
+  console.log(`subscribe [${ts()}]: sendWelcomeEmail complete`)
+  await pingHealthcheck()
 }
 
 const pingHealthcheck = (fail = false) => {

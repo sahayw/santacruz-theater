@@ -132,7 +132,7 @@ async function sendWelcomeEmail(email: string, apiKey: string) {
       body: JSON.stringify({
         subject: 'Welcome — Santa Cruz Theater Audition Notices',
         body: html,
-        status: 'draft'
+        status: 'transactional'
       })
     })
     console.log(`subscribe [${ts()}]: create draft response ${createResp.status}`)
@@ -154,12 +154,13 @@ async function sendWelcomeEmail(email: string, apiKey: string) {
 
   try {
     console.log(`subscribe [${ts()}]: sending draft to ${email}`)
-    const sendResp = await fetch(`${BUTTONDOWN_EMAILS_URL}/${draftId}/send-draft`, {
-      method: 'POST',
-      headers,
-      signal: AbortSignal.timeout(8000),
-      body: JSON.stringify({ recipients: [email] })
-    })
+    const sendResp = await fetch(
+      `${BUTTONDOWN_SUBSCRIBERS_URL}/${encodeURIComponent(email)}/emails/${draftId}`,
+      {
+        method: 'POST',
+        headers
+      }
+    )
     console.log(`subscribe [${ts()}]: send-draft response ${sendResp.status}`)
     if (!sendResp.ok) {
       console.error(
@@ -174,15 +175,6 @@ async function sendWelcomeEmail(email: string, apiKey: string) {
     return
   }
 
-  // The DELETE triggers Buttondown to finalise delivery. Buttondown processes it but
-  // never returns an HTTP response, so the timeout error is expected and ignored.
-  // The connection must stay open long enough for Buttondown to act (~8s observed).
-  console.log(`subscribe [${ts()}]: deleting draft to trigger delivery`)
-  await fetch(`${BUTTONDOWN_EMAILS_URL}/${draftId}`, {
-    method: 'DELETE',
-    headers,
-    signal: AbortSignal.timeout(12000)
-  }).catch(() => {})
   console.log(`subscribe [${ts()}]: sendWelcomeEmail complete`)
   await pingHealthcheck()
 }

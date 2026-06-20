@@ -6,37 +6,32 @@ Source: `netlify/functions/send-audition-digest.mts`
 
 Scheduled Netlify function that runs at **02:00 UTC daily** (`0 2 * * *`). To change the schedule, update the cron expression in the `schedule()` call at the top of `send-audition-digest.mts` and redeploy.
 
-The function reads all audition files from GitHub, compares `createdAt`/`updatedAt` timestamps against the last time a digest was sent, and emails subscribers a digest of anything new or updated. The last-sent timestamp is persisted in Netlify Blob Storage so each run only covers changes since the previous send.
+The function reads all bundled audition files from the local `data/` directory, compares `createdAt`/`updatedAt` timestamps against the last time a digest was sent, and emails subscribers a digest of anything new or updated. The last-sent timestamp is persisted in Netlify Blob Storage so each run only covers changes since the previous send.
 
 ## Execution flow
 
 1. Read `last-sent` ISO timestamp from Blob Storage (store `audition-notifications`, key `last-sent`). Missing key → treats all records as new (falls back to epoch).
-2. Fetch `data/sc-theater-companies.json` from GitHub to build a company name map for display.
-3. Walk `data/auditions/**/*.json` on GitHub (all year subdirectories, all matching files).
-4. Classify records:
+2. Load all bundled `data/auditions/**/*.json` files via `netlify/functions/lib/auditions-data.mts`.
+3. Classify records:
    - **New** — `createdAt > lastSent`
    - **Updated** — `updatedAt > lastSent` AND `createdAt ≤ lastSent`
-5. If nothing qualifies → log `nothing to send`, ping Healthchecks.io, exit.
-6. If `DRY_RUN=true` → log what would be sent, exit without sending, updating timestamp, or pinging.
-7. POST digest HTML to Buttondown (`status: "about_to_send"` sends immediately).
-8. On Buttondown success → write new `last-sent` timestamp to Blob Storage.
-9. Ping Healthchecks.io.
+4. If nothing qualifies → log `nothing to send`, ping Healthchecks.io, exit.
+5. If `DRY_RUN=true` → log what would be sent, exit without sending, updating timestamp, or pinging.
+6. POST digest HTML to Buttondown (`status: "about_to_send"` sends immediately).
+7. On Buttondown success → write new `last-sent` timestamp to Blob Storage.
+8. Ping Healthchecks.io.
 
 The healthcheck ping fires on every successful execution (both "nothing to send" and "sent" paths). It does **not** fire on `DRY_RUN` or any error exit — so a missing ping always means something went wrong.
 
 ## Environment variables
 
-| Variable             | Required | Notes                                                                |
-| -------------------- | -------- | -------------------------------------------------------------------- |
-| `GITHUB_TOKEN`       | Yes      | Fine-grained PAT with Contents read access on the repo               |
-| `GITHUB_OWNER`       | Yes      | GitHub repository owner                                              |
-| `GITHUB_REPO`        | Yes      | GitHub repository name                                               |
-| `GITHUB_BRANCH`      | No       | Branch to read from; defaults to `main`                              |
-| `BUTTONDOWN_API_KEY` | Yes      | Buttondown API key                                                   |
-| `NETLIFY_SITE_ID`    | Yes      | Site ID — find it in `netlify status` or the Netlify dashboard. Netlify does not auto-inject this for scheduled functions |
-| `NETLIFY_TOKEN`      | Yes      | Netlify personal access token (User settings → Applications → Personal access tokens). Required for Blob Storage access from scheduled functions |
-| `HEALTHCHECK_URL`    | No       | Healthchecks.io ping URL; omitting disables monitoring silently      |
-| `DRY_RUN`            | No       | Set to `true` to log without sending, updating timestamp, or pinging |
+| Variable                 | Required | Notes                                                                                                                                            |
+| ------------------------ | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `BUTTONDOWN_API_KEY`     | Yes      | Buttondown API key                                                                                                                               |
+| `NETLIFY_SITE_ID`        | Yes      | Site ID — find it in `netlify status` or the Netlify dashboard. Netlify does not auto-inject this for scheduled functions                        |
+| `NETLIFY_TOKEN`          | Yes      | Netlify personal access token (User settings → Applications → Personal access tokens). Required for Blob Storage access from scheduled functions |
+| `DIGEST_HEALTHCHECK_URL` | No       | Healthchecks.io ping URL; omitting disables monitoring silently                                                                                  |
+| `DRY_RUN`                | No       | Set to `true` to log without sending, updating timestamp, or pinging                                                                             |
 
 ## Blob storage
 
@@ -54,7 +49,7 @@ The `schedule()` helper from `@netlify/functions` is still used to wrap the hand
 
 ## Monitoring (Healthchecks.io)
 
-The function pings the `HEALTHCHECK_URL` at the end of every successful run. Configure the check in Healthchecks.io with:
+The function pings the `DIGEST_HEALTHCHECK_URL` at the end of every successful run. Configure the check in Healthchecks.io with:
 
 - **Period:** 24 hours
 - **Grace:** 2 hours (allows for Netlify scheduling jitter)
@@ -128,10 +123,9 @@ All log lines are prefixed `send-audition-digest:` for easy filtering.
 | Symptom                                         | Likely cause                                                                      |
 | ----------------------------------------------- | --------------------------------------------------------------------------------- |
 | `MissingBlobsEnvironmentError`                  | Function not using `schedule()` wrapper — see note above                          |
-| `missing GitHub env vars`                       | `GITHUB_TOKEN`, `GITHUB_OWNER`, or `GITHUB_REPO` not set in Netlify               |
 | `missing BUTTONDOWN_API_KEY`                    | Key not set or not deployed yet                                                   |
 | `Buttondown error 401`                          | API key invalid or revoked                                                        |
 | `Buttondown error 429`                          | Rate limited; will retry next scheduled run                                       |
-| No ping on success                              | `HEALTHCHECK_URL` env var not set                                                 |
+| No ping on success                              | `DIGEST_HEALTHCHECK_URL` env var not set                                          |
 | Healthchecks.io alerts daily with nothing wrong | Ping not firing on "nothing to send" path — check function version                |
 | Digest sent but same records appear next day    | Blob Storage write failed after send; check logs for `failed to update timestamp` |

@@ -4,7 +4,7 @@
  *
  * Netlify Functions v2. context.waitUntil() is used to send the welcome email after the
  * HTTP response is returned to the user, so the user only waits for the subscriber POST
- * (~2.5s) rather than the full email flow (~17s).
+ * rather than the full welcome-email create/send flow.
  *
  * POST /.netlify/functions/subscribe
  * Body: { "email": "user@example.com" }
@@ -117,14 +117,14 @@ async function sendWelcomeEmail(email: string, apiKey: string) {
     'Content-Type': 'application/json'
   }
 
-  let draftId: string | undefined
+  let emailId: string | undefined
   try {
     console.log(`subscribe [${ts()}]: loading auditions`)
     const auditions = getUpcomingAuditions(loadAllAuditions())
     console.log(`subscribe [${ts()}]: building welcome HTML (${auditions.length} auditions)`)
     const html = buildWelcomeHtml(auditions, SITE_URL)
 
-    console.log(`subscribe [${ts()}]: creating draft`)
+    console.log(`subscribe [${ts()}]: creating transactional welcome email`)
     const createResp = await fetch(BUTTONDOWN_EMAILS_URL, {
       method: 'POST',
       headers,
@@ -135,42 +135,44 @@ async function sendWelcomeEmail(email: string, apiKey: string) {
         status: 'transactional'
       })
     })
-    console.log(`subscribe [${ts()}]: create draft response ${createResp.status}`)
+    console.log(`subscribe [${ts()}]: create email response ${createResp.status}`)
     if (!createResp.ok) {
       console.error(
-        `subscribe: failed to create draft (${createResp.status}): ${await createResp.text()}`
+        `subscribe: failed to create welcome email (${createResp.status}): ${await createResp.text()}`
       )
       await pingHealthcheck(true)
       return
     }
     const created = await createResp.json()
-    draftId = created.id
-    console.log(`subscribe [${ts()}]: draft created id=${draftId}`)
+    emailId = created.id
+    console.log(`subscribe [${ts()}]: welcome email created id=${emailId}`)
   } catch (e) {
-    console.error(`subscribe [${ts()}]: failed to create draft:`, e)
+    console.error(`subscribe [${ts()}]: failed to create welcome email:`, e)
     await pingHealthcheck(true)
     return
   }
 
   try {
-    console.log(`subscribe [${ts()}]: sending draft to ${email}`)
+    console.log(`subscribe [${ts()}]: sending welcome email to subscriber ${email}`)
     const sendResp = await fetch(
-      `${BUTTONDOWN_SUBSCRIBERS_URL}/${encodeURIComponent(email)}/emails/${draftId}`,
+      `${BUTTONDOWN_SUBSCRIBERS_URL}/${encodeURIComponent(email)}/emails/${emailId}`,
       {
         method: 'POST',
-        headers
+        headers,
+        signal: AbortSignal.timeout(8000)
       }
     )
-    console.log(`subscribe [${ts()}]: send-draft response ${sendResp.status}`)
+    console.log(`subscribe [${ts()}]: subscriber send response ${sendResp.status}`)
     if (!sendResp.ok) {
       console.error(
-        `subscribe: failed to send draft (${sendResp.status}): ${await sendResp.text()}`
+        `subscribe: failed to send welcome email (${sendResp.status}): ${await sendResp.text()}`
       )
       await pingHealthcheck(true)
       return
     }
+    console.log(`subscribe [${ts()}]: welcome email sent email=${email} emailId=${emailId}`)
   } catch (e) {
-    console.error(`subscribe [${ts()}]: failed to send draft:`, e)
+    console.error(`subscribe [${ts()}]: failed to send welcome email:`, e)
     await pingHealthcheck(true)
     return
   }

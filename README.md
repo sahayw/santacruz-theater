@@ -56,7 +56,7 @@ A filter bar with Company, Genre, and When controls (Upcoming / All dates / Past
 
 A `?id=<timestamp>` URL parameter opens a single audition record directly (filter bar hidden, all other cards hidden, target card expanded). An unrecognised id shows an error message.
 
-A subscribe widget is shown below the page header (hidden in deep-link and not-found modes). The standalone `/subscribe` page provides the same form with additional context. Both submit to `/.netlify/functions/subscribe`, which adds the address to the Buttondown subscriber list. Buttondown sends a double opt-in confirmation email automatically; unsubscribe links are included in every email.
+A subscribe widget is shown below the page header (hidden in deep-link and not-found modes). The standalone `/subscribe` page provides the same form with additional context. Both submit to `/.netlify/functions/subscribe`, which adds the address to the Buttondown subscriber list with no double opt-in and then triggers a one-off welcome email listing current upcoming auditions. Unsubscribe links are included in every outgoing email.
 
 ### Auditions data
 
@@ -68,9 +68,9 @@ Location is stored per `AuditionDate`, so different sessions of the same auditio
 
 A daily digest email is sent to subscribers when new or updated auditions have been posted since the previous digest. Delivered via **Buttondown**.
 
-**Subscribing** — an email form appears on `/auditions` (below the header) and on the standalone `/subscribe` page. Submissions go to `/.netlify/functions/subscribe`, which calls the Buttondown API. Buttondown sends a double opt-in confirmation; unsubscribe links are included in every outgoing email.
+**Subscribing** — an email form appears on `/auditions` (below the header) and on the standalone `/subscribe` page. Submissions go to `/.netlify/functions/subscribe`, which creates a regular Buttondown subscriber and then sends a one-off welcome email containing current upcoming auditions. Unsubscribe links are included in every outgoing email.
 
-**Digest** — `netlify/functions/send-audition-digest.mts` runs at 02:00 UTC. It reads current audition data from the GitHub API, compares `createdAt`/`updatedAt` timestamps against a "last sent" value stored in Netlify Blob Storage, and sends a digest if anything is new or updated. New and updated auditions are presented in separate sections; each entry links directly to the audition record on the site. The last-sent timestamp is updated only after a successful send.
+**Digest** — `netlify/functions/send-audition-digest.mts` runs at 02:00 UTC. It reads current audition data from local JSON files bundled with the function, compares `createdAt`/`updatedAt` timestamps against a "last sent" value stored in Netlify Blob Storage, and sends a digest if anything is new or updated. New and updated auditions are presented in separate sections; each entry links directly to the audition record on the site. The last-sent timestamp is updated only after a successful send.
 
 Setting `DRY_RUN=true` in Netlify environment variables causes the function to log what it would send without calling Buttondown.
 

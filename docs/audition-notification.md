@@ -99,21 +99,20 @@ function sends a welcome email directly to that address containing all current u
 auditions. This gives immediate value and confirms the subscription without requiring
 double opt-in.
 
-**Buttondown draft flow (3 calls):**
+**Buttondown welcome flow (2 calls):**
 
-1. `POST /v1/emails` — create a draft with the welcome HTML body and subject; capture the
-   returned `id`
-2. `POST /v1/emails/{id}/send-draft` with `recipients: [newEmail]` — queues the send to the
-   new subscriber only, not the full list. Returns 200 with empty body.
-3. `DELETE /v1/emails/{id}` — this is what triggers Buttondown to finalise delivery.
-   Buttondown processes the deletion but does not return an HTTP response; the call is
-   awaited with a 12s timeout and the resulting timeout error is silently ignored.
+1. `POST /v1/emails` — create a disposable welcome email with the rendered HTML body,
+   subject, and `status: "transactional"`; capture the returned `id`
+2. `POST /v1/subscribers/{id_or_email}/emails/{email_id}` — send that email to the newly
+   subscribed address only; this is the actual delivery step
 
-Step 1 is awaited first; if it fails, steps 2–3 are skipped. If step 2 fails, step 3 is
-not attempted. Each step's failure is logged independently and pings
-`SUBSCRIBE_HEALTHCHECK_URL/fail`. A successful completion pings the base
-`SUBSCRIBE_HEALTHCHECK_URL` (no suffix). None of this changes the user-facing response —
-the subscription itself already succeeded by the time the welcome flow runs.
+Step 1 is awaited first; if it fails, step 2 is skipped. If step 2 fails, the response
+body is logged for diagnosis and `SUBSCRIBE_HEALTHCHECK_URL/fail` is pinged. Both
+Buttondown requests use 8s timeouts to avoid hanging the background `waitUntil` task. A
+successful completion pings the base `SUBSCRIBE_HEALTHCHECK_URL` (no suffix). None of
+this changes the user-facing response — the subscription itself already succeeded by the
+time the welcome flow runs. The temporary email object is left in Buttondown; no delete
+call is required for delivery.
 
 **Template:** `buildWelcomeHtml(auditions, baseUrl)` in `email-template.mts` — a
 welcome-specific export distinct from `buildDigestHtml`. Structure:
@@ -145,8 +144,9 @@ The originally implemented `send-audition-digest.mts` read audition data via the
 Contents API at runtime (one call to list `data/auditions`, one per year directory, one
 per file, plus the companies file) — chosen for consistency with the existing `data.mjs`
 admin-write pattern. In practice this is unnecessary network overhead for data that
-already ships with every deploy, and it would add unwanted latency to the new welcome-email
-path, which runs synchronously in the subscribe request rather than on a daily schedule.
+already ships with every deploy, and it would add unwanted latency to the welcome-email
+path, which now runs in a `context.waitUntil()` task kicked off by the subscribe request
+rather than on the daily digest schedule.
 
 **Revised approach:** both the digest and the welcome-email path read audition data
 directly from the JSON files bundled with the function, via Node `fs`, instead of the
@@ -285,8 +285,9 @@ On page load, client-side JS checks for this parameter, finds the matching card 
      tables for that reason).
    - ✅ `buildWelcomeHtml(auditions, baseUrl)` added to `email-template.mts`, including
      the empty-state line for zero upcoming auditions.
-   - ✅ 3-call Buttondown draft flow implemented in `subscribe.mts` (create draft, send-draft,
-     then awaited DELETE which triggers delivery); errors logged per step; pings
+   - ✅ Transactional Buttondown welcome flow implemented in `subscribe.mts`: create a
+     disposable email with `status: "transactional"`, then send it to the new subscriber
+     via the subscriber-email endpoint; errors logged per step; pings
      `SUBSCRIBE_HEALTHCHECK_URL/fail` on failure, base URL on success.
    - ✅ UI shows "Processing subscription — please wait…" while the request is in flight;
      error messages include the HTTP status code for diagnosis.
@@ -297,5 +298,5 @@ On page load, client-side JS checks for this parameter, finds the matching card 
 3. ✅ Reduced user-facing subscribe latency: migrated `subscribe.mts` to **Netlify Functions v2**
    (`export default async (req: Request, context: Context)`). `context.waitUntil()` runs the
    welcome-email flow after the HTTP response is returned, so the user waits only ~2.5s
-   (subscriber POST) rather than ~17s (subscriber POST + full draft/send-draft/DELETE flow).
+   (subscriber POST) rather than waiting for the full welcome-email create/send flow.
    UI pending state changed to "Subscribing…".

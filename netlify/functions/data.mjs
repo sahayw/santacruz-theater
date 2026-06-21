@@ -15,7 +15,8 @@
 const FILE_RE = /^[\w-]+(\/[\w-]+)*\.json$/
 
 export const handler = async (event, context) => {
-  const { GITHUB_TOKEN, GITHUB_OWNER, GITHUB_REPO, GITHUB_BRANCH = 'main' } = process.env
+  const { GITHUB_TOKEN, GITHUB_OWNER, GITHUB_REPO, BRANCH } = process.env
+  const GITHUB_BRANCH = process.env.GITHUB_BRANCH || BRANCH || 'main'
 
   if (!GITHUB_TOKEN || !GITHUB_OWNER || !GITHUB_REPO) {
     return { statusCode: 500, body: 'Server misconfiguration: missing GitHub env vars' }

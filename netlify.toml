@@ -8,9 +8,6 @@
 [functions]
   included_files = ["data/activities/**/*.json", "data/sc-theater-companies.json"]
 
-[context.dev.environment]
-  GITHUB_BRANCH = "dev"
-
 [[headers]]
   for = "/*"
   [headers.values]

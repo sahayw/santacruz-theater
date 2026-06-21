@@ -29,7 +29,7 @@ export const handler = async (event, context) => {
 
   // ── DIR LISTING ──
   const dirParam = event.queryStringParameters?.dir
-  if (dirParam === 'shows' || dirParam === 'auditions') {
+  if (dirParam === 'shows' || dirParam === 'activities') {
     try {
       const listUrl = `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/data/${dirParam}?ref=${GITHUB_BRANCH}`
       const yearListResp = await fetch(listUrl, { headers: ghHeaders })
@@ -37,9 +37,9 @@ export const handler = async (event, context) => {
         return { statusCode: yearListResp.status, body: `Failed to list ${dirParam} directory` }
       const yearDirs = await yearListResp.json()
       const result = []
-      // auditions files: <company>-auditions-<year>.json; shows files: <company>-<year>.json
-      const fileRe = dirParam === 'auditions'
-        ? /^(.+)-auditions-(\d{4})\.json$/
+      // activities files: <company>-activities-<year>.json; shows files: <company>-<year>.json
+      const fileRe = dirParam === 'activities'
+        ? /^(.+)-activities-(\d{4})\.json$/
         : /^(.+)-(\d{4})\.json$/
       for (const d of yearDirs.filter((x) => x.type === 'dir')) {
         const fileListResp = await fetch(d.url, { headers: ghHeaders })

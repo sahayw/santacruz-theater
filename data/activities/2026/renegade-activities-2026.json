@@ -1,30 +1,11 @@
 {
   "company": "renegade",
   "year": 2026,
-  "auditions": [
+  "activities": [
     {
-      "id": "audition-1735000000005",
-      "production": "The Rocky Horror Show",
-      "genre": "Musical",
-      "auditionDates": [
-        {
-          "date": "2026-05-03",
-          "startTime": "00:00",
-          "endTime": "23:59",
-          "notes": "Individual Auditions"
-        },
-        {
-          "date": "2026-05-06",
-          "startTime": "00:00",
-          "endTime": "23:59",
-          "notes": "Dance Auditions"
-        },
-        {
-          "date": "2026-05-13",
-          "startTime": "00:00",
-          "endTime": "23:59",
-          "notes": "Callbacks (invitation only)"
-        }
+      "id": "activity-1735000000005",
+      "genre": [
+        "Musical"
       ],
       "rolesAvailable": [
         {
@@ -112,11 +93,33 @@
         "email": "renegadetheaterco@gmail.com",
         "phone": "831-713-9392"
       },
-      "auditionNoticeUrl": "https://renegadetheaterco.org/2026/rocky-horror-show.html",
       "productionUrl": "https://renegadetheaterco.org/2026/rocky-horror-show.html",
       "notes": "Rated R. All roles open to all gender identities. All body types welcome. 18+ only. Over 20 cast members and a live band. Directed by Izzy Pedego, Music Director Jorge Torres.",
       "createdAt": "2026-06-02T00:00:00Z",
-      "updatedAt": "2026-06-02T00:00:00Z"
+      "updatedAt": "2026-06-02T00:00:00Z",
+      "type": "audition",
+      "title": "The Rocky Horror Show",
+      "dates": [
+        {
+          "date": "2026-05-03",
+          "startTime": "00:00",
+          "endTime": "23:59",
+          "notes": "Individual Auditions"
+        },
+        {
+          "date": "2026-05-06",
+          "startTime": "00:00",
+          "endTime": "23:59",
+          "notes": "Dance Auditions"
+        },
+        {
+          "date": "2026-05-13",
+          "startTime": "00:00",
+          "endTime": "23:59",
+          "notes": "Callbacks (invitation only)"
+        }
+      ],
+      "noticeUrl": "https://renegadetheaterco.org/2026/rocky-horror-show.html"
     }
   ]
 }

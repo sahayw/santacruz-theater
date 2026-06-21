@@ -1,4 +1,4 @@
-import type { AuditionDate, AuditionRole } from '../types.ts'
+import type { ActivityDate, AuditionRole } from '../types.ts'
 
 const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
 
@@ -29,7 +29,7 @@ export function fmtShortDate(dateStr: string) {
   return `${MONTHS[m - 1]} ${d}`
 }
 
-export function fmtAudDateRange(dates: AuditionDate[]) {
+export function fmtAudDateRange(dates: ActivityDate[]) {
   const ds = dates.filter(d => d.date)
   if (!ds.length) return ''
   if (ds.length === 1) {

@@ -1,12 +1,45 @@
 {
   "company": "other",
   "year": 2026,
-  "auditions": [
+  "activities": [
     {
-      "id": "audition-1781438400003",
-      "production": "Machinal",
-      "genre": "Drama",
-      "auditionDates": [
+      "id": "activity-1781438400003",
+      "genre": [
+        "Drama"
+      ],
+      "rolesAvailable": [
+        {
+          "role": "Young Woman",
+          "type": "lead",
+          "gender": "female",
+          "description": "Central protagonist"
+        },
+        {
+          "role": "Supporting and ensemble roles",
+          "type": "ensemble",
+          "gender": "any",
+          "description": "Many actors play multiple characters. 16–19 total cast"
+        }
+      ],
+      "prep": {
+        "acting": "60–90 second monologue (optional — attending without preparation is welcome)",
+        "bring": [
+          "Completed audition form (submit at https://forms.gle/pJQh69wEBrgG2gd99 by 6:30 PM on audition night)"
+        ]
+      },
+      "openingDate": "2026-10-30",
+      "contact": {
+        "name": "Robin Aronson",
+        "email": "roaronso@cabrillo.edu"
+      },
+      "productionUrl": "https://www.cabrillo.edu/theatre-arts/",
+      "notes": "Cabrillo College Theatre Arts production of Sophie Treadwell's Machinal, directed by Robin Aronson. Inclusive casting — all students and community actors welcome. Rehearsals Tuesday–Friday evenings 6:30–9:30 PM. Performances October 30 – November 15, 2026. College credit available (TA 29/529, TA 27/527).",
+      "createdAt": "2026-06-14T12:00:00.000Z",
+      "updatedAt": "2026-06-14T17:57:11.481Z",
+      "rehearsalStart": "2026-08-28",
+      "type": "audition",
+      "title": "Machinal",
+      "dates": [
         {
           "date": "2026-08-25",
           "startTime": "18:30",
@@ -36,73 +69,12 @@
           }
         }
       ],
-      "rolesAvailable": [
-        {
-          "role": "Young Woman",
-          "type": "lead",
-          "gender": "female",
-          "description": "Central protagonist"
-        },
-        {
-          "role": "Supporting and ensemble roles",
-          "type": "ensemble",
-          "gender": "any",
-          "description": "Many actors play multiple characters. 16–19 total cast"
-        }
-      ],
-      "prep": {
-        "acting": "60–90 second monologue (optional — attending without preparation is welcome)",
-        "bring": [
-          "Completed audition form (submit at https://forms.gle/pJQh69wEBrgG2gd99 by 6:30 PM on audition night)"
-        ]
-      },
-      "openingDate": "2026-10-30",
-      "contact": {
-        "name": "Robin Aronson",
-        "email": "roaronso@cabrillo.edu"
-      },
-      "auditionNoticeUrl": "https://www.cabrillo.edu/theatre-arts/upcoming-auditions/",
-      "productionUrl": "https://www.cabrillo.edu/theatre-arts/",
-      "notes": "Cabrillo College Theatre Arts production of Sophie Treadwell's Machinal, directed by Robin Aronson. Inclusive casting — all students and community actors welcome. Rehearsals Tuesday–Friday evenings 6:30–9:30 PM. Performances October 30 – November 15, 2026. College credit available (TA 29/529, TA 27/527).",
-      "createdAt": "2026-06-14T12:00:00.000Z",
-      "updatedAt": "2026-06-14T17:57:11.481Z",
-      "rehearsalStart": "2026-08-28"
+      "noticeUrl": "https://www.cabrillo.edu/theatre-arts/upcoming-auditions/"
     },
     {
-      "id": "audition-1780261748445",
-      "production": "Gross Indecency: The Three Trials of Oscar Wilde",
-      "genre": "Drama",
-      "auditionDates": [
-        {
-          "date": "2026-07-10",
-          "startTime": "19:00",
-          "endTime": "21:00",
-          "location": {
-            "name": "Scratch Studios",
-            "address": "02B 303 Potrero St, Santa Cruz, CA 95060"
-          },
-          "notes": "Open Call"
-        },
-        {
-          "date": "2026-07-11",
-          "startTime": "12:00",
-          "endTime": "14:00",
-          "location": {
-            "name": "Scratch Studios",
-            "address": "02B 303 Potrero St, Santa Cruz, CA 95060"
-          },
-          "notes": "Open Call"
-        },
-        {
-          "date": "2026-07-12",
-          "startTime": "12:00",
-          "endTime": "15:00",
-          "location": {
-            "name": "Scratch Studios",
-            "address": "02B 303 Potrero St, Santa Cruz, CA 95060"
-          },
-          "notes": "Callbacks"
-        }
+      "id": "activity-1780261748445",
+      "genre": [
+        "Drama"
       ],
       "rolesAvailable": [
         {
@@ -157,7 +129,41 @@
         "bring": [
           "Headshot and resume"
         ]
-      }
+      },
+      "type": "audition",
+      "title": "Gross Indecency: The Three Trials of Oscar Wilde",
+      "dates": [
+        {
+          "date": "2026-07-10",
+          "startTime": "19:00",
+          "endTime": "21:00",
+          "location": {
+            "name": "Scratch Studios",
+            "address": "02B 303 Potrero St, Santa Cruz, CA 95060"
+          },
+          "notes": "Open Call"
+        },
+        {
+          "date": "2026-07-11",
+          "startTime": "12:00",
+          "endTime": "14:00",
+          "location": {
+            "name": "Scratch Studios",
+            "address": "02B 303 Potrero St, Santa Cruz, CA 95060"
+          },
+          "notes": "Open Call"
+        },
+        {
+          "date": "2026-07-12",
+          "startTime": "12:00",
+          "endTime": "15:00",
+          "location": {
+            "name": "Scratch Studios",
+            "address": "02B 303 Potrero St, Santa Cruz, CA 95060"
+          },
+          "notes": "Callbacks"
+        }
+      ]
     }
   ]
 }

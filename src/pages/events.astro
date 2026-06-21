@@ -2,8 +2,8 @@
 import BaseHead from '../components/BaseHead.astro'
 import SiteNav from '../components/SiteNav.astro'
 import companiesData from '../../data/sc-theater-companies.json'
-import { getAuditions } from '../lib/data.ts'
-import type { AuditionEvent } from '../lib/data.ts'
+import { getActivities } from '../lib/data.ts'
+import type { ActivityEvent } from '../lib/data.ts'
 import {
   fmtShortDate,
   fmtAudDateRange,
@@ -12,20 +12,25 @@ import {
   rolesSum
 } from '../lib/audition-format.ts'
 
-const auditions = getAuditions()
+const activities = getActivities()
 
 const companyNameMap: Record<string, string> = Object.fromEntries(
   companiesData.companies.map((c) => [c.id, c.name])
 )
 
-const audCompanyCodes = new Set<string>(auditions.map((a) => a.company))
+const actCompanyCodes = new Set<string>(activities.map((a) => a.company))
 const filterCompanies = companiesData.companies.filter(
-  (c) => !c.adminOnly && audCompanyCodes.has(c.id)
+  (c) => !c.adminOnly && actCompanyCodes.has(c.id)
 )
-const filterGenres = [...new Set(auditions.flatMap((a) => a.genre))].sort()
+const filterGenres = [...new Set(activities.flatMap((a) => a.genre))].sort()
 
-function latestDate(aud: AuditionEvent): string {
-  return [...aud.auditionDates].sort((a, b) => b.date.localeCompare(a.date))[0]?.date ?? ''
+function latestDate(act: ActivityEvent): string {
+  return [...act.dates].sort((a, b) => b.date.localeCompare(a.date))[0]?.date ?? ''
+}
+
+function displayName(act: ActivityEvent): string {
+  if (act.company === 'other' && act.organizerName) return act.organizerName
+  return companyNameMap[act.company] ?? act.company
 }
 
 function dotVar(company: string): string {
@@ -55,23 +60,23 @@ function roleTypeLabel(type: string): string {
 <html lang="en">
   <head>
     <BaseHead
-      title="Auditions — Santa Cruz Theater"
-      description="Find upcoming audition calls from Santa Cruz County theater companies."
-      canonicalPath="/auditions"
+      title="Auditions & Events — Santa Cruz Theater"
+      description="Upcoming audition calls and theater events from Santa Cruz County companies."
+      canonicalPath="/events"
     />
   </head>
   <body>
-    <SiteNav currentPage="auditions" />
+    <SiteNav currentPage="events" />
 
     <main class="aud-page">
       <header class="page-header">
-        <h1 class="page-title">Auditions</h1>
-        <p class="page-subtitle">Open calls from Santa Cruz County theater companies</p>
+        <h1 class="page-title">Auditions & Events</h1>
+        <p class="page-subtitle">Upcoming auditions and theater events from Santa Cruz County companies</p>
       </header>
 
       <div class="aud-subscribe" id="aud-subscribe">
         <div class="subscribe-inner">
-          <p class="subscribe-prompt">Get notified when new auditions are posted.</p>
+          <p class="subscribe-prompt">Get notified when new auditions and events are posted.</p>
           <form id="subscribe-form" class="subscribe-form" novalidate>
             <input
               type="email"
@@ -104,11 +109,12 @@ function roleTypeLabel(type: string): string {
             </select>
           </div>
           <div class="filter-group">
-            <label for="filter-when">When</label>
-            <select id="filter-when">
-              <option value="upcoming">Upcoming</option>
-              <option value="all">All dates</option>
-              <option value="past">Past only</option>
+            <label for="filter-show">Show</label>
+            <select id="filter-show">
+              <option value="upcoming">All Upcoming</option>
+              <option value="auditions">Upcoming Auditions</option>
+              <option value="events">Upcoming Events</option>
+              <option value="all">All</option>
             </select>
           </div>
         </div>
@@ -116,212 +122,321 @@ function roleTypeLabel(type: string): string {
       </div>
 
       {
-        auditions.length === 0 ? (
-          <div class="aud-no-data">No audition listings yet. Check back soon.</div>
+        activities.length === 0 ? (
+          <div class="aud-no-data">No listings yet. Check back soon.</div>
         ) : (
           <div class="aud-list" id="aud-list">
-            {auditions.map((aud) => {
-              const showVoice = aud.genre.includes('Musical')
-              const companyName = companyNameMap[aud.company] ?? aud.company
-              const latest = latestDate(aud)
+            {activities.map((act) => {
+              const showVoice = act.genre.includes('Musical')
+              const name = displayName(act)
+              const latest = latestDate(act)
               return (
                 <div
                   class="aud-card"
-                  data-id={aud.id}
-                  data-company={aud.company}
-                  data-genre={aud.genre.join(',')}
+                  data-id={act.id}
+                  data-company={act.company}
+                  data-genre={act.genre.join(',')}
                   data-latest-date={latest}
+                  data-type={act.type}
                 >
                   {/* ── Collapsed summary ── */}
                   <button class="aud-summary" aria-expanded="false">
                     <div class="aud-main">
                       <div class="aud-title-row">
-                        <span class="company-dot" style={`background:${dotVar(aud.company)}`} />
-                        <span class="aud-title">{aud.production}</span>
-                        {aud.genre.map((g) => (
+                        <span class="company-dot" style={`background:${dotVar(act.company)}`} />
+                        <span class="aud-title">{act.title}</span>
+                        {act.type === 'event' && (
+                          <span class="type-badge type-event">Event</span>
+                        )}
+                        {act.genre.map((g) => (
                           <span class={`genre-badge ${genreClass(g)}`}>{g}</span>
                         ))}
                       </div>
                       <div class="aud-meta-row">
-                        {companyName}
-                        {aud.openingDate && ` · Opens ${fmtShortDate(aud.openingDate)}`}
-                        {aud.rehearsalStart &&
-                          ` · Rehearsals start ${fmtShortDate(aud.rehearsalStart)}`}
+                        {name}
+                        {act.type === 'audition' && act.openingDate && ` · Opens ${fmtShortDate(act.openingDate)}`}
+                        {act.type === 'audition' && act.rehearsalStart &&
+                          ` · Rehearsals start ${fmtShortDate(act.rehearsalStart)}`}
                       </div>
-                      <div class="aud-roles-row">{rolesSum(aud.rolesAvailable)}</div>
+                      <div class="aud-roles-row">
+                        {act.type === 'audition'
+                          ? rolesSum(act.rolesAvailable ?? [])
+                          : act.briefDescription ?? ''}
+                      </div>
                     </div>
                     <div class="aud-aside">
                       <span class="aud-past-pip" aria-hidden="true">
                         Past
                       </span>
-                      <span class="aud-date-range">{fmtAudDateRange(aud.auditionDates)}</span>
+                      <span class="aud-date-range">{fmtAudDateRange(act.dates)}</span>
                       <span class="aud-chevron" aria-hidden="true" />
                     </div>
                   </button>
 
                   {/* ── Expanded detail ── */}
                   <div class="aud-detail" hidden>
-                    <div class="detail-grid">
-                      {/* Left column */}
-                      <div class="detail-left">
-                        <section class="detail-section">
-                          <h4 class="detail-section-head">Audition dates</h4>
-                          {aud.auditionDates.map((ad, i) => {
-                            const locationSeenBefore =
-                              i > 0 &&
-                              aud.auditionDates
-                                .slice(0, i)
-                                .some((prev) => prev.location?.name === ad.location?.name)
-                            return (
-                              <div class="detail-date-row">
-                                <span class="detail-date-label">{fmtFullDate(ad.date)}</span>
-                                <span class="detail-time-label">
-                                  {fmtTimeRange(ad.startTime, ad.endTime)}
-                                </span>
-                                {ad.notes && <span class="detail-date-note">{ad.notes}</span>}
-                                {ad.location && (
-                                  <div class="detail-date-location">
-                                    <span class="detail-location-name">{ad.location.name}</span>
-                                    {!locationSeenBefore && ad.location.address && (
-                                      <span class="detail-sub"> · {ad.location.address}</span>
-                                    )}
-                                  </div>
-                                )}
-                              </div>
-                            )
-                          })}
-                        </section>
-
-                        {aud.prep && (
+                    {act.type === 'audition' ? (
+                      <div class="detail-grid">
+                        {/* Left column */}
+                        <div class="detail-left">
                           <section class="detail-section">
-                            <h4 class="detail-section-head">Prepare</h4>
-                            {aud.prep.acting && (
-                              <div class="detail-prep-row">
-                                <span class="prep-label">Acting</span>
-                                <span>{aud.prep.acting}</span>
-                              </div>
-                            )}
-                            {aud.prep.singing && (
-                              <div class="detail-prep-row">
-                                <span class="prep-label">Singing</span>
-                                <span>{aud.prep.singing}</span>
-                              </div>
-                            )}
-                            {aud.prep.dance && (
-                              <div class="detail-prep-row">
-                                <span class="prep-label">Dance</span>
-                                <span>{aud.prep.dance}</span>
-                              </div>
-                            )}
-                            {aud.prep.bring && aud.prep.bring.length > 0 && (
-                              <div class="detail-prep-row">
-                                <span class="prep-label">Bring</span>
-                                <span>{aud.prep.bring.join(', ')}</span>
-                              </div>
-                            )}
+                            <h4 class="detail-section-head">Audition dates</h4>
+                            {act.dates.map((ad, i) => {
+                              const locationSeenBefore =
+                                i > 0 &&
+                                act.dates
+                                  .slice(0, i)
+                                  .some((prev) => prev.location?.name === ad.location?.name)
+                              return (
+                                <div class="detail-date-row">
+                                  <span class="detail-date-label">{fmtFullDate(ad.date)}</span>
+                                  <span class="detail-time-label">
+                                    {fmtTimeRange(ad.startTime, ad.endTime ?? '')}
+                                  </span>
+                                  {ad.notes && <span class="detail-date-note">{ad.notes}</span>}
+                                  {ad.location && (
+                                    <div class="detail-date-location">
+                                      <span class="detail-location-name">{ad.location.name}</span>
+                                      {!locationSeenBefore && ad.location.address && (
+                                        <span class="detail-sub"> · {ad.location.address}</span>
+                                      )}
+                                    </div>
+                                  )}
+                                </div>
+                              )
+                            })}
                           </section>
-                        )}
 
-                        {aud.contact &&
-                          (aud.contact.name || aud.contact.email || aud.contact.phone) && (
-                            <section class="detail-section contact-section">
-                              <h4 class="detail-section-head">Contact</h4>
-                              {aud.contact.name && (
-                                <div class="detail-contact-name">{aud.contact.name}</div>
-                              )}
-                              {aud.contact.email && (
-                                <div>
-                                  <a
-                                    href={`mailto:${aud.contact.email}`}
-                                    class="detail-link-inline"
-                                  >
-                                    {aud.contact.email}
-                                  </a>
+                          {act.prep && (
+                            <section class="detail-section">
+                              <h4 class="detail-section-head">Prepare</h4>
+                              {act.prep.acting && (
+                                <div class="detail-prep-row">
+                                  <span class="prep-label">Acting</span>
+                                  <span>{act.prep.acting}</span>
                                 </div>
                               )}
-                              {aud.contact.phone && (
-                                <div class="detail-sub">{aud.contact.phone}</div>
+                              {act.prep.singing && (
+                                <div class="detail-prep-row">
+                                  <span class="prep-label">Singing</span>
+                                  <span>{act.prep.singing}</span>
+                                </div>
+                              )}
+                              {act.prep.dance && (
+                                <div class="detail-prep-row">
+                                  <span class="prep-label">Dance</span>
+                                  <span>{act.prep.dance}</span>
+                                </div>
+                              )}
+                              {act.prep.bring && act.prep.bring.length > 0 && (
+                                <div class="detail-prep-row">
+                                  <span class="prep-label">Bring</span>
+                                  <span>{act.prep.bring.join(', ')}</span>
+                                </div>
                               )}
                             </section>
                           )}
-                      </div>
 
-                      {/* Right column — roles table */}
-                      {aud.rolesAvailable?.length > 0 && (
-                        <div class="detail-right">
-                          <section class="detail-section">
-                            <h4 class="detail-section-head">Roles available</h4>
-                            <table class="roles-table">
-                              <thead>
-                                <tr>
-                                  <th>Role</th>
-                                  <th>Type</th>
-                                  <th>Age</th>
-                                  {showVoice && <th>Voice</th>}
-                                </tr>
-                              </thead>
-                              <tbody>
-                                {aud.rolesAvailable.map((role) => (
-                                  <>
-                                    <tr class={role.description ? 'has-desc' : undefined}>
-                                      <td class="role-name-cell">{role.role}</td>
-                                      <td class={`role-type role-${role.type}`}>
-                                        {roleTypeLabel(role.type)}
-                                      </td>
-                                      <td class="role-age">{role.ageRange ?? ''}</td>
-                                      {showVoice && (
-                                        <td class="role-voice">{role.voicePart ?? ''}</td>
-                                      )}
-                                    </tr>
-                                    {role.description && (
-                                      <tr class="role-desc-row">
-                                        <td class="role-desc-cell" colspan={showVoice ? 4 : 3}>
-                                          <span class="role-desc">{role.description}</span>
-                                        </td>
-                                      </tr>
-                                    )}
-                                  </>
-                                ))}
-                              </tbody>
-                            </table>
-                          </section>
+                          {act.contact &&
+                            (act.contact.name || act.contact.email || act.contact.phone) && (
+                              <section class="detail-section contact-section">
+                                <h4 class="detail-section-head">Contact</h4>
+                                {act.contact.name && (
+                                  <div class="detail-contact-name">{act.contact.name}</div>
+                                )}
+                                {act.contact.email && (
+                                  <div>
+                                    <a
+                                      href={`mailto:${act.contact.email}`}
+                                      class="detail-link-inline"
+                                    >
+                                      {act.contact.email}
+                                    </a>
+                                  </div>
+                                )}
+                                {act.contact.phone && (
+                                  <div class="detail-sub">{act.contact.phone}</div>
+                                )}
+                              </section>
+                            )}
                         </div>
-                      )}
-                    </div>
 
-                    {aud.notes && <div class="detail-notes-full">{aud.notes}</div>}
-
-                    {(aud.auditionNoticeUrl || aud.productionUrl) && (
-                      <div class="detail-links-row">
-                        {aud.auditionNoticeUrl && (
-                          <a
-                            href={aud.auditionNoticeUrl}
-                            class="detail-action-link"
-                            target="_blank"
-                            rel="noopener"
-                          >
-                            Audition notice →
-                          </a>
+                        {/* Right column — roles table */}
+                        {act.rolesAvailable && act.rolesAvailable.length > 0 && (
+                          <div class="detail-right">
+                            <section class="detail-section">
+                              <h4 class="detail-section-head">Roles available</h4>
+                              <table class="roles-table">
+                                <thead>
+                                  <tr>
+                                    <th>Role</th>
+                                    <th>Type</th>
+                                    <th>Age</th>
+                                    {showVoice && <th>Voice</th>}
+                                  </tr>
+                                </thead>
+                                <tbody>
+                                  {act.rolesAvailable.map((role) => (
+                                    <>
+                                      <tr class={role.description ? 'has-desc' : undefined}>
+                                        <td class="role-name-cell">{role.role}</td>
+                                        <td class={`role-type role-${role.type}`}>
+                                          {roleTypeLabel(role.type)}
+                                        </td>
+                                        <td class="role-age">{role.ageRange ?? ''}</td>
+                                        {showVoice && (
+                                          <td class="role-voice">{role.voicePart ?? ''}</td>
+                                        )}
+                                      </tr>
+                                      {role.description && (
+                                        <tr class="role-desc-row">
+                                          <td class="role-desc-cell" colspan={showVoice ? 4 : 3}>
+                                            <span class="role-desc">{role.description}</span>
+                                          </td>
+                                        </tr>
+                                      )}
+                                    </>
+                                  ))}
+                                </tbody>
+                              </table>
+                            </section>
+                          </div>
                         )}
-                        {aud.productionUrl && (
-                          <a
-                            href={aud.productionUrl}
-                            class="detail-action-link"
-                            target="_blank"
-                            rel="noopener"
-                          >
-                            Production info →
-                          </a>
+                      </div>
+                    ) : (
+                      /* ── Event expanded detail ── */
+                      <div class="detail-grid">
+                        <div class="detail-left">
+                          <section class="detail-section">
+                            <h4 class="detail-section-head">Dates</h4>
+                            {act.dates.map((ad, i) => {
+                              const locationSeenBefore =
+                                i > 0 &&
+                                act.dates
+                                  .slice(0, i)
+                                  .some((prev) => prev.location?.name === ad.location?.name)
+                              return (
+                                <div class="detail-date-row">
+                                  <span class="detail-date-label">{fmtFullDate(ad.date)}</span>
+                                  <span class="detail-time-label">
+                                    {fmtTimeRange(ad.startTime, ad.endTime ?? '')}
+                                  </span>
+                                  {ad.notes && <span class="detail-date-note">{ad.notes}</span>}
+                                  {ad.location && (
+                                    <div class="detail-date-location">
+                                      <span class="detail-location-name">{ad.location.name}</span>
+                                      {!locationSeenBefore && ad.location.address && (
+                                        <span class="detail-sub"> · {ad.location.address}</span>
+                                      )}
+                                    </div>
+                                  )}
+                                </div>
+                              )
+                            })}
+                          </section>
+
+                          {act.cost && (
+                            <section class="detail-section">
+                              <h4 class="detail-section-head">Cost</h4>
+                              <div class="detail-sub" style="font-size:13px;color:var(--ink)">{act.cost}</div>
+                            </section>
+                          )}
+
+                          {act.contact &&
+                            (act.contact.name || act.contact.email || act.contact.phone) && (
+                              <section class="detail-section contact-section">
+                                <h4 class="detail-section-head">Contact</h4>
+                                {act.contact.name && (
+                                  <div class="detail-contact-name">{act.contact.name}</div>
+                                )}
+                                {act.contact.email && (
+                                  <div>
+                                    <a
+                                      href={`mailto:${act.contact.email}`}
+                                      class="detail-link-inline"
+                                    >
+                                      {act.contact.email}
+                                    </a>
+                                  </div>
+                                )}
+                                {act.contact.phone && (
+                                  <div class="detail-sub">{act.contact.phone}</div>
+                                )}
+                              </section>
+                            )}
+                        </div>
+
+                        {(act.description || act.organizerName) && (
+                          <div class="detail-right">
+                            {act.organizerName && (
+                              <section class="detail-section">
+                                <h4 class="detail-section-head">Organizer</h4>
+                                {act.organizerUrl ? (
+                                  <a href={act.organizerUrl} class="detail-link-inline" target="_blank" rel="noopener">
+                                    {act.organizerName}
+                                  </a>
+                                ) : (
+                                  <div class="detail-sub" style="font-size:13px;color:var(--ink)">{act.organizerName}</div>
+                                )}
+                              </section>
+                            )}
+                            {act.description && (
+                              <section class="detail-section">
+                                <h4 class="detail-section-head">About</h4>
+                                <div class="detail-sub" style="font-size:13px;color:var(--ink);line-height:1.55">{act.description}</div>
+                              </section>
+                            )}
+                          </div>
                         )}
                       </div>
                     )}
+
+                    {act.notes && <div class="detail-notes-full">{act.notes}</div>}
+
+                    {act.type === 'audition'
+                      ? (act.noticeUrl || act.productionUrl) && (
+                          <div class="detail-links-row">
+                            {act.noticeUrl && (
+                              <a
+                                href={act.noticeUrl}
+                                class="detail-action-link"
+                                target="_blank"
+                                rel="noopener"
+                              >
+                                Audition notice →
+                              </a>
+                            )}
+                            {act.productionUrl && (
+                              <a
+                                href={act.productionUrl}
+                                class="detail-action-link"
+                                target="_blank"
+                                rel="noopener"
+                              >
+                                Production info →
+                              </a>
+                            )}
+                          </div>
+                        )
+                      : act.noticeUrl && (
+                          <div class="detail-links-row">
+                            <a
+                              href={act.noticeUrl}
+                              class="detail-action-link"
+                              target="_blank"
+                              rel="noopener"
+                            >
+                              More info →
+                            </a>
+                          </div>
+                        )}
                   </div>
                 </div>
               )
             })}
 
             <div class="aud-empty" id="aud-empty" hidden>
-              No auditions match the current filters.
+              No listings match the current filters.
             </div>
           </div>
         )
@@ -666,6 +781,21 @@ function roleTypeLabel(type: string): string {
   .genre-other {
     background: #f0ece6;
     color: var(--ink-muted);
+  }
+
+  .type-badge {
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    padding: 2px 7px;
+    border-radius: 8px;
+    flex-shrink: 0;
+  }
+
+  .type-event {
+    background: #e8f4f0;
+    color: #1a6b50;
   }
 
   .aud-past-pip {
@@ -1024,7 +1154,7 @@ function roleTypeLabel(type: string): string {
   const countEl = document.getElementById('filter-count')
   const filterCompany = document.getElementById('filter-company')
   const filterGenre = document.getElementById('filter-genre')
-  const filterWhen = document.getElementById('filter-when')
+  const filterShow = document.getElementById('filter-show')
   const emptyEl = document.getElementById('aud-empty')
 
   // Mark past cards (drives the Past pip via CSS)
@@ -1035,23 +1165,33 @@ function roleTypeLabel(type: string): string {
   function updateFilters() {
     const co = filterCompany.value
     const ge = filterGenre.value
-    const wh = filterWhen.value
+    const sh = filterShow.value
     let visible = 0
 
     cards.forEach((card) => {
       const matchCo = !co || card.dataset.company === co
       const matchGe = !ge || (card.dataset.genre || '').split(',').filter(Boolean).includes(ge)
       const latest = card.dataset.latestDate ?? ''
-      const matchWh =
-        wh === 'all' ? true : wh === 'past' ? latest < TODAY : /* upcoming */ latest >= TODAY
+      const isPast = latest < TODAY
+      const isAud = card.dataset.type === 'audition'
 
-      const show = matchCo && matchGe && matchWh
+      let matchSh
+      if (sh === 'all') matchSh = true
+      else if (sh === 'upcoming') matchSh = !isPast
+      else if (sh === 'auditions') matchSh = !isPast && isAud
+      else matchSh = !isPast && !isAud /* 'events' */
+
+      const show = matchCo && matchGe && matchSh
       card.style.display = show ? '' : 'none'
       if (show) visible++
     })
 
     if (countEl) {
-      countEl.textContent = `${visible} ${visible === 1 ? 'audition' : 'auditions'}`
+      const sh = filterShow.value
+      const label = sh === 'auditions' ? (visible === 1 ? 'audition' : 'auditions')
+        : sh === 'events' ? (visible === 1 ? 'event' : 'events')
+        : (visible === 1 ? 'activity' : 'activities')
+      countEl.textContent = `${visible} ${label}`
     }
     if (emptyEl) {
       emptyEl.hidden = visible > 0
@@ -1067,16 +1207,16 @@ function roleTypeLabel(type: string): string {
     btn.setAttribute('aria-expanded', 'true')
   }
 
-  // Deep-link: ?id=<timestamp> (prefix "audition-" stripped from URL for brevity)
+  // Deep-link: ?id=<timestamp> (prefix "activity-" stripped from URL for brevity)
   const deepId = new URLSearchParams(location.search).get('id')
   const deepCard = deepId
-    ? (cards.find((c) => c.dataset.id === 'audition-' + deepId) ?? null)
+    ? (cards.find((c) => c.dataset.id === 'activity-' + deepId) ?? null)
     : null
 
   if (deepId && deepCard) {
     // Single-card mode: show only the linked record, no filters
     const titleEl = document.querySelector('.page-title')
-    titleEl.textContent = 'Audition'
+    titleEl.textContent = deepCard.dataset.type === 'event' ? 'Event' : 'Audition'
     titleEl.style.fontSize = '18px'
     document.querySelector('.page-subtitle').style.display = 'none'
     document.querySelector('.filter-bar').style.display = 'none'
@@ -1085,26 +1225,26 @@ function roleTypeLabel(type: string): string {
       if (c !== deepCard) c.style.display = 'none'
     })
     openCard(deepCard)
-    // Re-enable the Auditions nav link so it navigates back to the full list
-    const audNav = document.querySelector('a.nav-link--active[href="/auditions"]')
-    if (audNav) audNav.style.pointerEvents = 'auto'
+    // Re-enable the Events nav link so it navigates back to the full list
+    const evNav = document.querySelector('a.nav-link--active[href="/events"]')
+    if (evNav) evNav.style.pointerEvents = 'auto'
   } else if (deepId) {
     // Unrecognised id — show error, suppress list and filters
     document.querySelector('.filter-bar').style.display = 'none'
     document.getElementById('aud-subscribe').style.display = 'none'
     document.getElementById('aud-list')?.style.setProperty('display', 'none')
     const notFound = document.getElementById('aud-not-found')
-    notFound.textContent = `audition-${deepId} not found`
+    notFound.textContent = `activity-${deepId} not found`
     notFound.hidden = false
-    const audNav = document.querySelector('a.nav-link--active[href="/auditions"]')
-    if (audNav) audNav.style.pointerEvents = 'auto'
+    const evNav = document.querySelector('a.nav-link--active[href="/events"]')
+    if (evNav) evNav.style.pointerEvents = 'auto'
   } else {
     // Normal list mode
-    filterWhen.value = 'upcoming'
+    filterShow.value = 'upcoming'
     updateFilters()
     filterCompany?.addEventListener('change', updateFilters)
     filterGenre?.addEventListener('change', updateFilters)
-    filterWhen?.addEventListener('change', updateFilters)
+    filterShow?.addEventListener('change', updateFilters)
   }
 
   // Expand / collapse

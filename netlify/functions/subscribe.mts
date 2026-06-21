@@ -15,7 +15,7 @@
 
 import type { Config, Context } from '@netlify/functions'
 import { buildWelcomeHtml } from './lib/email-template.mts'
-import { loadAllAuditions, getUpcomingAuditions } from './lib/auditions-data.mts'
+import { loadAllActivities, getUpcomingAuditions, getUpcomingEvents } from './lib/activities-data.mts'
 
 const BUTTONDOWN_SUBSCRIBERS_URL = 'https://api.buttondown.email/v1/subscribers'
 const BUTTONDOWN_EMAILS_URL = 'https://api.buttondown.email/v1/emails'
@@ -65,7 +65,7 @@ export default async (req: Request, context: Context) => {
       console.log(`subscribe [${ts()}]: returning 200`)
       return json(
         200,
-        "Thanks for subscribing! We've sent you a welcome email with current upcoming auditions."
+        "Thanks for subscribing! We've sent you a welcome email with upcoming auditions and other events."
       )
     }
     if (resp.status === 409 || resp.status === 422)
@@ -119,10 +119,12 @@ async function sendWelcomeEmail(email: string, apiKey: string) {
 
   let emailId: string | undefined
   try {
-    console.log(`subscribe [${ts()}]: loading auditions`)
-    const auditions = getUpcomingAuditions(loadAllAuditions())
-    console.log(`subscribe [${ts()}]: building welcome HTML (${auditions.length} auditions)`)
-    const html = buildWelcomeHtml(auditions, SITE_URL)
+    console.log(`subscribe [${ts()}]: loading activities`)
+    const all = loadAllActivities()
+    const auditions = getUpcomingAuditions(all)
+    const events = getUpcomingEvents(all)
+    console.log(`subscribe [${ts()}]: building welcome HTML (${auditions.length} auditions, ${events.length} events)`)
+    const html = buildWelcomeHtml(auditions, events, SITE_URL)
 
     console.log(`subscribe [${ts()}]: creating transactional welcome email`)
     const createResp = await fetch(BUTTONDOWN_EMAILS_URL, {
@@ -130,7 +132,7 @@ async function sendWelcomeEmail(email: string, apiKey: string) {
       headers,
       signal: AbortSignal.timeout(8000),
       body: JSON.stringify({
-        subject: 'Welcome — Santa Cruz Theater Audition Notices',
+        subject: 'Welcome — Santa Cruz Theater Audition & Event Notices',
         body: html,
         status: 'transactional'
       })

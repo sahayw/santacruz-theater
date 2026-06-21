@@ -300,3 +300,166 @@ On page load, client-side JS checks for this parameter, finds the matching card 
    welcome-email flow after the HTTP response is returned, so the user waits only ~2.5s
    (subscriber POST) rather than waiting for the full welcome-email create/send flow.
    UI pending state changed to "Subscribing…".
+
+### Events — unified activities model
+
+An "audition" is a specific type of theater activity. Rather than building a parallel events subsystem alongside auditions, both are unified under a single **Activity** record type. This avoids duplicating the data pipeline, editor, data loader, email template, and public page.
+
+No backwards compatibility is required: the existing audition files and deep-links can be migrated without preserving the old paths.
+
+#### Core insight
+
+The audition and event schemas share: a dates array (identical per-date structure), contact, description, notes, company linkage, and `createdAt`/`updatedAt` timestamps. The differences are:
+
+- **Audition-specific:** `rolesAvailable`, `prep`, `rehearsalStart`, `openingDate`, `productionId`, `productionUrl`
+- **Event-specific:** `cost`, `briefDescription` (a short blurb for the collapsed card header)
+- **Renamed to be type-neutral:** `production` → `title`, `auditionDates` → `dates`, `auditionNoticeUrl` → `noticeUrl`
+
+A discriminant field `type: 'audition' | 'event'` drives conditional display in both the editor and the public cards. All other fields are optional and simply absent when not applicable to the type.
+
+#### Data schema (`data/activities/<year>/<company-id>-activities-<year>.json`)
+
+Top-level shape:
+
+```json
+{ "company": "<id>", "year": 2026, "activities": [ <Activity>, ... ] }
+```
+
+##### `Activity`
+
+| Field              | Type               | Notes                                                                                      |
+| ------------------ | ------------------ | ------------------------------------------------------------------------------------------ |
+| `id`               | `string`           | `"activity-<timestamp>"` — stable, editor-assigned                                         |
+| `type`             | `ActivityType`     | `'audition' \| 'event'`                                                                    |
+| `title`            | `string`           | Production name (audition) or event name                                                   |
+| `briefDescription` | `string?`          | **Event only.** Short blurb shown in collapsed card header                                 |
+| `description`      | `string?`          | Full description in expanded detail; supports `**bold**` and `*italic*`                    |
+| `genre`            | `Genre[]`          | Optional for both types; empty array when unset                                            |
+| `dates`            | `ActivityDate[]`   | Ordered list of sessions (was `auditionDates`)                                             |
+| `organizerName`    | `string?`          | Required when `company` is `"other"`; not used for named companies                         |
+| `organizerUrl`     | `string?`          | Optional organizer website; used only when `company` is `"other"`                          |
+| `rolesAvailable`   | `AuditionRole[]?`  | **Audition only.** Suppressed when empty (editor and public page)                          |
+| `prep`             | `AuditionPrep?`    | **Audition only.** `{ acting?, singing?, dance?, bring? }`                                 |
+| `rehearsalStart`   | `string?`          | **Audition only.** `YYYY-MM-DD`                                                            |
+| `openingDate`      | `string?`          | **Audition only.** `YYYY-MM-DD`                                                            |
+| `productionId`     | `string?`          | **Audition only.** Soft ref to a `Run` id in shows data                                    |
+| `cost`             | `string?`          | **Event only.** Free text, e.g. `"Free"`, `"$20"`, `"Pay what you can"`                    |
+| `contact`          | `ActivityContact?` | `{ name?, email?, phone? }` (was `AuditionContact`)                                        |
+| `noticeUrl`        | `string?`          | Primary info/notice URL (was `auditionNoticeUrl` / `moreInfoUrl`)                          |
+| `productionUrl`    | `string?`          | **Audition only.** Production page URL                                                      |
+| `notes`            | `string?`          | Full-width notes in expanded card                                                          |
+| `createdAt`        | `string`           | ISO 8601 timestamp                                                                         |
+| `updatedAt`        | `string`           | ISO 8601 timestamp                                                                         |
+
+##### `ActivityDate`
+
+Identical to the former `AuditionDate` with one change: `endTime` is now optional. Shape: `{ date, startTime, endTime?, notes?, location? }`.
+
+##### `ActivityContact`
+
+Identical to the former `AuditionContact`: `{ name?, email?, phone? }`.
+
+##### Data access
+
+`getActivities()` in `src/lib/data.ts` replaces `getAuditions()`. It compiles all `data/activities/**/*.json` files via `import.meta.glob` and returns a flat `ActivityEvent[]` (activity + `company` + `year`), sorted by earliest `date` ascending. Upcoming = latest `date` ≥ today, same rule as before.
+
+Filter helpers: `getUpcomingActivities(activities)`, `getUpcomingAuditions(activities)` (type === 'audition'), `getUpcomingEvents(activities)` (type === 'event').
+
+#### Data migration from current audition files
+
+A one-off migration script (`scripts/migrate-auditions-to-activities.ts`) transforms each existing `data/auditions/<year>/<co>-auditions-<year>.json`:
+
+1. Rename file to `data/activities/<year>/<co>-activities-<year>.json`
+2. Rename array key `auditions` → `activities`
+3. In each record: add `"type": "audition"`, rename `id` from `audition-<timestamp>` to `activity-<timestamp>`, rename `auditionDates` → `dates`, rename `auditionNoticeUrl` → `noticeUrl`
+4. Remove the now-empty `data/auditions/` directory
+5. In `data/sc-theater-companies.json`: rename `"auditions"` → `"activities"` in every `datasets` array
+
+The old `data/auditions/` directory is deleted after migration; no redirect or compatibility shim is needed.
+
+#### Type system changes (`src/types.ts`)
+
+- `AuditionDate` → `ActivityDate` (same shape, renamed)
+- `AuditionContact` → `ActivityContact` (same shape, renamed)
+- `AuditionLocation` retained as-is (used inside `ActivityDate`)
+- `Audition` → `Activity` (unified type as above)
+- `AuditionsFile` → `ActivitiesFile`
+- `AuditionEvent` → `ActivityEvent` (flattened record used in `data.ts`)
+- `AuditionRole`, `AuditionRoleType`, `AuditionGender`, `AuditionPrep` retained as-is (audition-specific types, names remain meaningful)
+- New: `ActivityType = 'audition' | 'event'`
+
+`audition-format.ts` function signatures updated to accept `ActivityDate[]` / `ActivityContact` etc., but implementations are unchanged. The browser module at `/admin/audition-format.js` regenerates automatically via the existing Astro endpoint.
+
+#### Public `/events` page
+
+`src/pages/auditions.astro` is renamed to `events.astro` and reworked as the combined listing. The old `auditions.astro` is deleted; no redirect is needed. The `/events` nav link replaces `/auditions` in `SiteNav.astro`.
+
+**Filter bar options** (default: Upcoming Auditions):
+
+- Upcoming Auditions
+- Upcoming Events
+- All Upcoming
+- All
+
+**Deep-linking**: `?id=<timestamp>`. The page strips the `activity-` prefix before matching. URL format: `https://santacruz.theater/events?id=1735000000002`.
+
+**Collapsed card by type:**
+
+- _Audition:_ production title, company, date range (same as current)
+- _Event:_ event name, organizer name/abvName, brief description (if set), date range
+
+**Expanded card by type:**
+
+- _Audition:_ all current expanded content unchanged
+- _Event:_ title, organizer, full description, dates/times/locations, cost (if set), contact (if set), More Info link
+
+**Past and Updated pills**: same client-side rules for both types.
+
+#### Admin editor (`activities.js`)
+
+Single ES module at `public/admin/activities.js` replacing `auditions.js`. A single **Activities** tile in the admin hub replaces the current Auditions tile (and the planned separate Events tile).
+
+Editor access: company editors with `"activities"` in their datasets array, plus admin. Existing `"auditions"` dataset key renamed to `"activities"` in `sc-theater-companies.json`.
+
+The form is the same structure as the current auditions editor. Type-conditional visibility:
+
+- **Type = Audition:** Roles Available section, Prepare section, Rehearsal Start, Opening Date shown; Cost hidden
+- **Type = Event:** Cost field shown; Roles Available section, Prepare section, Rehearsal Start, Opening Date hidden; Brief Description prominently placed in fixed fields row
+- All other fields (Dates table, Contact, Description, Notes, URLs) shown for both types
+
+For the `other` bucket, `Organizer Name` (required) and `Organizer URL` (optional) appear in the fixed fields row for both types.
+
+Changing the `type` field on an existing record preserves all data; type-specific fields not applicable to the new type are simply hidden (not deleted) until the user saves — at which point the editor omits empty audition-specific arrays and undefined event-specific fields in the normal way.
+
+#### Email changes
+
+**Digest** (`send-audition-digest.mts`, renamed `send-digest.mts`):
+
+- Reads from `data/activities/**/*.json` via the updated `activities-data.mts` (renamed from `auditions-data.mts`)
+- `classifyForDigest()` returns `{ newAuditions, updatedAuditions, newEvents, updatedEvents }` by filtering on `type`
+- Digest sections (each omitted if empty): New Auditions → Updated Auditions → New Events → Updated Events
+- If all four are empty, no email is sent
+- `netlify.toml` `included_files` updated: `data/auditions/**/*.json` → `data/activities/**/*.json`
+
+**Welcome email** (`buildWelcomeHtml`):
+
+- Signature updated: `buildWelcomeHtml(activities, baseUrl)` — receives a single `ActivityEvent[]` filtered to upcoming, splits internally by `type` for formatting
+- Structure: intro paragraph, Upcoming Auditions flat list (or fallback), Upcoming Events flat list (or fallback)
+- Success message: "Thanks for subscribing! We've sent you a welcome email with upcoming auditions and other events."
+
+**Subscribe widget / `/subscribe` page**: body text updated to mention both auditions and events.
+
+#### Home page
+
+The "Auditions" card on `src/pages/index.astro` updated to "Auditions and Other Events", link updated to `/events`.
+
+#### Implementation sequence (step 4)
+
+4. Unified activities system:
+   - **4a.** Types: rename/unify `AuditionDate` → `ActivityDate` (`endTime` made optional), `AuditionContact` → `ActivityContact`, `Audition` → `Activity` (add `type`, `briefDescription` (event-only), `cost` (event-only), `organizerName`, `organizerUrl`; mark `productionUrl` audition-only; rename `auditionDates` → `dates`, `auditionNoticeUrl` → `noticeUrl`), rename `AuditionsFile` → `ActivitiesFile`, add `ActivityType`. Update `audition-format.ts` signatures.
+   - **4b.** Data migration script: `scripts/migrate-auditions-to-activities.ts`. Renames files, renames array key, adds `type`, renames `id` from `audition-` to `activity-`, renames `auditionDates` → `dates` and `auditionNoticeUrl` → `noticeUrl` in each record, deletes `data/auditions/`, and renames `"auditions"` → `"activities"` in every `datasets` array in `sc-theater-companies.json`. Run once.
+   - **4c.** `src/lib/data.ts`: replace `getAuditions()` with `getActivities()` reading from `data/activities/`.
+   - **4d.** Admin editor: `public/admin/activities.js` (rename + type-conditional UI). Hub tile updated. Dataset key `"auditions"` → `"activities"` in `sc-theater-companies.json`.
+   - **4e.** Public `/events` page: combined listing, filter bar, deep-link support for both types, Past/Updated pills.
+   - **4f.** Routing and nav: delete `auditions.astro` (no redirect needed), nav + home card updated.
+   - **4g.** Email: rename `auditions-data.mts` → `activities-data.mts`, update loaders and `classifyForDigest`; update `buildDigestHtml` and `buildWelcomeHtml`; rename digest function file `send-audition-digest.mts` → `send-digest.mts`; update `netlify.toml`: both `included_files` (`data/auditions/**/*.json` → `data/activities/**/*.json`) and the scheduled function config block (which references the old filename); update subscribe widget and `/subscribe` text.

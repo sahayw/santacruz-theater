@@ -1,35 +1,12 @@
 {
   "company": "scs",
   "year": 2026,
-  "auditions": [
+  "activities": [
     {
-      "id": "audition-1735000000001",
-      "production": "2026 Festival Season (Much Ado About Nothing, Macbeth, Private Lives, The Last Five Years, Fences)",
+      "id": "activity-1735000000001",
       "genre": [
         "Drama",
         "Comedy"
-      ],
-      "auditionDates": [
-        {
-          "date": "2026-01-25",
-          "startTime": "11:00",
-          "endTime": "18:00",
-          "notes": "Walk-in, no appointment needed. Sign-ups begin 10:30am. Everyone will be seen.",
-          "location": {
-            "name": "Veterans Memorial Building",
-            "address": "846 Front St, Santa Cruz, CA"
-          }
-        },
-        {
-          "date": "2026-02-06",
-          "startTime": "09:00",
-          "endTime": "17:00",
-          "notes": "Equity members by appointment via AEA website. Non-union join waiting list day-of.",
-          "location": {
-            "name": "Actors' Equity Building",
-            "address": "5636 Tujunga Ave, North Hollywood, CA"
-          }
-        }
       ],
       "rolesAvailable": [
         {
@@ -63,11 +40,35 @@
       "contact": {
         "email": "auditions@santacruzshakespeare.org"
       },
-      "auditionNoticeUrl": "https://santacruzshakespeare.org/auditions/",
       "productionUrl": "https://santacruzshakespeare.org/",
       "notes": "Video submissions also accepted: upload to YouTube (no Vimeo or Google Drive), under three minutes, two contrasting pieces at least one Shakespeare. Send link to auditions@santacruzshakespeare.org. First rehearsal June 9; all shows rehearse in repertory. LOA contract, $839 weekly minimum (2025 rates).",
       "createdAt": "2026-06-02T00:00:00Z",
-      "updatedAt": "2026-06-15T08:35:50.125Z"
+      "updatedAt": "2026-06-15T08:35:50.125Z",
+      "type": "audition",
+      "title": "2026 Festival Season (Much Ado About Nothing, Macbeth, Private Lives, The Last Five Years, Fences)",
+      "dates": [
+        {
+          "date": "2026-01-25",
+          "startTime": "11:00",
+          "endTime": "18:00",
+          "notes": "Walk-in, no appointment needed. Sign-ups begin 10:30am. Everyone will be seen.",
+          "location": {
+            "name": "Veterans Memorial Building",
+            "address": "846 Front St, Santa Cruz, CA"
+          }
+        },
+        {
+          "date": "2026-02-06",
+          "startTime": "09:00",
+          "endTime": "17:00",
+          "notes": "Equity members by appointment via AEA website. Non-union join waiting list day-of.",
+          "location": {
+            "name": "Actors' Equity Building",
+            "address": "5636 Tujunga Ave, North Hollywood, CA"
+          }
+        }
+      ],
+      "noticeUrl": "https://santacruzshakespeare.org/auditions/"
     }
   ]
 }

@@ -37,7 +37,7 @@ export interface ShowsFile {
 /** One entry in a CompanyEntry's editors array. */
 export interface CompanyEditor {
   email: string
-  datasets: string[] // e.g. ['calendar', 'auditions']
+  datasets: string[] // e.g. ['calendar', 'activities']
 }
 
 /** Shape of data/sc-theater-companies.json. */
@@ -66,10 +66,10 @@ export interface AuditionRole {
   description?: string
 }
 
-export interface AuditionDate {
+export interface ActivityDate {
   date: string // YYYY-MM-DD
   startTime: string // HH:MM 24-hour
-  endTime: string // HH:MM 24-hour
+  endTime?: string // HH:MM 24-hour (optional)
   notes?: string // e.g. "First come, first served"
   location?: AuditionLocation
 }
@@ -79,7 +79,7 @@ export interface AuditionLocation {
   address?: string
 }
 
-export interface AuditionContact {
+export interface ActivityContact {
   name?: string
   email?: string
   phone?: string
@@ -92,28 +92,36 @@ export interface AuditionPrep {
   bring?: string[]
 }
 
-export interface Audition {
-  id: string // "audition-<timestamp>"
-  production: string
+export type ActivityType = 'audition' | 'event'
+
+export interface Activity {
+  id: string // "activity-<timestamp>"
+  type: ActivityType
+  title: string // production name (audition) or event name
+  briefDescription?: string // event only: short blurb for collapsed card header
+  description?: string // full description; supports **bold** and *italic*
   genre: Genre[]
-  productionId?: string // soft ref to a Run id in shows data
-  auditionDates: AuditionDate[]
-  rolesAvailable: AuditionRole[]
-  prep?: AuditionPrep
-  rehearsalStart?: string // YYYY-MM-DD
-  openingDate?: string // YYYY-MM-DD
-  contact?: AuditionContact
-  auditionNoticeUrl?: string
-  productionUrl?: string
+  dates: ActivityDate[]
+  organizerName?: string // required when company is "other"
+  organizerUrl?: string // optional organizer website when company is "other"
+  rolesAvailable?: AuditionRole[] // audition only; suppressed when empty
+  prep?: AuditionPrep // audition only
+  rehearsalStart?: string // audition only; YYYY-MM-DD
+  openingDate?: string // audition only; YYYY-MM-DD
+  productionId?: string // audition only; soft ref to a Run id
+  cost?: string // event only; free text e.g. "Free", "$20"
+  contact?: ActivityContact
+  noticeUrl?: string // primary info/notice URL
+  productionUrl?: string // audition only; production page URL
   notes?: string
   createdAt: string
   updatedAt: string
 }
 
-export interface AuditionsFile {
+export interface ActivitiesFile {
   company: string
   year: number
-  auditions: Audition[]
+  activities: Activity[]
 }
 
 /**

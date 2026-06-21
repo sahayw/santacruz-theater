@@ -1,12 +1,24 @@
 {
   "company": "svpa",
   "year": 2026,
-  "auditions": [
+  "activities": [
     {
-      "id": "audition-1781438400001",
-      "production": "Annie",
-      "genre": "Musical",
-      "auditionDates": [
+      "id": "activity-1781438400001",
+      "genre": [
+        "Musical"
+      ],
+      "rolesAvailable": [],
+      "prep": {
+        "singing": "Prepare a 1-minute song that shows your vocal range; bring a backing track ready to connect to a Bluetooth speaker"
+      },
+      "openingDate": "2026-09-18",
+      "productionUrl": "https://www.svpashows.org/",
+      "notes": "Annie is an ideal show for a largely female cast. Callbacks go out Sunday June 21st evening — keep that date open if auditioning.",
+      "createdAt": "2026-06-14T12:00:00.000Z",
+      "updatedAt": "2026-06-14T12:00:00.000Z",
+      "type": "audition",
+      "title": "Annie",
+      "dates": [
         {
           "date": "2026-06-19",
           "startTime": "18:00",
@@ -48,16 +60,7 @@
           }
         }
       ],
-      "rolesAvailable": [],
-      "prep": {
-        "singing": "Prepare a 1-minute song that shows your vocal range; bring a backing track ready to connect to a Bluetooth speaker"
-      },
-      "openingDate": "2026-09-18",
-      "auditionNoticeUrl": "https://www.onthestage.tickets/show/scotts-valley-performing-arts/6a1b286467d38677bc7e7c41",
-      "productionUrl": "https://www.svpashows.org/",
-      "notes": "Annie is an ideal show for a largely female cast. Callbacks go out Sunday June 21st evening — keep that date open if auditioning.",
-      "createdAt": "2026-06-14T12:00:00.000Z",
-      "updatedAt": "2026-06-14T12:00:00.000Z"
+      "noticeUrl": "https://www.onthestage.tickets/show/scotts-valley-performing-arts/6a1b286467d38677bc7e7c41"
     }
   ]
 }

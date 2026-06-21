@@ -1,40 +1,11 @@
 {
   "company": "mct",
   "year": 2026,
-  "auditions": [
+  "activities": [
     {
-      "id": "audition-1735000000003",
-      "production": "Rumors",
-      "genre": "Comedy",
-      "auditionDates": [
-        {
-          "date": "2026-04-27",
-          "startTime": "18:30",
-          "endTime": "20:30",
-          "location": {
-            "name": "St. Andrew's Episcopal Church",
-            "address": "101 Riverside Ave, Ben Lomond, CA"
-          }
-        },
-        {
-          "date": "2026-04-28",
-          "startTime": "18:30",
-          "endTime": "20:30",
-          "location": {
-            "name": "Actors' Theatre",
-            "address": "1001 Center St, Santa Cruz, CA"
-          }
-        },
-        {
-          "date": "2026-04-30",
-          "startTime": "18:30",
-          "endTime": "21:00",
-          "notes": "Callbacks (invitation only)",
-          "location": {
-            "name": "St. Andrew's Episcopal Church",
-            "address": "101 Riverside Ave, Ben Lomond, CA"
-          }
-        }
+      "id": "activity-1735000000003",
+      "genre": [
+        "Comedy"
       ],
       "rolesAvailable": [
         {
@@ -111,11 +82,43 @@
         "name": "Daria Troxell",
         "email": "slvdaria24@gmail.com"
       },
-      "auditionNoticeUrl": "https://mctshows.org/auditions/",
       "productionUrl": "https://mctshows.org/",
       "notes": "Directed by MarNae Taylor. Performances Sept 18–Oct 11, 2026: Fri & Sat at 8pm, Sun at 2pm at Park Hall, Ben Lomond.",
       "createdAt": "2026-06-02T00:00:00Z",
-      "updatedAt": "2026-06-02T00:00:00Z"
+      "updatedAt": "2026-06-02T00:00:00Z",
+      "type": "audition",
+      "title": "Rumors",
+      "dates": [
+        {
+          "date": "2026-04-27",
+          "startTime": "18:30",
+          "endTime": "20:30",
+          "location": {
+            "name": "St. Andrew's Episcopal Church",
+            "address": "101 Riverside Ave, Ben Lomond, CA"
+          }
+        },
+        {
+          "date": "2026-04-28",
+          "startTime": "18:30",
+          "endTime": "20:30",
+          "location": {
+            "name": "Actors' Theatre",
+            "address": "1001 Center St, Santa Cruz, CA"
+          }
+        },
+        {
+          "date": "2026-04-30",
+          "startTime": "18:30",
+          "endTime": "21:00",
+          "notes": "Callbacks (invitation only)",
+          "location": {
+            "name": "St. Andrew's Episcopal Church",
+            "address": "101 Riverside Ave, Ben Lomond, CA"
+          }
+        }
+      ],
+      "noticeUrl": "https://mctshows.org/auditions/"
     }
   ]
 }

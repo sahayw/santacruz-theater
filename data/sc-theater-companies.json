@@ -4,7 +4,15 @@
       "id": "admin",
       "abvName": "Admin",
       "name": "Data Admin",
-      "editors": [{ "email": "sh.theater@icloud.com", "datasets": ["calendar", "auditions"] }],
+      "editors": [
+        {
+          "email": "sh.theater@icloud.com",
+          "datasets": [
+            "calendar",
+            "activities"
+          ]
+        }
+      ],
       "adminOnly": true
     },
     {
@@ -29,7 +37,14 @@
       "primaryVenue": "PH",
       "website": "https://mctshows.org/",
       "logo": "/images/companies/mct-logo.png",
-      "editors": [{ "email": "president@mctshows.org", "datasets": ["calendar"] }]
+      "editors": [
+        {
+          "email": "president@mctshows.org",
+          "datasets": [
+            "calendar"
+          ]
+        }
+      ]
     },
     {
       "id": "renegade",
@@ -83,7 +98,15 @@
       "abvName": "Other",
       "name": "Other Companies",
       "adminOnly": true,
-      "editors": [{ "email": "josephine.czarnecki@gmail.com", "datasets": ["calendar", "auditions"] }]
+      "editors": [
+        {
+          "email": "josephine.czarnecki@gmail.com",
+          "datasets": [
+            "calendar",
+            "activities"
+          ]
+        }
+      ]
     }
   ]
 }

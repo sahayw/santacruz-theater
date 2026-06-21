@@ -1,14 +1,21 @@
 {
   "company": "aat",
   "year": 2026,
-  "auditions": [
+  "activities": [
     {
-      "id": "audition-1781520135171",
-      "production": "Dear Evan Hansen",
+      "id": "activity-1781520135171",
       "genre": [
         "Musical"
       ],
-      "auditionDates": [
+      "rolesAvailable": [],
+      "createdAt": "2026-06-15T10:42:15.168Z",
+      "updatedAt": "2026-06-15T10:51:09.457Z",
+      "rehearsalStart": "2026-07-05",
+      "openingDate": "2026-08-13",
+      "notes": "Dear Evan Hansen is a Tony-winning-coming-of-age musical about a lonely high school student with social anxiety. Evan fabricates a friendship with a deceased classmate to gain social acceptance. The lie spirals, forcing Evan to confront the consequences of his actions.\nIt is a powerful piece exploring mental health, grief, the impact of social media, loneliness, and the struggle for connection.\nOne teen cast and one adult.",
+      "type": "audition",
+      "title": "Dear Evan Hansen",
+      "dates": [
         {
           "date": "2026-06-29",
           "startTime": "17:30",
@@ -50,13 +57,7 @@
           "notes": "Call-backs"
         }
       ],
-      "rolesAvailable": [],
-      "createdAt": "2026-06-15T10:42:15.168Z",
-      "updatedAt": "2026-06-15T10:51:09.457Z",
-      "rehearsalStart": "2026-07-05",
-      "openingDate": "2026-08-13",
-      "auditionNoticeUrl": "https://allabouttheatre.org/dear-evan-hansen",
-      "notes": "Dear Evan Hansen is a Tony-winning-coming-of-age musical about a lonely high school student with social anxiety. Evan fabricates a friendship with a deceased classmate to gain social acceptance. The lie spirals, forcing Evan to confront the consequences of his actions.\nIt is a powerful piece exploring mental health, grief, the impact of social media, loneliness, and the struggle for connection.\nOne teen cast and one adult."
+      "noticeUrl": "https://allabouttheatre.org/dear-evan-hansen"
     }
   ]
 }

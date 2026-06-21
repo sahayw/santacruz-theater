@@ -7,11 +7,11 @@
   },
   "scripts": {
     "dev": "astro dev",
-    "build": "tsx scripts/check-shows.ts && tsx scripts/check-auditions.ts && astro build",
-    "preview": "tsx scripts/check-shows.ts && tsx scripts/check-auditions.ts &&  astro preview",
+    "build": "tsx scripts/check-shows.ts && tsx scripts/check-activities.ts && astro build",
+    "preview": "tsx scripts/check-shows.ts && tsx scripts/check-activities.ts && astro preview",
     "release": "git diff --quiet && git diff --cached --quiet && git checkout dev && git pull origin dev && git checkout main && git pull origin main && git merge dev && git push origin main && git checkout dev && git merge main && git push origin dev",
     "check-shows": "tsx scripts/check-shows.ts",
-    "check-auditions": "tsx scripts/check-auditions.ts"
+    "check-activities": "tsx scripts/check-activities.ts"
   },
   "dependencies": {
     "@netlify/blobs": "^8.2.0",

@@ -1,4 +1,4 @@
-import type { Run, ShowsFile, PerformanceEvent, Audition, AuditionsFile, Genre } from '../types.ts'
+import type { Run, ShowsFile, PerformanceEvent, Activity, ActivitiesFile, Genre } from '../types.ts'
 
 function coerceGenre(raw: unknown): Genre[] {
   if (Array.isArray(raw)) return raw as Genre[]
@@ -51,25 +51,25 @@ export async function getPerformances(): Promise<PerformanceEvent[]> {
   )
 }
 
-export interface AuditionEvent extends Audition {
+export interface ActivityEvent extends Activity {
   company: string
   year: number
 }
 
-export function getAuditions(): AuditionEvent[] {
-  const files = import.meta.glob<{ default: AuditionsFile }>('../../data/auditions/**/*.json', {
+export function getActivities(): ActivityEvent[] {
+  const files = import.meta.glob<{ default: ActivitiesFile }>('../../data/activities/**/*.json', {
     eager: true
   })
-  const events: AuditionEvent[] = []
+  const events: ActivityEvent[] = []
   for (const mod of Object.values(files)) {
     const file = mod.default
-    for (const a of file.auditions) {
+    for (const a of file.activities) {
       events.push({ ...a, genre: coerceGenre((a as unknown as Record<string, unknown>).genre), company: file.company, year: file.year })
     }
   }
   return events.sort((a, b) => {
-    const da = a.auditionDates[0]?.date ?? ''
-    const db = b.auditionDates[0]?.date ?? ''
+    const da = a.dates[0]?.date ?? ''
+    const db = b.dates[0]?.date ?? ''
     return da.localeCompare(db)
   })
 }

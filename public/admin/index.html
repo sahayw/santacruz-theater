@@ -232,16 +232,16 @@ body {
 
 <script type="module">
 import { IS_DEV, setIdentityUser, getIdentityUser, loadCompanies, resolveUserAccess } from './api.js';
-import { mount as mountCalendar,   unmount as unmountCalendar   } from './calendar.js';
-import { mount as mountAuditions,  unmount as unmountAuditions  } from './auditions.js';
+import { mount as mountCalendar,    unmount as unmountCalendar    } from './calendar.js';
+import { mount as mountActivities,  unmount as unmountActivities  } from './activities.js';
 
 let allCompanies = [];
 let userAccess   = null;
 let currentEditor = null;
 
 const EDITORS = {
-  calendar:  { label: 'Calendar Editor',  headerTitle: 'Edit Performances', displayUrl: '/calendar',  desc: 'Manage show runs and performances', icon: '📅', mount: mountCalendar,  unmount: unmountCalendar  },
-  auditions: { label: 'Auditions Editor', headerTitle: 'Edit Auditions',    displayUrl: '/auditions', desc: 'Manage audition listings',          icon: '🎤', mount: mountAuditions, unmount: unmountAuditions },
+  calendar:   { label: 'Calendar Editor',   headerTitle: 'Edit Performances', displayUrl: '/calendar', desc: 'Manage show runs and performances',     icon: '📅', mount: mountCalendar,   unmount: unmountCalendar   },
+  activities: { label: 'Activities Editor', headerTitle: 'Edit Activities',   displayUrl: '/events',   desc: 'Manage auditions and events',            icon: '🎭', mount: mountActivities, unmount: unmountActivities },
 };
 
 async function init() {
@@ -252,7 +252,7 @@ async function init() {
       console.warn('Dev: could not load companies:', e);
       allCompanies = [];
     }
-    userAccess = { isAdmin: true, datasets: ['calendar', 'auditions'], company: null };
+    userAccess = { isAdmin: true, datasets: ['calendar', 'activities'], company: null };
     showApp();
     showHub();
     return;

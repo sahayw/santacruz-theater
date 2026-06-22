@@ -200,8 +200,8 @@ One file per company per year. Top-level shape:
 | `type`             | `ActivityType`     | `'audition' \| 'event'`                                                                                                                           |
 | `title`            | `string`           | Production name (audition) or event title                                                                                                         |
 | `briefDescription` | `string?`          | **Event only.** Short blurb shown in collapsed card header                                                                                        |
-| `description`      | `string?`          | Full description; supports `**bold**` and `*italic*`                                                                                              |
-| `genre`            | `Genre[]`          | Up to 2 values from `Drama \| Musical \| Comedy \| Other`; empty array when unset. Legacy string values are coerced to single-item array on read. |
+| `description`      | `string?`          | **Event only.** Full description; supports `**bold**` and `*italic*`                                                                              |
+| `genre`            | `Genre[]`          | **Audition only.** Up to 2 values from `Drama \| Musical \| Comedy \| Other`; empty array when unset. Legacy string values are coerced to single-item array on read. |
 | `dates`            | `ActivityDate[]`   | Ordered list of sessions; each carries its own location                                                                                           |
 | `organizerName`    | `string?`          | Required when `company` is `"other"`; overrides company name in display                                                                           |
 | `organizerUrl`     | `string?`          | Optional organizer website; used when `company` is `"other"`                                                                                      |
@@ -211,10 +211,11 @@ One file per company per year. Top-level shape:
 | `openingDate`      | `string?`          | **Audition only.** `YYYY-MM-DD`                                                                                                                   |
 | `productionId`     | `string?`          | **Audition only.** Soft ref to a `Run` id in shows data (not exposed in editor UI)                                                                |
 | `cost`             | `string?`          | **Event only.** Free text e.g. `"Free"`, `"$20"`                                                                                                  |
+| `registerUrl`      | `string?`          | **Event only.** Registration link; shown below Cost and above Contact in display                                                                  |
 | `contact`          | `ActivityContact?` | `{ name?, email?, phone? }`                                                                                                                       |
 | `noticeUrl`        | `string?`          | Primary info/notice URL                                                                                                                           |
 | `productionUrl`    | `string?`          | **Audition only.** Production page URL                                                                                                            |
-| `notes`            | `string?`          | Full-width notes shown at bottom of expanded card                                                                                                 |
+| `notes`            | `string?`          | **Audition only.** Full-width notes shown at bottom of expanded card                                                                              |
 | `createdAt`        | `string`           | ISO 8601 timestamp                                                                                                                                |
 | `updatedAt`        | `string`           | ISO 8601 timestamp                                                                                                                                |
 
@@ -255,16 +256,15 @@ A `?id=<timestamp>` URL parameter targets a specific activity record (the `activ
 
 Follows the same mount/unmount pattern as `calendar.js`. The company selector is populated from every company except the admin sentinel entry in `sc-theater-companies.json` via the shared `buildCompanyOptions()` function in `api.js`, with `Other` listed last. If the selected company has no existing file, one is created automatically for the current year. If existing files are all for the current year or earlier and the current year is present, it is auto-loaded without requiring a year selection.
 
-The **+ New** button in the activities sidebar is hidden until a company file is loaded. The sidebar column stays blank until data is loaded. New records default to `type: "audition"`.
+The sidebar shows **+ Audition** and **+ Event** buttons (hidden until a company file is loaded). They create new records with the type locked at creation — type cannot be changed after a record is created. The sidebar column stays blank until data is loaded.
 
-The form is split into a fixed header (title, subtitle, restore/delete buttons) and a fixed fields row (company, type, genre, title, then type-conditional fields), followed by a scrollable body containing: Dates → Roles Available (audition only) → Prepare/Contact → Description → Notes.
+The form is split into a fixed header (title, subtitle, restore/delete buttons) and a fixed fields row (company, genre [audition only], title, then type-conditional fields), followed by a scrollable body containing: Dates → Roles Available (audition only) → Prepare/Contact → Description (event only) → Notes (audition only).
 
-- **Type selector** — controls which field groups are shown. Changing type on an existing record hides inapplicable fields without destroying data; type-specific fields are omitted from the saved JSON only when falsy.
-- **Audition fields** (shown when type = audition): Rehearsal Start, Opening Date, Notice URL, Production URL; Roles Available section; Prepare section (Acting, Singing\*, Dance\*, Bring).
-- **Event fields** (shown when type = event): Brief Description, Cost, Notice URL; Roles Available and Prepare sections hidden.
+- **Audition fields** — row 1: Company + Title (span 4) + Genre (col 6, spanning rows 1–3). Rows 2–3: Rehearsal Start, Notice URL, Opening Date, Production URL (left of Genre). Roles Available section. Prepare section (Acting, Singing\*, Dance\*, Bring).
+- **Event fields** — row 1: Company + Title (span 5, no genre). Row 2: Brief Description (span 4) + Cost (span 2). Row 3: Notice URL (span 3) + Register URL (span 3). Roles Available and Prepare sections hidden.
 - **Other-company fields** (shown when company = "other"): Organizer Name, Organizer URL.
-- **Dates table** — inline-editable rows for date, start time, end time (optional), location name, address, and session notes. Start time required; end time optional for all types.
-- **Roles table** — inline-editable; Voice Part column shown only when Musical is one of the selected genres.
+- **Dates table** — inline-editable rows for date, start time, end time (optional), location name, address, and session notes. Adding a new row pre-populates start time, end time, and location from the previous row.
+- **Roles table** — inline-editable; audition only; Voice Part column shown only when Musical is one of the selected genres.
 - **Musical-only fields** — Singing and Dance prep rows, and the Voice Part column, shown only when Musical is one of the selected genres.
 
 #### Save and dirty-check
@@ -277,7 +277,9 @@ Same as the former auditions editor: appears in the record header when the activ
 
 #### Card preview
 
-The **Preview** button renders a modal showing what the collapsed + expanded card will look like on the public `/events` page. Preview renders type-conditionally: auditions show roles/prep/dates; events show description/dates/cost/contact. The `.pv-meta-row` and `.pv-roles-row` in the preview mirror the `.aud-meta-row` and `.aud-roles-row` on the public page.
+The **Preview** button renders a modal showing what the collapsed + expanded card will look like on the public `/events` page. Preview renders type-conditionally: auditions show genre/roles/prep/dates/notes; events show brief description/dates/description/cost/register/contact. The `.pv-meta-row` and `.pv-roles-row` in the preview mirror the `.aud-meta-row` and `.aud-roles-row` on the public page. When all dates share the same location it is shown once after the date list, matching the public page behaviour.
+
+There are four rendering paths that must be kept in sync when making card display changes: (1) public page Astro template, (2) deep-link view (reuses the same Astro HTML — inherits automatically), (3) editor preview (`buildPreviewHtml()` in `activities.js` — must be updated separately), (4) email templates (`email-template.mts` — update when card content changes).
 
 ### Email notifications
 

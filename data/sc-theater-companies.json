@@ -91,22 +91,34 @@
       "name": "Gay Innocent Heartless",
       "website": "https://www.gayinnocentheartless.com/",
       "logo": "/images/companies/gih-logo.png",
-      "logoDark": true
+      "logoDark": true,
+      "editors": [
+        {
+          "email": "josephine.czarnecki@gmail.com",
+          "datasets": [
+            "activities","calendar"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "scratch",
+      "abvName": "Scratch",
+      "name": "Scratch Studios",
+      "website": "https://scratchsantacruz.com/",
+      "logo": "/images/companies/scratch-logo.png",
+      "editors": [
+        {
+          "email": "josephine.czarnecki@gmail.com",
+          "datasets": ["activities"]
+        }
+      ]
     },
     {
       "id": "other",
       "abvName": "Other",
       "name": "Other Companies",
-      "adminOnly": true,
-      "editors": [
-        {
-          "email": "josephine.czarnecki@gmail.com",
-          "datasets": [
-            "calendar",
-            "activities"
-          ]
-        }
-      ]
+      "adminOnly": true
     }
   ]
 }

@@ -1106,6 +1106,15 @@ function updateTypeLayout() {
   if (otherFields) {
     otherFields.classList.toggle('hidden', currentCompanyId !== 'other')
   }
+
+  // Re-measure now that the correct textarea is visible
+  const descTa = document.getElementById('af-description')
+  const notesTa = document.getElementById('af-notes')
+  if (type === 'event') {
+    if (descTa) autoResizeTextarea(descTa)
+  } else {
+    if (notesTa) autoResizeTextarea(notesTa)
+  }
 }
 
 function updateMusicLayout() {

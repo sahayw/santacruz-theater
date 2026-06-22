@@ -152,17 +152,18 @@ function roleTypeLabel(type: string): string {
                           <span class={`genre-badge ${genreClass(g)}`}>{g}</span>
                         ))}
                       </div>
+                      {act.type === 'event' && act.briefDescription && (
+                        <div class="aud-brief-row">{act.briefDescription}</div>
+                      )}
                       <div class="aud-meta-row">
                         {name}
                         {act.type === 'audition' && act.openingDate && ` · Opens ${fmtShortDate(act.openingDate)}`}
                         {act.type === 'audition' && act.rehearsalStart &&
                           ` · Rehearsals start ${fmtShortDate(act.rehearsalStart)}`}
                       </div>
-                      <div class="aud-roles-row">
-                        {act.type === 'audition'
-                          ? rolesSum(act.rolesAvailable ?? [])
-                          : act.briefDescription ?? ''}
-                      </div>
+                      {act.type === 'audition' && (
+                        <div class="aud-roles-row">{rolesSum(act.rolesAvailable ?? [])}</div>
+                      )}
                     </div>
                     <div class="aud-aside">
                       <span class="aud-past-pip" aria-hidden="true">
@@ -383,7 +384,7 @@ function roleTypeLabel(type: string): string {
                             {act.description && (
                               <section class="detail-section">
                                 <h4 class="detail-section-head">About</h4>
-                                <div class="detail-sub" style="font-size:13px;color:var(--ink);line-height:1.55">{act.description}</div>
+                                <div class="detail-sub" style="font-size:13px;color:var(--ink);line-height:1.55;white-space:pre-wrap">{act.description}</div>
                               </section>
                             )}
                           </div>
@@ -823,6 +824,11 @@ function roleTypeLabel(type: string): string {
     text-overflow: ellipsis;
   }
 
+  .aud-brief-row {
+    font-size: 12px;
+    color: var(--ink-subtle);
+  }
+
   .aud-roles-row {
     font-size: 12px;
     color: var(--ink-subtle);
@@ -1073,6 +1079,7 @@ function roleTypeLabel(type: string): string {
     border-top: 1px solid var(--border);
     margin-top: 4px;
     font-style: italic;
+    white-space: pre-wrap;
   }
 
   .detail-links-row {

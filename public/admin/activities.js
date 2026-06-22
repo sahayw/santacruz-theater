@@ -267,7 +267,7 @@ const ACT_CSS = `
   padding: 4px 7px; border: 1px solid var(--border); border-radius: 3px;
   background: var(--surface); color: var(--ink);
   width: 100%; resize: none; overflow: hidden;
-  line-height: 1.5; height: 26px; transition: height 0.15s;
+  line-height: 1.5; min-height: 26px;
 }
 .act-desc-textarea:focus { outline: none; border-color: var(--accent2); }
 .act-desc-textarea.expanded { height: 90px; overflow-y: auto; resize: vertical; }
@@ -292,7 +292,7 @@ const ACT_CSS = `
   padding: 4px 7px; border: 1px solid var(--border); border-radius: 3px;
   background: var(--surface); color: var(--ink);
   width: 100%; resize: none; overflow: hidden;
-  line-height: 1.5; height: 26px; transition: height 0.15s;
+  line-height: 1.5; min-height: 26px;
 }
 .act-notes-textarea:focus { outline: none; border-color: var(--accent2); }
 .act-notes-textarea.expanded { height: 90px; overflow-y: auto; resize: vertical; }
@@ -368,6 +368,7 @@ const ACT_CSS = `
 .pv-title { font-family: 'Playfair Display', Georgia, serif; font-size: 16px; font-weight: 600; color: #1a1612; line-height: 1.25; }
 .pv-genre-badge { font-size: 11px; font-weight: 500; padding: 2px 8px; border-radius: 10px; flex-shrink: 0; letter-spacing: 0.02em; }
 .pv-type-badge { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; padding: 2px 7px; border-radius: 8px; flex-shrink: 0; background: #e8f4f0; color: #1a6b50; }
+.pv-brief-row { font-size: 12px; color: #9c9189; }
 .pv-meta-row { font-size: 12px; color: #6b6259; }
 .pv-roles-row { font-size: 12px; color: #9c9189; }
 .pv-aside { flex-shrink: 0; display: flex; flex-direction: column; align-items: flex-end; gap: 3px; min-width: 80px; }
@@ -407,7 +408,7 @@ const ACT_CSS = `
 .pv-role-ensemble { color: #9c9189; font-style: italic; }
 .pv-role-age, .pv-role-voice { color: #6b6259; white-space: nowrap; }
 .pv-role-desc { display: block; font-size: 11px; color: #6b6259; font-style: italic; line-height: 1.4; max-width: 80%; }
-.pv-notes-full { font-size: 13px; color: #6b6259; line-height: 1.6; padding: 12px 0 8px; border-top: 1px solid #e0d9d0; margin-top: 4px; font-style: italic; }
+.pv-notes-full { font-size: 13px; color: #6b6259; line-height: 1.6; padding: 12px 0 8px; border-top: 1px solid #e0d9d0; margin-top: 4px; font-style: italic; white-space: pre-wrap; }
 .pv-links-row { display: flex; gap: 16px; flex-wrap: wrap; padding-top: 12px; border-top: 1px solid #e0d9d0; margin-top: 4px; }
 .pv-action-link { font-size: 13px; font-weight: 500; color: #4f5ce0; text-decoration: none; }
 .pv-action-link:hover { color: #2c3e9a; text-decoration: underline; }
@@ -475,15 +476,15 @@ const ACT_HTML = `
             <option value="event">Event</option>
           </select>
         </div>
+        <div class="act-field-group" style="grid-column:span 3">
+          <label class="act-field-label">Title</label>
+          <input class="act-field-input" id="af-title" placeholder="Production or event title" oninput="act.fieldChanged()">
+        </div>
         <div class="act-field-group">
           <label class="act-field-label">Genre</label>
           <select class="act-field-select act-field-select-multi" id="af-genre" multiple size="4" onchange="act.genreChanged()">
             <option>Drama</option><option>Musical</option><option>Comedy</option><option>Other</option>
           </select>
-        </div>
-        <div class="act-field-group" style="grid-column:span 3">
-          <label class="act-field-label">Title</label>
-          <input class="act-field-input" id="af-title" placeholder="Production or event title" oninput="act.fieldChanged()">
         </div>
 
         <!-- Audition-only fields -->
@@ -631,7 +632,7 @@ const ACT_HTML = `
           </div>
           <textarea class="act-desc-textarea" id="af-description" rows="1"
             placeholder="Optional full description (supports **bold** and *italic*)"
-            oninput="act.fieldChanged()"></textarea>
+            oninput="act.autoResizeTextarea(this); act.fieldChanged()"></textarea>
         </div>
 
         <!-- 5. Notes -->
@@ -642,7 +643,7 @@ const ACT_HTML = `
           </div>
           <textarea class="act-notes-textarea" id="af-notes" rows="1"
             placeholder="Additional notes shown at bottom of card"
-            oninput="act.fieldChanged()"></textarea>
+            oninput="act.autoResizeTextarea(this); act.fieldChanged()"></textarea>
         </div>
 
       </div><!-- /.act-scroll-body -->
@@ -1026,11 +1027,13 @@ function loadActEditor() {
   descTa.value = a.description || ''
   descTa.classList.remove('expanded')
   document.getElementById('actDescExpandBtn').textContent = '↕'
+  autoResizeTextarea(descTa)
 
   const notesTa = document.getElementById('af-notes')
   notesTa.value = a.notes || ''
   notesTa.classList.remove('expanded')
   document.getElementById('actNotesExpandBtn').textContent = '↕'
+  autoResizeTextarea(notesTa)
 
   updateEditorTitle()
   updateTypeLayout()
@@ -1199,6 +1202,11 @@ function toggleNotesExpand() {
   btn.textContent = ta.classList.contains('expanded') ? '↑' : '↕'
 }
 
+function autoResizeTextarea(el) {
+  el.style.height = 'auto'
+  el.style.height = el.scrollHeight + 'px'
+}
+
 // ── ACTIVITY CRUD ──
 function newActivity() {
   const now = new Date().toISOString()
@@ -1207,7 +1215,7 @@ function newActivity() {
     type: 'audition',
     title: '',
     genre: [],
-    dates: [],
+    dates: [{ date: '', startTime: '' }],
     rolesAvailable: [],
     createdAt: now,
     updatedAt: now
@@ -1760,7 +1768,7 @@ function openPreview() {
   }
 
   if (isEvent && a.description) {
-    rightColHtml = `<section class="pv-section"><h4 class="pv-section-head">About</h4><div class="pv-sub" style="font-size:13px;line-height:1.55">${esc(a.description)}</div></section>`
+    rightColHtml = `<section class="pv-section"><h4 class="pv-section-head">About</h4><div class="pv-sub" style="font-size:13px;line-height:1.55;white-space:pre-wrap">${esc(a.description)}</div></section>`
   }
 
   const metaRow = `${esc(displayName)}${!isEvent && a.openingDate ? ` · Opens ${fmtShortDate(a.openingDate)}` : ''}${!isEvent && a.rehearsalStart ? ` · Rehearsals start ${fmtShortDate(a.rehearsalStart)}` : ''}`
@@ -1781,8 +1789,9 @@ function openPreview() {
             ${isEvent ? '<span class="pv-type-badge">Event</span>' : ''}
             ${genreArr.map((g) => `<span class="pv-genre-badge" style="${PV_GENRE_STYLES[g] || ''}">${esc(g)}</span>`).join('')}
           </div>
+          ${isEvent && a.briefDescription ? `<div class="pv-brief-row">${esc(a.briefDescription)}</div>` : ''}
           <div class="pv-meta-row">${metaRow}</div>
-          <div class="pv-roles-row">${rolesRow}</div>
+          ${!isEvent ? `<div class="pv-roles-row">${rolesRow}</div>` : ''}
         </div>
         <div class="pv-aside">
           ${isPast ? '<span class="pv-past-pip">Past</span>' : ''}
@@ -1829,6 +1838,7 @@ export function mount(container, context) {
     fieldChanged,
     toggleDescExpand,
     toggleNotesExpand,
+    autoResizeTextarea,
     addDateRow,
     deleteDateRow,
     dateCellChanged,

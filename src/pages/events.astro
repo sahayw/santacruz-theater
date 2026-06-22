@@ -22,8 +22,6 @@ const actCompanyCodes = new Set<string>(activities.map((a) => a.company))
 const filterCompanies = companiesData.companies.filter(
   (c) => !c.adminOnly && actCompanyCodes.has(c.id)
 )
-const filterGenres = [...new Set(activities.filter((a) => a.type !== 'event').flatMap((a) => a.genre))].sort()
-
 function latestDate(act: ActivityEvent): string {
   return [...act.dates].sort((a, b) => b.date.localeCompare(a.date))[0]?.date ?? ''
 }
@@ -31,18 +29,6 @@ function latestDate(act: ActivityEvent): string {
 function displayName(act: ActivityEvent): string {
   if (act.company === 'other' && act.organizerName) return act.organizerName
   return companyNameMap[act.company] ?? act.company
-}
-
-function dotVar(company: string): string {
-  const map: Record<string, string> = {
-    scs: 'var(--dot-scs)',
-    at: 'var(--dot-at)',
-    mct: 'var(--dot-mct)',
-    renegade: 'var(--dot-renegade)',
-    cabrillo: 'var(--dot-cabrillo)',
-    abt: 'var(--dot-abt)'
-  }
-  return map[company] ?? 'var(--dot-other)'
 }
 
 function genreClass(genre: string): string {
@@ -71,7 +57,9 @@ function roleTypeLabel(type: string): string {
     <main class="aud-page">
       <header class="page-header">
         <h1 class="page-title">Auditions & Events</h1>
-        <p class="page-subtitle">Upcoming auditions and theater events from Santa Cruz County companies</p>
+        <p class="page-subtitle">
+          Upcoming auditions, workshops, and other events for theater creators
+        </p>
       </header>
 
       <div class="aud-subscribe" id="aud-subscribe">
@@ -95,26 +83,19 @@ function roleTypeLabel(type: string): string {
       <div class="filter-bar">
         <div class="filter-controls">
           <div class="filter-group">
-            <label for="filter-company">Company</label>
-            <select id="filter-company">
-              <option value="">All</option>
-              {filterCompanies.map((c) => <option value={c.id}>{c.name}</option>)}
-            </select>
-          </div>
-          <div class="filter-group">
-            <label for="filter-genre">Genre</label>
-            <select id="filter-genre">
-              <option value="">All</option>
-              {filterGenres.map((g) => <option value={g}>{g}</option>)}
-            </select>
-          </div>
-          <div class="filter-group">
             <label for="filter-show">Show</label>
             <select id="filter-show">
               <option value="upcoming">All Upcoming</option>
               <option value="auditions">Upcoming Auditions</option>
               <option value="events">Upcoming Events</option>
               <option value="all">All</option>
+            </select>
+          </div>
+          <div class="filter-group">
+            <label for="filter-company">Company</label>
+            <select id="filter-company">
+              <option value="">All</option>
+              {filterCompanies.map((c) => <option value={c.id}>{c.name}</option>)}
             </select>
           </div>
         </div>
@@ -143,22 +124,23 @@ function roleTypeLabel(type: string): string {
                   <button class="aud-summary" aria-expanded="false">
                     <div class="aud-main">
                       <div class="aud-title-row">
-                        <span class="company-dot" style={`background:${dotVar(act.company)}`} />
                         <span class="aud-title">{act.title}</span>
-                        {act.type === 'event' && (
-                          <span class="type-badge type-event">Event</span>
-                        )}
-                        {act.type !== 'event' && act.genre.map((g) => (
-                          <span class={`genre-badge ${genreClass(g)}`}>{g}</span>
-                        ))}
+                        {act.type === 'event' && <span class="type-badge type-event">Event</span>}
+                        {act.type !== 'event' &&
+                          act.genre.map((g) => (
+                            <span class={`genre-badge ${genreClass(g)}`}>{g}</span>
+                          ))}
                       </div>
                       {act.type === 'event' && act.briefDescription && (
                         <div class="aud-brief-row">{act.briefDescription}</div>
                       )}
                       <div class="aud-meta-row">
                         {name}
-                        {act.type === 'audition' && act.openingDate && ` · Opens ${fmtShortDate(act.openingDate)}`}
-                        {act.type === 'audition' && act.rehearsalStart &&
+                        {act.type === 'audition' &&
+                          act.openingDate &&
+                          ` · Opens ${fmtShortDate(act.openingDate)}`}
+                        {act.type === 'audition' &&
+                          act.rehearsalStart &&
                           ` · Rehearsals start ${fmtShortDate(act.rehearsalStart)}`}
                       </div>
                       {act.type === 'audition' && (
@@ -192,7 +174,9 @@ function roleTypeLabel(type: string): string {
                                 const locationSeenBefore =
                                   !_shared &&
                                   i > 0 &&
-                                  act.dates.slice(0, i).some((prev) => prev.location?.name === ad.location?.name)
+                                  act.dates
+                                    .slice(0, i)
+                                    .some((prev) => prev.location?.name === ad.location?.name)
                                 return (
                                   <div class="detail-date-row">
                                     <span class="detail-date-label">{fmtFullDate(ad.date)}</span>
@@ -342,7 +326,9 @@ function roleTypeLabel(type: string): string {
                                 const locationSeenBefore =
                                   !_shared &&
                                   i > 0 &&
-                                  act.dates.slice(0, i).some((prev) => prev.location?.name === ad.location?.name)
+                                  act.dates
+                                    .slice(0, i)
+                                    .some((prev) => prev.location?.name === ad.location?.name)
                                 return (
                                   <div class="detail-date-row">
                                     <span class="detail-date-label">{fmtFullDate(ad.date)}</span>
@@ -383,7 +369,9 @@ function roleTypeLabel(type: string): string {
                           {act.cost && (
                             <section class="detail-section">
                               <h4 class="detail-section-head">Cost</h4>
-                              <div class="detail-sub" style="font-size:13px;color:var(--ink)">{act.cost}</div>
+                              <div class="detail-sub" style="font-size:13px;color:var(--ink)">
+                                {act.cost}
+                              </div>
                             </section>
                           )}
 
@@ -396,7 +384,9 @@ function roleTypeLabel(type: string): string {
                                   class="detail-link-inline"
                                   target="_blank"
                                   rel="noopener"
-                                >Register here →</a>
+                                >
+                                  Register here →
+                                </a>
                               </div>
                             </section>
                           )}
@@ -431,18 +421,30 @@ function roleTypeLabel(type: string): string {
                               <section class="detail-section">
                                 <h4 class="detail-section-head">Organizer</h4>
                                 {act.organizerUrl ? (
-                                  <a href={act.organizerUrl} class="detail-link-inline" target="_blank" rel="noopener">
+                                  <a
+                                    href={act.organizerUrl}
+                                    class="detail-link-inline"
+                                    target="_blank"
+                                    rel="noopener"
+                                  >
                                     {act.organizerName}
                                   </a>
                                 ) : (
-                                  <div class="detail-sub" style="font-size:13px;color:var(--ink)">{act.organizerName}</div>
+                                  <div class="detail-sub" style="font-size:13px;color:var(--ink)">
+                                    {act.organizerName}
+                                  </div>
                                 )}
                               </section>
                             )}
                             {act.description && (
                               <section class="detail-section">
                                 <h4 class="detail-section-head">About</h4>
-                                <div class="detail-sub" style="font-size:13px;color:var(--ink);line-height:1.55;white-space:pre-wrap">{act.description}</div>
+                                <div
+                                  class="detail-sub"
+                                  style="font-size:13px;color:var(--ink);line-height:1.55;white-space:pre-wrap"
+                                >
+                                  {act.description}
+                                </div>
                               </section>
                             )}
                           </div>
@@ -556,12 +558,12 @@ function roleTypeLabel(type: string): string {
 
   /* ── PAGE HEADER ── */
   .page-header {
-    margin-bottom: 24px;
+    margin-bottom: 16px;
   }
 
   .page-title {
     font-family: 'Playfair Display', serif;
-    font-size: clamp(28px, 4vw, 40px);
+    font-size: clamp(22px, 3vw, 32px);
     font-weight: 600;
     color: var(--ink);
     line-height: 1.15;
@@ -569,7 +571,7 @@ function roleTypeLabel(type: string): string {
   }
 
   .page-subtitle {
-    font-size: 15px;
+    font-size: 14px;
     font-weight: 300;
     color: var(--ink-muted);
     letter-spacing: 0.01em;
@@ -643,14 +645,14 @@ function roleTypeLabel(type: string): string {
     background: var(--surface);
     border: 1px solid var(--border);
     border-radius: var(--radius);
-    padding: 14px 18px;
-    margin-bottom: 16px;
+    padding: 8px 14px;
+    margin-bottom: 10px;
   }
 
   .subscribe-inner {
     display: flex;
     align-items: center;
-    gap: 14px;
+    gap: 10px;
     flex-wrap: wrap;
   }
 
@@ -799,13 +801,6 @@ function roleTypeLabel(type: string): string {
     align-items: center;
     gap: 8px;
     flex-wrap: wrap;
-  }
-
-  .company-dot {
-    width: 9px;
-    height: 9px;
-    border-radius: 50%;
-    flex-shrink: 0;
   }
 
   .aud-title {
@@ -1218,7 +1213,6 @@ function roleTypeLabel(type: string): string {
   const cards = Array.from(document.querySelectorAll('.aud-card'))
   const countEl = document.getElementById('filter-count')
   const filterCompany = document.getElementById('filter-company')
-  const filterGenre = document.getElementById('filter-genre')
   const filterShow = document.getElementById('filter-show')
   const emptyEl = document.getElementById('aud-empty')
 
@@ -1228,14 +1222,23 @@ function roleTypeLabel(type: string): string {
   })
 
   function updateFilters() {
-    const co = filterCompany.value
-    const ge = filterGenre.value
-    const sh = filterShow.value
+    const co = filterCompany?.value ?? ''
+    const sh = filterShow?.value ?? 'upcoming'
     let visible = 0
+
+    // Close all open cards
+    cards.forEach((card) => {
+      if (card.classList.contains('open')) {
+        const btn = card.querySelector('.aud-summary')
+        const detail = card.querySelector('.aud-detail')
+        card.classList.remove('open')
+        if (detail) detail.hidden = true
+        if (btn) btn.setAttribute('aria-expanded', 'false')
+      }
+    })
 
     cards.forEach((card) => {
       const matchCo = !co || card.dataset.company === co
-      const matchGe = !ge || (card.dataset.genre || '').split(',').filter(Boolean).includes(ge)
       const latest = card.dataset.latestDate ?? ''
       const isPast = latest < TODAY
       const isAud = card.dataset.type === 'audition'
@@ -1246,16 +1249,25 @@ function roleTypeLabel(type: string): string {
       else if (sh === 'auditions') matchSh = !isPast && isAud
       else matchSh = !isPast && !isAud /* 'events' */
 
-      const show = matchCo && matchGe && matchSh
+      const show = matchCo && matchSh
       card.style.display = show ? '' : 'none'
       if (show) visible++
     })
 
     if (countEl) {
       const sh = filterShow.value
-      const label = sh === 'auditions' ? (visible === 1 ? 'audition' : 'auditions')
-        : sh === 'events' ? (visible === 1 ? 'event' : 'events')
-        : (visible === 1 ? 'activity' : 'activities')
+      const label =
+        sh === 'auditions'
+          ? visible === 1
+            ? 'audition'
+            : 'auditions'
+          : sh === 'events'
+            ? visible === 1
+              ? 'event'
+              : 'events'
+            : visible === 1
+              ? 'activity'
+              : 'activities'
       countEl.textContent = `${visible} ${label}`
     }
     if (emptyEl) {
@@ -1308,7 +1320,6 @@ function roleTypeLabel(type: string): string {
     filterShow.value = 'upcoming'
     updateFilters()
     filterCompany?.addEventListener('change', updateFilters)
-    filterGenre?.addEventListener('change', updateFilters)
     filterShow?.addEventListener('change', updateFilters)
   }
 

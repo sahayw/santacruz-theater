@@ -1177,7 +1177,11 @@ function cellKey(event, rowIdx, field) {
       if (next) {
         next.focus()
         next.select && next.select()
-      } else addRow()
+      } else {
+        const el = document.getElementById(`cell-${rowIdx}-${field}`)
+        if (el) cellChanged(rowIdx, field, el.value)
+        addRow()
+      }
     }
   } else if (event.key === 'Enter') {
     event.preventDefault()
@@ -1185,7 +1189,11 @@ function cellKey(event, rowIdx, field) {
     if (next) {
       next.focus()
       next.select && next.select()
-    } else addRow()
+    } else {
+      const el = document.getElementById(`cell-${rowIdx}-${field}`)
+      if (el) cellChanged(rowIdx, field, el.value)
+      addRow()
+    }
   }
 }
 

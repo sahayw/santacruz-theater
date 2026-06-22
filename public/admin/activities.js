@@ -1533,12 +1533,20 @@ function dateCellKey(event, rowIdx, field) {
       document.getElementById(`dc-${rowIdx}-${DATE_COLS[next]}`)?.focus()
     } else if (!event.shiftKey) {
       const n = document.getElementById(`dc-${rowIdx + 1}-date`)
-      n ? n.focus() : addDateRow()
+      if (n) { n.focus() } else {
+        const el = document.getElementById(`dc-${rowIdx}-${field}`)
+        if (el) dateCellChanged(rowIdx, field, el.value)
+        addDateRow()
+      }
     }
   } else if (event.key === 'Enter') {
     event.preventDefault()
     const n = document.getElementById(`dc-${rowIdx + 1}-date`)
-    n ? n.focus() : addDateRow()
+    if (n) { n.focus() } else {
+      const el = document.getElementById(`dc-${rowIdx}-${field}`)
+      if (el) dateCellChanged(rowIdx, field, el.value)
+      addDateRow()
+    }
   }
 }
 

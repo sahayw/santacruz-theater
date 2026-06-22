@@ -24,6 +24,39 @@
       "description": "A one-day workshop focused on realistic, reasonable budget expectations for your theatre production. Learn behind-the-scenes info with real numbers, expenses you expect (royalties, theatre rentals) and those you don’t (City ticket tax, special filming licenses). Find out how to make a realistic budget and set your ticket prices so that you can pay yourself and your artists while creating work you are proud of. Led by Ian Dyer, co-owner of Good Egg Productions and Scratch Studio, and former software development product manager.\n\nRESULT: Create a realistic budget and profit projection for your real or imagined theatre project, with assistance and fact-based numbers at your disposal.",
       "cost": "$50",
       "noticeUrl": "https://scratchsantacruz.com/events/#producer-series"
+    },
+    {
+      "id": "activity-1782109549896",
+      "type": "event",
+      "title": "Summer Fight Club",
+      "genre": [],
+      "dates": [
+        {
+          "date": "2026-06-14",
+          "startTime": "18:00",
+          "endTime": "20:00",
+          "location": {
+            "name": "Scratch Studios",
+            "address": "02B 303 Potrero St, Santa Cruz, CA 95060"
+          },
+          "notes": "Reviewing BASICS"
+        },
+        {
+          "date": "2026-06-21",
+          "startTime": "18:00",
+          "endTime": "20:00",
+          "location": {
+            "name": "Scratch Studios",
+            "address": "02B 303 Potrero St, Santa Cruz, CA 95060"
+          },
+          "notes": "Pirate Battle"
+        }
+      ],
+      "createdAt": "2026-06-22T06:25:49.896Z",
+      "updatedAt": "2026-06-22T06:36:06.604Z",
+      "description": "Finesse your stage combat skills! For those with previous stage combat experience (unless otherwise noted), get a chance to use a variety of weapons and systems, or work on learning choreography quickly. Each session is drop-in (not in sequence) and open to any over 16 years old (except youth day) with previous stage combat experience.",
+      "cost": "$15 per sessionjune 14",
+      "noticeUrl": "https://scratchsantacruz.com/events/#fight-club"
     }
   ]
 }

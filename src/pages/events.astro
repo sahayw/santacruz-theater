@@ -387,6 +387,20 @@ function roleTypeLabel(type: string): string {
                             </section>
                           )}
 
+                          {act.registerUrl && (
+                            <section class="detail-section">
+                              <h4 class="detail-section-head">Register</h4>
+                              <div>
+                                <a
+                                  href={act.registerUrl}
+                                  class="detail-link-inline"
+                                  target="_blank"
+                                  rel="noopener"
+                                >Register here →</a>
+                              </div>
+                            </section>
+                          )}
+
                           {act.contact &&
                             (act.contact.name || act.contact.email || act.contact.phone) && (
                               <section class="detail-section contact-section">

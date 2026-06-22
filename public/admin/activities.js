@@ -515,9 +515,13 @@ const ACT_HTML = `
             <label class="act-field-label">Cost</label>
             <input class="act-field-input" id="af-cost" placeholder="Free, $20…" oninput="act.fieldChanged()">
           </div>
-          <div class="act-field-group" style="grid-column:span 6">
+          <div class="act-field-group" style="grid-column:span 3">
             <label class="act-field-label">Notice URL</label>
             <input class="act-field-input mono" id="af-event-notice-url" placeholder="https://…" oninput="act.fieldChanged()">
+          </div>
+          <div class="act-field-group" style="grid-column:span 3">
+            <label class="act-field-label">Register URL</label>
+            <input class="act-field-input mono" id="af-register-url" placeholder="https://…" oninput="act.fieldChanged()">
           </div>
         </div>
 
@@ -1009,6 +1013,7 @@ function loadActEditor() {
   document.getElementById('af-brief-desc').value = a.briefDescription || ''
   document.getElementById('af-cost').value = a.cost || ''
   document.getElementById('af-event-notice-url').value = a.type === 'event' ? (a.noticeUrl || '') : ''
+  document.getElementById('af-register-url').value = a.registerUrl || ''
   document.getElementById('af-org-name').value = a.organizerName || ''
   document.getElementById('af-org-url').value = a.organizerUrl || ''
 
@@ -1155,6 +1160,7 @@ function fieldChanged() {
     a.productionUrl = document.getElementById('af-prod-url').value || undefined
     a.briefDescription = undefined
     a.cost = undefined
+    a.registerUrl = undefined
 
     const bring = document.getElementById('af-prep-bring').value.split('\n').map((s) => s.trim()).filter(Boolean)
     const musical = a.genre.includes('Musical')
@@ -1169,6 +1175,7 @@ function fieldChanged() {
     a.briefDescription = document.getElementById('af-brief-desc').value || undefined
     a.cost = document.getElementById('af-cost').value || undefined
     a.noticeUrl = document.getElementById('af-event-notice-url').value || undefined
+    a.registerUrl = document.getElementById('af-register-url').value || undefined
     a.rehearsalStart = undefined
     a.openingDate = undefined
     a.productionUrl = undefined
@@ -1788,6 +1795,10 @@ function openPreview() {
 
   if (isEvent && a.cost) {
     leftColHtml += `<section class="pv-section"><h4 class="pv-section-head">Cost</h4><div class="pv-sub">${esc(a.cost)}</div></section>`
+  }
+
+  if (isEvent && a.registerUrl) {
+    leftColHtml += `<section class="pv-section"><h4 class="pv-section-head">Register</h4><div><a href="${esc(a.registerUrl)}" class="pv-link-inline" target="_blank" rel="noopener">Register here →</a></div></section>`
   }
 
   if (a.contact && (a.contact.name || a.contact.email || a.contact.phone)) {

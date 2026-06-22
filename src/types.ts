@@ -110,6 +110,7 @@ export interface Activity {
   openingDate?: string // audition only; YYYY-MM-DD
   productionId?: string // audition only; soft ref to a Run id
   cost?: string // event only; free text e.g. "Free", "$20"
+  registerUrl?: string // event only; registration link
   contact?: ActivityContact
   noticeUrl?: string // primary info/notice URL
   productionUrl?: string // audition only; production page URL

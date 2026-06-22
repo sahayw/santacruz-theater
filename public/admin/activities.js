@@ -476,48 +476,48 @@ const ACT_HTML = `
             <option value="event">Event</option>
           </select>
         </div>
-        <div class="act-field-group" style="grid-column:span 3">
+        <div class="act-field-group" id="afTitleGroup" style="grid-column:span 3">
           <label class="act-field-label">Title</label>
           <input class="act-field-input" id="af-title" placeholder="Production or event title" oninput="act.fieldChanged()">
         </div>
-        <div class="act-field-group">
+        <div class="act-field-group" id="afGenreGroup" style="grid-column:6;grid-row:span 3">
           <label class="act-field-label">Genre</label>
           <select class="act-field-select act-field-select-multi" id="af-genre" multiple size="4" onchange="act.genreChanged()">
             <option>Drama</option><option>Musical</option><option>Comedy</option><option>Other</option>
           </select>
         </div>
 
-        <!-- Audition-only fields -->
+        <!-- Audition-only fields (rows 2-3, cols 1-5; col 6 is Genre spanning all rows) -->
         <div class="act-fields-conditional" id="actAuditionFields">
-          <div class="act-field-group">
+          <div class="act-field-group" style="grid-column:span 2">
             <label class="act-field-label">Rehearsal Start</label>
             <input class="act-field-input mono" id="af-rehearsal" placeholder="YYYY-MM-DD" oninput="act.fieldChanged()" onblur="act.normalizeHeaderDate('af-rehearsal')">
           </div>
-          <div class="act-field-group">
-            <label class="act-field-label">Opening Date</label>
-            <input class="act-field-input mono" id="af-opening" placeholder="YYYY-MM-DD" oninput="act.fieldChanged()" onblur="act.normalizeHeaderDate('af-opening')">
-          </div>
-          <div class="act-field-group" style="grid-column:span 2">
+          <div class="act-field-group" style="grid-column:span 3">
             <label class="act-field-label">Notice URL</label>
             <input class="act-field-input mono" id="af-notice-url" placeholder="https://…" oninput="act.fieldChanged()">
           </div>
           <div class="act-field-group" style="grid-column:span 2">
+            <label class="act-field-label">Opening Date</label>
+            <input class="act-field-input mono" id="af-opening" placeholder="YYYY-MM-DD" oninput="act.fieldChanged()" onblur="act.normalizeHeaderDate('af-opening')">
+          </div>
+          <div class="act-field-group" style="grid-column:span 3">
             <label class="act-field-label">Production URL</label>
             <input class="act-field-input mono" id="af-prod-url" placeholder="https://…" oninput="act.fieldChanged()">
           </div>
         </div>
 
-        <!-- Event-only fields -->
+        <!-- Event-only fields (no genre col, so span full 6 cols) -->
         <div class="act-fields-conditional hidden" id="actEventFields">
-          <div class="act-field-group" style="grid-column:span 2">
+          <div class="act-field-group" style="grid-column:span 4">
             <label class="act-field-label">Brief Description</label>
             <input class="act-field-input" id="af-brief-desc" placeholder="One-line summary for card header" oninput="act.fieldChanged()">
           </div>
-          <div class="act-field-group">
+          <div class="act-field-group" style="grid-column:span 2">
             <label class="act-field-label">Cost</label>
             <input class="act-field-input" id="af-cost" placeholder="Free, $20…" oninput="act.fieldChanged()">
           </div>
-          <div class="act-field-group" style="grid-column:span 3">
+          <div class="act-field-group" style="grid-column:span 6">
             <label class="act-field-label">Notice URL</label>
             <input class="act-field-input mono" id="af-event-notice-url" placeholder="https://…" oninput="act.fieldChanged()">
           </div>
@@ -624,8 +624,8 @@ const ACT_HTML = `
           </div>
         </div>
 
-        <!-- 4. Description -->
-        <div class="act-section act-desc-section">
+        <!-- 4. Description (events only) -->
+        <div class="act-section act-desc-section" id="actDescSection">
           <div class="act-desc-toolbar">
             <label class="act-field-label" style="margin-bottom:0">Description</label>
             <button class="act-expand-btn" id="actDescExpandBtn" onclick="act.toggleDescExpand()" title="Expand">↕</button>
@@ -635,8 +635,8 @@ const ACT_HTML = `
             oninput="act.autoResizeTextarea(this); act.fieldChanged()"></textarea>
         </div>
 
-        <!-- 5. Notes -->
-        <div class="act-section act-notes-section">
+        <!-- 5. Notes (auditions only) -->
+        <div class="act-section act-notes-section" id="actNotesSection">
           <div class="act-notes-toolbar">
             <label class="act-field-label" style="margin-bottom:0">Notes</label>
             <button class="act-expand-btn" id="actNotesExpandBtn" onclick="act.toggleNotesExpand()" title="Expand">↕</button>
@@ -1071,6 +1071,10 @@ function updateTypeLayout() {
   const prepCol = document.getElementById('actPrepCol')
   const bringRow = document.getElementById('actBringRow')
   const datesLabel = document.getElementById('actDatesLabel')
+  const genreGroup = document.getElementById('afGenreGroup')
+  const titleGroup = document.getElementById('afTitleGroup')
+  const descSection = document.getElementById('actDescSection')
+  const notesSection = document.getElementById('actNotesSection')
 
   if (type === 'event') {
     audFields?.classList.add('hidden')
@@ -1079,6 +1083,10 @@ function updateTypeLayout() {
     prepCol && (prepCol.style.display = 'none')
     bringRow && (bringRow.style.display = 'none')
     if (datesLabel) datesLabel.textContent = 'Dates'
+    if (genreGroup) genreGroup.style.display = 'none'
+    if (titleGroup) titleGroup.style.gridColumn = 'span 4'
+    if (descSection) descSection.style.display = ''
+    if (notesSection) notesSection.style.display = 'none'
   } else {
     audFields?.classList.remove('hidden')
     evFields?.classList.add('hidden')
@@ -1086,6 +1094,10 @@ function updateTypeLayout() {
     prepCol && (prepCol.style.display = '')
     bringRow && (bringRow.style.display = '')
     if (datesLabel) datesLabel.textContent = 'Audition Dates'
+    if (genreGroup) genreGroup.style.display = ''
+    if (titleGroup) titleGroup.style.gridColumn = 'span 3'
+    if (descSection) descSection.style.display = 'none'
+    if (notesSection) notesSection.style.display = ''
   }
 
   const otherFields = document.getElementById('actOtherFields')
@@ -1110,6 +1122,15 @@ function typeChanged() {
   if (activeActIdx < 0) return
   const a = activities[activeActIdx]
   a.type = document.getElementById('af-type').value
+  if (a.type === 'event') {
+    a.genre = []
+    a.notes = undefined
+    prevActGenreVals = []
+    const genreSel = document.getElementById('af-genre')
+    if (genreSel) Array.from(genreSel.options).forEach((o) => { o.selected = false })
+  } else {
+    a.description = undefined
+  }
   updateTypeLayout()
   updateMusicLayout()
   updateEditorTitle()
@@ -1137,9 +1158,16 @@ function fieldChanged() {
   const type = document.getElementById('af-type').value
 
   a.title = document.getElementById('af-title').value
-  a.genre = Array.from(document.getElementById('af-genre').selectedOptions).map((o) => o.value)
-  a.description = document.getElementById('af-description').value || undefined
-  a.notes = document.getElementById('af-notes').value || undefined
+
+  if (type === 'event') {
+    a.genre = []
+    a.description = document.getElementById('af-description').value || undefined
+    a.notes = undefined
+  } else {
+    a.genre = Array.from(document.getElementById('af-genre').selectedOptions).map((o) => o.value)
+    a.notes = document.getElementById('af-notes').value || undefined
+    a.description = undefined
+  }
 
   if (type === 'audition') {
     a.rehearsalStart = document.getElementById('af-rehearsal').value || undefined
@@ -1787,7 +1815,7 @@ function openPreview() {
             <span class="pv-dot" style="background:${dotColor}"></span>
             <span class="pv-title">${esc(a.title || 'Untitled')}</span>
             ${isEvent ? '<span class="pv-type-badge">Event</span>' : ''}
-            ${genreArr.map((g) => `<span class="pv-genre-badge" style="${PV_GENRE_STYLES[g] || ''}">${esc(g)}</span>`).join('')}
+            ${!isEvent ? genreArr.map((g) => `<span class="pv-genre-badge" style="${PV_GENRE_STYLES[g] || ''}">${esc(g)}</span>`).join('') : ''}
           </div>
           ${isEvent && a.briefDescription ? `<div class="pv-brief-row">${esc(a.briefDescription)}</div>` : ''}
           <div class="pv-meta-row">${metaRow}</div>

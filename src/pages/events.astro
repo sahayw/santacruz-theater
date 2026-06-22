@@ -22,7 +22,7 @@ const actCompanyCodes = new Set<string>(activities.map((a) => a.company))
 const filterCompanies = companiesData.companies.filter(
   (c) => !c.adminOnly && actCompanyCodes.has(c.id)
 )
-const filterGenres = [...new Set(activities.flatMap((a) => a.genre))].sort()
+const filterGenres = [...new Set(activities.filter((a) => a.type !== 'event').flatMap((a) => a.genre))].sort()
 
 function latestDate(act: ActivityEvent): string {
   return [...act.dates].sort((a, b) => b.date.localeCompare(a.date))[0]?.date ?? ''
@@ -148,7 +148,7 @@ function roleTypeLabel(type: string): string {
                         {act.type === 'event' && (
                           <span class="type-badge type-event">Event</span>
                         )}
-                        {act.genre.map((g) => (
+                        {act.type !== 'event' && act.genre.map((g) => (
                           <span class={`genre-badge ${genreClass(g)}`}>{g}</span>
                         ))}
                       </div>

@@ -80,9 +80,11 @@ const ACT_CSS = `
   padding: 10px 12px 8px;
   border-bottom: 1px solid var(--border);
   display: flex;
-  align-items: center;
-  justify-content: space-between;
+  flex-direction: column;
+  gap: 6px;
 }
+.act-new-btns { display: flex; gap: 4px; }
+.act-new-btns .btn { flex: 1; font-size: 11px; }
 .act-sidebar-label {
   font-size: 10px;
   font-weight: 500;
@@ -432,7 +434,10 @@ const ACT_HTML = `
   <div class="act-sidebar" id="actSidebar">
     <div class="act-sidebar-header">
       <span class="act-sidebar-label">Activities</span>
-      <button class="btn btn-green btn-sm" id="newActBtn" onclick="act.newActivity()" style="display:none">+ New</button>
+      <div class="act-new-btns" id="actNewBtns" style="display:none">
+        <button class="btn btn-green btn-sm" onclick="act.newAudition()">+ Audition</button>
+        <button class="btn btn-sm" style="border:1px solid var(--border)" onclick="act.newEvent()">+ Event</button>
+      </div>
     </div>
     <div class="act-list" id="actList"></div>
   </div>
@@ -469,14 +474,7 @@ const ACT_HTML = `
           <label class="act-field-label">Company</label>
           <input class="act-field-input act-field-readonly" id="af-company" readonly tabindex="-1">
         </div>
-        <div class="act-field-group">
-          <label class="act-field-label">Type</label>
-          <select class="act-field-select" id="af-type" onchange="act.typeChanged()">
-            <option value="audition">Audition</option>
-            <option value="event">Event</option>
-          </select>
-        </div>
-        <div class="act-field-group" id="afTitleGroup" style="grid-column:span 3">
+        <div class="act-field-group" id="afTitleGroup" style="grid-column:span 4">
           <label class="act-field-label">Title</label>
           <input class="act-field-input" id="af-title" placeholder="Production or event title" oninput="act.fieldChanged()">
         </div>
@@ -676,7 +674,7 @@ function isMusical() {
   return sel ? Array.from(sel.selectedOptions).some((o) => o.value === 'Musical') : false
 }
 function currentType() {
-  return document.getElementById('af-type')?.value || 'audition'
+  return activeActIdx >= 0 ? (activities[activeActIdx].type || 'audition') : 'audition'
 }
 
 // ── SNAPSHOT HELPERS ──
@@ -708,7 +706,7 @@ async function loadCompanyFile(coId, year) {
     currentCompanyAbv = allCompanies.find((c) => c.id === coId)?.abvName || coId
     activeActIdx = activities.length > 0 ? 0 : -1
     refreshSnapshots()
-    document.getElementById('newActBtn')?.setAttribute('style', '')
+    document.getElementById('actNewBtns')?.setAttribute('style', '')
     renderSidebar()
     loadActEditor()
     updateStatus()
@@ -722,7 +720,7 @@ async function loadCompanyFile(coId, year) {
 function updateEmptyState() {
   const el = document.getElementById('actEmptyState')
   if (!el) return
-  if (!currentCompanyId) document.getElementById('newActBtn')?.setAttribute('style', 'display:none')
+  if (!currentCompanyId) document.getElementById('actNewBtns')?.setAttribute('style', 'display:none')
   el.innerHTML = !currentCompanyId
     ? isAdminContext
       ? `<div class="act-empty-icon">🎭</div><h2>Select a company / year</h2><p>from the toolbar above to load activities</p>`
@@ -997,7 +995,6 @@ function loadActEditor() {
   const a = activities[activeActIdx]
 
   document.getElementById('af-company').value = currentCompanyAbv || ''
-  document.getElementById('af-type').value = a.type || 'audition'
 
   const genreSel = document.getElementById('af-genre')
   const genreArr = Array.isArray(a.genre) ? a.genre : (a.genre ? [a.genre] : [])
@@ -1084,7 +1081,7 @@ function updateTypeLayout() {
     bringRow && (bringRow.style.display = 'none')
     if (datesLabel) datesLabel.textContent = 'Dates'
     if (genreGroup) genreGroup.style.display = 'none'
-    if (titleGroup) titleGroup.style.gridColumn = 'span 4'
+    if (titleGroup) titleGroup.style.gridColumn = 'span 5'
     if (descSection) descSection.style.display = ''
     if (notesSection) notesSection.style.display = 'none'
   } else {
@@ -1095,7 +1092,7 @@ function updateTypeLayout() {
     bringRow && (bringRow.style.display = '')
     if (datesLabel) datesLabel.textContent = 'Audition Dates'
     if (genreGroup) genreGroup.style.display = ''
-    if (titleGroup) titleGroup.style.gridColumn = 'span 3'
+    if (titleGroup) titleGroup.style.gridColumn = 'span 4'
     if (descSection) descSection.style.display = 'none'
     if (notesSection) notesSection.style.display = ''
   }
@@ -1118,24 +1115,6 @@ function updateMusicLayout() {
 // ── FIELD SYNC ──
 const MAX_GENRES = 2
 
-function typeChanged() {
-  if (activeActIdx < 0) return
-  const a = activities[activeActIdx]
-  a.type = document.getElementById('af-type').value
-  if (a.type === 'event') {
-    a.genre = []
-    a.notes = undefined
-    prevActGenreVals = []
-    const genreSel = document.getElementById('af-genre')
-    if (genreSel) Array.from(genreSel.options).forEach((o) => { o.selected = false })
-  } else {
-    a.description = undefined
-  }
-  updateTypeLayout()
-  updateMusicLayout()
-  updateEditorTitle()
-  markDirty()
-}
 
 function genreChanged() {
   const sel = document.getElementById('af-genre')
@@ -1155,7 +1134,7 @@ function genreChanged() {
 function fieldChanged() {
   if (activeActIdx < 0) return
   const a = activities[activeActIdx]
-  const type = document.getElementById('af-type').value
+  const type = a.type || 'audition'
 
   a.title = document.getElementById('af-title').value
 
@@ -1236,9 +1215,9 @@ function autoResizeTextarea(el) {
 }
 
 // ── ACTIVITY CRUD ──
-function newActivity() {
+function newAudition() {
   const now = new Date().toISOString()
-  const newRec = {
+  activities.push({
     id: `activity-${Date.now()}`,
     type: 'audition',
     title: '',
@@ -1247,8 +1226,25 @@ function newActivity() {
     rolesAvailable: [],
     createdAt: now,
     updatedAt: now
-  }
-  activities.push(newRec)
+  })
+  activeActIdx = activities.length - 1
+  renderSidebar()
+  loadActEditor()
+  document.getElementById('af-title').focus()
+  markDirty()
+}
+
+function newEvent() {
+  const now = new Date().toISOString()
+  activities.push({
+    id: `activity-${Date.now()}`,
+    type: 'event',
+    title: '',
+    genre: [],
+    dates: [{ date: '', startTime: '' }],
+    createdAt: now,
+    updatedAt: now
+  })
   activeActIdx = activities.length - 1
   renderSidebar()
   loadActEditor()
@@ -1857,11 +1853,11 @@ export function mount(container, context) {
     onCompanySelect,
     onYearSelect,
     saveFile,
-    newActivity,
+    newAudition,
+    newEvent,
     selectAct,
     restoreActivity,
     deleteActivity,
-    typeChanged,
     genreChanged,
     fieldChanged,
     toggleDescExpand,

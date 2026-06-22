@@ -134,10 +134,11 @@
         }
       ],
       "createdAt": "2026-06-22T06:25:49.896Z",
-      "updatedAt": "2026-06-22T07:00:07.115Z",
+      "updatedAt": "2026-06-22T07:15:08.653Z",
       "description": "Finesse your stage combat skills! For those with previous stage combat experience (unless otherwise noted), get a chance to use a variety of weapons and systems, or work on learning choreography quickly. Each session is drop-in (not in sequence) and open to any over 16 years old (except youth day) with previous stage combat experience.",
       "cost": "$15 per session",
-      "noticeUrl": "https://scratchsantacruz.com/events/#fight-club"
+      "noticeUrl": "https://scratchsantacruz.com/events/#fight-club",
+      "registerUrl": "https://www.signupgenius.com/go/10C0445AEA92BA5FAC61-64259212-fight"
     }
   ]
 }

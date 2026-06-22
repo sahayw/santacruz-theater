@@ -1552,10 +1552,16 @@ function dateCellKey(event, rowIdx, field) {
 
 function addDateRow() {
   if (activeActIdx < 0) return
-  activities[activeActIdx].dates.push({ date: '', startTime: '' })
+  const dates = activities[activeActIdx].dates
+  const prev = dates.length > 0 ? dates[dates.length - 1] : null
+  const newRow = { date: '', startTime: '' }
+  if (prev?.startTime) newRow.startTime = prev.startTime
+  if (prev?.endTime) newRow.endTime = prev.endTime
+  if (prev?.location) newRow.location = { ...prev.location }
+  dates.push(newRow)
   renderDatesTable()
   markDirty()
-  const idx = activities[activeActIdx].dates.length - 1
+  const idx = dates.length - 1
   setTimeout(() => document.getElementById(`dc-${idx}-date`)?.focus(), 30)
 }
 
@@ -1746,18 +1752,28 @@ function openPreview() {
   const isEvent = a.type === 'event'
   const displayName = (currentCompanyId === 'other' && a.organizerName) ? a.organizerName : companyName
 
-  const datesHtml = (a.dates || []).filter((d) => d.date).map((ad, i, arr) => {
-    const seenBefore = i > 0 && arr.slice(0, i).some((p) => p.location?.name === ad.location?.name)
+  const _filteredDates = (a.dates || []).filter((d) => d.date)
+  const _pvLocs = _filteredDates.map((d) => d.location?.name).filter(Boolean)
+  const _pvShared = _pvLocs.length > 0 && _pvLocs.every((n) => n === _pvLocs[0])
+    ? _filteredDates.find((d) => d.location)?.location
+    : null
+  const datesHtml = (_filteredDates.map((ad, i, arr) => {
+    const seenBefore = !_pvShared && i > 0 && arr.slice(0, i).some((p) => p.location?.name === ad.location?.name)
     return `<div class="pv-date-row">
       <span class="pv-date-label">${fmtFullDate(ad.date)}</span>
       <span class="pv-time-label">${fmtTimeRange(ad.startTime, ad.endTime || '')}</span>
       ${ad.notes ? `<span class="pv-date-note">${esc(ad.notes)}</span>` : ''}
-      ${ad.location ? `<div class="pv-date-location">
+      ${!_pvShared && ad.location ? `<div class="pv-date-location">
         <span class="pv-location-name">${esc(ad.location.name)}</span>
         ${!seenBefore && ad.location.address ? `<span class="pv-sub"> · ${esc(ad.location.address)}</span>` : ''}
       </div>` : ''}
     </div>`
-  }).join('') || '<div class="pv-sub">No dates set</div>'
+  }).join('') +
+  (_pvShared ? `<div class="pv-date-location" style="margin-top:4px">
+    <span class="pv-location-name">${esc(_pvShared.name)}</span>
+    ${_pvShared.address ? `<span class="pv-sub"> · ${esc(_pvShared.address)}</span>` : ''}
+  </div>` : '')
+  ) || '<div class="pv-sub">No dates set</div>'
 
   let leftColHtml = `<section class="pv-section"><h4 class="pv-section-head">${isEvent ? 'Dates' : 'Audition dates'}</h4>${datesHtml}</section>`
 

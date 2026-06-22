@@ -182,30 +182,52 @@ function roleTypeLabel(type: string): string {
                         <div class="detail-left">
                           <section class="detail-section">
                             <h4 class="detail-section-head">Audition dates</h4>
-                            {act.dates.map((ad, i) => {
-                              const locationSeenBefore =
-                                i > 0 &&
-                                act.dates
-                                  .slice(0, i)
-                                  .some((prev) => prev.location?.name === ad.location?.name)
-                              return (
-                                <div class="detail-date-row">
-                                  <span class="detail-date-label">{fmtFullDate(ad.date)}</span>
-                                  <span class="detail-time-label">
-                                    {fmtTimeRange(ad.startTime, ad.endTime ?? '')}
-                                  </span>
-                                  {ad.notes && <span class="detail-date-note">{ad.notes}</span>}
-                                  {ad.location && (
-                                    <div class="detail-date-location">
-                                      <span class="detail-location-name">{ad.location.name}</span>
-                                      {!locationSeenBefore && ad.location.address && (
-                                        <span class="detail-sub"> · {ad.location.address}</span>
+                            {(() => {
+                              const _locs = act.dates.map((d) => d.location?.name).filter(Boolean)
+                              const _shared =
+                                _locs.length > 0 && _locs.every((n) => n === _locs[0])
+                                  ? act.dates.find((d) => d.location)?.location
+                                  : null
+                              return act.dates.map((ad, i) => {
+                                const locationSeenBefore =
+                                  !_shared &&
+                                  i > 0 &&
+                                  act.dates.slice(0, i).some((prev) => prev.location?.name === ad.location?.name)
+                                return (
+                                  <div class="detail-date-row">
+                                    <span class="detail-date-label">{fmtFullDate(ad.date)}</span>
+                                    <span class="detail-time-label">
+                                      {fmtTimeRange(ad.startTime, ad.endTime ?? '')}
+                                    </span>
+                                    {ad.notes && <span class="detail-date-note">{ad.notes}</span>}
+                                    {!_shared && ad.location && (
+                                      <div class="detail-date-location">
+                                        <span class="detail-location-name">{ad.location.name}</span>
+                                        {!locationSeenBefore && ad.location.address && (
+                                          <span class="detail-sub"> · {ad.location.address}</span>
+                                        )}
+                                      </div>
+                                    )}
+                                  </div>
+                                )
+                              })
+                            })()}
+                            {(() => {
+                              const _locs = act.dates.map((d) => d.location?.name).filter(Boolean)
+                              if (_locs.length > 0 && _locs.every((n) => n === _locs[0])) {
+                                const _loc = act.dates.find((d) => d.location)?.location
+                                if (_loc)
+                                  return (
+                                    <div class="detail-date-location" style="margin-top:4px">
+                                      <span class="detail-location-name">{_loc.name}</span>
+                                      {_loc.address && (
+                                        <span class="detail-sub"> · {_loc.address}</span>
                                       )}
                                     </div>
-                                  )}
-                                </div>
-                              )
-                            })}
+                                  )
+                              }
+                              return null
+                            })()}
                           </section>
 
                           {act.prep && (
@@ -310,30 +332,52 @@ function roleTypeLabel(type: string): string {
                         <div class="detail-left">
                           <section class="detail-section">
                             <h4 class="detail-section-head">Dates</h4>
-                            {act.dates.map((ad, i) => {
-                              const locationSeenBefore =
-                                i > 0 &&
-                                act.dates
-                                  .slice(0, i)
-                                  .some((prev) => prev.location?.name === ad.location?.name)
-                              return (
-                                <div class="detail-date-row">
-                                  <span class="detail-date-label">{fmtFullDate(ad.date)}</span>
-                                  <span class="detail-time-label">
-                                    {fmtTimeRange(ad.startTime, ad.endTime ?? '')}
-                                  </span>
-                                  {ad.notes && <span class="detail-date-note">{ad.notes}</span>}
-                                  {ad.location && (
-                                    <div class="detail-date-location">
-                                      <span class="detail-location-name">{ad.location.name}</span>
-                                      {!locationSeenBefore && ad.location.address && (
-                                        <span class="detail-sub"> · {ad.location.address}</span>
+                            {(() => {
+                              const _locs = act.dates.map((d) => d.location?.name).filter(Boolean)
+                              const _shared =
+                                _locs.length > 0 && _locs.every((n) => n === _locs[0])
+                                  ? act.dates.find((d) => d.location)?.location
+                                  : null
+                              return act.dates.map((ad, i) => {
+                                const locationSeenBefore =
+                                  !_shared &&
+                                  i > 0 &&
+                                  act.dates.slice(0, i).some((prev) => prev.location?.name === ad.location?.name)
+                                return (
+                                  <div class="detail-date-row">
+                                    <span class="detail-date-label">{fmtFullDate(ad.date)}</span>
+                                    <span class="detail-time-label">
+                                      {fmtTimeRange(ad.startTime, ad.endTime ?? '')}
+                                    </span>
+                                    {ad.notes && <span class="detail-date-note">{ad.notes}</span>}
+                                    {!_shared && ad.location && (
+                                      <div class="detail-date-location">
+                                        <span class="detail-location-name">{ad.location.name}</span>
+                                        {!locationSeenBefore && ad.location.address && (
+                                          <span class="detail-sub"> · {ad.location.address}</span>
+                                        )}
+                                      </div>
+                                    )}
+                                  </div>
+                                )
+                              })
+                            })()}
+                            {(() => {
+                              const _locs = act.dates.map((d) => d.location?.name).filter(Boolean)
+                              if (_locs.length > 0 && _locs.every((n) => n === _locs[0])) {
+                                const _loc = act.dates.find((d) => d.location)?.location
+                                if (_loc)
+                                  return (
+                                    <div class="detail-date-location" style="margin-top:4px">
+                                      <span class="detail-location-name">{_loc.name}</span>
+                                      {_loc.address && (
+                                        <span class="detail-sub"> · {_loc.address}</span>
                                       )}
                                     </div>
-                                  )}
-                                </div>
-                              )
-                            })}
+                                  )
+                              }
+                              return null
+                            })()}
                           </section>
 
                           {act.cost && (

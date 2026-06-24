@@ -128,6 +128,7 @@ export interface ActivitiesFile {
 export interface ServiceSubcategory {
   id: string
   label: string
+  description?: string // pill text override; falls back to label when absent
 }
 
 export interface ServiceCategory {

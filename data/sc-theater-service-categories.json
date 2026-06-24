@@ -4,25 +4,25 @@
       "id": "photography",
       "label": "Photography / Videography",
       "subcategories": [
-        { "id": "headshots", "label": "Headshots" },
-        { "id": "shows", "label": "Shows" }
+        { "id": "headshots", "label": "Headshots", "description": "Headshot Photography" },
+        { "id": "shows", "label": "Shows", "description": "Show Photography" }
       ]
     },
     {
       "id": "equipment-rental",
       "label": "Equipment Rental",
       "subcategories": [
-        { "id": "lighting", "label": "Lighting" },
-        { "id": "sound", "label": "Sound" },
-        { "id": "staging", "label": "Staging" }
+        { "id": "lighting", "label": "Lighting", "description": "Lighting Rental" },
+        { "id": "sound", "label": "Sound", "description": "Sound Rental" },
+        { "id": "staging", "label": "Staging", "description": "Staging Rental" }
       ]
     },
     {
       "id": "space-rental",
       "label": "Space Rental",
       "subcategories": [
-        { "id": "rehearsal", "label": "Rehearsal" },
-        { "id": "performance", "label": "Performance" }
+        { "id": "rehearsal", "label": "Rehearsal", "description": "Rehearsal Space" },
+        { "id": "performance", "label": "Performance", "description": "Performance Space" }
       ]
     },
     {
@@ -42,9 +42,9 @@
       "id": "coaching",
       "label": "Coaching",
       "subcategories": [
-        { "id": "acting", "label": "Acting" },
-        { "id": "voice", "label": "Voice" },
-        { "id": "movement", "label": "Movement" }
+        { "id": "acting", "label": "Acting", "description": "Acting Coach" },
+        { "id": "voice", "label": "Voice", "description": "Voice Coach" },
+        { "id": "movement", "label": "Movement", "description": "Movement Coach" }
       ]
     }
   ]

@@ -17,28 +17,29 @@ The `/services` page has three modes:
 Stored in `data/sc-theater-service-categories.json` — hand-editable, drives both the index grid and the filter dropdown. Each category has an `id` (kebab-case slug used in the URL), a `label`, and an array of `subcategories` (each with its own `id` and `label`).
 
 ```
-Photography / Videography          id: photography
-  Headshots                          id: headshots
-  Shows                              id: shows
-Equipment Rental                   id: equipment-rental
-  Lighting                           id: lighting
-  Sound                              id: sound
-  Staging                            id: staging
-Space Rental                       id: space-rental
-  Rehearsal                          id: rehearsal
-  Performance                        id: performance
-Technical Skills                   id: technical-skills
-  Lighting Design                    id: lighting-design
-  Sound Design                       id: sound-design
-  Board Ops                          id: board-ops
-  Stage Management                   id: stage-management
-  Stage Hand                         id: stage-hand
-  Production Management              id: production-management
-  Set Design                         id: set-design
-Coaching                           id: coaching
-  Acting                             id: acting
-  Voice                              id: voice
-  Movement                           id: movement
+                                    id                      description
+Photography / Videography       photography
+  Headshots                     headshots                   Headshot photos
+  Shows                         shows                       Theater photos
+Equipment Rental                equipment-rental
+  Lighting                      lighting                    Lighting rental
+  Sound                         sound                       Sound equip rental
+  Staging                       staging                     Staging rental
+Space Rental                    space-rental
+  Rehearsal                     rehearsal                   Rehearsal space
+  Performance                   performance                 Performance space
+Technical Skills                technical-skills
+  Lighting Design               lighting-design
+  Sound Design                  sound-design
+  Board Ops                     board-ops
+  Stage Management              stage-management
+  Stage Hand                    stage-hand
+  Production Management         production-management
+  Set Design                    set-design
+Coaching                        coaching
+  Acting                        acting                      Acting coach
+  Voice                         voice                       Voice coach
+  Movement                      movement                    Movement coach
 ```
 
 Clicking a top-level category navigates to `/services?category=<id>` and shows all listings that include any subcategory under that parent. Clicking a subcategory navigates to `/services?category=<subcategory-id>` and filters to exact subcategory matches.

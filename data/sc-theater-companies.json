@@ -9,7 +9,8 @@
           "email": "sh.theater@icloud.com",
           "datasets": [
             "calendar",
-            "activities"
+            "activities",
+            "services"
           ]
         }
       ],

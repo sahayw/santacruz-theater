@@ -1,4 +1,4 @@
-import type { Run, ShowsFile, PerformanceEvent, Activity, ActivitiesFile, Genre } from '../types.ts'
+import type { Run, ShowsFile, PerformanceEvent, Activity, ActivitiesFile, Genre, ServiceListing, ServicesFile, ServiceCategory, ServiceCategoriesFile } from '../types.ts'
 
 function coerceGenre(raw: unknown): Genre[] {
   if (Array.isArray(raw)) return raw as Genre[]
@@ -54,6 +54,22 @@ export async function getPerformances(): Promise<PerformanceEvent[]> {
 export interface ActivityEvent extends Activity {
   company: string
   year: number
+}
+
+export function getServices(): ServiceListing[] {
+  const file = (
+    import.meta.glob<{ default: ServicesFile }>('../../data/sc-theater-services.json', { eager: true })
+  )
+  const data = Object.values(file)[0]?.default
+  return (data?.listings ?? []).filter((l) => l.active)
+}
+
+export function getServiceCategories(): ServiceCategory[] {
+  const file = (
+    import.meta.glob<{ default: ServiceCategoriesFile }>('../../data/sc-theater-service-categories.json', { eager: true })
+  )
+  const data = Object.values(file)[0]?.default
+  return data?.categories ?? []
 }
 
 export function getActivities(): ActivityEvent[] {

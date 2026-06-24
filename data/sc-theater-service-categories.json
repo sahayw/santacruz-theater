@@ -1,0 +1,51 @@
+{
+  "categories": [
+    {
+      "id": "photography",
+      "label": "Photography / Videography",
+      "subcategories": [
+        { "id": "headshots", "label": "Headshots" },
+        { "id": "shows", "label": "Shows" }
+      ]
+    },
+    {
+      "id": "equipment-rental",
+      "label": "Equipment Rental",
+      "subcategories": [
+        { "id": "lighting", "label": "Lighting" },
+        { "id": "sound", "label": "Sound" },
+        { "id": "staging", "label": "Staging" }
+      ]
+    },
+    {
+      "id": "space-rental",
+      "label": "Space Rental",
+      "subcategories": [
+        { "id": "rehearsal", "label": "Rehearsal" },
+        { "id": "performance", "label": "Performance" }
+      ]
+    },
+    {
+      "id": "technical-skills",
+      "label": "Technical Skills",
+      "subcategories": [
+        { "id": "lighting-design", "label": "Lighting Design" },
+        { "id": "sound-design", "label": "Sound Design" },
+        { "id": "board-ops", "label": "Board Ops" },
+        { "id": "stage-management", "label": "Stage Management" },
+        { "id": "stage-hand", "label": "Stage Hand" },
+        { "id": "production-management", "label": "Production Management" },
+        { "id": "set-design", "label": "Set Design" }
+      ]
+    },
+    {
+      "id": "coaching",
+      "label": "Coaching",
+      "subcategories": [
+        { "id": "acting", "label": "Acting" },
+        { "id": "voice", "label": "Voice" },
+        { "id": "movement", "label": "Movement" }
+      ]
+    }
+  ]
+}

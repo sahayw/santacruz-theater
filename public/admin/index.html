@@ -234,14 +234,16 @@ body {
 import { IS_DEV, setIdentityUser, getIdentityUser, loadCompanies, resolveUserAccess } from './api.js';
 import { mount as mountCalendar,    unmount as unmountCalendar    } from './calendar.js';
 import { mount as mountActivities,  unmount as unmountActivities  } from './activities.js';
+import { mount as mountServices,    unmount as unmountServices    } from './services.js';
 
 let allCompanies = [];
 let userAccess   = null;
 let currentEditor = null;
 
 const EDITORS = {
-  calendar:   { label: 'Calendar Editor',   headerTitle: 'Edit Performances', displayUrl: '/calendar', desc: 'Manage show runs and performances',     icon: '📅', mount: mountCalendar,   unmount: unmountCalendar   },
-  activities: { label: 'Activities Editor', headerTitle: 'Edit Activities',   displayUrl: '/events',   desc: 'Manage auditions and events',            icon: '🎭', mount: mountActivities, unmount: unmountActivities },
+  calendar:   { label: 'Calendar Editor',   headerTitle: 'Edit Performances', displayUrl: '/calendar',  desc: 'Manage show runs and performances',     icon: '📅', mount: mountCalendar,   unmount: unmountCalendar   },
+  activities: { label: 'Activities Editor', headerTitle: 'Edit Activities',   displayUrl: '/events',    desc: 'Manage auditions and events',            icon: '🎭', mount: mountActivities, unmount: unmountActivities },
+  services:   { label: 'Services Editor',   headerTitle: 'Edit Services',     displayUrl: '/services',  desc: 'Manage production resource listings',    icon: '🔧', mount: mountServices,   unmount: unmountServices   },
 };
 
 async function init() {

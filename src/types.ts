@@ -125,6 +125,45 @@ export interface ActivitiesFile {
   activities: Activity[]
 }
 
+export interface ServiceSubcategory {
+  id: string
+  label: string
+}
+
+export interface ServiceCategory {
+  id: string
+  label: string
+  subcategories: ServiceSubcategory[]
+}
+
+export interface ServiceCategoriesFile {
+  categories: ServiceCategory[]
+}
+
+export interface ServiceContact {
+  name?: string
+  tel?: string
+  email?: string
+  address?: string
+}
+
+export interface ServiceListing {
+  id: string // "service-<timestamp>"
+  name: string
+  categories: string[] // subcategory ids (leaf-level only)
+  contact: ServiceContact
+  photo?: string // local path e.g. "/images/services/jane-smith.jpg"
+  url?: string
+  description?: string // supports **bold** and *italic*
+  active: boolean
+  createdAt: string
+  updatedAt: string
+}
+
+export interface ServicesFile {
+  listings: ServiceListing[]
+}
+
 /**
  * Flat record for calendar and list views.
  * One entry per date/time slot; run-level metadata is merged in.

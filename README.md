@@ -7,7 +7,7 @@ Four sections, accessible from a persistent top nav and a hub landing page:
 1. **Calendar** — performances calendar ✓
 2. **Companies** — theater company directory with logos ✓
 3. **Events** — upcoming auditions and events listings ✓
-4. **Services** — crew, props, and production resources _(planned)_
+4. **Services** — crew, equipment, spaces, and production resources ✓
 
 An **About** page is linked from the home page footer and includes a contact form.
 
@@ -81,6 +81,22 @@ A daily digest is sent to subscribers when new or updated activities have been p
 **Digest** — `netlify/functions/send-digest.mts` runs at 02:00 UTC. It reads current activity data from local JSON files bundled with the function, compares `createdAt`/`updatedAt` timestamps against a "last sent" value stored in Netlify Blob Storage, and sends a digest if anything is new or updated. New and updated auditions and events are presented in separate sections; each entry links directly to the record on the site. The last-sent timestamp is updated only after a successful send.
 
 Setting `DRY_RUN=true` in Netlify environment variables causes the function to log what it would send without calling Buttondown.
+
+---
+
+## Services
+
+The `/services` page connects theater companies and individuals with production resources.
+
+The page has three modes: **index** (no params) shows a two-column category grid; **filtered** (`?category=<id>`) hides the grid and shows listing cards matching the selected category, with a two-level checkbox dropdown to change the filter; **deep-link** (`?id=<timestamp>`) shows a single listing card expanded with all others hidden.
+
+**Category index** — each top-level category links to its filtered view; subcategories link to a narrower exact-match filter. Categories and their subcategories are stored in `data/sc-theater-service-categories.json`. Only categories that have at least one active listing are linked; the rest are shown as non-interactive labels.
+
+**Listing cards** — collapsed by default; show name, category pills (one per subcategory), and contact info. Expanding reveals the full description and an optional "More info" link. Description supports `**bold**`, `*italic*`, and `[link text](url)`. Filter changes reset all open cards to closed. If all categories are deselected, an empty state with a "Return to Services index" link is shown.
+
+Category pill text uses the subcategory `description` field when set (e.g. "Headshot Photography" instead of "Headshots"), falling back to `label`. Listings store only subcategory ids (leaf-level); a top-level category filter matches any listing with a subcategory under that parent.
+
+See [`docs/services.md`](docs/services.md) for the full data schema and editor walkthrough.
 
 ---
 
@@ -224,6 +240,24 @@ A **Preview** button renders a modal showing what the collapsed and expanded car
 
 ---
 
+## Services editor
+
+Choosing the **Services Editor** tile opens an editor for service listings. This is an admin-only dataset — not tied to any company; only users with site-wide admin access see this tile.
+
+The sidebar lists all listings (active/inactive status shown); **+ New** creates a new record. Sidebar width is adjustable via a drag handle.
+
+**Categories** — a two-level checkbox grid mirrors the category hierarchy. Selecting a top-level category checks/unchecks all its subcategories. Only subcategory ids (leaf-level) are stored in the listing.
+
+**Photo** — a file picker uploads the image to `public/images/services/` on Save. The filename is editable before saving. If no image is selected, the field is blank.
+
+**Description** — plain textarea. Supports `**bold**`, `*italic*`, and `[link text](url)` rendering on the public page.
+
+**Preview** — renders a modal showing the collapsed and expanded card as it will appear on the public `/services` page, using the same pill text logic and rendering the description markdown.
+
+Save, dirty-check, and Restore behave the same as the Activities editor.
+
+---
+
 ## Project structure
 
 ```
@@ -241,22 +275,26 @@ src/
     events.astro              # auditions and events route
     subscribe.astro           # email subscription page
     about.astro               # about and contact page
-    services.astro            # stub
+    services.astro            # services index, filtered list, and deep-link modes
     admin/
       audition-format.js.ts   # Astro endpoint serving shared module as browser ES module
   types.ts                    # shared TypeScript interfaces
 data/
   shows/<year>/               # one JSON file per company per year, e.g. scs-2026.json
   activities/<year>/          # one JSON file per company per year, e.g. renegade-activities-2026.json
-  sc-theater-companies.json   # company directory; hand-editable
-  sc-theater-venues.json      # shared venue list; hand-editable
+  sc-theater-companies.json         # company directory; hand-editable
+  sc-theater-venues.json            # shared venue list; hand-editable
+  sc-theater-service-categories.json # service category hierarchy; hand-editable
+  sc-theater-services.json          # service listings; edited via /admin
 public/
   admin/
     index.html                # shell for data editors
     calendar.js               # calendar editor
     activities.js             # activities editor
+    services.js               # services editor
     api.js                    # shared editor API helpers
   images/companies/           # locally stored company logos
+  images/services/            # locally stored service listing photos
 astro.config.mjs              # Astro config, including Vite dev proxy
 netlify/
   functions/

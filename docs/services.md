@@ -7,39 +7,49 @@ The Services section connects Santa Cruz County theater companies and individual
 The `/services` page has three modes:
 
 - **Index mode** (no params) — shows a category grid; clicking a category navigates to filtered mode
-- **Filtered mode** (`?category=<id>`) — category grid disappears entirely; listing cards filtered by the selected category id are shown; a two-level category selector (same hierarchy as the index grid) allows switching to another category or subcategory without returning to the index; no explicit back link is needed — the SiteNav "Services" link returns to index mode
-- **Deep-link mode** (`?id=<listing-id>`) — shows a single listing card expanded (all others hidden); filter bar and category grid hidden; page title changes to the listing name
+- **Filtered mode** (`?category=<id>`) — category grid disappears entirely; listing cards filtered by the selected category id are shown; a two-level category selector (same hierarchy as the index grid) allows switching to another category or subcategory without returning to the index; when all subcategories are deselected the empty state shows a "Return to Services index" link; the SiteNav "Services" link also returns to index mode at any time
+- **Deep-link mode** (`?id=<listing-id>`) — shows a single listing card expanded (all others hidden); filter bar and category grid hidden; page title changes to the listing name at a reduced size
 
 ---
 
 ## Category index
 
-Stored in `data/sc-theater-service-categories.json` — hand-editable, drives both the index grid and the filter dropdown. Each category has an `id` (kebab-case slug used in the URL), a `label`, and an array of `subcategories` (each with its own `id` and `label`).
+Stored in `data/sc-theater-service-categories.json` — hand-editable, drives both the index grid and the filter dropdown. Each category has an `id` (kebab-case slug used in the URL), a `label`, and an array of `subcategories`. Each subcategory has an `id`, a `label`, and an optional `description`.
+
+### `ServiceSubcategory`
+
+| Field         | Type      | Notes                                                                                 |
+| ------------- | --------- | ------------------------------------------------------------------------------------- |
+| `id`          | `string`  | Kebab-case slug; used as the `?category=` URL value and stored in `ServiceListing.categories` |
+| `label`       | `string`  | Display name in the category index and filter dropdown                                |
+| `description` | `string?` | Short phrase used as the category pill text on listing cards (e.g. "Headshot Photography"). Falls back to `label` when absent. |
+
+Current categories and subcategories:
 
 ```
-                                    id                      description
+                                    id                      description (pill text)
 Photography / Videography       photography
-  Headshots                     headshots                   Headshot photos
-  Shows                         shows                       Theater photos
+  Headshots                     headshots                   Headshot Photography
+  Shows                         shows                       Show Photography
 Equipment Rental                equipment-rental
-  Lighting                      lighting                    Lighting rental
-  Sound                         sound                       Sound equip rental
-  Staging                       staging                     Staging rental
+  Lighting                      lighting                    Lighting Rental
+  Sound                         sound                       Sound Rental
+  Staging                       staging                     Staging Rental
 Space Rental                    space-rental
-  Rehearsal                     rehearsal                   Rehearsal space
-  Performance                   performance                 Performance space
+  Rehearsal                     rehearsal                   Rehearsal Space
+  Performance                   performance                 Performance Space
 Technical Skills                technical-skills
-  Lighting Design               lighting-design
-  Sound Design                  sound-design
-  Board Ops                     board-ops
-  Stage Management              stage-management
-  Stage Hand                    stage-hand
-  Production Management         production-management
-  Set Design                    set-design
+  Lighting Design               lighting-design             (falls back to label)
+  Sound Design                  sound-design                (falls back to label)
+  Board Ops                     board-ops                   (falls back to label)
+  Stage Management              stage-management            (falls back to label)
+  Stage Hand                    stage-hand                  (falls back to label)
+  Production Management         production-management       (falls back to label)
+  Set Design                    set-design                  (falls back to label)
 Coaching                        coaching
-  Acting                        acting                      Acting coach
-  Voice                         voice                       Voice coach
-  Movement                      movement                    Movement coach
+  Acting                        acting                      Acting Coach
+  Voice                         voice                       Voice Coach
+  Movement                      movement                    Movement Coach
 ```
 
 Clicking a top-level category navigates to `/services?category=<id>` and shows all listings that include any subcategory under that parent. Clicking a subcategory navigates to `/services?category=<subcategory-id>` and filters to exact subcategory matches.
@@ -68,7 +78,7 @@ Top-level shape:
 | `contact`     | `ServiceContact` | yes      | At least `tel` or `email` required                                                                            |
 | `photo`       | `string?`        | no       | Local path, e.g. `"/images/services/jane-smith.jpg"` — stored in `public/images/services/`                    |
 | `url`         | `string?`        | no       | URL for further info                                                                                          |
-| `description` | `string?`        | no       | Full description; supports `**bold**` and `*italic*`; shown in expanded card                                  |
+| `description` | `string?`        | no       | Full description; supports `**bold**`, `*italic*`, and `[link text](https://url)`; shown in expanded card     |
 | `active`      | `boolean`        | yes      | `false` hides the listing from public pages without deleting it                                               |
 | `createdAt`   | `string`         | yes      | ISO 8601 timestamp — not displayed, kept for audit                                                            |
 | `updatedAt`   | `string`         | yes      | ISO 8601 timestamp — not displayed, kept for audit                                                            |
@@ -86,18 +96,17 @@ Top-level shape:
 
 ## Service card display
 
-Cards are collapsed by default; clicking expands to show the description. Consistent with the Activities card pattern.
+Cards are collapsed by default; clicking expands to show the description. Consistent with the Activities card pattern — filter changes reset all open cards to closed.
 
 **Collapsed card** shows:
 
-- Name (heading)
-- Category pills (one per subcategory)
+- Name (heading) with category pills inline to its right (one pill per subcategory; pill text is the subcategory `description` if set, otherwise the subcategory `label`)
 - Contact info block with photo to its left (photo is optional; ~80×80 px square, rounded corners)
 
-**Expanded card** additionally shows, below the collapsed content (contact block stays in place):
+**Expanded card** additionally shows:
 
-- Description (supports `**bold**` / `*italic*` inline formatting, same renderer as Activities)
-- URL as a labelled link ("More info")
+- Description (supports `**bold**`, `*italic*`, and `[link text](url)` inline formatting)
+- URL as a labelled link ("More info →")
 
 ### Photo form factor
 
@@ -122,34 +131,11 @@ The `id` in the deep-link URL is the numeric timestamp portion of the listing id
 
 - Mount/unmount module pattern, same as `calendar.js` and `activities.js`
 - Admin-only dataset: not tied to a company; only users with site-wide admin access can edit
-- Sidebar: listing names; **+ New** button creates a new record
+- Sidebar: listing names with active/inactive status; **+ New** button creates a new record; sidebar width is adjustable via a drag handle
 - Form fields follow the `ServiceListing` schema above
 - `categories` field: multi-select using the two-level hierarchy; selecting a top-level category in the UI selects/deselects all its subcategories; the stored value always contains only subcategory ids (leaf-level)
-- `active` toggle: shown in the record header alongside Restore / Delete
-- Photo: text input for the local path (admin uploads the file manually to `public/images/services/` and enters the path)
-- `description` field: plain textarea; same `**bold**` / `*italic*` rendering as Activities notes
+- `active` toggle: shown in the record header alongside Restore / Preview / Delete
+- Photo: file picker uploads the image to `public/images/services/` on Save; the filename field is editable before saving; the stored `photo` path is set automatically from the uploaded filename
+- `description` field: plain textarea; supports `**bold**`, `*italic*`, and `[link text](https://url)` rendering on the public page
+- **Preview** button: renders a modal showing what the collapsed and expanded card will look like on the public `/services` page — category pills use the same `description ?? label` pill text as the public page; photo preview uses the pending upload if one is staged
 - Save, dirty-check, and restore behaviour: same pattern as Activities editor
-
----
-
-## Implementation plan
-
-### Phase 1 — Data layer
-
-- Create `data/sc-theater-service-categories.json`
-- Create `data/sc-theater-services.json` (empty listings array)
-- Add `ServiceCategory`, `ServiceContact`, `ServiceListing` types to `src/types.ts`
-- Add `getServices()` to `src/lib/data.ts`
-
-### Phase 2 — Public page
-
-- Replace stub in `src/pages/services.astro` with category index and listing cards
-- Client-side `?category=` filter
-- `?id=` deep-link single-card mode
-- Collapsed/expanded card toggle
-
-### Phase 3 — Admin editor
-
-- `public/admin/services.js` (mount/unmount)
-- Services tile in `public/admin/index.html`
-- Extend `netlify/functions/data.mjs` for services read/write

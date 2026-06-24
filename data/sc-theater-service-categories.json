@@ -5,7 +5,7 @@
       "label": "Photography / Videography",
       "subcategories": [
         { "id": "headshots", "label": "Headshots", "description": "Headshot Photography" },
-        { "id": "shows", "label": "Shows", "description": "Show Photography" }
+        { "id": "shows", "label": "Shows", "description": "Theater Photography" }
       ]
     },
     {

@@ -8,6 +8,7 @@ const CATS_PATH = 'sc-theater-service-categories.json'
 let listings = []
 let activeIdx = -1
 let categories = []
+let subPillMap = {}
 let snapshots = new Map()
 let fileLoaded = false
 let pendingUpload = null
@@ -278,6 +279,68 @@ const SVC_CSS = `
 .svc-photo-actions { display: flex; gap: 6px; }
 .svc-photo-pending-note { font-size: 10px; color: var(--yellow); font-style: italic; }
 .svc-photo-filename { max-width: 260px; }
+
+/* ── SERVICE PREVIEW ── */
+.spv-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 9999;
+  display: flex; align-items: center; justify-content: center;
+}
+.spv-modal {
+  background: #fff; border-radius: 8px; max-width: 640px; width: 94vw;
+  max-height: 88vh; overflow: auto;
+}
+.spv-modal-hd {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 12px 16px; border-bottom: 1px solid #e0d9d0; position: sticky; top: 0; background: #fff;
+}
+.spv-modal-label { font-weight: 600; font-size: 13px; color: #1a1612; }
+.spv-close {
+  background: none; border: none; cursor: pointer; color: #6b6259;
+  font-size: 20px; width: 28px; height: 28px;
+  display: flex; align-items: center; justify-content: center; border-radius: 4px;
+}
+.spv-close:hover { color: #1a1612; }
+.spv-body { padding: 20px; }
+.spv-card {
+  background: #ffffff; border: 1px solid #c8a96e;
+  border-radius: 6px; overflow: hidden;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+}
+.spv-summary { display: flex; align-items: flex-start; gap: 16px; padding: 14px 16px; }
+.spv-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 6px; }
+.spv-name-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.spv-name {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: 16px; font-weight: 600; color: #1a1612; line-height: 1.25;
+}
+.spv-pill {
+  font-size: 11px; font-weight: 500; padding: 2px 8px;
+  border-radius: 10px; background: #f0ece6; color: #6b6259;
+  letter-spacing: 0.02em; flex-shrink: 0;
+}
+.spv-contact-row { display: flex; align-items: flex-start; gap: 12px; margin-top: 2px; }
+.spv-photo { width: 80px; height: 80px; object-fit: cover; border-radius: 6px; flex-shrink: 0; }
+.spv-contact-info { display: flex; flex-direction: column; gap: 2px; font-size: 13px; }
+.spv-contact-name { font-weight: 500; color: #1a1612; }
+.spv-contact-link { color: #4f5ce0; text-decoration: none; font-size: 12px; }
+.spv-contact-link:hover { text-decoration: underline; }
+.spv-contact-address { font-size: 12px; color: #6b6259; }
+.spv-aside { flex-shrink: 0; padding-top: 2px; }
+.spv-chevron {
+  display: block; width: 8px; height: 8px;
+  border-right: 2px solid #9c9189; border-bottom: 2px solid #9c9189;
+  transform: rotate(-135deg);
+}
+.spv-detail {
+  background: #f7f4ef; border-top: 1px solid #e0d9d0;
+  padding: 16px; display: flex; flex-direction: column; gap: 12px;
+}
+.spv-desc { font-size: 13px; color: #1a1612; line-height: 1.6; white-space: pre-wrap; }
+.spv-desc a { color: #4f5ce0; text-decoration: none; }
+.spv-desc a:hover { text-decoration: underline; }
+.spv-url-row { display: flex; }
+.spv-action-link { font-size: 13px; font-weight: 500; color: #4f5ce0; text-decoration: none; }
+.spv-action-link:hover { color: #2c3e9a; text-decoration: underline; }
 `
 
 // ── HTML TEMPLATE ──
@@ -317,6 +380,9 @@ const SVC_HTML = `
         <button class="btn btn-sm" id="svcRestoreBtn"
           style="background:var(--bg);border:1px solid var(--border);display:none"
           onclick="svcEd.restoreListing()">Restore</button>
+        <button class="btn btn-sm" id="svcPreviewBtn"
+          style="background:var(--bg);border:1px solid var(--border)"
+          onclick="svcEd.openPreview()">Preview</button>
         <button class="btn btn-sm" style="background:#fde;color:var(--accent);border:1px solid #fcc"
           onclick="svcEd.deleteListing()">Delete</button>
       </div>
@@ -388,6 +454,16 @@ const SVC_HTML = `
 <div class="svc-statusbar">
   <div class="svc-status-item"><span class="svc-status-key">listings</span><span id="sst-count">0</span></div>
   <div class="svc-status-item"><span class="svc-status-key">status</span><span id="sst-saved">no file loaded</span></div>
+</div>
+
+<div class="spv-overlay" id="svcPreviewOverlay" style="display:none" onclick="svcEd.closePreviewOutside(event)">
+  <div class="spv-modal">
+    <div class="spv-modal-hd">
+      <span class="spv-modal-label">Preview</span>
+      <button class="spv-close" onclick="svcEd.closePreview()">×</button>
+    </div>
+    <div class="spv-body" id="svcPreviewBody"></div>
+  </div>
 </div>
 `
 
@@ -497,11 +573,11 @@ function updatePhotoWidget() {
       <input type="file" id="sf-photo-input" accept="image/jpeg,image/png,image/webp"
         style="display:none" onchange="svcEd.photoPicked(this)">`
   } else if (l?.photo) {
+    const thumbSrc = l._photoDataUrl || l.photo
     wrap.innerHTML = `
       <div class="svc-photo-preview-row">
-        <img src="${esc(l.photo)}" class="svc-photo-thumb" alt="Photo">
+        <img src="${esc(thumbSrc)}" class="svc-photo-thumb" alt="Photo">
         <div class="svc-photo-info">
-          <div class="svc-photo-path">${esc(l.photo)}</div>
           <div class="svc-photo-actions">
             <button class="btn btn-sm" style="background:var(--bg);border:1px solid var(--border)"
               onclick="document.getElementById('sf-photo-input').click()">Change</button>
@@ -827,6 +903,7 @@ async function saveFile() {
     try {
       await apiUploadImage(filename, pendingUpload.base64)
       listings[activeIdx].photo = `/images/services/${filename}`
+      listings[activeIdx]._photoDataUrl = pendingUpload.dataUrl
       pendingUpload = null
       updatePhotoWidget()
     } catch (e) {
@@ -867,6 +944,64 @@ async function saveFile() {
   }
 }
 
+// ── PREVIEW ──
+function renderDesc(raw) {
+  return String(raw || '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\*([^*\n]+?)\*/g, '<em>$1</em>')
+    .replace(/\[([^\]]+)\]\((https?:\/\/[^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>')
+}
+
+function openPreview() {
+  if (activeIdx < 0) return
+  const l = listings[activeIdx]
+  const photoSrc = pendingUpload ? pendingUpload.dataUrl : (l._photoDataUrl || l.photo || null)
+
+  const pillsHtml = (l.categories || [])
+    .map((catId) => `<span class="spv-pill">${esc(subPillMap[catId] ?? catId)}</span>`)
+    .join('')
+
+  const contactHtml = [
+    l.contact?.name    ? `<span class="spv-contact-name">${esc(l.contact.name)}</span>` : '',
+    l.contact?.tel     ? `<a href="tel:${esc(l.contact.tel)}" class="spv-contact-link">${esc(l.contact.tel)}</a>` : '',
+    l.contact?.email   ? `<a href="mailto:${esc(l.contact.email)}" class="spv-contact-link">${esc(l.contact.email)}</a>` : '',
+    l.contact?.address ? `<span class="spv-contact-address">${esc(l.contact.address)}</span>` : '',
+  ].filter(Boolean).join('')
+
+  const descHtml = l.description ? `<div class="spv-desc">${renderDesc(l.description)}</div>` : ''
+  const urlHtml  = l.url ? `<div class="spv-url-row"><a href="${esc(l.url)}" class="spv-action-link" target="_blank" rel="noopener">More info →</a></div>` : ''
+
+  document.getElementById('svcPreviewBody').innerHTML = `
+    <div class="spv-card">
+      <div class="spv-summary">
+        <div class="spv-main">
+          <div class="spv-name-row">
+            <span class="spv-name">${esc(l.name || 'Untitled')}</span>
+            ${pillsHtml}
+          </div>
+          <div class="spv-contact-row">
+            ${photoSrc ? `<img class="spv-photo" src="${esc(photoSrc)}" alt="">` : ''}
+            <div class="spv-contact-info">${contactHtml}</div>
+          </div>
+        </div>
+        <div class="spv-aside"><span class="spv-chevron"></span></div>
+      </div>
+      ${descHtml || urlHtml ? `<div class="spv-detail">${descHtml}${urlHtml}</div>` : ''}
+    </div>`
+  document.getElementById('svcPreviewOverlay').style.display = ''
+}
+
+function closePreview() {
+  document.getElementById('svcPreviewOverlay').style.display = 'none'
+}
+
+function closePreviewOutside(e) {
+  if (e.target === document.getElementById('svcPreviewOverlay')) closePreview()
+}
+
 // ── MODULE API ──
 export function mount(container, context) {
   injectStyles()
@@ -884,7 +1019,10 @@ export function mount(container, context) {
     photoPicked,
     photoFilenameChanged,
     photoCancelClicked,
-    photoRemoveClicked
+    photoRemoveClicked,
+    openPreview,
+    closePreview,
+    closePreviewOutside
   }
 
   const handle = document.getElementById('svcResizeHandle')
@@ -914,6 +1052,12 @@ export function mount(container, context) {
   apiFetch(CATS_PATH)
     .then((data) => {
       categories = data.categories || []
+      subPillMap = {}
+      for (const cat of categories) {
+        for (const sub of cat.subcategories) {
+          subPillMap[sub.id] = sub.description ?? sub.label
+        }
+      }
       buildCatsGrid()
       return loadFile()
     })
@@ -932,6 +1076,7 @@ export function unmount() {
   snapshots = new Map()
   activeIdx = -1
   categories = []
+  subPillMap = {}
   fileLoaded = false
   pendingUpload = null
 }

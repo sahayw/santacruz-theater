@@ -220,7 +220,10 @@ function renderDesc(raw: string): string {
             </div>
           ))
         }
-        <div class="svc-empty" id="svc-empty" hidden>No listings match the current filter.</div>
+        <div class="svc-empty" id="svc-empty" hidden>
+          No listings match the current filter.
+          <a class="svc-return-link" href="/services">Return to Services index</a>
+        </div>
       </div>
 
       <div class="svc-not-found" id="svc-not-found" hidden></div>
@@ -512,6 +515,21 @@ function renderDesc(raw: string): string {
     background: var(--surface);
     border: 1px solid var(--border);
     border-radius: var(--radius);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .svc-return-link {
+    font-size: 13px;
+    font-weight: 500;
+    color: #4f5ce0;
+    text-decoration: none;
+  }
+
+  .svc-return-link:hover {
+    text-decoration: underline;
   }
 
   /* ── CARD LIST ── */
@@ -783,6 +801,16 @@ function renderDesc(raw: string): string {
     const selected = new Set(
       Array.from(document.querySelectorAll('.fdp-sub-cb:checked')).map((cb) => cb.dataset.sub)
     )
+    // Close all open cards before re-filtering
+    cards.forEach((card) => {
+      if (card.classList.contains('open')) {
+        const btn = card.querySelector('.svc-summary')
+        const detail = card.querySelector('.svc-detail')
+        card.classList.remove('open')
+        if (detail) detail.hidden = true
+        if (btn) btn.setAttribute('aria-expanded', 'false')
+      }
+    })
     let visible = 0
     cards.forEach((card) => {
       const cardCats = (card.dataset.categories || '').split(',').filter(Boolean)
@@ -876,7 +904,10 @@ function renderDesc(raw: string): string {
       })
       openCard(targetCard)
       const titleEl = document.getElementById('page-title')
-      if (titleEl) titleEl.textContent = targetCard.querySelector('.svc-name')?.textContent ?? 'Service'
+      if (titleEl) {
+        titleEl.textContent = targetCard.querySelector('.svc-name')?.textContent ?? 'Service'
+        titleEl.style.fontSize = '18px'
+      }
     } else {
       if (svcList) svcList.hidden = true
       if (notFoundEl) {

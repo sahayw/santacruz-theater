@@ -25,22 +25,9 @@ const catsJson = JSON.stringify(
   categories.map((cat) => ({
     id: cat.id,
     label: cat.label,
-    subcategories: cat.subcategories.map((s) => ({ id: s.id, label: s.label }))
+    subcategories: cat.subcategories.map((s) => ({ id: s.id, label: s.label })),
   }))
 )
-
-function renderDesc(raw: string): string {
-  return raw
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-    .replace(/\*([^*\n]+?)\*/g, '<em>$1</em>')
-    .replace(
-      /\[([^\]]+)\]\((https?:\/\/[^)]+)\)/g,
-      '<a href="$2" target="_blank" rel="noopener">$1</a>'
-    )
-}
 
 function renderDesc(raw: string): string {
   return raw
@@ -62,7 +49,6 @@ function renderDesc(raw: string): string {
     <BaseHead
       title="Services — Santa Cruz Theater"
       description="Connect with the people and services you need to support your production."
-      description="Connect with the people and services you need to support your production."
       canonicalPath="/services"
     />
   </head>
@@ -75,39 +61,7 @@ function renderDesc(raw: string): string {
       </header>
 
       {/* ── CATEGORY INDEX (index mode — no URL params) ── */}
-      {/* ── CATEGORY INDEX (index mode — no URL params) ── */}
       <div class="cat-index" id="cat-index">
-        <p class="page-subtitle">
-          Production resources for Santa Cruz County theater — people, equipment, spaces
-        </p>
-        {
-          categories.map((cat) => {
-            const catActive = activeCatIds.has(cat.id)
-            return (
-              <div class="cat-index-group">
-                {catActive ? (
-                  <a class="cat-parent-link" href={`/services?category=${cat.id}`}>
-                    {cat.label}
-                  </a>
-                ) : (
-                  <span class="cat-parent-link cat-inactive">{cat.label}</span>
-                )}
-                <div class="cat-subs-list">
-                  {cat.subcategories.map((sub) => {
-                    const subActive = activeSubIds.has(sub.id)
-                    return subActive ? (
-                      <a class="cat-sub-link" href={`/services?category=${sub.id}`}>
-                        {sub.label}
-                      </a>
-                    ) : (
-                      <span class="cat-sub-link cat-inactive">{sub.label}</span>
-                    )
-                  })}
-                </div>
-              </div>
-            )
-          })
-        }
         <p class="page-subtitle">
           Production resources for Santa Cruz County theater — people, equipment, spaces
         </p>
@@ -159,61 +113,8 @@ function renderDesc(raw: string): string {
                   width="10"
                   height="6"
                   viewBox="0 0 10 6"
-                  aria-hidden="true"><path d="M0 0l5 6 5-6z" fill="currentColor"></path></svg
-                >
-              </button>
-              <div class="filter-dropdown-panel" id="filter-dropdown-panel" hidden>
-                {
-                  categories.map((cat) => (
-                    <div class="fdp-group">
-                      <label class="fdp-parent-label">
-                        <input
-                          type="checkbox"
-                          class="fdp-parent-cb"
-                          data-parent={cat.id}
-                          onchange={`svc.onParentCb('${cat.id}',this)`}
-                        />
-                        {cat.label}
-                      </label>
-                      <div class="fdp-subs" id={`fdp-subs-${cat.id}`} hidden>
-                        {cat.subcategories.map((sub) => (
-                          <label class="fdp-sub-label">
-                            <input
-                              type="checkbox"
-                              class="fdp-sub-cb"
-                              data-sub={sub.id}
-                              data-parent={cat.id}
-                              onchange="svc.onSubCb()"
-                            />
-                            {sub.label}
-                          </label>
-                        ))}
-                      </div>
-                    </div>
-                  ))
-                }
-              </div>
-            </div>
-          </div>
-      {/* ── FILTER BAR (filtered mode — ?category param) ── */}
-      <div class="filter-bar" id="filter-bar" hidden>
-        <div class="filter-controls">
-          <div class="filter-group">
-            <label>Category</label>
-            <div class="filter-dropdown" id="filter-dropdown">
-              <button
-                class="filter-dropdown-btn"
-                id="filter-dropdown-btn"
-                aria-expanded="false"
-                onclick="svc.toggleDropdown()"
-              >
-                <span id="filter-dropdown-label">Select category</span>
-                <svg
-                  class="filter-dropdown-arrow"
-                  width="10"
-                  height="6"
-                  viewBox="0 0 10 6"
-                  aria-hidden="true"><path d="M0 0l5 6 5-6z" fill="currentColor"></path></svg
+                  aria-hidden="true"
+                  ><path d="M0 0l5 6 5-6z" fill="currentColor"></path></svg
                 >
               </button>
               <div class="filter-dropdown-panel" id="filter-dropdown-panel" hidden>
@@ -251,18 +152,13 @@ function renderDesc(raw: string): string {
           </div>
         </div>
         <div class="filter-count" id="filter-count" aria-live="polite"></div>
-        <div class="filter-count" id="filter-count" aria-live="polite"></div>
       </div>
 
       {/* ── LISTING CARDS (filtered and deep-link modes) ── */}
       <div class="svc-list" id="svc-list" hidden>
         {
           listings.map((listing) => (
-            <div
-              class="svc-card"
-              data-id={listing.id}
-              data-categories={listing.categories.join(',')}
-            >
+            <div class="svc-card" data-id={listing.id} data-categories={listing.categories.join(',')}>
               <button class="svc-summary" aria-expanded="false">
                 <div class="svc-main">
                   <div class="svc-name-row">
@@ -303,26 +199,10 @@ function renderDesc(raw: string): string {
                   </div>
                 </div>
                 <div class="svc-aside">
-                  <span class="svc-chevron" aria-hidden="true" />
+                  <span class="svc-chevron" aria-hidden="true"></span>
                 </div>
               </button>
 
-              <div class="svc-detail" hidden>
-                {listing.description && (
-                  <div class="svc-desc" set:html={renderDesc(listing.description)} />
-                )}
-                {listing.url && (
-                  <div class="svc-url-row">
-                    <a class="svc-action-link" href={listing.url} target="_blank" rel="noopener">
-                      More info →
-                    </a>
-                  </div>
-                )}
-              </div>
-            </div>
-          ))
-        }
-        <div class="svc-empty" id="svc-empty" hidden>No listings match the current filter.</div>
               <div class="svc-detail" hidden>
                 {listing.description && (
                   <div class="svc-desc" set:html={renderDesc(listing.description)} />
@@ -344,16 +224,11 @@ function renderDesc(raw: string): string {
       <div class="svc-not-found" id="svc-not-found" hidden></div>
     </main>
 
-    <script is:inline set:html={`window.SVC_CATS=${catsJson};`} />
-    <script is:inline set:html={`window.SVC_CATS=${catsJson};`} />
+    <script is:inline set:html={`window.SVC_CATS=${catsJson};`}></script>
   </body>
 </html>
 
 <style>
-  [hidden] {
-    display: none !important;
-  }
-
   [hidden] {
     display: none !important;
   }
@@ -415,10 +290,8 @@ function renderDesc(raw: string): string {
     color: var(--ink-muted);
     letter-spacing: 0.01em;
     margin-bottom: 20px;
-    margin-bottom: 20px;
   }
 
-  /* ── CATEGORY INDEX ── */
   /* ── CATEGORY INDEX ── */
   .cat-index {
     columns: 2;
@@ -468,9 +341,6 @@ function renderDesc(raw: string): string {
     transition:
       color 0.14s,
       border-color 0.14s;
-    transition:
-      color 0.14s,
-      border-color 0.14s;
   }
 
   a.cat-sub-link:hover {
@@ -499,37 +369,13 @@ function renderDesc(raw: string): string {
     padding-left: 32px;
     padding-right: 32px;
     flex-wrap: wrap;
-  /* ── FILTER BAR (matches events page style) ── */
-  .filter-bar {
-    position: sticky;
-    top: var(--nav-h);
-    z-index: 50;
-    background: var(--page-bg);
-    border-bottom: 1px solid var(--border);
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-    padding: 10px 0;
-    margin: 0 -32px 20px;
-    padding-left: 32px;
-    padding-right: 32px;
-    flex-wrap: wrap;
   }
 
-  .filter-controls {
   .filter-controls {
     display: flex;
     align-items: center;
     gap: 10px;
-    align-items: center;
-    gap: 10px;
     flex-wrap: wrap;
-  }
-
-  .filter-group {
-    display: flex;
-    align-items: center;
   }
 
   .filter-group {
@@ -545,35 +391,10 @@ function renderDesc(raw: string): string {
     white-space: nowrap;
   }
 
-  .filter-group label {
-    font-size: 12px;
-    font-weight: 500;
-    color: var(--ink-muted);
-    white-space: nowrap;
-  }
-
-  .filter-count {
   .filter-count {
     font-size: 12px;
     font-weight: 500;
     color: var(--ink-muted);
-    white-space: nowrap;
-    flex-shrink: 0;
-  }
-
-  /* ── CATEGORY DROPDOWN ── */
-  .filter-dropdown {
-    position: relative;
-  }
-
-  .filter-dropdown-btn {
-    font-family: inherit;
-    font-size: 12px;
-    border: 1px solid var(--border);
-    border-radius: 4px;
-    padding: 4px 8px 4px 10px;
-    background: var(--surface);
-    color: var(--ink);
     white-space: nowrap;
     flex-shrink: 0;
   }
@@ -598,15 +419,8 @@ function renderDesc(raw: string): string {
     min-width: 190px;
     justify-content: space-between;
     -webkit-appearance: none;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    min-width: 190px;
-    justify-content: space-between;
-    -webkit-appearance: none;
   }
 
-  .filter-dropdown-btn:hover {
   .filter-dropdown-btn:hover {
     border-color: var(--ink-subtle);
   }
@@ -622,37 +436,6 @@ function renderDesc(raw: string): string {
     transition: transform 0.15s;
   }
 
-  .filter-dropdown-btn:focus-visible {
-    outline: 2px solid var(--border-primary);
-    outline-offset: 2px;
-  }
-
-  .filter-dropdown-arrow {
-    color: var(--ink-muted);
-    flex-shrink: 0;
-    transition: transform 0.15s;
-  }
-
-  .filter-dropdown-btn[aria-expanded='true'] .filter-dropdown-arrow {
-    transform: rotate(180deg);
-  }
-
-  .filter-dropdown-panel {
-    position: absolute;
-    top: calc(100% + 4px);
-    left: 0;
-    min-width: 260px;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
-    z-index: 100;
-    padding: 6px 0;
-    max-height: 380px;
-    overflow-y: auto;
-  }
-
-  .fdp-parent-label {
   .filter-dropdown-btn[aria-expanded='true'] .filter-dropdown-arrow {
     transform: rotate(180deg);
   }
@@ -674,18 +457,6 @@ function renderDesc(raw: string): string {
 
   .fdp-parent-label {
     display: flex;
-    align-items: center;
-    gap: 7px;
-    padding: 6px 12px;
-    font-size: 13px;
-    font-weight: 500;
-    color: var(--ink);
-    cursor: pointer;
-    user-select: none;
-    width: 100%;
-  }
-
-  .fdp-parent-label:hover {
     align-items: center;
     gap: 7px;
     padding: 6px 12px;
@@ -706,15 +477,8 @@ function renderDesc(raw: string): string {
   }
 
   .fdp-sub-label {
-  .fdp-subs {
-    padding: 0 12px 4px 32px;
-  }
-
-  .fdp-sub-label {
     display: flex;
     align-items: center;
-    gap: 6px;
-    padding: 3px 0;
     gap: 6px;
     padding: 3px 0;
     font-size: 12px;
@@ -725,15 +489,8 @@ function renderDesc(raw: string): string {
 
   .fdp-sub-label:hover {
     color: var(--ink);
-    user-select: none;
   }
 
-  .fdp-sub-label:hover {
-    color: var(--ink);
-  }
-
-  .fdp-parent-label input[type='checkbox'],
-  .fdp-sub-label input[type='checkbox'] {
   .fdp-parent-label input[type='checkbox'],
   .fdp-sub-label input[type='checkbox'] {
     width: 13px;
@@ -743,7 +500,6 @@ function renderDesc(raw: string): string {
     flex-shrink: 0;
   }
 
-  /* ── EMPTY / NOT-FOUND ── */
   /* ── EMPTY / NOT-FOUND ── */
   .svc-empty,
   .svc-not-found {
@@ -780,7 +536,6 @@ function renderDesc(raw: string): string {
   }
 
   /* ── SUMMARY ROW ── */
-  /* ── SUMMARY ROW ── */
   .svc-summary {
     display: flex;
     align-items: flex-start;
@@ -815,7 +570,6 @@ function renderDesc(raw: string): string {
     display: flex;
     align-items: center;
     gap: 8px;
-    flex-wrap: wrap;
     flex-wrap: wrap;
   }
 
@@ -902,7 +656,6 @@ function renderDesc(raw: string): string {
   }
 
   /* ── DETAIL PANEL ── */
-  /* ── DETAIL PANEL ── */
   .svc-detail {
     background: var(--bg);
     border-top: 1px solid var(--border);
@@ -917,15 +670,6 @@ function renderDesc(raw: string): string {
     color: var(--ink);
     line-height: 1.6;
     white-space: pre-wrap;
-  }
-
-  .svc-desc a {
-    color: #4f5ce0;
-    text-decoration: none;
-  }
-
-  .svc-desc a:hover {
-    text-decoration: underline;
   }
 
   .svc-desc a {
@@ -965,12 +709,6 @@ function renderDesc(raw: string): string {
       padding-left: 24px;
       padding-right: 24px;
     }
-    .filter-bar {
-      margin-left: -24px;
-      margin-right: -24px;
-      padding-left: 24px;
-      padding-right: 24px;
-    }
   }
 
   @media (max-width: 600px) {
@@ -989,20 +727,10 @@ function renderDesc(raw: string): string {
     .filter-dropdown-btn {
       min-width: 160px;
     }
-    .filter-bar {
-      margin-left: -16px;
-      margin-right: -16px;
-      padding-left: 16px;
-      padding-right: 16px;
-    }
-    .filter-dropdown-btn {
-      min-width: 160px;
-    }
   }
 </style>
 
 <script is:inline>
-  const CATS = window.SVC_CATS
   const CATS = window.SVC_CATS
 
   const parentSubs = {}
@@ -1012,45 +740,15 @@ function renderDesc(raw: string): string {
     cat.subcategories.forEach((s) => {
       subParent[s.id] = cat.id
     })
-    cat.subcategories.forEach((s) => {
-      subParent[s.id] = cat.id
-    })
   })
 
   const cards = Array.from(document.querySelectorAll('.svc-card'))
   const catIndex = document.getElementById('cat-index')
   const filterBar = document.getElementById('filter-bar')
-  const filterBar = document.getElementById('filter-bar')
   const svcList = document.getElementById('svc-list')
   const countEl = document.getElementById('filter-count')
   const emptyEl = document.getElementById('svc-empty')
   const notFoundEl = document.getElementById('svc-not-found')
-  const dropdownPanel = document.getElementById('filter-dropdown-panel')
-  const dropdownBtn = document.getElementById('filter-dropdown-btn')
-  const dropdownLabel = document.getElementById('filter-dropdown-label')
-
-  function updateDropdownLabel() {
-    if (!dropdownLabel) return
-    const n = document.querySelectorAll('.fdp-sub-cb:checked').length
-    dropdownLabel.textContent = n === 0 ? 'Select category' : n === 1 ? '1 chosen' : n + ' chosen'
-  }
-
-  function updateParentCb(parentId) {
-    const parentCb = document.querySelector(`.fdp-parent-cb[data-parent="${parentId}"]`)
-    const subsEl = document.getElementById(`fdp-subs-${parentId}`)
-    if (!parentCb || !subsEl) return
-    const subCbs = Array.from(subsEl.querySelectorAll('.fdp-sub-cb'))
-    const checkedCount = subCbs.filter((cb) => cb.checked).length
-    if (subsEl.hidden || checkedCount === 0) {
-      parentCb.checked = false
-      parentCb.indeterminate = false
-    } else if (checkedCount === subCbs.length) {
-      parentCb.checked = true
-      parentCb.indeterminate = false
-    } else {
-      parentCb.checked = false
-      parentCb.indeterminate = true
-    }
   const dropdownPanel = document.getElementById('filter-dropdown-panel')
   const dropdownBtn = document.getElementById('filter-dropdown-btn')
   const dropdownLabel = document.getElementById('filter-dropdown-label')
@@ -1083,13 +781,9 @@ function renderDesc(raw: string): string {
     const selected = new Set(
       Array.from(document.querySelectorAll('.fdp-sub-cb:checked')).map((cb) => cb.dataset.sub)
     )
-    const selected = new Set(
-      Array.from(document.querySelectorAll('.fdp-sub-cb:checked')).map((cb) => cb.dataset.sub)
-    )
     let visible = 0
     cards.forEach((card) => {
       const cardCats = (card.dataset.categories || '').split(',').filter(Boolean)
-      const show = selected.size > 0 && cardCats.some((c) => selected.has(c))
       const show = selected.size > 0 && cardCats.some((c) => selected.has(c))
       card.style.display = show ? '' : 'none'
       if (show) visible++
@@ -1097,17 +791,8 @@ function renderDesc(raw: string): string {
     if (countEl) countEl.textContent = `${visible} ${visible === 1 ? 'listing' : 'listings'}`
     if (emptyEl) emptyEl.hidden = visible > 0
     updateDropdownLabel()
-    updateDropdownLabel()
   }
 
-  function onParentCb(parentId, checkbox) {
-    const subsEl = document.getElementById(`fdp-subs-${parentId}`)
-    if (!subsEl) return
-    if (checkbox.checked) {
-      subsEl.hidden = false
-      subsEl.querySelectorAll('.fdp-sub-cb').forEach((cb) => {
-        cb.checked = true
-      })
   function onParentCb(parentId, checkbox) {
     const subsEl = document.getElementById(`fdp-subs-${parentId}`)
     if (!subsEl) return
@@ -1122,25 +807,8 @@ function renderDesc(raw: string): string {
         cb.checked = false
       })
       checkbox.indeterminate = false
-      subsEl.hidden = true
-      subsEl.querySelectorAll('.fdp-sub-cb').forEach((cb) => {
-        cb.checked = false
-      })
-      checkbox.indeterminate = false
     }
     applyFilter()
-  }
-
-  function onSubCb() {
-    CATS.forEach((cat) => updateParentCb(cat.id))
-    applyFilter()
-  }
-
-  function toggleDropdown() {
-    if (!dropdownPanel || !dropdownBtn) return
-    const isOpen = dropdownPanel.hidden
-    dropdownPanel.hidden = !isOpen
-    dropdownBtn.setAttribute('aria-expanded', String(isOpen))
   }
 
   function onSubCb() {
@@ -1164,24 +832,14 @@ function renderDesc(raw: string): string {
     if (!parentCb || !subsEl) return
     parentCb.checked = true
     subsEl.hidden = false
-    const parentCb = document.querySelector(`.fdp-parent-cb[data-parent="${parentId}"]`)
-    const subsEl = document.getElementById(`fdp-subs-${parentId}`)
-    if (!parentCb || !subsEl) return
-    parentCb.checked = true
-    subsEl.hidden = false
     if (isParent) {
-      subsEl.querySelectorAll('.fdp-sub-cb').forEach((cb) => {
-        cb.checked = true
-      })
       subsEl.querySelectorAll('.fdp-sub-cb').forEach((cb) => {
         cb.checked = true
       })
     } else {
       subsEl.querySelectorAll('.fdp-sub-cb').forEach((cb) => {
-      subsEl.querySelectorAll('.fdp-sub-cb').forEach((cb) => {
         cb.checked = cb.dataset.sub === catId
       })
-      updateParentCb(parentId)
       updateParentCb(parentId)
     }
   }
@@ -1206,12 +864,6 @@ function renderDesc(raw: string): string {
     if (svcNavLink) svcNavLink.style.pointerEvents = 'auto'
   }
 
-  // In any non-index mode, make the Services nav link clickable (to return to index)
-  if (deepId || catParam) {
-    const svcNavLink = document.querySelector('a[href="/services"].nav-link--active')
-    if (svcNavLink) svcNavLink.style.pointerEvents = 'auto'
-  }
-
   if (deepId) {
     const targetCard = cards.find((c) => c.dataset.id === 'service-' + deepId) ?? null
     catIndex.hidden = true
@@ -1220,21 +872,11 @@ function renderDesc(raw: string): string {
       cards.forEach((c) => {
         if (c !== targetCard) c.style.display = 'none'
       })
-      cards.forEach((c) => {
-        if (c !== targetCard) c.style.display = 'none'
-      })
       openCard(targetCard)
       const titleEl = document.getElementById('page-title')
-      if (titleEl)
-        titleEl.textContent = targetCard.querySelector('.svc-name')?.textContent ?? 'Service'
-      if (titleEl)
-        titleEl.textContent = targetCard.querySelector('.svc-name')?.textContent ?? 'Service'
+      if (titleEl) titleEl.textContent = targetCard.querySelector('.svc-name')?.textContent ?? 'Service'
     } else {
       if (svcList) svcList.hidden = true
-      if (notFoundEl) {
-        notFoundEl.textContent = `service-${deepId} not found`
-        notFoundEl.hidden = false
-      }
       if (notFoundEl) {
         notFoundEl.textContent = `service-${deepId} not found`
         notFoundEl.hidden = false
@@ -1242,7 +884,6 @@ function renderDesc(raw: string): string {
     }
   } else if (catParam) {
     catIndex.hidden = true
-    if (filterBar) filterBar.hidden = false
     if (filterBar) filterBar.hidden = false
     if (svcList) svcList.hidden = false
     activateCategory(catParam)
@@ -1260,20 +901,7 @@ function renderDesc(raw: string): string {
   })
 
   window.svc = { toggleDropdown, onParentCb, onSubCb }
-  // else: index mode — cat-index visible, filter-bar and svc-list remain hidden
 
-  // Close dropdown when clicking outside it
-  document.addEventListener('click', (e) => {
-    const dd = document.getElementById('filter-dropdown')
-    if (dd && !dd.contains(e.target) && dropdownPanel && !dropdownPanel.hidden) {
-      dropdownPanel.hidden = true
-      if (dropdownBtn) dropdownBtn.setAttribute('aria-expanded', 'false')
-    }
-  })
-
-  window.svc = { toggleDropdown, onParentCb, onSubCb }
-
-  // Card expand / collapse
   // Card expand / collapse
   document.querySelectorAll('.svc-summary').forEach((btn) => {
     btn.addEventListener('click', () => {

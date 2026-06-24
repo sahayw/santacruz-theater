@@ -6,7 +6,6 @@ import { getServices, getServiceCategories } from '../lib/data.ts'
 const listings = getServices()
 const categories = getServiceCategories()
 
-// Compute which subcategory and parent ids have active listings (for index inactive state)
 const activeSubIds = new Set(listings.flatMap((l) => l.categories))
 const activeCatIds = new Set(
   categories
@@ -14,7 +13,6 @@ const activeCatIds = new Set(
     .map((cat) => cat.id)
 )
 
-// Build a lookup: subcategoryId → label (for card pills)
 const subLabelMap: Record<string, string> = {}
 for (const cat of categories) {
   for (const sub of cat.subcategories) {
@@ -22,7 +20,6 @@ for (const cat of categories) {
   }
 }
 
-// Full category data for client-side filter UI
 const catsJson = JSON.stringify(
   categories.map((cat) => ({
     id: cat.id,
@@ -30,6 +27,19 @@ const catsJson = JSON.stringify(
     subcategories: cat.subcategories.map((s) => ({ id: s.id, label: s.label }))
   }))
 )
+
+function renderDesc(raw: string): string {
+  return raw
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\*([^*\n]+?)\*/g, '<em>$1</em>')
+    .replace(
+      /\[([^\]]+)\]\((https?:\/\/[^)]+)\)/g,
+      '<a href="$2" target="_blank" rel="noopener">$1</a>'
+    )
+}
 ---
 
 <!doctype html>
@@ -37,7 +47,7 @@ const catsJson = JSON.stringify(
   <head>
     <BaseHead
       title="Services — Santa Cruz Theater"
-      description="Connect with photographers, equipment rental, spaces, crew, and coaches for Santa Cruz County theater."
+      description="Connect with the people and services you need to support your production."
       canonicalPath="/services"
     />
   </head>
@@ -47,143 +57,184 @@ const catsJson = JSON.stringify(
     <main class="svc-page">
       <header class="page-header">
         <h1 class="page-title" id="page-title">Services</h1>
-        <p class="page-subtitle" id="page-subtitle">
-          Production resources for Santa Cruz County theater — photographers, equipment, spaces, crew, and coaches
-        </p>
       </header>
 
-      {/* ── CATEGORY INDEX (index mode only) ── */}
+      {/* ── CATEGORY INDEX (index mode — no URL params) ── */}
       <div class="cat-index" id="cat-index">
-        {categories.map((cat) => {
-          const catActive = activeCatIds.has(cat.id)
-          return (
-            <div class="cat-index-group">
-              {catActive ? (
-                <a class="cat-parent-link" href={`/services?category=${cat.id}`}>{cat.label}</a>
-              ) : (
-                <span class="cat-parent-link cat-inactive">{cat.label}</span>
-              )}
-              <div class="cat-subs-list">
-                {cat.subcategories.map((sub) => {
-                  const subActive = activeSubIds.has(sub.id)
-                  return subActive ? (
-                    <a class="cat-sub-link" href={`/services?category=${sub.id}`}>{sub.label}</a>
-                  ) : (
-                    <span class="cat-sub-link cat-inactive">{sub.label}</span>
-                  )
-                })}
+        <p class="page-subtitle">
+          Production resources for Santa Cruz County theater — people, equipment, spaces
+        </p>
+        {
+          categories.map((cat) => {
+            const catActive = activeCatIds.has(cat.id)
+            return (
+              <div class="cat-index-group">
+                {catActive ? (
+                  <a class="cat-parent-link" href={`/services?category=${cat.id}`}>
+                    {cat.label}
+                  </a>
+                ) : (
+                  <span class="cat-parent-link cat-inactive">{cat.label}</span>
+                )}
+                <div class="cat-subs-list">
+                  {cat.subcategories.map((sub) => {
+                    const subActive = activeSubIds.has(sub.id)
+                    return subActive ? (
+                      <a class="cat-sub-link" href={`/services?category=${sub.id}`}>
+                        {sub.label}
+                      </a>
+                    ) : (
+                      <span class="cat-sub-link cat-inactive">{sub.label}</span>
+                    )
+                  })}
+                </div>
               </div>
-            </div>
-          )
-        })}
+            )
+          })
+        }
       </div>
 
-      {/* ── FILTER PANEL (filtered mode only) ── */}
-      <div class="filter-panel" id="filter-panel" hidden>
-        <div class="filter-cats-row" id="filter-cats-row">
-          {categories.map((cat) => (
-            <button class="filter-cat-btn" data-parent={cat.id}
-              onclick={`svc.toggleParent('${cat.id}')`}>
-              {cat.label}
-            </button>
-          ))}
-        </div>
-        {categories.map((cat) => (
-          <div class="filter-subs-row" id={`filter-subs-${cat.id}`} hidden>
-            {cat.subcategories.map((sub) => (
-              <label class="filter-sub-label">
-                <input type="checkbox" class="filter-sub-cb" data-sub={sub.id}
-                  data-parent={cat.id} onchange="svc.applyFilter()" />
-                {sub.label}
-              </label>
-            ))}
+      {/* ── FILTER BAR (filtered mode — ?category param) ── */}
+      <div class="filter-bar" id="filter-bar" hidden>
+        <div class="filter-controls">
+          <div class="filter-group">
+            <label>Category</label>
+            <div class="filter-dropdown" id="filter-dropdown">
+              <button
+                class="filter-dropdown-btn"
+                id="filter-dropdown-btn"
+                aria-expanded="false"
+                onclick="svc.toggleDropdown()"
+              >
+                <span id="filter-dropdown-label">Select category</span>
+                <svg
+                  class="filter-dropdown-arrow"
+                  width="10"
+                  height="6"
+                  viewBox="0 0 10 6"
+                  aria-hidden="true"><path d="M0 0l5 6 5-6z" fill="currentColor"></path></svg
+                >
+              </button>
+              <div class="filter-dropdown-panel" id="filter-dropdown-panel" hidden>
+                {
+                  categories.map((cat) => (
+                    <div class="fdp-group">
+                      <label class="fdp-parent-label">
+                        <input
+                          type="checkbox"
+                          class="fdp-parent-cb"
+                          data-parent={cat.id}
+                          onchange={`svc.onParentCb('${cat.id}',this)`}
+                        />
+                        {cat.label}
+                      </label>
+                      <div class="fdp-subs" id={`fdp-subs-${cat.id}`} hidden>
+                        {cat.subcategories.map((sub) => (
+                          <label class="fdp-sub-label">
+                            <input
+                              type="checkbox"
+                              class="fdp-sub-cb"
+                              data-sub={sub.id}
+                              data-parent={cat.id}
+                              onchange="svc.onSubCb()"
+                            />
+                            {sub.label}
+                          </label>
+                        ))}
+                      </div>
+                    </div>
+                  ))
+                }
+              </div>
+            </div>
           </div>
-        ))}
-        <div class="filter-count-row">
-          <span class="filter-count" id="filter-count" aria-live="polite"></span>
         </div>
+        <div class="filter-count" id="filter-count" aria-live="polite"></div>
       </div>
 
       {/* ── LISTING CARDS (filtered and deep-link modes) ── */}
       <div class="svc-list" id="svc-list" hidden>
-        {listings.map((listing) => (
-          <div
-            class="svc-card"
-            data-id={listing.id}
-            data-categories={listing.categories.join(',')}
-          >
-            {/* ── Collapsed summary ── */}
-            <button class="svc-summary" aria-expanded="false">
-              <div class="svc-main">
-                <div class="svc-name-row">
-                  <span class="svc-name">{listing.name}</span>
-                </div>
-                <div class="svc-cats-row">
-                  {listing.categories.map((catId) => (
-                    <span class="svc-cat-pill">{subLabelMap[catId] ?? catId}</span>
-                  ))}
-                </div>
-                <div class="svc-contact-row">
-                  {listing.photo && (
-                    <img
-                      class="svc-photo"
-                      src={listing.photo}
-                      alt=""
-                      width="80"
-                      height="80"
-                      loading="lazy"
-                    />
-                  )}
-                  <div class="svc-contact-info">
-                    {listing.contact.name && (
-                      <span class="svc-contact-name">{listing.contact.name}</span>
+        {
+          listings.map((listing) => (
+            <div
+              class="svc-card"
+              data-id={listing.id}
+              data-categories={listing.categories.join(',')}
+            >
+              <button class="svc-summary" aria-expanded="false">
+                <div class="svc-main">
+                  <div class="svc-name-row">
+                    <span class="svc-name">{listing.name}</span>
+                    {listing.categories.map((catId) => (
+                      <span class="svc-cat-pill">{subLabelMap[catId] ?? catId}</span>
+                    ))}
+                  </div>
+                  <div class="svc-contact-row">
+                    {listing.photo && (
+                      <img
+                        class="svc-photo"
+                        src={listing.photo}
+                        alt=""
+                        width="80"
+                        height="80"
+                        loading="lazy"
+                      />
                     )}
-                    {listing.contact.tel && (
-                      <a class="svc-contact-link" href={`tel:${listing.contact.tel}`}>{listing.contact.tel}</a>
-                    )}
-                    {listing.contact.email && (
-                      <a class="svc-contact-link" href={`mailto:${listing.contact.email}`}>{listing.contact.email}</a>
-                    )}
-                    {listing.contact.address && (
-                      <span class="svc-contact-address">{listing.contact.address}</span>
-                    )}
+                    <div class="svc-contact-info">
+                      {listing.contact.name && (
+                        <span class="svc-contact-name">{listing.contact.name}</span>
+                      )}
+                      {listing.contact.tel && (
+                        <a class="svc-contact-link" href={`tel:${listing.contact.tel}`}>
+                          {listing.contact.tel}
+                        </a>
+                      )}
+                      {listing.contact.email && (
+                        <a class="svc-contact-link" href={`mailto:${listing.contact.email}`}>
+                          {listing.contact.email}
+                        </a>
+                      )}
+                      {listing.contact.address && (
+                        <span class="svc-contact-address">{listing.contact.address}</span>
+                      )}
+                    </div>
                   </div>
                 </div>
-              </div>
-              <div class="svc-aside">
-                <span class="svc-chevron" aria-hidden="true" />
-              </div>
-            </button>
-
-            {/* ── Expanded detail ── */}
-            <div class="svc-detail" hidden>
-              {listing.description && (
-                <div class="svc-desc">{listing.description}</div>
-              )}
-              {listing.url && (
-                <div class="svc-url-row">
-                  <a class="svc-action-link" href={listing.url} target="_blank" rel="noopener">
-                    More info →
-                  </a>
+                <div class="svc-aside">
+                  <span class="svc-chevron" aria-hidden="true" />
                 </div>
-              )}
-            </div>
-          </div>
-        ))}
+              </button>
 
-        <div class="svc-empty" id="svc-empty" hidden>
-          No listings match the current filter.
-        </div>
+              <div class="svc-detail" hidden>
+                {listing.description && (
+                  <div class="svc-desc" set:html={renderDesc(listing.description)} />
+                )}
+                {listing.url && (
+                  <div class="svc-url-row">
+                    <a class="svc-action-link" href={listing.url} target="_blank" rel="noopener">
+                      More info →
+                    </a>
+                  </div>
+                )}
+              </div>
+            </div>
+          ))
+        }
+        <div class="svc-empty" id="svc-empty" hidden>No listings match the current filter.</div>
       </div>
 
       <div class="svc-not-found" id="svc-not-found" hidden></div>
     </main>
 
-    <script is:inline type="application/json" id="svc-cats-data" set:html={catsJson} />
+    <script is:inline set:html={`window.SVC_CATS=${catsJson};`} />
   </body>
 </html>
 
 <style>
+  [hidden] {
+    display: none !important;
+  }
+
   *,
   *::before,
   *::after {
@@ -222,7 +273,6 @@ const catsJson = JSON.stringify(
     margin-right: auto;
   }
 
-  /* ── PAGE HEADER ── */
   .page-header {
     margin-bottom: 28px;
   }
@@ -241,9 +291,10 @@ const catsJson = JSON.stringify(
     font-weight: 300;
     color: var(--ink-muted);
     letter-spacing: 0.01em;
+    margin-bottom: 20px;
   }
 
-  /* ── CATEGORY INDEX (two-level list) ── */
+  /* ── CATEGORY INDEX ── */
   .cat-index {
     columns: 2;
     column-gap: 48px;
@@ -289,7 +340,9 @@ const catsJson = JSON.stringify(
     padding-left: 10px;
     border-left: 2px solid var(--border);
     line-height: 1.4;
-    transition: color 0.14s, border-color 0.14s;
+    transition:
+      color 0.14s,
+      border-color 0.14s;
   }
 
   a.cat-sub-link:hover {
@@ -302,67 +355,146 @@ const catsJson = JSON.stringify(
     cursor: default;
   }
 
-  /* ── FILTER PANEL (filtered mode) ── */
-  .filter-panel {
+  /* ── FILTER BAR (matches events page style) ── */
+  .filter-bar {
+    position: sticky;
+    top: var(--nav-h);
+    z-index: 50;
+    background: var(--page-bg);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 10px 0;
+    margin: 0 -32px 20px;
+    padding-left: 32px;
+    padding-right: 32px;
+    flex-wrap: wrap;
+  }
+
+  .filter-controls {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  .filter-group {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .filter-group label {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--ink-muted);
+    white-space: nowrap;
+  }
+
+  .filter-count {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--ink-muted);
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  /* ── CATEGORY DROPDOWN ── */
+  .filter-dropdown {
+    position: relative;
+  }
+
+  .filter-dropdown-btn {
+    font-family: inherit;
+    font-size: 12px;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 4px 8px 4px 10px;
+    background: var(--surface);
+    color: var(--ink);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 190px;
+    justify-content: space-between;
+    -webkit-appearance: none;
+  }
+
+  .filter-dropdown-btn:hover {
+    border-color: var(--ink-subtle);
+  }
+
+  .filter-dropdown-btn:focus-visible {
+    outline: 2px solid var(--border-primary);
+    outline-offset: 2px;
+  }
+
+  .filter-dropdown-arrow {
+    color: var(--ink-muted);
+    flex-shrink: 0;
+    transition: transform 0.15s;
+  }
+
+  .filter-dropdown-btn[aria-expanded='true'] .filter-dropdown-arrow {
+    transform: rotate(180deg);
+  }
+
+  .filter-dropdown-panel {
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0;
+    min-width: 260px;
     background: var(--surface);
     border: 1px solid var(--border);
     border-radius: var(--radius);
-    margin-bottom: 20px;
-    overflow: hidden;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
+    z-index: 100;
+    padding: 6px 0;
+    max-height: 380px;
+    overflow-y: auto;
   }
 
-  .filter-cats-row {
+  .fdp-parent-label {
     display: flex;
-    flex-wrap: wrap;
-    gap: 6px;
-    padding: 12px 14px 10px;
-    border-bottom: 1px solid var(--border);
-  }
-
-  .filter-cat-btn {
-    font-family: inherit;
-    font-size: 12px;
+    align-items: center;
+    gap: 7px;
+    padding: 6px 12px;
+    font-size: 13px;
     font-weight: 500;
-    padding: 4px 12px;
-    border-radius: 20px;
-    border: 1.5px solid var(--border);
-    background: transparent;
-    color: var(--ink-muted);
-    cursor: pointer;
-    transition: background 0.13s, border-color 0.13s, color 0.13s;
-    -webkit-tap-highlight-color: transparent;
-  }
-
-  .filter-cat-btn:hover {
-    border-color: var(--ink-subtle);
     color: var(--ink);
+    cursor: pointer;
+    user-select: none;
+    width: 100%;
   }
 
-  .filter-cat-btn.active {
-    background: var(--ink);
-    border-color: var(--ink);
-    color: #fff;
-  }
-
-  .filter-subs-row {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 6px 16px;
-    padding: 8px 14px;
-    border-bottom: 1px solid var(--border);
+  .fdp-parent-label:hover {
     background: var(--bg);
   }
 
-  .filter-sub-label {
+  .fdp-subs {
+    padding: 0 12px 4px 32px;
+  }
+
+  .fdp-sub-label {
     display: flex;
     align-items: center;
-    gap: 5px;
+    gap: 6px;
+    padding: 3px 0;
     font-size: 12px;
     color: var(--ink-muted);
     cursor: pointer;
+    user-select: none;
   }
 
-  .filter-sub-label input[type="checkbox"] {
+  .fdp-sub-label:hover {
+    color: var(--ink);
+  }
+
+  .fdp-parent-label input[type='checkbox'],
+  .fdp-sub-label input[type='checkbox'] {
     width: 13px;
     height: 13px;
     cursor: pointer;
@@ -370,17 +502,7 @@ const catsJson = JSON.stringify(
     flex-shrink: 0;
   }
 
-  .filter-count-row {
-    padding: 6px 14px;
-  }
-
-  .filter-count {
-    font-size: 11px;
-    font-weight: 500;
-    color: var(--ink-muted);
-  }
-
-  /* ── EMPTY / NOT-FOUND STATES ── */
+  /* ── EMPTY / NOT-FOUND ── */
   .svc-empty,
   .svc-not-found {
     padding: 48px 24px;
@@ -415,7 +537,7 @@ const catsJson = JSON.stringify(
     box-shadow: 0 2px 12px rgba(0, 0, 0, 0.07);
   }
 
-  /* ── SUMMARY ROW (collapsed) ── */
+  /* ── SUMMARY ROW ── */
   .svc-summary {
     display: flex;
     align-items: flex-start;
@@ -450,6 +572,7 @@ const catsJson = JSON.stringify(
     display: flex;
     align-items: center;
     gap: 8px;
+    flex-wrap: wrap;
   }
 
   .svc-name {
@@ -458,12 +581,6 @@ const catsJson = JSON.stringify(
     font-weight: 600;
     color: var(--ink);
     line-height: 1.25;
-  }
-
-  .svc-cats-row {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 5px;
   }
 
   .svc-cat-pill {
@@ -520,7 +637,6 @@ const catsJson = JSON.stringify(
     color: var(--ink-muted);
   }
 
-  /* Right aside — chevron */
   .svc-aside {
     flex-shrink: 0;
     padding-top: 2px;
@@ -541,7 +657,7 @@ const catsJson = JSON.stringify(
     transform: rotate(-135deg);
   }
 
-  /* ── DETAIL PANEL (expanded) ── */
+  /* ── DETAIL PANEL ── */
   .svc-detail {
     background: var(--bg);
     border-top: 1px solid var(--border);
@@ -556,6 +672,15 @@ const catsJson = JSON.stringify(
     color: var(--ink);
     line-height: 1.6;
     white-space: pre-wrap;
+  }
+
+  .svc-desc a {
+    color: #4f5ce0;
+    text-decoration: none;
+  }
+
+  .svc-desc a:hover {
+    text-decoration: underline;
   }
 
   .svc-url-row {
@@ -580,6 +705,12 @@ const catsJson = JSON.stringify(
     .svc-page {
       padding: 28px 24px 64px;
     }
+    .filter-bar {
+      margin-left: -24px;
+      margin-right: -24px;
+      padding-left: 24px;
+      padding-right: 24px;
+    }
   }
 
   @media (max-width: 600px) {
@@ -589,87 +720,129 @@ const catsJson = JSON.stringify(
     .cat-index {
       columns: 1;
     }
+    .filter-bar {
+      margin-left: -16px;
+      margin-right: -16px;
+      padding-left: 16px;
+      padding-right: 16px;
+    }
+    .filter-dropdown-btn {
+      min-width: 160px;
+    }
   }
 </style>
 
 <script is:inline>
-  const CATS = JSON.parse(document.getElementById('svc-cats-data').textContent)
+  const CATS = window.SVC_CATS
 
-  // Build parent→subcategory map and sub→parent map
   const parentSubs = {}
   const subParent = {}
   CATS.forEach((cat) => {
     parentSubs[cat.id] = cat.subcategories.map((s) => s.id)
-    cat.subcategories.forEach((s) => { subParent[s.id] = cat.id })
+    cat.subcategories.forEach((s) => {
+      subParent[s.id] = cat.id
+    })
   })
 
   const cards = Array.from(document.querySelectorAll('.svc-card'))
   const catIndex = document.getElementById('cat-index')
-  const filterPanel = document.getElementById('filter-panel')
+  const filterBar = document.getElementById('filter-bar')
   const svcList = document.getElementById('svc-list')
   const countEl = document.getElementById('filter-count')
   const emptyEl = document.getElementById('svc-empty')
   const notFoundEl = document.getElementById('svc-not-found')
+  const dropdownPanel = document.getElementById('filter-dropdown-panel')
+  const dropdownBtn = document.getElementById('filter-dropdown-btn')
+  const dropdownLabel = document.getElementById('filter-dropdown-label')
 
-  // ── FILTER LOGIC ──
-  function getSelectedSubs() {
-    return Array.from(document.querySelectorAll('.filter-sub-cb:checked')).map((cb) => cb.dataset.sub)
+  function updateDropdownLabel() {
+    if (!dropdownLabel) return
+    const n = document.querySelectorAll('.fdp-sub-cb:checked').length
+    dropdownLabel.textContent = n === 0 ? 'Select category' : n === 1 ? '1 chosen' : n + ' chosen'
+  }
+
+  function updateParentCb(parentId) {
+    const parentCb = document.querySelector(`.fdp-parent-cb[data-parent="${parentId}"]`)
+    const subsEl = document.getElementById(`fdp-subs-${parentId}`)
+    if (!parentCb || !subsEl) return
+    const subCbs = Array.from(subsEl.querySelectorAll('.fdp-sub-cb'))
+    const checkedCount = subCbs.filter((cb) => cb.checked).length
+    if (subsEl.hidden || checkedCount === 0) {
+      parentCb.checked = false
+      parentCb.indeterminate = false
+    } else if (checkedCount === subCbs.length) {
+      parentCb.checked = true
+      parentCb.indeterminate = false
+    } else {
+      parentCb.checked = false
+      parentCb.indeterminate = true
+    }
   }
 
   function applyFilter() {
-    const selected = new Set(getSelectedSubs())
+    const selected = new Set(
+      Array.from(document.querySelectorAll('.fdp-sub-cb:checked')).map((cb) => cb.dataset.sub)
+    )
     let visible = 0
     cards.forEach((card) => {
       const cardCats = (card.dataset.categories || '').split(',').filter(Boolean)
-      const show = selected.size === 0 ? false : cardCats.some((c) => selected.has(c))
+      const show = selected.size > 0 && cardCats.some((c) => selected.has(c))
       card.style.display = show ? '' : 'none'
       if (show) visible++
     })
     if (countEl) countEl.textContent = `${visible} ${visible === 1 ? 'listing' : 'listings'}`
     if (emptyEl) emptyEl.hidden = visible > 0
+    updateDropdownLabel()
   }
 
-  function toggleParent(parentId) {
-    const btn = document.querySelector(`.filter-cat-btn[data-parent="${parentId}"]`)
-    const subsRow = document.getElementById(`filter-subs-${parentId}`)
-    if (!btn || !subsRow) return
-
-    const isNowActive = !btn.classList.contains('active')
-    btn.classList.toggle('active', isNowActive)
-
-    if (isNowActive) {
-      // Show sub row and pre-check all subcategories
-      subsRow.hidden = false
-      subsRow.querySelectorAll('.filter-sub-cb').forEach((cb) => { cb.checked = true })
+  function onParentCb(parentId, checkbox) {
+    const subsEl = document.getElementById(`fdp-subs-${parentId}`)
+    if (!subsEl) return
+    if (checkbox.checked) {
+      subsEl.hidden = false
+      subsEl.querySelectorAll('.fdp-sub-cb').forEach((cb) => {
+        cb.checked = true
+      })
     } else {
-      // Hide sub row and uncheck all
-      subsRow.hidden = true
-      subsRow.querySelectorAll('.filter-sub-cb').forEach((cb) => { cb.checked = false })
+      subsEl.hidden = true
+      subsEl.querySelectorAll('.fdp-sub-cb').forEach((cb) => {
+        cb.checked = false
+      })
+      checkbox.indeterminate = false
     }
     applyFilter()
   }
 
+  function onSubCb() {
+    CATS.forEach((cat) => updateParentCb(cat.id))
+    applyFilter()
+  }
+
+  function toggleDropdown() {
+    if (!dropdownPanel || !dropdownBtn) return
+    const isOpen = dropdownPanel.hidden
+    dropdownPanel.hidden = !isOpen
+    dropdownBtn.setAttribute('aria-expanded', String(isOpen))
+  }
+
   function activateCategory(catId) {
-    // catId may be a parent or a subcategory id
     const isParent = !!parentSubs[catId]
     const parentId = isParent ? catId : subParent[catId]
     if (!parentId) return
-
-    // Activate the parent button
-    const btn = document.querySelector(`.filter-cat-btn[data-parent="${parentId}"]`)
-    const subsRow = document.getElementById(`filter-subs-${parentId}`)
-    if (!btn || !subsRow) return
-    btn.classList.add('active')
-    subsRow.hidden = false
-
+    const parentCb = document.querySelector(`.fdp-parent-cb[data-parent="${parentId}"]`)
+    const subsEl = document.getElementById(`fdp-subs-${parentId}`)
+    if (!parentCb || !subsEl) return
+    parentCb.checked = true
+    subsEl.hidden = false
     if (isParent) {
-      // Select all subcategories
-      subsRow.querySelectorAll('.filter-sub-cb').forEach((cb) => { cb.checked = true })
+      subsEl.querySelectorAll('.fdp-sub-cb').forEach((cb) => {
+        cb.checked = true
+      })
     } else {
-      // Select only the specific subcategory
-      subsRow.querySelectorAll('.filter-sub-cb').forEach((cb) => {
+      subsEl.querySelectorAll('.fdp-sub-cb').forEach((cb) => {
         cb.checked = cb.dataset.sub === catId
       })
+      updateParentCb(parentId)
     }
   }
 
@@ -687,39 +860,52 @@ const catsJson = JSON.stringify(
   const deepId = params.get('id')
   const catParam = params.get('category')
 
+  // In any non-index mode, make the Services nav link clickable (to return to index)
+  if (deepId || catParam) {
+    const svcNavLink = document.querySelector('a[href="/services"].nav-link--active')
+    if (svcNavLink) svcNavLink.style.pointerEvents = 'auto'
+  }
+
   if (deepId) {
-    // Deep-link mode
     const targetCard = cards.find((c) => c.dataset.id === 'service-' + deepId) ?? null
     catIndex.hidden = true
     if (targetCard && svcList) {
       svcList.hidden = false
-      cards.forEach((c) => { if (c !== targetCard) c.style.display = 'none' })
+      cards.forEach((c) => {
+        if (c !== targetCard) c.style.display = 'none'
+      })
       openCard(targetCard)
       const titleEl = document.getElementById('page-title')
-      if (titleEl) titleEl.textContent = targetCard.querySelector('.svc-name')?.textContent ?? 'Service'
-      document.getElementById('page-subtitle').style.display = 'none'
-      const svcNav = document.querySelector('a.nav-link--active[href="/services"]')
-      if (svcNav) svcNav.style.pointerEvents = 'auto'
+      if (titleEl)
+        titleEl.textContent = targetCard.querySelector('.svc-name')?.textContent ?? 'Service'
     } else {
       if (svcList) svcList.hidden = true
-      if (notFoundEl) { notFoundEl.textContent = `service-${deepId} not found`; notFoundEl.hidden = false }
-      const svcNav = document.querySelector('a.nav-link--active[href="/services"]')
-      if (svcNav) svcNav.style.pointerEvents = 'auto'
+      if (notFoundEl) {
+        notFoundEl.textContent = `service-${deepId} not found`
+        notFoundEl.hidden = false
+      }
     }
   } else if (catParam) {
-    // Filtered mode
     catIndex.hidden = true
-    if (filterPanel) filterPanel.hidden = false
+    if (filterBar) filterBar.hidden = false
     if (svcList) svcList.hidden = false
     activateCategory(catParam)
     applyFilter()
   }
-  // else: index mode — cat-index visible, svc-list hidden (defaults)
+  // else: index mode — cat-index visible, filter-bar and svc-list remain hidden
 
-  // Expose for inline onchange/onclick handlers
-  window.svc = { toggleParent, applyFilter }
+  // Close dropdown when clicking outside it
+  document.addEventListener('click', (e) => {
+    const dd = document.getElementById('filter-dropdown')
+    if (dd && !dd.contains(e.target) && dropdownPanel && !dropdownPanel.hidden) {
+      dropdownPanel.hidden = true
+      if (dropdownBtn) dropdownBtn.setAttribute('aria-expanded', 'false')
+    }
+  })
 
-  // Expand / collapse cards
+  window.svc = { toggleDropdown, onParentCb, onSubCb }
+
+  // Card expand / collapse
   document.querySelectorAll('.svc-summary').forEach((btn) => {
     btn.addEventListener('click', () => {
       const card = btn.closest('.svc-card')

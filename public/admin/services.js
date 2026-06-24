@@ -346,7 +346,7 @@ const SVC_HTML = `
 
         <!-- Description -->
         <div class="svc-desc-section">
-          <div class="svc-desc-head">Description — supports **bold** and *italic*</div>
+          <div class="svc-desc-head">Description — supports **bold**, *italic*, and [link text](https://url)</div>
           <textarea class="svc-desc-textarea" id="sf-desc" rows="5"
             placeholder="Full description…" oninput="svcEd.fieldChanged()"></textarea>
         </div>

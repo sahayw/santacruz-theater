@@ -26,6 +26,15 @@
       ]
     },
     {
+      "id": "coaching",
+      "label": "Coaching",
+      "subcategories": [
+        { "id": "acting", "label": "Acting", "description": "Acting Coach" },
+        { "id": "voice", "label": "Voice", "description": "Voice Coach" },
+        { "id": "movement", "label": "Movement", "description": "Movement Coach" }
+      ]
+    },
+    {
       "id": "technical-skills",
       "label": "Technical Skills",
       "subcategories": [
@@ -36,15 +45,6 @@
         { "id": "stage-hand", "label": "Stage Hand" },
         { "id": "production-management", "label": "Production Management" },
         { "id": "set-design", "label": "Set Design" }
-      ]
-    },
-    {
-      "id": "coaching",
-      "label": "Coaching",
-      "subcategories": [
-        { "id": "acting", "label": "Acting", "description": "Acting Coach" },
-        { "id": "voice", "label": "Voice", "description": "Voice Coach" },
-        { "id": "movement", "label": "Movement", "description": "Movement Coach" }
       ]
     }
   ]

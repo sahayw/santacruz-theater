@@ -65,6 +65,7 @@ function renderDesc(raw: string): string {
         <p class="page-subtitle">
           Production resources for Santa Cruz County theater — people, equipment, spaces
         </p>
+        <div class="cat-index-grid">
         {
           categories.map((cat) => {
             const catActive = activeCatIds.has(cat.id)
@@ -93,6 +94,7 @@ function renderDesc(raw: string): string {
             )
           })
         }
+        </div>
       </div>
 
       {/* ── FILTER BAR (filtered mode — ?category param) ── */}
@@ -293,7 +295,7 @@ function renderDesc(raw: string): string {
   }
 
   /* ── CATEGORY INDEX ── */
-  .cat-index {
+  .cat-index-grid {
     columns: 2;
     column-gap: 48px;
   }
@@ -715,7 +717,7 @@ function renderDesc(raw: string): string {
     .svc-page {
       padding: 20px 16px 56px;
     }
-    .cat-index {
+    .cat-index-grid {
       columns: 1;
     }
     .filter-bar {

@@ -1,4 +1,4 @@
-import { IS_DEV, apiFetch, apiPut } from './api.js'
+import { IS_DEV, apiFetch, apiPut, apiUploadImage } from './api.js'
 
 const STYLES_ID = 'svc-editor-styles'
 const FILE_PATH = 'sc-theater-services.json'
@@ -10,6 +10,7 @@ let activeIdx = -1
 let categories = []
 let snapshots = new Map()
 let fileLoaded = false
+let pendingUpload = null
 let _resizeMouseMove = null
 let _resizeMouseUp = null
 
@@ -161,14 +162,17 @@ const SVC_CSS = `
   letter-spacing: 0.08em; color: var(--ink-mid); margin-bottom: 8px;
 }
 .svc-cats-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 4px 20px;
+  column-count: 3;
+  column-gap: 20px;
+}
+.svc-cat-parent-row {
+  break-inside: avoid;
 }
 .svc-cat-parent-row {
   display: flex;
   flex-direction: column;
   gap: 2px;
+  break-inside: avoid;
 }
 .svc-cat-parent-label {
   display: flex;
@@ -251,6 +255,29 @@ const SVC_CSS = `
 }
 .svc-status-item { display: flex; gap: 6px; }
 .svc-status-key  { color: rgba(255,255,255,0.35); }
+
+/* ── PHOTO WIDGET ── */
+.svc-photo-section {
+  padding: 8px 16px 10px;
+  background: var(--bg);
+  border-bottom: 2px solid var(--border);
+  flex-shrink: 0;
+}
+.svc-photo-head {
+  font-size: 9px; font-weight: 500; text-transform: uppercase;
+  letter-spacing: 0.08em; color: var(--ink-mid); margin-bottom: 8px;
+}
+.svc-photo-preview-row { display: flex; align-items: flex-start; gap: 12px; }
+.svc-photo-thumb {
+  width: 72px; height: 72px; object-fit: cover;
+  border-radius: 4px; border: 1px solid var(--border);
+  flex-shrink: 0; background: var(--surface);
+}
+.svc-photo-info { display: flex; flex-direction: column; gap: 6px; flex: 1; min-width: 0; }
+.svc-photo-path { font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--ink-mid); word-break: break-all; }
+.svc-photo-actions { display: flex; gap: 6px; }
+.svc-photo-pending-note { font-size: 10px; color: var(--yellow); font-style: italic; }
+.svc-photo-filename { max-width: 260px; }
 `
 
 // ── HTML TEMPLATE ──
@@ -301,13 +328,15 @@ const SVC_HTML = `
           <input class="svc-field-input" id="sf-name" placeholder="Company or individual name" oninput="svcEd.fieldChanged()">
         </div>
         <div class="svc-field-group" style="grid-column:span 2">
-          <label class="svc-field-label">Photo path</label>
-          <input class="svc-field-input mono" id="sf-photo" placeholder="/images/services/…" oninput="svcEd.fieldChanged()">
-        </div>
-        <div class="svc-field-group" style="grid-column:span 6">
           <label class="svc-field-label">URL</label>
           <input class="svc-field-input mono" id="sf-url" placeholder="https://…" oninput="svcEd.fieldChanged()">
         </div>
+      </div>
+
+      <!-- ── PHOTO ── -->
+      <div class="svc-photo-section">
+        <div class="svc-photo-head">Photo</div>
+        <div id="svc-photo-wrap"></div>
       </div>
 
       <!-- ── SCROLLABLE BODY ── -->
@@ -347,7 +376,7 @@ const SVC_HTML = `
         <!-- Description -->
         <div class="svc-desc-section">
           <div class="svc-desc-head">Description — supports **bold**, *italic*, and [link text](https://url)</div>
-          <textarea class="svc-desc-textarea" id="sf-desc" rows="5"
+          <textarea class="svc-desc-textarea" id="sf-desc" rows="8"
             placeholder="Full description…" oninput="svcEd.fieldChanged()"></textarea>
         </div>
 
@@ -366,30 +395,42 @@ const SVC_HTML = `
 function buildCatsGrid() {
   const grid = document.getElementById('svcCatsGrid')
   if (!grid) return
-  grid.innerHTML = categories.map((cat) => `
+  grid.innerHTML = categories
+    .map(
+      (cat) => `
     <div class="svc-cat-parent-row">
       <label class="svc-cat-parent-label">
         <input type="checkbox" data-parent="${cat.id}" onchange="svcEd.parentCatChanged('${cat.id}', this)">
         ${esc(cat.label)}
       </label>
       <div class="svc-cat-subs">
-        ${cat.subcategories.map((sub) => `
+        ${cat.subcategories
+          .map(
+            (sub) => `
           <label class="svc-cat-sub-label">
             <input type="checkbox" data-sub="${sub.id}" data-parent="${cat.id}" onchange="svcEd.subCatChanged('${cat.id}')">
             ${esc(sub.label)}
           </label>
-        `).join('')}
+        `
+          )
+          .join('')}
       </div>
     </div>
-  `).join('')
+  `
+    )
+    .join('')
 }
 
 function setCatsFromListing(selectedIds) {
   const selected = new Set(selectedIds || [])
   for (const cat of categories) {
     const subs = cat.subcategories
-    const subBoxes = Array.from(document.querySelectorAll(`input[data-sub][data-parent="${cat.id}"]`))
-    subBoxes.forEach((cb) => { cb.checked = selected.has(cb.dataset.sub) })
+    const subBoxes = Array.from(
+      document.querySelectorAll(`input[data-sub][data-parent="${cat.id}"]`)
+    )
+    subBoxes.forEach((cb) => {
+      cb.checked = selected.has(cb.dataset.sub)
+    })
     updateParentCheckbox(cat.id)
   }
 }
@@ -399,19 +440,128 @@ function updateParentCheckbox(parentId) {
   if (!parentCb) return
   const cat = categories.find((c) => c.id === parentId)
   if (!cat) return
-  const subBoxes = Array.from(document.querySelectorAll(`input[data-sub][data-parent="${parentId}"]`))
+  const subBoxes = Array.from(
+    document.querySelectorAll(`input[data-sub][data-parent="${parentId}"]`)
+  )
   const checkedCount = subBoxes.filter((cb) => cb.checked).length
   parentCb.indeterminate = checkedCount > 0 && checkedCount < subBoxes.length
   parentCb.checked = checkedCount === subBoxes.length && subBoxes.length > 0
 }
 
 function getSelectedCats() {
-  return Array.from(document.querySelectorAll('input[data-sub]:checked')).map((cb) => cb.dataset.sub)
+  return Array.from(document.querySelectorAll('input[data-sub]:checked')).map(
+    (cb) => cb.dataset.sub
+  )
 }
 
 // ── UTILITIES ──
 function esc(str) {
-  return String(str ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
+  return String(str ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+}
+
+function slugify(name) {
+  return name
+    .toLowerCase()
+    .replace(/[\u2018\u2019']/g, '')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+}
+
+function updatePhotoWidget() {
+  const wrap = document.getElementById('svc-photo-wrap')
+  if (!wrap) return
+  const l = activeIdx >= 0 ? listings[activeIdx] : null
+  if (pendingUpload) {
+    wrap.innerHTML = `
+      <div class="svc-photo-preview-row">
+        <img src="${esc(pendingUpload.dataUrl)}" class="svc-photo-thumb" alt="Preview">
+        <div class="svc-photo-info">
+          <div class="svc-field-group">
+            <label class="svc-field-label">Filename</label>
+            <input class="svc-field-input mono svc-photo-filename" id="sf-photo-filename"
+              value="${esc(pendingUpload.filename)}" oninput="svcEd.photoFilenameChanged(this.value)">
+          </div>
+          <div class="svc-photo-actions">
+            <button class="btn btn-sm" style="background:var(--bg);border:1px solid var(--border)"
+              onclick="document.getElementById('sf-photo-input').click()">Change file</button>
+            <button class="btn btn-sm" style="background:#fde;color:var(--accent);border:1px solid #fcc"
+              onclick="svcEd.photoCancelClicked()">Cancel</button>
+          </div>
+          <div class="svc-photo-pending-note">Will be uploaded on Save</div>
+        </div>
+      </div>
+      <input type="file" id="sf-photo-input" accept="image/jpeg,image/png,image/webp"
+        style="display:none" onchange="svcEd.photoPicked(this)">`
+  } else if (l?.photo) {
+    wrap.innerHTML = `
+      <div class="svc-photo-preview-row">
+        <img src="${esc(l.photo)}" class="svc-photo-thumb" alt="Photo">
+        <div class="svc-photo-info">
+          <div class="svc-photo-path">${esc(l.photo)}</div>
+          <div class="svc-photo-actions">
+            <button class="btn btn-sm" style="background:var(--bg);border:1px solid var(--border)"
+              onclick="document.getElementById('sf-photo-input').click()">Change</button>
+            <button class="btn btn-sm" style="background:#fde;color:var(--accent);border:1px solid #fcc"
+              onclick="svcEd.photoRemoveClicked()">Remove</button>
+          </div>
+        </div>
+      </div>
+      <input type="file" id="sf-photo-input" accept="image/jpeg,image/png,image/webp"
+        style="display:none" onchange="svcEd.photoPicked(this)">`
+  } else {
+    wrap.innerHTML = `
+      <button class="btn btn-sm" style="background:var(--bg);border:1px solid var(--border)"
+        onclick="document.getElementById('sf-photo-input').click()">Choose image…</button>
+      <input type="file" id="sf-photo-input" accept="image/jpeg,image/png,image/webp"
+        style="display:none" onchange="svcEd.photoPicked(this)">`
+  }
+}
+
+function photoPicked(input) {
+  const file = input.files?.[0]
+  if (!file) return
+  const ext = file.name.split('.').pop().toLowerCase()
+  if (!['jpg', 'jpeg', 'png', 'webp'].includes(ext)) {
+    alert('Please choose a JPG, PNG, or WebP image.')
+    input.value = ''
+    return
+  }
+  const reader = new FileReader()
+  reader.onload = (e) => {
+    const dataUrl = e.target.result
+    const base64 = dataUrl.split(',')[1]
+    const l = activeIdx >= 0 ? listings[activeIdx] : null
+    const stem = l?.name ? slugify(l.name) : 'photo'
+    const finalExt = ext === 'jpeg' ? 'jpg' : ext
+    pendingUpload = { filename: `${stem}.${finalExt}`, dataUrl, base64 }
+    updatePhotoWidget()
+    markDirty()
+  }
+  reader.readAsDataURL(file)
+}
+
+function photoFilenameChanged(val) {
+  if (!pendingUpload) return
+  pendingUpload.filename = val.trim()
+}
+
+function photoCancelClicked() {
+  pendingUpload = null
+  updatePhotoWidget()
+  markDirty()
+}
+
+function photoRemoveClicked() {
+  if (!confirm('Remove photo from this listing?')) return
+  listings[activeIdx].photo = undefined
+  pendingUpload = null
+  updatePhotoWidget()
+  markDirty()
+  renderSidebar()
 }
 
 function snapshot(listing) {
@@ -426,6 +576,7 @@ function refreshSnapshots() {
 // ── DIRTY TRACKING ──
 function computeIsDirty() {
   if (!fileLoaded) return false
+  if (pendingUpload !== null) return true
   if (listings.length !== snapshots.size) return true
   for (const l of listings) {
     const snap = snapshots.get(l.id)
@@ -486,11 +637,13 @@ function renderSidebar() {
     return
   }
   list.innerHTML = listings
-    .map((l, i) => `
+    .map(
+      (l, i) => `
       <div class="svc-list-item ${i === activeIdx ? 'active' : ''}" onclick="svcEd.selectListing(${i})">
         <div class="svc-item-meta">${l.active ? 'Active' : 'Inactive'}</div>
         <div class="svc-item-name">${esc(l.name || 'Untitled')}</div>
-      </div>`)
+      </div>`
+    )
     .join('')
   updateStatus()
 }
@@ -502,8 +655,8 @@ function populateForm(idx) {
   document.getElementById('svcFormTitle').textContent = l.name || 'Untitled'
   document.getElementById('sf-active').checked = !!l.active
   document.getElementById('sf-name').value = l.name || ''
-  document.getElementById('sf-photo').value = l.photo || ''
   document.getElementById('sf-url').value = l.url || ''
+  updatePhotoWidget()
   document.getElementById('sf-contact-name').value = l.contact?.name || ''
   document.getElementById('sf-contact-tel').value = l.contact?.tel || ''
   document.getElementById('sf-contact-email').value = l.contact?.email || ''
@@ -518,7 +671,6 @@ function readForm() {
   const l = listings[activeIdx]
   l.name = document.getElementById('sf-name').value.trim()
   l.active = document.getElementById('sf-active').checked
-  l.photo = document.getElementById('sf-photo').value.trim() || undefined
   l.url = document.getElementById('sf-url').value.trim() || undefined
   l.description = document.getElementById('sf-desc').value.trim() || undefined
   l.categories = getSelectedCats()
@@ -534,6 +686,7 @@ function readForm() {
 // ── ACTIONS ──
 function selectListing(idx) {
   if (idx === activeIdx) return
+  pendingUpload = null
   activeIdx = idx
   const form = document.getElementById('svcForm')
   const empty = document.getElementById('svcEmptyState')
@@ -570,6 +723,7 @@ function deleteListing() {
   if (!confirm(`Delete "${l.name || 'this listing'}"? This cannot be undone.`)) return
   listings.splice(activeIdx, 1)
   snapshots.delete(l.id)
+  pendingUpload = null
   const newIdx = Math.min(activeIdx, listings.length - 1)
   activeIdx = -1
   selectListing(newIdx)
@@ -585,6 +739,7 @@ function restoreListing() {
   const restored = JSON.parse(snap)
   restored.updatedAt = l.updatedAt
   listings[activeIdx] = restored
+  pendingUpload = null
   populateForm(activeIdx)
   markDirty()
   renderSidebar()
@@ -598,8 +753,12 @@ function fieldChanged() {
 }
 
 function parentCatChanged(parentId, checkbox) {
-  const subBoxes = Array.from(document.querySelectorAll(`input[data-sub][data-parent="${parentId}"]`))
-  subBoxes.forEach((cb) => { cb.checked = checkbox.checked })
+  const subBoxes = Array.from(
+    document.querySelectorAll(`input[data-sub][data-parent="${parentId}"]`)
+  )
+  subBoxes.forEach((cb) => {
+    cb.checked = checkbox.checked
+  })
   checkbox.indeterminate = false
   fieldChanged()
 }
@@ -653,6 +812,31 @@ async function saveFile() {
   }
   const btn = document.getElementById('svcSaveBtn')
   btn.disabled = true
+
+  if (pendingUpload) {
+    const filename =
+      document.getElementById('sf-photo-filename')?.value.trim() || pendingUpload.filename
+    if (!/^[\w-]+\.(jpg|jpeg|png|webp)$/i.test(filename)) {
+      alert(
+        'Invalid filename. Use only letters, numbers, hyphens and a .jpg, .png, or .webp extension.'
+      )
+      updateSaveBtn()
+      return
+    }
+    btn.textContent = 'Uploading…'
+    try {
+      await apiUploadImage(filename, pendingUpload.base64)
+      listings[activeIdx].photo = `/images/services/${filename}`
+      pendingUpload = null
+      updatePhotoWidget()
+    } catch (e) {
+      alert('Image upload failed: ' + e.message)
+      btn.textContent = 'Save'
+      updateSaveBtn()
+      return
+    }
+  }
+
   btn.textContent = 'Saving…'
   try {
     const now = new Date().toISOString()
@@ -663,7 +847,9 @@ async function saveFile() {
       return { ...l, updatedAt: changed ? now : l.updatedAt }
     })
     await apiPut(FILE_PATH, { listings: cleanListings })
-    cleanListings.forEach((cl, i) => { listings[i].updatedAt = cl.updatedAt })
+    cleanListings.forEach((cl, i) => {
+      listings[i].updatedAt = cl.updatedAt
+    })
     refreshSnapshots()
     btn.textContent = 'Saved ✓'
     btn.style.background = 'var(--green)'
@@ -694,13 +880,18 @@ export function mount(container, context) {
     fieldChanged,
     parentCatChanged,
     subCatChanged,
-    saveFile
+    saveFile,
+    photoPicked,
+    photoFilenameChanged,
+    photoCancelClicked,
+    photoRemoveClicked
   }
 
   const handle = document.getElementById('svcResizeHandle')
   const sidebar = document.getElementById('svcSidebar')
   handle.addEventListener('mousedown', (e) => {
-    const startX = e.clientX, startW = sidebar.offsetWidth
+    const startX = e.clientX,
+      startW = sidebar.offsetWidth
     handle.classList.add('dragging')
     document.body.style.cursor = 'col-resize'
     document.body.style.userSelect = 'none'
@@ -742,4 +933,5 @@ export function unmount() {
   activeIdx = -1
   categories = []
   fileLoaded = false
+  pendingUpload = null
 }

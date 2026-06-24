@@ -31,6 +31,22 @@ export async function apiPut(file, payload) {
   }
 }
 
+export async function apiUploadImage(filename, base64) {
+  const hdrs = { 'Content-Type': 'application/json' }
+  if (_identityUser) {
+    hdrs['Authorization'] = `Bearer ${await _identityUser.jwt()}`
+  }
+  const resp = await fetch('/.netlify/functions/upload-image', {
+    method: 'PUT',
+    headers: hdrs,
+    body: JSON.stringify({ filename, content: base64 })
+  })
+  if (!resp.ok) {
+    const msg = await resp.text()
+    throw new Error(msg || `HTTP ${resp.status}`)
+  }
+}
+
 export async function loadCompanies() {
   const data = await apiFetch('sc-theater-companies.json')
   return data.companies || []

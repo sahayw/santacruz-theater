@@ -1,3 +1,20 @@
 {
-  "listings": []
+  "listings": [
+    {
+      "id": "service-1782285807065",
+      "name": "Scratch Studios",
+      "categories": [
+        "rehearsal"
+      ],
+      "contact": {
+        "email": "ScratchSantaCruz@gmail.com",
+        "address": "02B 303 Potrero St.  Santa Cruz, CA 95060"
+      },
+      "active": true,
+      "createdAt": "2026-06-24T07:23:27.065Z",
+      "updatedAt": "2026-06-24T07:29:47.487Z",
+      "url": "https://scratchsantacruz.com/",
+      "description": "A community space available to rent for theatre, dance, performance art, and more.\n\n**Rental Rates**\nOne-off rental: $35/hr\nRecurring (weekly, monthly, or block) : $28/hr\n\nAvailability: Check calendar"
+    }
+  ]
 }

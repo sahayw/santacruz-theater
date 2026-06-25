@@ -8,8 +8,8 @@ interface Props {
 
 const { performances } = Astro.props
 
-const activeCompanyCodes = new Set<string>(performances.map(p => p.company).filter(Boolean))
-const filterCompanies = companiesData.companies.filter(c => activeCompanyCodes.has(c.id))
+const activeCompanyCodes = new Set<string>(performances.map((p) => p.company).filter(Boolean))
+const filterCompanies = companiesData.companies.filter((c) => activeCompanyCodes.has(c.id))
 ---
 
 <div class="cal-bar">
@@ -28,9 +28,7 @@ const filterCompanies = companiesData.companies.filter(c => activeCompanyCodes.h
         <label>Company</label>
         <select id="filterCompany">
           <option value="">All</option>
-          {filterCompanies.map(c => (
-            <option value={c.id}>{c.name}</option>
-          ))}
+          {filterCompanies.map((c) => <option value={c.id}>{c.name}</option>)}
         </select>
       </div>
       <div class="filter-row">
@@ -1108,8 +1106,8 @@ const filterCompanies = companiesData.companies.filter(c => activeCompanyCodes.h
     mct: 'var(--col-mct)',
     renegade: 'var(--col-renegade)'
   }
-  const COMPANY_NAMES = Object.fromEntries(companies.map(c => [c.id, c.name]))
-  const COMPANY_ABV = Object.fromEntries(companies.map(c => [c.id, c.abvName]))
+  const COMPANY_NAMES = Object.fromEntries(companies.map((c) => [c.id, c.name]))
+  const COMPANY_ABV = Object.fromEntries(companies.map((c) => [c.id, c.abvName]))
   const MONTHS = [
     'January',
     'February',
@@ -1715,7 +1713,8 @@ const filterCompanies = companiesData.companies.filter(c => activeCompanyCodes.h
       const card = document.createElement('div')
       card.className = 'perf-card'
       const [hStr, mStr] = (p.time || '').replace('.', ':').split(':')
-      const h = Number(hStr), min = mStr !== undefined ? Number(mStr) : 0
+      const h = Number(hStr),
+        min = mStr !== undefined ? Number(mStr) : 0
       const timeStr = `${h > 12 ? h - 12 : h || 12}:${String(min).padStart(2, '0')}${h >= 12 ? 'pm' : 'am'}`
       const description = (p.description || '').trimEnd()
       const showDescription = description && previousRunId !== p.runId

@@ -14,8 +14,8 @@ import BaseHead from '../components/BaseHead.astro'
     <script src="https://unpkg.com/netlify-identity-widget@1/build/netlify-identity-widget.js"
     ></script>
     <script>
-      if (window.netlifyIdentity) {
-        window.netlifyIdentity.on('login', () => {
+      if ((window as any).netlifyIdentity) {
+        ;(window as any).netlifyIdentity.on('login', () => {
           window.location.href = '/admin/'
         })
       }

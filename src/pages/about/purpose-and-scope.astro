@@ -1,0 +1,125 @@
+---
+import BaseHead from '../../components/BaseHead.astro'
+import SiteNav from '../../components/SiteNav.astro'
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <BaseHead
+      title="Purpose and Scope — Santa Cruz Theater"
+      description="Purpose and scope of the Santa Cruz Theater community resource site."
+      canonicalPath="/about/purpose-and-scope"
+    />
+  </head>
+  <body>
+    <SiteNav />
+
+    <main class="about-page">
+      <div class="about-card">
+        <a class="back-link" href="/about">← About this site</a>
+        <h1 class="about-title">Purpose and Scope</h1>
+
+        <div class="about-body">
+          <p>
+            This site is provided as a community resource for those interested in theater in the
+            Santa Cruz area, either as audience members or as participants in productions. It is not
+            intended to replace the many existing sources of information, but to act as a common
+            directory making such information more accessible. There are no charges associated with
+            inclusion on this site.
+          </p>
+          <p>
+            In order to keep the scope well focused and the maintenance manageable the site is
+            currently limited to adult theater productions (drama and musicals) with multiple
+            performances. Extension to other areas such as youth theater or dance is likely feasible
+            but would require additional effort to set up and maintain, probably by people involved
+            in those activities.
+          </p>
+        </div>
+      </div>
+    </main>
+  </body>
+</html>
+
+<style>
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: #f0ede8;
+    color: #1a1612;
+    min-height: 100vh;
+  }
+
+  .about-page {
+    margin-top: 44px;
+    padding: 24px 16px 48px;
+    display: flex;
+    justify-content: center;
+  }
+
+  .about-card {
+    background: #fff;
+    border: 1px solid #e0d9d0;
+    border-radius: 10px;
+    padding: 32px 36px 36px;
+    max-width: 600px;
+    width: 100%;
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.07);
+  }
+
+  .back-link {
+    display: inline-block;
+    font-size: 13px;
+    color: #9b9289;
+    text-decoration: none;
+    margin-bottom: 16px;
+  }
+
+  .back-link:hover {
+    color: #c8a96e;
+  }
+
+  .about-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 20px;
+    font-weight: 600;
+    color: #1a1612;
+    margin-bottom: 18px;
+    line-height: 1.15;
+  }
+
+  .about-body {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .about-body p {
+    font-size: 14px;
+    line-height: 1.65;
+    color: #3d342c;
+  }
+
+  @media (max-width: 600px) {
+    .about-card {
+      padding: 24px 20px 28px;
+    }
+
+    .about-title {
+      font-size: 20px;
+      margin-bottom: 14px;
+    }
+
+    .about-body p {
+      font-size: 13px;
+      line-height: 1.5;
+    }
+  }
+</style>

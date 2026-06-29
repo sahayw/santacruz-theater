@@ -1,6 +1,6 @@
 ---
-import BaseHead from '../components/BaseHead.astro'
-import SiteNav from '../components/SiteNav.astro'
+import BaseHead from '../../components/BaseHead.astro'
+import SiteNav from '../../components/SiteNav.astro'
 ---
 
 <!doctype html>
@@ -24,6 +24,7 @@ import SiteNav from '../components/SiteNav.astro'
             This site is provided as a service to the community of theater patrons and makers in
             Santa Cruz County.
           </p>
+          <p><a class="about-link" href="/about/purpose-and-scope">Purpose and Scope</a></p>
           <p>
             The information provided is not guaranteed to be correct, but if you find errors please
             let us know and we will aim to correct them.
@@ -173,7 +174,7 @@ import SiteNav from '../components/SiteNav.astro'
 
   .about-title {
     font-family: 'Playfair Display', serif;
-    font-size: 26px;
+    font-size: 20px;
     font-weight: 600;
     color: #1a1612;
     margin-bottom: 18px;
@@ -193,6 +194,15 @@ import SiteNav from '../components/SiteNav.astro'
     font-size: 14px;
     line-height: 1.65;
     color: #3d342c;
+  }
+
+  .about-link {
+    color: #c8a96e;
+    text-decoration: none;
+  }
+
+  .about-link:hover {
+    text-decoration: underline;
   }
 
   /* ── FORM ── */

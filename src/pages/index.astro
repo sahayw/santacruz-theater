@@ -1,5 +1,6 @@
 ---
 import BaseHead from '../components/BaseHead.astro'
+import SiteNav from '../components/SiteNav.astro'
 ---
 
 <!doctype html>
@@ -22,6 +23,8 @@ import BaseHead from '../components/BaseHead.astro'
     </script>
   </head>
   <body>
+    <SiteNav showAbout={true} homeMode={true} />
+
     <div class="page">
       <div class="page-bg"></div>
       <div class="page-overlay"></div>
@@ -148,7 +151,6 @@ import BaseHead from '../components/BaseHead.astro'
         </div>
 
         <div class="page-footer">
-          <a href="/about" class="about-link">About this site</a>
           <p class="photo-credit">
             Photo: <a href="https://unsplash.com" target="_blank" rel="noopener">Unsplash</a>
           </p>
@@ -466,26 +468,12 @@ import BaseHead from '../components/BaseHead.astro'
     white-space: nowrap;
   }
 
-  /* ── PAGE FOOTER (about + photo credit) ── */
+  /* ── PAGE FOOTER (photo credit) ── */
   .page-footer {
     display: flex;
-    justify-content: space-between;
+    justify-content: flex-end;
     align-items: center;
     padding: 10px 8px 4px;
-  }
-
-  .about-link {
-    font-size: 12px;
-    color: rgba(255, 255, 255, 0.8);
-    text-decoration: none;
-    letter-spacing: 0.03em;
-    padding: 2px 6px;
-    border-radius: 3px;
-    transition: background 0.15s;
-  }
-
-  .about-link:hover {
-    background: rgba(255, 255, 255, 0.15);
   }
 
   /* ── PHOTO CREDIT ── */

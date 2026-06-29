@@ -1,11 +1,13 @@
 ---
 interface Props {
-  currentPage?: 'calendar' | 'companies' | 'events' | 'services';
+  currentPage?: 'calendar' | 'companies' | 'events' | 'services'
+  showAbout?: boolean
+  homeMode?: boolean
 }
-const { currentPage } = Astro.props;
+const { currentPage, showAbout, homeMode } = Astro.props
 ---
 
-<nav class="site-nav">
+<nav class:list={['site-nav', { 'site-nav--home': homeMode }]}>
   <a href="/" class="nav-brand">Santa Cruz Theater</a>
   <button class="nav-toggle" aria-label="Open menu" aria-expanded="false">
     <span class="nav-toggle-bar"></span>
@@ -14,54 +16,60 @@ const { currentPage } = Astro.props;
   </button>
   <ul class="nav-links">
     <li>
-      <a
-        href="/calendar"
-        class={`nav-link${currentPage === 'calendar' ? ' nav-link--active' : ''}`}
-      >Calendar</a>
+      <a href="/calendar" class={`nav-link${currentPage === 'calendar' ? ' nav-link--active' : ''}`}
+        >Calendar</a
+      >
     </li>
     <li>
       <a
         href="/companies"
-        class={`nav-link${currentPage === 'companies' ? ' nav-link--active' : ''}`}
-      >Companies</a>
+        class={`nav-link${currentPage === 'companies' ? ' nav-link--active' : ''}`}>Companies</a
+      >
     </li>
     <li>
-      <a
-        href="/events"
-        class={`nav-link${currentPage === 'events' ? ' nav-link--active' : ''}`}
-      >Events</a>
+      <a href="/events" class={`nav-link${currentPage === 'events' ? ' nav-link--active' : ''}`}
+        >Events</a
+      >
     </li>
     <li>
-      <a
-        href="/services"
-        class={`nav-link${currentPage === 'services' ? ' nav-link--active' : ''}`}
-      >Services</a>
+      <a href="/services" class={`nav-link${currentPage === 'services' ? ' nav-link--active' : ''}`}
+        >Services</a
+      >
     </li>
+    {
+      showAbout && (
+        <li class="nav-about-item">
+          <a href="/about" class="nav-link">
+            About
+          </a>
+        </li>
+      )
+    }
   </ul>
 </nav>
 
 <script>
-  const toggle = document.querySelector<HTMLButtonElement>('.nav-toggle');
-  const links = document.querySelector<HTMLElement>('.nav-links');
+  const toggle = document.querySelector<HTMLButtonElement>('.nav-toggle')
+  const links = document.querySelector<HTMLElement>('.nav-links')
 
   toggle?.addEventListener('click', () => {
-    const isOpen = links?.classList.toggle('nav-links--open');
-    toggle.setAttribute('aria-expanded', String(isOpen));
-  });
+    const isOpen = links?.classList.toggle('nav-links--open')
+    toggle.setAttribute('aria-expanded', String(isOpen))
+  })
 
-  links?.querySelectorAll('a').forEach(a => {
+  links?.querySelectorAll('a').forEach((a) => {
     a.addEventListener('click', () => {
-      links.classList.remove('nav-links--open');
-      toggle?.setAttribute('aria-expanded', 'false');
-    });
-  });
+      links.classList.remove('nav-links--open')
+      toggle?.setAttribute('aria-expanded', 'false')
+    })
+  })
 
-  document.addEventListener('click', e => {
+  document.addEventListener('click', (e) => {
     if (!toggle?.contains(e.target as Node) && !links?.contains(e.target as Node)) {
-      links?.classList.remove('nav-links--open');
-      toggle?.setAttribute('aria-expanded', 'false');
+      links?.classList.remove('nav-links--open')
+      toggle?.setAttribute('aria-expanded', 'false')
     }
-  });
+  })
 </script>
 
 <style>
@@ -135,12 +143,12 @@ const { currentPage } = Astro.props;
 
   .nav-link {
     display: block;
-    color: rgba(255, 255, 255, 0.58);
+    color: rgba(255, 255, 255, 0.7);
     text-decoration: none;
     padding: 5px 11px;
     border-radius: 4px;
     font-family: 'DM Sans', sans-serif;
-    font-size: 13px;
+    font-size: 14px;
     font-weight: 400;
     letter-spacing: 0.01em;
     transition: color 0.14s;
@@ -157,6 +165,67 @@ const { currentPage } = Astro.props;
     pointer-events: none;
   }
 
+  .nav-about-item {
+    margin-left: 8px;
+    padding-left: 10px;
+    border-left: 1px solid rgba(255, 255, 255, 0.15);
+  }
+
+  /* ── HOME MODE: only About link, right-aligned to content column ── */
+  .site-nav--home {
+    background: #1f0c09;
+  }
+
+  .site-nav--home .nav-brand,
+  .site-nav--home li:not(.nav-about-item),
+  .site-nav--home .nav-toggle {
+    display: none;
+  }
+
+  .site-nav--home .nav-links {
+    display: flex !important;
+  }
+
+  .site-nav--home .nav-about-item {
+    margin-left: 0;
+    padding-left: 0;
+    border-left: none;
+  }
+
+  /* Align About link right edge with the page content column.
+     At >960px the column is centred (max-width 960px), so we need
+     (vw-960)/2 of auto margin plus 40px (32px content pad + 8px card pad).
+     Below 960px the column fills full width so just 40px suffices. */
+  .site-nav--home {
+    padding-right: max(40px, calc((100vw - 960px) / 2 + 40px));
+  }
+
+  @media (max-width: 860px) {
+    /* page-content padding shrinks to 24px here, so 24+8=32px */
+    .site-nav--home {
+      padding-right: 32px;
+    }
+  }
+
+  @media (max-width: 600px) {
+    /* page-content padding shrinks to 16px here, so 16+8=24px */
+    .site-nav--home {
+      padding-right: 24px;
+    }
+  }
+
+  /* Reset the mobile dropdown positioning so About stays in the bar */
+  @media (max-width: 560px) {
+    .site-nav--home .nav-links {
+      position: static;
+      flex-direction: row;
+      background: none;
+      box-shadow: none;
+      border-radius: 0;
+      padding: 0;
+    }
+  }
+
   @media (max-width: 560px) {
     .nav-toggle {
       display: flex;
@@ -171,7 +240,9 @@ const { currentPage } = Astro.props;
       gap: 2px;
       padding: 4px;
       background: var(--bar-bg);
-      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.07);
+      box-shadow:
+        0 6px 16px rgba(0, 0, 0, 0.5),
+        0 0 0 1px rgba(255, 255, 255, 0.07);
       border-radius: 0 0 6px 6px;
     }
 

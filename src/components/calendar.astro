@@ -391,8 +391,8 @@ const filterCompanies = companiesData.companies.filter((c) => activeCompanyCodes
     grid-template-columns: repeat(3, 1fr);
     gap: 10px;
   }
-  /* Wider screens: 4 columns × 3 rows fits all 12 months without scrolling */
-  @media (min-width: 600px) {
+  /* Use 4 columns when in landscape mode (on tablet) but 3 when in portrait mode to optimize screen use. */
+  @media (min-aspect-ratio: 1/1) {
     .months-grid {
       grid-template-columns: repeat(4, 1fr);
     }

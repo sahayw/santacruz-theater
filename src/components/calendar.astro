@@ -1230,7 +1230,7 @@ const filterCompanies = companiesData.companies.filter((c) => activeCompanyCodes
         <div class="hover-panel-meta">${fmtTime(p.time)} · ${venue}</div>
       </div>`
     })
-    if (isTouch) html += `<div class="hover-panel-footer">Tap to view week →</div>`
+    if (isTouch) html += `<div class="hover-panel-footer">Tap for list view →</div>`
     panel.innerHTML = html
     const rect = cellEl.getBoundingClientRect()
     const pw = 240

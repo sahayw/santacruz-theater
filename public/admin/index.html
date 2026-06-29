@@ -254,7 +254,7 @@ async function init() {
       console.warn('Dev: could not load companies:', e);
       allCompanies = [];
     }
-    userAccess = { isAdmin: true, datasets: ['calendar', 'activities'], company: null };
+    userAccess = { isAdmin: true, datasets: ['calendar', 'activities', 'services'], company: null };
     showApp();
     showHub();
     return;

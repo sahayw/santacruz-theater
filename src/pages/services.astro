@@ -95,6 +95,9 @@ function renderDesc(raw: string): string {
           })
         }
         </div>
+        <p class="cat-index-footer">
+          If you would like to add an entry to this listing please email details to <a href="mailto:admin@santacruz.theater">admin@santacruz.theater</a>
+        </p>
       </div>
 
       {/* ── FILTER BAR (filtered mode — ?category param) ── */}
@@ -356,6 +359,21 @@ function renderDesc(raw: string): string {
   .cat-sub-link.cat-inactive {
     color: var(--ink-subtle);
     cursor: default;
+  }
+
+  .cat-index-footer {
+    margin-top: 28px;
+    font-size: 13px;
+    color: var(--ink-muted);
+  }
+
+  .cat-index-footer a {
+    color: #4f5ce0;
+    text-decoration: none;
+  }
+
+  .cat-index-footer a:hover {
+    text-decoration: underline;
   }
 
   /* ── FILTER BAR (matches events page style) ── */

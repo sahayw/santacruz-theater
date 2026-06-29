@@ -44,7 +44,8 @@
         { "id": "stage-management", "label": "Stage Management" },
         { "id": "stage-hand", "label": "Stage Hand" },
         { "id": "production-management", "label": "Production Management" },
-        { "id": "set-design", "label": "Set Design" }
+        { "id": "set-design", "label": "Set Design" },
+        { "id": "costume-design", "label": "Costume Design" }
       ]
     }
   ]

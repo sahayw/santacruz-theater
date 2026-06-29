@@ -14,6 +14,7 @@ const filterCompanies = companiesData.companies.filter((c) => activeCompanyCodes
 
 <div class="cal-bar">
   <button class="back-annual-btn" id="backBtn">← Annual</button>
+  <button class="list-view-btn" id="listViewBtn">List view →</button>
   <div class="year-nav">
     <button class="year-step" id="yearPrev" aria-label="Previous year">‹</button>
     <span class="year-display" id="yearDisplay">2026</span>
@@ -106,15 +107,15 @@ const filterCompanies = companiesData.companies.filter((c) => activeCompanyCodes
     --col-at: #afbfee; /* Dusk      225°   AT       */
     --col-mct: #c9e6bf; /* Willow    116°   MCT      */
     --col-renegade: #b7e8ec; /* Verdigris 188°   Renegade */
-    --col-other: #d6d6d6; /* grey — Other / unknown fallback (drill down only) */
-    --col-multi: #d4ccc2; /* deeper taupe — multi-company days (annual only) */
+    --col-other: #dadada; /* grey — Other / unknown fallback (drill down only) */
+    --col-multi: #c4b7a8; /* deeper taupe — multi-company days (annual only) */
     /* legend dot colors — muted accent, provides increased contrast */
     --dot-scs: #ce8481; /* dusty rose  */
     --dot-at: #7b8bc4; /* soft indigo */
     --dot-mct: #71c75f; /* olive sage  */
     --dot-renegade: #5dadbe; /* sea teal  */
-    --dot-other: #cbcbcb; /* grey - other (drill down only) */
-    --dot-multi: #ccc3b8; /* deeper taupe — multi-company (annual only) */
+    --dot-other: #dadada; /* grey - other (drill down only) */
+    --dot-multi: #c4b7a8; /* deeper taupe — multi-company (annual only) */
     /* fully saturated accent colors — drill-down chip bars and Show-card badge */
     --acc-scs: #dc4343; /* vivid red-rose */
     --acc-at: #4f5ce0; /* vivid blue     */
@@ -157,20 +158,21 @@ const filterCompanies = companiesData.companies.filter((c) => activeCompanyCodes
     display: grid;
     grid-template-columns: 1fr auto 1fr;
     align-items: center;
-    padding: 0 12px;
+    padding: 0 20px;
     -webkit-transform: translateZ(0);
     transform: translateZ(0);
   }
 
-  /* Back to annual — hidden in annual mode, shown in drill-down */
-  .back-annual-btn {
+  /* View-switch buttons — each shown only in the opposite mode */
+  .back-annual-btn,
+  .list-view-btn {
     grid-column: 1;
     justify-self: start;
     background: none;
     border: none;
     color: rgba(255, 255, 255, 0.65);
     font-family: 'DM Sans', sans-serif;
-    font-size: 13px;
+    font-size: 15px;
     font-weight: 400;
     cursor: pointer;
     padding: 4px 8px 4px 0;
@@ -179,10 +181,14 @@ const filterCompanies = companiesData.companies.filter((c) => activeCompanyCodes
     -webkit-tap-highlight-color: transparent;
     transition: color 0.14s;
   }
-  .back-annual-btn:hover {
+  .back-annual-btn:hover,
+  .list-view-btn:hover {
     color: #fff;
   }
   body.scroll-mode .back-annual-btn {
+    display: block;
+  }
+  body.annual-mode .list-view-btn {
     display: block;
   }
 
@@ -196,14 +202,11 @@ const filterCompanies = companiesData.companies.filter((c) => activeCompanyCodes
   }
   .year-display {
     font-family: 'DM Serif Display', serif;
-    font-size: 19px;
+    font-size: 18px;
     color: #fff;
     letter-spacing: 0.01em;
     min-width: 48px;
     text-align: center;
-  }
-  body.scroll-mode .year-display {
-    font-size: 16px;
   }
   .year-step {
     background: none;
@@ -1770,6 +1773,7 @@ const filterCompanies = companiesData.companies.filter((c) => activeCompanyCodes
   }
 
   document.getElementById('backBtn').addEventListener('click', showAnnual)
+  document.getElementById('listViewBtn').addEventListener('click', () => goToMonth(0))
   document.getElementById('sheetCloseBtn').addEventListener('click', closeSheet)
   document.getElementById('filterCompany').addEventListener('change', applyFilters)
   document.getElementById('filterGenre').addEventListener('change', applyFilters)

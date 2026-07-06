@@ -80,14 +80,16 @@
         {
           "role": "Oscar Wilde",
           "type": "lead",
-          "gender": "any",
-          "ageRange": "35-45"
+          "gender": "male",
+          "ageRange": "35-45",
+          "description": "Casting will be gender blind"
         },
         {
           "role": "Lord Alfred Douglas",
           "type": "supporting",
           "gender": "male",
-          "ageRange": "20s"
+          "ageRange": "20s",
+          "description": "Casting will be gender blind"
         },
         {
           "role": "Sir Edward Clarke",
@@ -116,7 +118,7 @@
         }
       ],
       "createdAt": "2026-05-31T21:09:08.445Z",
-      "updatedAt": "2026-06-13T17:16:15.660Z",
+      "updatedAt": "2026-07-06T05:28:13.623Z",
       "rehearsalStart": "2026-08-26",
       "openingDate": "2026-10-03",
       "notes": "Play by Moises Kaufman (also wrote \"The Laramie Project\"). Directed by Simon Hayward. Performances Oct 9 - 25 Fri-Sun at Vets Hall, Santa Cruz",
@@ -163,7 +165,9 @@
           },
           "notes": "Callbacks"
         }
-      ]
+      ],
+      "noticeUrl": "https://three-trials.live/#auditions",
+      "productionUrl": "https://three-trials.live/"
     }
   ]
 }

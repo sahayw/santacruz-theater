@@ -12,6 +12,14 @@
             "activities",
             "services"
           ]
+        },
+        {
+          "email": "elclalco@gmail.com",
+          "datasets": [
+            "calendar",
+            "activities",
+            "services"
+          ]
         }
       ],
       "adminOnly": true

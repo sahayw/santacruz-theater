@@ -56,12 +56,12 @@ export default defineConfig({
 
             // ── directory listing ──
             const dirParam = params.get('dir')
-            if (dirParam === 'shows' || dirParam === 'auditions') {
+            if (dirParam === 'shows' || dirParam === 'activities') {
               try {
                 const dataDir = path.join(process.cwd(), 'data', dirParam)
                 const fileRe =
-                  dirParam === 'auditions'
-                    ? /^(.+)-auditions-(\d{4})\.json$/
+                  dirParam === 'activities'
+                    ? /^(.+)-activities-(\d{4})\.json$/
                     : /^(.+)-(\d{4})\.json$/
                 const result = []
                 for (const yearEntry of fs.readdirSync(dataDir, { withFileTypes: true })) {

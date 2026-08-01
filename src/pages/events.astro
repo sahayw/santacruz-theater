@@ -9,7 +9,8 @@ import {
   fmtAudDateRange,
   fmtFullDate,
   fmtTimeRange,
-  rolesSum
+  rolesSum,
+  renderMd
 } from '../lib/audition-format.ts'
 
 const activities = getActivities()
@@ -452,7 +453,7 @@ function roleTypeLabel(type: string): string {
                       </div>
                     )}
 
-                    {act.notes && <div class="detail-notes-full">{act.notes}</div>}
+                    {act.notes && <div class="detail-notes-full" set:html={renderMd(act.notes)} />}
 
                     {act.type === 'audition'
                       ? (act.noticeUrl || act.productionUrl) && (

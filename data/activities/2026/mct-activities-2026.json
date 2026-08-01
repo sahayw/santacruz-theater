@@ -119,6 +119,138 @@
         }
       ],
       "noticeUrl": "https://mctshows.org/auditions/"
+    },
+    {
+      "id": "activity-1785598970210",
+      "type": "audition",
+      "title": "Coney Island Christmas",
+      "genre": [
+        "Comedy"
+      ],
+      "dates": [
+        {
+          "date": "2026-08-16",
+          "startTime": "16:30",
+          "endTime": "18:30",
+          "location": {
+            "name": "St Andrews Hall",
+            "address": "101 Riverside Ave, Ben Lomond, CA 95005"
+          }
+        },
+        {
+          "date": "2026-11-17",
+          "startTime": "18:30",
+          "endTime": "20:30",
+          "location": {
+            "name": "St Andrews Hall",
+            "address": "101 Riverside Ave, Ben Lomond, CA 95005"
+          }
+        },
+        {
+          "date": "2026-08-19",
+          "startTime": "18:30",
+          "endTime": "21:00",
+          "location": {
+            "name": "St Andrews Hall",
+            "address": "101 Riverside Ave, Ben Lomond, CA 95005"
+          },
+          "notes": "Callbacks (by invitation)"
+        }
+      ],
+      "rolesAvailable": [
+        {
+          "role": "SHIRLEY ABRAMOWITZ",
+          "type": "lead",
+          "gender": "female",
+          "description": "Very old"
+        },
+        {
+          "role": "CLARA",
+          "type": "lead",
+          "gender": "female",
+          "description": "Shirley’s great-granddaughter",
+          "ageRange": "12 (age appropriate actor)"
+        },
+        {
+          "role": "YOUNG SHIRLEY",
+          "type": "supporting",
+          "gender": "female",
+          "ageRange": "12 (age appropriate actor)"
+        },
+        {
+          "role": "MR. MISHA ABRAMOWITZ",
+          "type": "supporting",
+          "gender": "male",
+          "description": "Shirley’s father",
+          "ageRange": "45"
+        },
+        {
+          "role": "MRS. CLARA ABRAMOWITZ",
+          "type": "supporting",
+          "gender": "female",
+          "description": "Shirley’s mother",
+          "ageRange": "40"
+        },
+        {
+          "role": "MRS. KORNBLUM",
+          "type": "supporting",
+          "gender": "female",
+          "description": "A neighbor"
+        },
+        {
+          "role": "MR. HILTON",
+          "type": "supporting",
+          "gender": "male",
+          "description": "The drama teacher",
+          "ageRange": "35"
+        },
+        {
+          "role": "MISS GLACÉ",
+          "type": "supporting",
+          "gender": "female",
+          "description": "The music teacher",
+          "ageRange": "28"
+        },
+        {
+          "role": "EVIE SLOTNICK",
+          "type": "supporting",
+          "gender": "female",
+          "description": "Shirley’s best friend"
+        },
+        {
+          "role": "JACKIE SAUERFELD",
+          "type": "supporting",
+          "gender": "male",
+          "description": "Shirley’s crush"
+        },
+        {
+          "role": "IRA PUSHKOV",
+          "type": "supporting",
+          "gender": "male",
+          "description": "The wisenheimer"
+        },
+        {
+          "role": "Teacher, Various Classmates",
+          "type": "ensemble",
+          "gender": "any",
+          "description": "All characters except Clara and Young Shirley will be played by adults"
+        }
+      ],
+      "createdAt": "2026-08-01T15:42:50.210Z",
+      "updatedAt": "2026-08-01T16:44:19.344Z",
+      "notes": "All auditioners are required to submit an [online audition form ](https://docs.google.com/forms/d/e/1FAIpQLSchADuZqyofTkAsjm800JLIKNhSN3Sr8iAGL8R0QDCUmXeIMg/viewform?usp=sharing&ouid=113257449358343515423) prior to auditioning: Following monologues, we will do readings, which are considered part of the audition process.\n\n4:30-5:00 (Sun)/6:30-7:00 (Mon): Monologues\n5:00-6:30 (Sun)/7:00-8:30 (Mon): Readings from the script\n\n**There is double-casting in this production.**\n",
+      "openingDate": "2026-11-20",
+      "noticeUrl": "https://mctshows.org/auditions/",
+      "prep": {
+        "acting": "Those new to MCT or the director should be prepared with a 1-minute comedic monologue",
+        "bring": [
+          "Theatrical resume (if you have one)"
+        ]
+      },
+      "contact": {
+        "name": "Daria Troxell",
+        "email": "slvdaria24@gmail.com"
+      }
     }
   ]
 }

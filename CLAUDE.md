@@ -8,11 +8,11 @@ The site is structured as a hub (`/`) linking to four sections: **Calendar** (`/
 
 ## Key commands
 
-| Command                   | Action                                      |
-| ------------------------- | ------------------------------------------- |
-| `npm run dev`             | Dev server at localhost:4321                |
-| `npm run build`           | Build to `dist/`                            |
-| `npm run preview`         | Preview production build locally            |
+| Command                    | Action                                      |
+| -------------------------- | ------------------------------------------- |
+| `npm run dev`              | Dev server at localhost:4321                |
+| `npm run build`            | Build to `dist/`                            |
+| `npm run preview`          | Preview production build locally            |
 | `npm run check-shows`      | Validate show JSON files against schema     |
 | `npm run check-activities` | Validate activity JSON files against schema |
 
@@ -198,30 +198,30 @@ One file per company per year. Top-level shape:
 
 #### `Activity`
 
-| Field              | Type               | Notes                                                                                                                                             |
-| ------------------ | ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `id`               | `string`           | `"activity-<timestamp>"` — stable, editor-assigned                                                                                                |
-| `type`             | `ActivityType`     | `'audition' \| 'event'`                                                                                                                           |
-| `title`            | `string`           | Production name (audition) or event title                                                                                                         |
-| `briefDescription` | `string?`          | **Event only.** Short blurb shown in collapsed card header                                                                                        |
-| `description`      | `string?`          | **Event only.** Full description; supports `**bold**` and `*italic*`                                                                              |
+| Field              | Type               | Notes                                                                                                                                                                |
+| ------------------ | ------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `id`               | `string`           | `"activity-<timestamp>"` — stable, editor-assigned                                                                                                                   |
+| `type`             | `ActivityType`     | `'audition' \| 'event'`                                                                                                                                              |
+| `title`            | `string`           | Production name (audition) or event title                                                                                                                            |
+| `briefDescription` | `string?`          | **Event only.** Short blurb shown in collapsed card header                                                                                                           |
+| `description`      | `string?`          | **Event only.** Full description; supports `**bold**` and `*italic*`                                                                                                 |
 | `genre`            | `Genre[]`          | **Audition only.** Up to 2 values from `Drama \| Musical \| Comedy \| Other`; empty array when unset. Legacy string values are coerced to single-item array on read. |
-| `dates`            | `ActivityDate[]`   | Ordered list of sessions; each carries its own location                                                                                           |
-| `organizerName`    | `string?`          | Required when `company` is `"other"`; overrides company name in display                                                                           |
-| `organizerUrl`     | `string?`          | Optional organizer website; used when `company` is `"other"`                                                                                      |
-| `rolesAvailable`   | `AuditionRole[]?`  | **Audition only.** Suppressed when empty                                                                                                          |
-| `prep`             | `AuditionPrep?`    | **Audition only.** `{ acting?, singing?, dance?, bring? }`                                                                                        |
-| `rehearsalStart`   | `string?`          | **Audition only.** `YYYY-MM-DD`                                                                                                                   |
-| `openingDate`      | `string?`          | **Audition only.** `YYYY-MM-DD`                                                                                                                   |
-| `productionId`     | `string?`          | **Audition only.** Soft ref to a `Run` id in shows data (not exposed in editor UI)                                                                |
-| `cost`             | `string?`          | **Event only.** Free text e.g. `"Free"`, `"$20"`                                                                                                  |
-| `registerUrl`      | `string?`          | **Event only.** Registration link; shown below Cost and above Contact in display                                                                  |
-| `contact`          | `ActivityContact?` | `{ name?, email?, phone? }`                                                                                                                       |
-| `noticeUrl`        | `string?`          | Primary info/notice URL                                                                                                                           |
-| `productionUrl`    | `string?`          | **Audition only.** Production page URL                                                                                                            |
-| `notes`            | `string?`          | **Audition only.** Full-width notes shown at bottom of expanded card                                                                              |
-| `createdAt`        | `string`           | ISO 8601 timestamp                                                                                                                                |
-| `updatedAt`        | `string`           | ISO 8601 timestamp                                                                                                                                |
+| `dates`            | `ActivityDate[]`   | Ordered list of sessions; each carries its own location                                                                                                              |
+| `organizerName`    | `string?`          | Required when `company` is `"other"`; overrides company name in display                                                                                              |
+| `organizerUrl`     | `string?`          | Optional organizer website; used when `company` is `"other"`                                                                                                         |
+| `rolesAvailable`   | `AuditionRole[]?`  | **Audition only.** Suppressed when empty                                                                                                                             |
+| `prep`             | `AuditionPrep?`    | **Audition only.** `{ acting?, singing?, dance?, bring? }`                                                                                                           |
+| `rehearsalStart`   | `string?`          | **Audition only.** `YYYY-MM-DD`                                                                                                                                      |
+| `openingDate`      | `string?`          | **Audition only.** `YYYY-MM-DD`                                                                                                                                      |
+| `productionId`     | `string?`          | **Audition only.** Soft ref to a `Run` id in shows data (not exposed in editor UI)                                                                                   |
+| `cost`             | `string?`          | **Event only.** Free text e.g. `"Free"`, `"$20"`                                                                                                                     |
+| `registerUrl`      | `string?`          | **Event only.** Registration link; shown below Cost and above Contact in display                                                                                     |
+| `contact`          | `ActivityContact?` | `{ name?, email?, phone? }`                                                                                                                                          |
+| `noticeUrl`        | `string?`          | Primary info/notice URL                                                                                                                                              |
+| `productionUrl`    | `string?`          | **Audition only.** Production page URL                                                                                                                               |
+| `notes`            | `string?`          | **Audition only.** Full-width notes shown at bottom of expanded card; supports `**bold**`, `*italic*`, and `[link text](url)`                                        |
+| `createdAt`        | `string`           | ISO 8601 timestamp                                                                                                                                                   |
+| `updatedAt`        | `string`           | ISO 8601 timestamp                                                                                                                                                   |
 
 #### `ActivityDate`
 
@@ -321,7 +321,7 @@ On a successful new subscription, `subscribe.mts` sends a one-off welcome email 
 
 #### Shared formatting module
 
-`src/lib/audition-format.ts` — pure functions with no Astro or DOM dependencies. Exported: `fmt12`, `fmtTimeRange`, `fmtFullDate`, `fmtShortDate`, `fmtAudDateRange`, `rolesSum`, `rolesSummaryEmail`. Used by:
+`src/lib/audition-format.ts` — pure functions with no Astro or DOM dependencies. Exported: `fmt12`, `fmtTimeRange`, `fmtFullDate`, `fmtShortDate`, `fmtAudDateRange`, `rolesSum`, `renderMd`, `rolesSummaryEmail`. `renderMd()` HTML-escapes then converts `**bold**`, `*italic*`, and `[link text](url)` — used for the audition `notes` field on the public page and in the editor's Preview modal. Used by:
 
 - `src/pages/events.astro` (imported directly at build time)
 - `netlify/functions/send-digest.mts` (resolved via esbuild bundling)
@@ -342,34 +342,34 @@ The browser module at `/admin/audition-format.js` is generated by `src/pages/adm
 
 #### `ServiceCategory`
 
-| Field           | Type                   | Notes                                                  |
-| --------------- | ---------------------- | ------------------------------------------------------ |
-| `id`            | `string`               | Kebab-case slug; used as `?category=` URL value        |
-| `label`         | `string`               | Display name in index grid and filter dropdown         |
-| `subcategories` | `ServiceSubcategory[]` | Leaf-level entries; listings store subcategory ids     |
+| Field           | Type                   | Notes                                              |
+| --------------- | ---------------------- | -------------------------------------------------- |
+| `id`            | `string`               | Kebab-case slug; used as `?category=` URL value    |
+| `label`         | `string`               | Display name in index grid and filter dropdown     |
+| `subcategories` | `ServiceSubcategory[]` | Leaf-level entries; listings store subcategory ids |
 
 #### `ServiceSubcategory`
 
-| Field         | Type      | Notes                                                                                               |
-| ------------- | --------- | --------------------------------------------------------------------------------------------------- |
-| `id`          | `string`  | Kebab-case slug; stored in `ServiceListing.categories`                                              |
-| `label`       | `string`  | Display name in dropdown and index grid                                                             |
+| Field         | Type      | Notes                                                                                                          |
+| ------------- | --------- | -------------------------------------------------------------------------------------------------------------- |
+| `id`          | `string`  | Kebab-case slug; stored in `ServiceListing.categories`                                                         |
+| `label`       | `string`  | Display name in dropdown and index grid                                                                        |
 | `description` | `string?` | Pill text on listing cards; falls back to `label` when absent (e.g. `"Headshot Photography"` vs `"Headshots"`) |
 
 #### `ServiceListing`
 
-| Field         | Type             | Notes                                                                                           |
-| ------------- | ---------------- | ----------------------------------------------------------------------------------------------- |
-| `id`          | `string`         | `"service-<timestamp>"` — stable, editor-assigned                                               |
-| `name`        | `string`         | Company or individual name                                                                      |
-| `categories`  | `string[]`       | One or more subcategory ids (leaf-level only); never a top-level category id                    |
-| `contact`     | `ServiceContact` | At least `tel` or `email` required                                                              |
-| `photo`       | `string?`        | Local path e.g. `"/images/services/jane-smith.jpg"`; stored in `public/images/services/`        |
-| `url`         | `string?`        | Info or booking URL                                                                             |
+| Field         | Type             | Notes                                                                                             |
+| ------------- | ---------------- | ------------------------------------------------------------------------------------------------- |
+| `id`          | `string`         | `"service-<timestamp>"` — stable, editor-assigned                                                 |
+| `name`        | `string`         | Company or individual name                                                                        |
+| `categories`  | `string[]`       | One or more subcategory ids (leaf-level only); never a top-level category id                      |
+| `contact`     | `ServiceContact` | At least `tel` or `email` required                                                                |
+| `photo`       | `string?`        | Local path e.g. `"/images/services/jane-smith.jpg"`; stored in `public/images/services/`          |
+| `url`         | `string?`        | Info or booking URL                                                                               |
 | `description` | `string?`        | Full description; supports `**bold**`, `*italic*`, and `[link text](url)`; shown in expanded card |
-| `active`      | `boolean`        | `false` hides the listing from all public pages without deleting it                             |
-| `createdAt`   | `string`         | ISO 8601 timestamp                                                                              |
-| `updatedAt`   | `string`         | ISO 8601 timestamp                                                                              |
+| `active`      | `boolean`        | `false` hides the listing from all public pages without deleting it                               |
+| `createdAt`   | `string`         | ISO 8601 timestamp                                                                                |
+| `updatedAt`   | `string`         | ISO 8601 timestamp                                                                                |
 
 #### `ServiceContact`
 
@@ -441,18 +441,18 @@ The first entry (`id: "admin"`, `adminOnly: true`) is a sentinel used by the edi
 
 ## Required Netlify environment variables
 
-| Variable                    | Purpose                                                                                                                                          |
-| --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `GITHUB_TOKEN`              | Fine-grained PAT with Contents read/write — used by `data.mjs` for admin writes                                                                  |
-| `GITHUB_OWNER`              | GitHub repository owner — used by `data.mjs`                                                                                                     |
-| `GITHUB_REPO`               | GitHub repository name — used by `data.mjs`                                                                                                      |
-| `GITHUB_BRANCH`             | Branch to commit to (default: `main`) — used by `data.mjs`                                                                                       |
-| `BUTTONDOWN_API_KEY`        | Buttondown API key — used by `subscribe.mts` and `send-digest.mts`                                                                              |
-| `NETLIFY_SITE_ID`           | Site ID — must be set manually; scheduled functions do not receive it automatically                                                              |
-| `NETLIFY_TOKEN`             | Netlify personal access token — required by `send-digest.mts` for Blob Storage access (scheduled functions don't get an injected token)          |
-| `DRY_RUN`                   | Optional. Set to `true` to run the digest function without sending email or updating the timestamp                                               |
-| `DIGEST_HEALTHCHECK_URL`    | Optional. Pinged by `send-digest.mts` on completion (success, failure, or nothing-to-send), for external monitoring                             |
-| `SUBSCRIBE_HEALTHCHECK_URL` | Optional. Pinged by `subscribe.mts` on welcome email success (base URL) or failure (`{url}/fail`)                                                |
+| Variable                    | Purpose                                                                                                                                 |
+| --------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
+| `GITHUB_TOKEN`              | Fine-grained PAT with Contents read/write — used by `data.mjs` for admin writes                                                         |
+| `GITHUB_OWNER`              | GitHub repository owner — used by `data.mjs`                                                                                            |
+| `GITHUB_REPO`               | GitHub repository name — used by `data.mjs`                                                                                             |
+| `GITHUB_BRANCH`             | Branch to commit to (default: `main`) — used by `data.mjs`                                                                              |
+| `BUTTONDOWN_API_KEY`        | Buttondown API key — used by `subscribe.mts` and `send-digest.mts`                                                                      |
+| `NETLIFY_SITE_ID`           | Site ID — must be set manually; scheduled functions do not receive it automatically                                                     |
+| `NETLIFY_TOKEN`             | Netlify personal access token — required by `send-digest.mts` for Blob Storage access (scheduled functions don't get an injected token) |
+| `DRY_RUN`                   | Optional. Set to `true` to run the digest function without sending email or updating the timestamp                                      |
+| `DIGEST_HEALTHCHECK_URL`    | Optional. Pinged by `send-digest.mts` on completion (success, failure, or nothing-to-send), for external monitoring                     |
+| `SUBSCRIBE_HEALTHCHECK_URL` | Optional. Pinged by `subscribe.mts` on welcome email success (base URL) or failure (`{url}/fail`)                                       |
 
 ## Git workflow
 

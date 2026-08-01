@@ -1,5 +1,13 @@
 import { IS_DEV, apiFetch, apiPut, buildCompanyOptions } from './api.js'
-import { fmt12, fmtTimeRange, fmtFullDate, fmtShortDate, fmtAudDateRange, rolesSum } from '/admin/audition-format.js'
+import {
+  fmt12,
+  fmtTimeRange,
+  fmtFullDate,
+  fmtShortDate,
+  fmtAudDateRange,
+  rolesSum,
+  renderMd
+} from '/admin/audition-format.js'
 
 const ROLE_TYPES = ['lead', 'supporting', 'ensemble']
 const ROLE_GENDERS = ['any', 'female', 'male']
@@ -640,7 +648,7 @@ const ACT_HTML = `
         <!-- 5. Notes (auditions only) -->
         <div class="act-section act-notes-section" id="actNotesSection">
           <div class="act-notes-toolbar">
-            <label class="act-field-label" style="margin-bottom:0">Notes</label>
+            <label class="act-field-label" style="margin-bottom:0">Notes — supports **bold**, *italic*, and [link text](https://url)</label>
             <button class="act-expand-btn" id="actNotesExpandBtn" onclick="act.toggleNotesExpand()" title="Expand">↕</button>
           </div>
           <textarea class="act-notes-textarea" id="af-notes" rows="1"
@@ -678,7 +686,7 @@ function isMusical() {
   return sel ? Array.from(sel.selectedOptions).some((o) => o.value === 'Musical') : false
 }
 function currentType() {
-  return activeActIdx >= 0 ? (activities[activeActIdx].type || 'audition') : 'audition'
+  return activeActIdx >= 0 ? activities[activeActIdx].type || 'audition' : 'audition'
 }
 
 // ── SNAPSHOT HELPERS ──
@@ -724,7 +732,8 @@ async function loadCompanyFile(coId, year) {
 function updateEmptyState() {
   const el = document.getElementById('actEmptyState')
   if (!el) return
-  if (!currentCompanyId) document.getElementById('actNewBtns')?.setAttribute('style', 'display:none')
+  if (!currentCompanyId)
+    document.getElementById('actNewBtns')?.setAttribute('style', 'display:none')
   el.innerHTML = !currentCompanyId
     ? isAdminContext
       ? `<div class="act-empty-icon">🎭</div><h2>Select a company / year</h2><p>from the toolbar above to load activities</p>`
@@ -918,7 +927,9 @@ async function saveFile() {
       year: currentYear,
       activities: cleanActivities
     })
-    cleanActivities.forEach((ca, i) => { activities[i].updatedAt = ca.updatedAt })
+    cleanActivities.forEach((ca, i) => {
+      activities[i].updatedAt = ca.updatedAt
+    })
     refreshSnapshots()
     btn.textContent = 'Saved ✓'
     btn.style.background = 'var(--green)'
@@ -1001,18 +1012,20 @@ function loadActEditor() {
   document.getElementById('af-company').value = currentCompanyAbv || ''
 
   const genreSel = document.getElementById('af-genre')
-  const genreArr = Array.isArray(a.genre) ? a.genre : (a.genre ? [a.genre] : [])
-  Array.from(genreSel.options).forEach((o) => { o.selected = genreArr.includes(o.value) })
+  const genreArr = Array.isArray(a.genre) ? a.genre : a.genre ? [a.genre] : []
+  Array.from(genreSel.options).forEach((o) => {
+    o.selected = genreArr.includes(o.value)
+  })
   prevActGenreVals = genreArr
 
   document.getElementById('af-title').value = a.title || ''
   document.getElementById('af-rehearsal').value = a.rehearsalStart || ''
   document.getElementById('af-opening').value = a.openingDate || ''
-  document.getElementById('af-notice-url').value = a.type !== 'event' ? (a.noticeUrl || '') : ''
+  document.getElementById('af-notice-url').value = a.type !== 'event' ? a.noticeUrl || '' : ''
   document.getElementById('af-prod-url').value = a.productionUrl || ''
   document.getElementById('af-brief-desc').value = a.briefDescription || ''
   document.getElementById('af-cost').value = a.cost || ''
-  document.getElementById('af-event-notice-url').value = a.type === 'event' ? (a.noticeUrl || '') : ''
+  document.getElementById('af-event-notice-url').value = a.type === 'event' ? a.noticeUrl || '' : ''
   document.getElementById('af-register-url').value = a.registerUrl || ''
   document.getElementById('af-org-name').value = a.organizerName || ''
   document.getElementById('af-org-url').value = a.organizerUrl || ''
@@ -1050,7 +1063,8 @@ function updateEditorTitle() {
   document.getElementById('actTitleText').textContent = a.title || 'Untitled'
   const genreLabel = (Array.isArray(a.genre) ? a.genre : a.genre ? [a.genre] : []).join(' / ')
   const typeLabel = a.type === 'event' ? 'Event' : 'Audition'
-  document.getElementById('actSubtitle').textContent = ` · ${typeLabel}${genreLabel ? ' · ' + genreLabel : ''}`
+  document.getElementById('actSubtitle').textContent =
+    ` · ${typeLabel}${genreLabel ? ' · ' + genreLabel : ''}`
 }
 
 function updateRestoreBtn() {
@@ -1129,15 +1143,18 @@ function updateMusicLayout() {
 // ── FIELD SYNC ──
 const MAX_GENRES = 2
 
-
 function genreChanged() {
   const sel = document.getElementById('af-genre')
   const current = Array.from(sel.selectedOptions).map((o) => o.value)
   if (current.length > MAX_GENRES) {
     const added = current.filter((v) => !prevActGenreVals.includes(v))
-    const keptPrev = prevActGenreVals.filter((v) => current.includes(v)).slice(-(MAX_GENRES - added.length))
+    const keptPrev = prevActGenreVals
+      .filter((v) => current.includes(v))
+      .slice(-(MAX_GENRES - added.length))
     const kept = [...keptPrev, ...added].slice(0, MAX_GENRES)
-    Array.from(sel.options).forEach((o) => { o.selected = kept.includes(o.value) })
+    Array.from(sel.options).forEach((o) => {
+      o.selected = kept.includes(o.value)
+    })
     prevActGenreVals = kept
   } else {
     prevActGenreVals = current
@@ -1171,7 +1188,11 @@ function fieldChanged() {
     a.cost = undefined
     a.registerUrl = undefined
 
-    const bring = document.getElementById('af-prep-bring').value.split('\n').map((s) => s.trim()).filter(Boolean)
+    const bring = document
+      .getElementById('af-prep-bring')
+      .value.split('\n')
+      .map((s) => s.trim())
+      .filter(Boolean)
     const musical = a.genre.includes('Musical')
     const prep = {
       acting: document.getElementById('af-prep-acting').value || undefined,
@@ -1273,7 +1294,12 @@ function restoreActivity() {
   const a = activities[activeActIdx]
   const snap = actSnapshots.get(a.id)
   if (!snap) return
-  if (!confirm(`Restore "${a.title || 'this activity'}" to its last saved state? Unsaved changes will be lost.`)) return
+  if (
+    !confirm(
+      `Restore "${a.title || 'this activity'}" to its last saved state? Unsaved changes will be lost.`
+    )
+  )
+    return
   activities[activeActIdx] = { ...JSON.parse(snap), updatedAt: a.updatedAt }
   loadActEditor()
   updateStatus()
@@ -1306,24 +1332,58 @@ function clearEditor() {
 
 // ── VALIDATION ──
 const MONTH_MAP = {
-  jan: 1, january: 1, feb: 2, february: 2, mar: 3, march: 3,
-  apr: 4, april: 4, may: 5, jun: 6, june: 6, jul: 7, july: 7,
-  aug: 8, august: 8, sep: 9, sept: 9, september: 9,
-  oct: 10, october: 10, nov: 11, november: 11, dec: 12, december: 12,
+  jan: 1,
+  january: 1,
+  feb: 2,
+  february: 2,
+  mar: 3,
+  march: 3,
+  apr: 4,
+  april: 4,
+  may: 5,
+  jun: 6,
+  june: 6,
+  jul: 7,
+  july: 7,
+  aug: 8,
+  august: 8,
+  sep: 9,
+  sept: 9,
+  september: 9,
+  oct: 10,
+  october: 10,
+  nov: 11,
+  november: 11,
+  dec: 12,
+  december: 12
 }
 function normalizeDate(v) {
   if (!v) return v
   const s = v.trim()
   if (/[A-Za-z]/.test(s)) {
-    let month = null, day = null, year = null
-    const tokens = s.split(/[\s,]+/).map((t) => t.replace(/\.$/, '').trim()).filter(Boolean)
+    let month = null,
+      day = null,
+      year = null
+    const tokens = s
+      .split(/[\s,]+/)
+      .map((t) => t.replace(/\.$/, '').trim())
+      .filter(Boolean)
     for (const token of tokens) {
       const low = token.toLowerCase()
-      if (MONTH_MAP[low] !== undefined) { month = MONTH_MAP[low]; continue }
+      if (MONTH_MAP[low] !== undefined) {
+        month = MONTH_MAP[low]
+        continue
+      }
       if (/^\d+$/.test(token)) {
         const n = parseInt(token, 10)
-        if (token.length === 4 || n > 31) { year = n; continue }
-        if (day === null) { day = n; continue }
+        if (token.length === 4 || n > 31) {
+          year = n
+          continue
+        }
+        if (day === null) {
+          day = n
+          continue
+        }
       }
     }
     if (month !== null && day !== null) {
@@ -1332,7 +1392,11 @@ function normalizeDate(v) {
       return `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`
     }
   }
-  const parts = s.replace(/[/.]/g, '-').split('-').map((p) => p.trim()).filter(Boolean)
+  const parts = s
+    .replace(/[/.]/g, '-')
+    .split('-')
+    .map((p) => p.trim())
+    .filter(Boolean)
   if (parts.length !== 3) return v
   let [y, m, d] = parts
   if (y.length === 2) y = '20' + y
@@ -1390,7 +1454,9 @@ function collectErrors() {
     if (firstDate) {
       const yr = parseInt(firstDate.slice(0, 4), 10)
       if (yr !== currentYear)
-        errors.push(`"${label}": first date ${firstDate} is in ${yr} — use the year selector to edit the ${yr} file`)
+        errors.push(
+          `"${label}": first date ${firstDate} is in ${yr} — use the year selector to edit the ${yr} file`
+        )
     }
   })
   return errors
@@ -1400,14 +1466,19 @@ function collectErrors() {
 function updateDateErrors() {
   const el = document.getElementById('actDateErrors')
   if (!el) return
-  if (activeActIdx < 0) { el.style.display = 'none'; return }
+  if (activeActIdx < 0) {
+    el.style.display = 'none'
+    return
+  }
   const dates = activities[activeActIdx].dates || []
   const msgs = []
   dates.forEach((d, i) => {
     if (!d.date) return
     const v = d.date
     if (!/^\d{4}-\d{2}-\d{2}$/.test(v)) {
-      msgs.push(`Row ${i + 1}: "${v}" — unrecognized date. Accepted: YYYY-MM-DD, "Oct 30", "Fri Oct 30", "Oct 30 2026"`)
+      msgs.push(
+        `Row ${i + 1}: "${v}" — unrecognized date. Accepted: YYYY-MM-DD, "Oct 30", "Fri Oct 30", "Oct 30 2026"`
+      )
       return
     }
     const [y, m, dv] = v.split('-').map(Number)
@@ -1418,10 +1489,14 @@ function updateDateErrors() {
       msgs.push(`Row ${i + 1}: "${v}" — year ${y} is not valid for this ${currentYear} file`)
     }
   })
-  if (!msgs.length) { el.style.display = 'none'; return }
-  el.innerHTML = msgs.length === 1
-    ? `⚠ ${esc(msgs[0])}`
-    : `⚠ Date issues:<ul>${msgs.map((m) => `<li>${esc(m)}</li>`).join('')}</ul>`
+  if (!msgs.length) {
+    el.style.display = 'none'
+    return
+  }
+  el.innerHTML =
+    msgs.length === 1
+      ? `⚠ ${esc(msgs[0])}`
+      : `⚠ Date issues:<ul>${msgs.map((m) => `<li>${esc(m)}</li>`).join('')}</ul>`
   el.style.display = ''
 }
 
@@ -1549,7 +1624,9 @@ function dateCellKey(event, rowIdx, field) {
       document.getElementById(`dc-${rowIdx}-${DATE_COLS[next]}`)?.focus()
     } else if (!event.shiftKey) {
       const n = document.getElementById(`dc-${rowIdx + 1}-date`)
-      if (n) { n.focus() } else {
+      if (n) {
+        n.focus()
+      } else {
         const el = document.getElementById(`dc-${rowIdx}-${field}`)
         if (el) dateCellChanged(rowIdx, field, el.value)
         addDateRow()
@@ -1558,7 +1635,9 @@ function dateCellKey(event, rowIdx, field) {
   } else if (event.key === 'Enter') {
     event.preventDefault()
     const n = document.getElementById(`dc-${rowIdx + 1}-date`)
-    if (n) { n.focus() } else {
+    if (n) {
+      n.focus()
+    } else {
       const el = document.getElementById(`dc-${rowIdx}-${field}`)
       if (el) dateCellChanged(rowIdx, field, el.value)
       addDateRow()
@@ -1729,7 +1808,10 @@ function hideVenueDropdown() {
 
 function selectVenueItem(rowIdx, code) {
   const venue = venuesList.find((v) => v.code === code)
-  if (!venue) { hideVenueDropdown(); return }
+  if (!venue) {
+    hideVenueDropdown()
+    return
+  }
   const d = activities[activeActIdx].dates[rowIdx]
   if (!d.location) d.location = {}
   d.location.name = venue.name
@@ -1745,14 +1827,18 @@ function selectVenueItem(rowIdx, code) {
 
 // ── PREVIEW ──
 const PV_DOT_COLORS = {
-  scs: '#ce8481', at: '#7b8bc4', mct: '#71c75f',
-  renegade: '#5dadbe', cabrillo: '#c8a96e', abt: '#a57bc4'
+  scs: '#ce8481',
+  at: '#7b8bc4',
+  mct: '#71c75f',
+  renegade: '#5dadbe',
+  cabrillo: '#c8a96e',
+  abt: '#a57bc4'
 }
 const PV_GENRE_STYLES = {
   Musical: 'background:#dce4fb;color:#2c3e9a',
-  Drama:   'background:#fbe5e1;color:#8c3a2e',
-  Comedy:  'background:#dff4d6;color:#2d6020',
-  Other:   'background:#f0ece6;color:#6b6259'
+  Drama: 'background:#fbe5e1;color:#8c3a2e',
+  Comedy: 'background:#dff4d6;color:#2d6020',
+  Other: 'background:#f0ece6;color:#6b6259'
 }
 
 function openPreview() {
@@ -1760,46 +1846,70 @@ function openPreview() {
   const a = activities[activeActIdx]
   const companyName = allCompanies.find((c) => c.id === currentCompanyId)?.name || currentCompanyAbv
   const dotColor = PV_DOT_COLORS[currentCompanyId] || '#cbcbcb'
-  const genreArr = Array.isArray(a.genre) ? a.genre : (a.genre ? [a.genre] : [])
+  const genreArr = Array.isArray(a.genre) ? a.genre : a.genre ? [a.genre] : []
   const TODAY = new Date().toISOString().slice(0, 10)
   const latestD = [...(a.dates || [])].sort((x, y) => y.date.localeCompare(x.date))[0]?.date ?? ''
   const isPast = latestD && latestD < TODAY
   const showVoice = genreArr.includes('Musical')
   const isEvent = a.type === 'event'
-  const displayName = (currentCompanyId === 'other' && a.organizerName) ? a.organizerName : companyName
+  const displayName =
+    currentCompanyId === 'other' && a.organizerName ? a.organizerName : companyName
 
   const _filteredDates = (a.dates || []).filter((d) => d.date)
   const _pvLocs = _filteredDates.map((d) => d.location?.name).filter(Boolean)
-  const _pvShared = _pvLocs.length > 0 && _pvLocs.every((n) => n === _pvLocs[0])
-    ? _filteredDates.find((d) => d.location)?.location
-    : null
-  const datesHtml = (_filteredDates.map((ad, i, arr) => {
-    const seenBefore = !_pvShared && i > 0 && arr.slice(0, i).some((p) => p.location?.name === ad.location?.name)
-    return `<div class="pv-date-row">
+  const _pvShared =
+    _pvLocs.length > 0 && _pvLocs.every((n) => n === _pvLocs[0])
+      ? _filteredDates.find((d) => d.location)?.location
+      : null
+  const datesHtml =
+    _filteredDates
+      .map((ad, i, arr) => {
+        const seenBefore =
+          !_pvShared && i > 0 && arr.slice(0, i).some((p) => p.location?.name === ad.location?.name)
+        return `<div class="pv-date-row">
       <span class="pv-date-label">${fmtFullDate(ad.date)}</span>
       <span class="pv-time-label">${fmtTimeRange(ad.startTime, ad.endTime || '')}</span>
       ${ad.notes ? `<span class="pv-date-note">${esc(ad.notes)}</span>` : ''}
-      ${!_pvShared && ad.location ? `<div class="pv-date-location">
+      ${
+        !_pvShared && ad.location
+          ? `<div class="pv-date-location">
         <span class="pv-location-name">${esc(ad.location.name)}</span>
         ${!seenBefore && ad.location.address ? `<span class="pv-sub"> · ${esc(ad.location.address)}</span>` : ''}
-      </div>` : ''}
+      </div>`
+          : ''
+      }
     </div>`
-  }).join('') +
-  (_pvShared ? `<div class="pv-date-location" style="margin-top:4px">
+      })
+      .join('') +
+      (_pvShared
+        ? `<div class="pv-date-location" style="margin-top:4px">
     <span class="pv-location-name">${esc(_pvShared.name)}</span>
     ${_pvShared.address ? `<span class="pv-sub"> · ${esc(_pvShared.address)}</span>` : ''}
-  </div>` : '')
-  ) || '<div class="pv-sub">No dates set</div>'
+  </div>`
+        : '') || '<div class="pv-sub">No dates set</div>'
 
   let leftColHtml = `<section class="pv-section"><h4 class="pv-section-head">${isEvent ? 'Dates' : 'Audition dates'}</h4>${datesHtml}</section>`
 
   if (!isEvent && a.prep) {
     const rows = []
-    if (a.prep.acting)        rows.push(`<div class="pv-prep-row"><span class="pv-prep-label">Acting</span><span>${esc(a.prep.acting)}</span></div>`)
-    if (a.prep.singing)       rows.push(`<div class="pv-prep-row"><span class="pv-prep-label">Singing</span><span>${esc(a.prep.singing)}</span></div>`)
-    if (a.prep.dance)         rows.push(`<div class="pv-prep-row"><span class="pv-prep-label">Dance</span><span>${esc(a.prep.dance)}</span></div>`)
-    if (a.prep.bring?.length) rows.push(`<div class="pv-prep-row"><span class="pv-prep-label">Bring</span><span>${esc(a.prep.bring.join(', '))}</span></div>`)
-    if (rows.length) leftColHtml += `<section class="pv-section"><h4 class="pv-section-head">Prepare</h4>${rows.join('')}</section>`
+    if (a.prep.acting)
+      rows.push(
+        `<div class="pv-prep-row"><span class="pv-prep-label">Acting</span><span>${esc(a.prep.acting)}</span></div>`
+      )
+    if (a.prep.singing)
+      rows.push(
+        `<div class="pv-prep-row"><span class="pv-prep-label">Singing</span><span>${esc(a.prep.singing)}</span></div>`
+      )
+    if (a.prep.dance)
+      rows.push(
+        `<div class="pv-prep-row"><span class="pv-prep-label">Dance</span><span>${esc(a.prep.dance)}</span></div>`
+      )
+    if (a.prep.bring?.length)
+      rows.push(
+        `<div class="pv-prep-row"><span class="pv-prep-label">Bring</span><span>${esc(a.prep.bring.join(', '))}</span></div>`
+      )
+    if (rows.length)
+      leftColHtml += `<section class="pv-section"><h4 class="pv-section-head">Prepare</h4>${rows.join('')}</section>`
   }
 
   if (isEvent && a.cost) {
@@ -1812,7 +1922,7 @@ function openPreview() {
 
   if (a.contact && (a.contact.name || a.contact.email || a.contact.phone)) {
     leftColHtml += `<section class="pv-section pv-contact-section"><h4 class="pv-section-head">Contact</h4>
-      ${a.contact.name  ? `<div class="pv-contact-name">${esc(a.contact.name)}</div>` : ''}
+      ${a.contact.name ? `<div class="pv-contact-name">${esc(a.contact.name)}</div>` : ''}
       ${a.contact.email ? `<div><a href="mailto:${esc(a.contact.email)}" class="pv-link-inline">${esc(a.contact.email)}</a></div>` : ''}
       ${a.contact.phone ? `<div class="pv-sub">${esc(a.contact.phone)}</div>` : ''}
     </section>`
@@ -1820,15 +1930,19 @@ function openPreview() {
 
   let rightColHtml = ''
   if (!isEvent && a.rolesAvailable?.length) {
-    const typeLabel = (t) => t === 'lead' ? 'Lead' : t === 'supporting' ? 'Supp.' : 'Ensemble'
-    const rows = a.rolesAvailable.map((r) => `
+    const typeLabel = (t) => (t === 'lead' ? 'Lead' : t === 'supporting' ? 'Supp.' : 'Ensemble')
+    const rows = a.rolesAvailable
+      .map(
+        (r) => `
       <tr class="${r.description ? 'has-desc' : ''}">
         <td class="pv-role-name">${esc(r.role)}</td>
         <td class="pv-role-${r.type}">${typeLabel(r.type)}</td>
         <td class="pv-role-age">${esc(r.ageRange || '')}</td>
         ${showVoice ? `<td class="pv-role-voice">${esc(r.voicePart || '')}</td>` : ''}
         <td>${r.description ? `<span class="pv-role-desc">${esc(r.description)}</span>` : ''}</td>
-      </tr>`).join('')
+      </tr>`
+      )
+      .join('')
     rightColHtml = `<section class="pv-section"><h4 class="pv-section-head">Roles available</h4>
       <table class="pv-roles-table"><thead><tr>
         <th>Role</th><th>Type</th><th>Age</th>${showVoice ? '<th>Voice</th>' : ''}<th>Description</th>
@@ -1840,12 +1954,19 @@ function openPreview() {
   }
 
   const metaRow = `${esc(displayName)}${!isEvent && a.openingDate ? ` · Opens ${fmtShortDate(a.openingDate)}` : ''}${!isEvent && a.rehearsalStart ? ` · Rehearsals start ${fmtShortDate(a.rehearsalStart)}` : ''}`
-  const rolesRow = isEvent ? (a.briefDescription ? esc(a.briefDescription) : '') : rolesSum(a.rolesAvailable)
+  const rolesRow = isEvent
+    ? a.briefDescription
+      ? esc(a.briefDescription)
+      : ''
+    : rolesSum(a.rolesAvailable)
 
-  const linksHtml = (a.noticeUrl || a.productionUrl) ? `<div class="pv-links-row">
-    ${a.noticeUrl     ? `<a href="${esc(a.noticeUrl)}" class="pv-action-link" target="_blank" rel="noopener">${isEvent ? 'More info →' : 'Audition notice →'}</a>` : ''}
+  const linksHtml =
+    a.noticeUrl || a.productionUrl
+      ? `<div class="pv-links-row">
+    ${a.noticeUrl ? `<a href="${esc(a.noticeUrl)}" class="pv-action-link" target="_blank" rel="noopener">${isEvent ? 'More info →' : 'Audition notice →'}</a>` : ''}
     ${!isEvent && a.productionUrl ? `<a href="${esc(a.productionUrl)}" class="pv-action-link" target="_blank" rel="noopener">Production info →</a>` : ''}
-  </div>` : ''
+  </div>`
+      : ''
 
   document.getElementById('actPreviewBody').innerHTML = `
     <div class="pv-card">
@@ -1871,7 +1992,7 @@ function openPreview() {
           <div class="pv-detail-left">${leftColHtml}</div>
           ${rightColHtml ? `<div class="pv-detail-right">${rightColHtml}</div>` : ''}
         </div>
-        ${a.notes ? `<div class="pv-notes-full">${esc(a.notes)}</div>` : ''}
+        ${a.notes ? `<div class="pv-notes-full">${renderMd(a.notes)}</div>` : ''}
         ${linksHtml}
       </div>
     </div>`
@@ -1927,7 +2048,8 @@ export function mount(container, context) {
   const handle = document.getElementById('actResizeHandle')
   const sidebar = document.getElementById('actSidebar')
   handle.addEventListener('mousedown', (e) => {
-    const startX = e.clientX, startW = sidebar.offsetWidth
+    const startX = e.clientX,
+      startW = sidebar.offsetWidth
     handle.classList.add('dragging')
     document.body.style.cursor = 'col-resize'
     document.body.style.userSelect = 'none'

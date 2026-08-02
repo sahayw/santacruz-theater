@@ -100,6 +100,18 @@ See [`docs/services.md`](docs/services.md) for the full data schema and editor w
 
 ---
 
+## Google Calendar sync
+
+A daily scheduled job mirrors upcoming performances and activity sessions into two
+public Google Calendars ("Santa Cruz Theater — Shows"; "Santa Cruz Theater — Auditions
+& Events") via a service account, so people can subscribe to them directly. Each run
+fully reconciles both calendars against the current site data — inserts, updates, and
+removes events as needed — rather than only sending incremental changes. Not yet
+embedded on the site (calendars are public/shareable in the meantime). See
+[`docs/google-calendar-sync.md`](docs/google-calendar-sync.md) for the full design.
+
+---
+
 ## About page and contact form
 
 `/about` explains the site's purpose and invites feedback via a contact form. The form uses **Netlify Forms** — no serverless function needed. Submissions appear in the Netlify dashboard under **Forms**, and email notifications are configured there (Site settings → Forms → Notifications). The notification address is set entirely in the Netlify UI, not in code.
@@ -302,9 +314,15 @@ netlify/
     fetch-page.mjs            # page-fetch proxy
     subscribe.mts             # Buttondown subscription handler + welcome email
     send-digest.mts           # scheduled daily digest (02:00 UTC)
+    sync-calendar-trigger.mts     # scheduled trigger for the Google Calendar sync (04:15 UTC)
+    sync-calendar-background.mts  # Google Calendar sync — actual reconciliation work
     lib/
       email-template.mts      # email HTML templates for digest + welcome email
       activities-data.mts     # shared local activity data loading (fs-based)
+      shows-data.mts          # fs-based shows/performances loader (calendar sync)
+      venues-data.mts         # fs-based venue lookup (calendar sync)
+      company-data.mts        # fs-based company name/primary-venue lookup (calendar sync)
+      google-calendar.mts     # Google Calendar API client (calendar sync)
 scripts/
   check-shows.ts              # show data validation
   check-activities.ts         # activity data validation
@@ -312,6 +330,8 @@ docs/
   color-system.md             # color reference
   description-feature.md      # notes on show description extraction feature (not currently used)
   home-page-spacing.md        # homepage layout notes inc device type differences
+  services.md                 # services data schema and editor walkthrough
+  google-calendar-sync.md     # Google Calendar sync design, field mapping, API gotchas
 ```
 
 ---
@@ -358,6 +378,12 @@ Required (set in Netlify → Site configuration → Environment variables):
 | `DRY_RUN`                   | Optional. `true` runs the digest without sending or recording                  |
 | `DIGEST_HEALTHCHECK_URL`    | Optional. Pinged by the digest function on completion                          |
 | `SUBSCRIBE_HEALTHCHECK_URL` | Optional. Pinged on welcome email success (base URL) or failure (`{url}/fail`) |
+| `GOOGLE_SERVICE_ACCOUNT_EMAIL` | Service account email (Google Calendar sync)                                |
+| `GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY` | Service account private key, literal `\n` (Google Calendar sync)      |
+| `GOOGLE_SHOWS_CALENDAR_ID`  | Calendar ID for the Shows calendar                                             |
+| `GOOGLE_ACTIVITIES_CALENDAR_ID` | Calendar ID for the Auditions & Events calendar                            |
+| `CALENDAR_SYNC_DRY_RUN`     | Optional. `true` logs planned Calendar sync changes without writing            |
+| `CALENDAR_SYNC_HEALTHCHECK_URL` | Optional. Pinged on completion (base URL) or failure (`{url}/fail`)        |
 
 ### Netlify Identity
 

@@ -6,7 +6,7 @@
   NODE_VERSION = "20"
 
 [functions]
-  included_files = ["data/activities/**/*.json", "data/sc-theater-companies.json"]
+  included_files = ["data/activities/**/*.json", "data/shows/**/*.json", "data/sc-theater-companies.json", "data/sc-theater-venues.json"]
 
 [context.dev.environment]
   GITHUB_BRANCH = "dev"

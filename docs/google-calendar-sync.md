@@ -10,7 +10,7 @@ merged to `main`.
 Two Netlify Functions (v2, `config` export):
 
 ```
-sync-calendar-trigger.mts   (scheduled, 04:15 UTC)  --HTTP POST-->  sync-calendar-background.mts  (does the work)
+sync-calendar-trigger.mts   (scheduled, 10:15 UTC)  --HTTP POST-->  sync-calendar-background.mts  (does the work)
 ```
 
 **Why two functions, not one.** Netlify Scheduled Functions have a hard **30s**
@@ -22,7 +22,9 @@ of the whole dataset (first-ever run, or any change to a field every event share
 this doc's field-mapping revision) is a few hundred writes — comfortably over 30s, well
 within 15 minutes.
 
-- `sync-calendar-trigger.mts` — `config.schedule = '15 4 * * *'` (offset from the
+- `sync-calendar-trigger.mts` — `config.schedule = '15 10 * * *'` (10:15 UTC =
+  2:15 AM PST / 3:15 AM PDT — solidly overnight Pacific time year-round despite
+  Netlify cron running in fixed UTC and California observing DST; also offset from the
   02:00 UTC digest cron). Fires one `fetch()` at the background function's own URL
   (`process.env.URL`, injected by Netlify) and returns — trivially within 30s.
 - `sync-calendar-background.mts` — `config.background = true`. No auth check: it has
@@ -59,8 +61,8 @@ content hash. No cross-invocation state — Google Calendar itself is the source
 ### Event identity
 
 Google Calendar doesn't let two different logical "things" share an id across time —
-so id derivation directly determines whether an edit shows as *update* or
-*delete+insert*:
+so id derivation directly determines whether an edit shows as _update_ or
+_delete+insert_:
 
 - **Shows**: id includes `date` + `time`. Editing a performance's date/time changes
   its id → the old id is deleted, a new one inserted. This is a deliberate tradeoff:
@@ -79,22 +81,22 @@ so id derivation directly determines whether an edit shows as *update* or
 
 ### Shows (`Run` + `Performance`)
 
-| Calendar field | Built from | Notes |
-|---|---|---|
-| `summary` | `showAbv` (fallback `show`) + `companyName` | `"{title} — {company}"`. No `perfType` (Preview/Opening/etc) annotation. |
-| `description` | `description` + a link | `description` (markdown → HTML) if present, blank line, "View on santacruz.theater" linking to `/calendar` (no per-performance deep-link page exists, so this points at the general calendar page). `price`, `discounts`, `ticketsUrl`, `infoUrl` are not included. |
-| `location` | `venue` | `"{name} · {address}"` via `resolveVenue()` in `venues-data.mts`; falls back to just the raw text (no `·`) when unmatched against `sc-theater-venues.json`. |
-| `start`/`end` | `date` + `time`, `timeZone: America/Los_Angeles` | No end-time field exists on `Performance`, so always `start + 2h` (`DEFAULT_DURATION_HOURS`). |
+| Calendar field | Built from                                       | Notes                                                                                                                                                                                                                                                               |
+| -------------- | ------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `summary`      | `showAbv` (fallback `show`) + `companyName`      | `"{title} — {company}"`. No `perfType` (Preview/Opening/etc) annotation.                                                                                                                                                                                            |
+| `description`  | `description` + a link                           | `description` (markdown → HTML) if present, blank line, "View on santacruz.theater" linking to `/calendar` (no per-performance deep-link page exists, so this points at the general calendar page). `price`, `discounts`, `ticketsUrl`, `infoUrl` are not included. |
+| `location`     | `venue`                                          | `"{name} · {address}"` via `resolveVenue()` in `venues-data.mts`; falls back to just the raw text (no `·`) when unmatched against `sc-theater-venues.json`.                                                                                                         |
+| `start`/`end`  | `date` + `time`, `timeZone: America/Los_Angeles` | No end-time field exists on `Performance`, so always `start + 2h` (`DEFAULT_DURATION_HOURS`).                                                                                                                                                                       |
 
 ### Activities (`Activity` + `ActivityDate`)
 
-| Calendar field | Built from | Notes |
-|---|---|---|
-| `summary` | `type`, `title`, `companyName`/`organizerName` | `"Audition: {title} — {company}"` / `"Event: {title} — {company}"`. `organizerName` used instead of `companyName` when `company === "other"` and it's set. |
-| `description` (audition) | `rolesAvailable` + deep link | `"Roles: {summary}"` (via `rolesSum()`) if any roles are defined, then the `/events?id=` deep link. `prep`, `notes`, `contact` are not included — auditions have no `description`/`briefDescription` field in the schema, so roles are the closest equivalent to "what this record is about." |
-| `description` (event) | `description` (fallback `briefDescription`) + deep link | `cost`, `registerUrl`, `contact` are not included. |
-| `location` | `ActivityDate.location` (name/address), else company `primaryVenue` | `"{name} · {address}"`. If the date's own `location.address` is missing but `location.name` matches a canonical venue, the address is filled in from `sc-theater-venues.json`. Falls back to just the name when no address is available anywhere. |
-| `start`/`end` | `date` + `startTime`; `endTime` if set, else `+2h` | Per-date `endTime` is respected when present. |
+| Calendar field           | Built from                                                          | Notes                                                                                                                                                                                                                                                                                         |
+| ------------------------ | ------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `summary`                | `type`, `title`, `companyName`/`organizerName`                      | `"Audition: {title} — {company}"` / `"Event: {title} — {company}"`. `organizerName` used instead of `companyName` when `company === "other"` and it's set.                                                                                                                                    |
+| `description` (audition) | `rolesAvailable` + deep link                                        | `"Roles: {summary}"` (via `rolesSum()`) if any roles are defined, then the `/events?id=` deep link. `prep`, `notes`, `contact` are not included — auditions have no `description`/`briefDescription` field in the schema, so roles are the closest equivalent to "what this record is about." |
+| `description` (event)    | `description` (fallback `briefDescription`) + deep link             | `cost`, `registerUrl`, `contact` are not included.                                                                                                                                                                                                                                            |
+| `location`               | `ActivityDate.location` (name/address), else company `primaryVenue` | `"{name} · {address}"`. If the date's own `location.address` is missing but `location.name` matches a canonical venue, the address is filled in from `sc-theater-venues.json`. Falls back to just the name when no address is available anywhere.                                             |
+| `start`/`end`            | `date` + `startTime`; `endTime` if set, else `+2h`                  | Per-date `endTime` is respected when present.                                                                                                                                                                                                                                                 |
 
 Both event types also carry `extendedProperties.private`: `sctheaterManaged: "true"`,
 `sctheaterType` (`"show"` / `"audition"` / `"event"`), `sctheaterSourceId` (`runId`, or
@@ -111,7 +113,7 @@ automatically, so `"Name · Address"` still gets that behavior with no markup ne
 - **Auth**: service account JWT (`google-auth-library`'s `JWT` class — lighter than
   the full `googleapis` package), scope `https://www.googleapis.com/auth/calendar`.
   No domain-wide delegation (no Workspace domain on this account) — the calendars are
-  owned by a real Google account and merely *shared* with the service account at
+  owned by a real Google account and merely _shared_ with the service account at
   "Make changes to events." `getAuthorizedClient()` in `google-calendar.mts` strips a
   wrapping pair of literal `"` characters from `GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY`
   before unescaping `\n` — a real, encountered failure mode from pasting the
@@ -148,7 +150,7 @@ and `updateEvent()` (PATCH only) are separate functions, even though a naive "up
 POST-then-409-fallback would work for both. `reconcile()` already knows in advance
 which items are new (`toInsert`) vs. already-existing-with-different-hash (`toUpdate`),
 since that classification comes from diffing against `listManagedEvents()`. Routing
-every update through the insert path would waste a *guaranteed-to-fail* POST before
+every update through the insert path would waste a _guaranteed-to-fail_ POST before
 falling back to the real PATCH on every single update — roughly doubling real request
 volume for update-heavy runs, which is exactly what caused Bug 2 below.
 
@@ -166,10 +168,20 @@ requiring special handling.
 
 ## Monitoring
 
-`CALENDAR_SYNC_HEALTHCHECK_URL` (a healthchecks.io-style ping URL) is pinged on every
-run — the base URL on a clean pass, `{url}/fail` when anything failed (a per-item write
-failure, or a fatal error like missing env vars or an unhandled exception). The ping
-body carries diagnostic text, e.g.:
+`CALENDAR_SYNC_HEALTHCHECK_URL` (a healthchecks.io-style ping URL) is pinged **only when
+there's something to report** — the base URL when something actually changed, `{url}/fail`
+when anything failed (a per-item write failure, or a fatal error like missing env vars
+or an unhandled exception). Most daily runs are true no-ops (nothing to insert/update/
+delete, nothing failed) since the site doesn't change every day; a ping full of zeros
+on those days is noise with no signal, so `sync-calendar-background.mts` skips the ping
+entirely in that case (logs `"no changes, skipping healthcheck ping"` instead). **Trade-off,
+deliberately accepted**: healthchecks.io can no longer detect "the cron silently stopped
+firing" purely from a missed check-in, since silence is now the _expected_ common case,
+not just possible downtime — a real outage looks identical to a quiet day with nothing
+to sync. Missing-env-var and fatal-exception paths still always ping `{url}/fail`
+regardless of this suppression, since those are real problems, not no-ops.
+
+The ping body carries diagnostic text, e.g.:
 
 ```
 shows: inserted 0, updated 4, deleted 0, unchanged 280, failed 0
@@ -183,9 +195,7 @@ FAILURES (1):
 check — confirmed working live.) Failure lines include the event id, its summary, and
 the real error message, capped at 20 lines (`MAX_FAILURES_IN_MESSAGE`) with a
 "+ N more" tail — enough to diagnose a real problem from the monitoring dashboard alone,
-without needing live function logs (which is the point: this job is unattended, and
-whether Background Function logs are easily accessible wasn't something worth
-depending on either way).
+without needing live function logs.
 
 ## Manual setup (one-time, outside the repo)
 
@@ -205,33 +215,14 @@ depending on either way).
 
 ## Required Netlify environment variables
 
-| Variable | Purpose |
-|---|---|
-| `GOOGLE_SERVICE_ACCOUNT_EMAIL` | Service account email |
-| `GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY` | Service account private key, literal `\n` |
-| `GOOGLE_SHOWS_CALENDAR_ID` | Calendar ID for the Shows calendar |
-| `GOOGLE_ACTIVITIES_CALENDAR_ID` | Calendar ID for the Auditions & Events calendar |
-| `CALENDAR_SYNC_DRY_RUN` | Optional. `true` logs planned inserts/updates/deletes without calling the API |
-| `CALENDAR_SYNC_HEALTHCHECK_URL` | Optional. Base URL pinged on success; `{url}/fail` on any failure |
-
-## Bugs found in testing (all fixed)
-
-Real, live-testing-only bugs — none caught by offline logic simulation, since all three
-are properties of the real Google API, not the diff algorithm:
-
-1. **Malformed private key** — `error:1E08010C:DECODER routines::unsupported` on every
-   auth attempt. Root cause: a literal `"` wrapping the whole PEM string in the stored
-   env var (confirmed via char codes, without ever printing the actual key). Fixed by
-   stripping a wrapping quote pair in `getAuthorizedClient()`.
-2. **Timeout on bulk writes** — the first real (non-dry-run) run 502'd partway through:
-   sequential one-request-at-a-time writes for ~300 events exceeded a normal function's
-   execution ceiling. No corruption (idempotent retry picked up where it left off), but
-   a single daily run could never fully catch up this way. Fixed by (a) a concurrency-5
-   worker pool, (b) the insert/update split above (roughly halves real request volume
-   for update-heavy runs), and (c) moving the actual work into a Background Function
-   (15 min ceiling instead of 30s) — see "Architecture."
-3. **Deleted event ids don't silently come back** — see "Deleted events aren't really
-   deleted" above.
+| Variable                             | Purpose                                                                       |
+| ------------------------------------ | ----------------------------------------------------------------------------- |
+| `GOOGLE_SERVICE_ACCOUNT_EMAIL`       | Service account email                                                         |
+| `GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY` | Service account private key, literal `\n`                                     |
+| `GOOGLE_SHOWS_CALENDAR_ID`           | Calendar ID for the Shows calendar                                            |
+| `GOOGLE_ACTIVITIES_CALENDAR_ID`      | Calendar ID for the Auditions & Events calendar                               |
+| `CALENDAR_SYNC_DRY_RUN`              | Optional. `true` logs planned inserts/updates/deletes without calling the API |
+| `CALENDAR_SYNC_HEALTHCHECK_URL`      | Optional. Base URL pinged on success; `{url}/fail` on any failure             |
 
 ## Live testing summary
 
@@ -252,26 +243,10 @@ the only way to exercise real auth. Results:
   twice with the same ~2.6% pattern both times.
 - Both calendars end every test cycle at a clean, stable, 0-failure steady state.
 
-## Known limitation: "Created by" shows the service account (cosmetic)
-
-Google Calendar's `creator` field is **read-only** — always set by Google to whichever
-identity actually calls the API, with no request parameter to override it. Confirmed
-via a live `events.get` on a real event: `creator.email` is the service account
-address; `organizer` (which *is* controllable in principle, though not exercised here)
-is already the calendar itself (`displayName: "Santa Cruz Theater — Shows"`), which is
-the more prominent field in most Calendar UI layouts. The only way to make `creator`
-show a human account would be domain-wide delegation impersonating a Workspace user, or
-literal human OAuth instead of a service account — both are exactly the setup this
-design deliberately avoided (no Workspace domain; unattended daily automation needs a
-credential that doesn't need periodic re-consent). Not worth revisiting for a cosmetic
-detail. One untested, cheap, reversible option: GCP service accounts have an editable
-IAM display name separate from their fixed email — unconfirmed whether Calendar would
-surface that as `creator.displayName` instead of the raw email.
-
 ## Scope boundaries (explicit exclusions)
 
 - No sync direction from Google Calendar back to santacruz.theater.
-- No automated calendar *creation* via API — calendars are created manually by a real
+- No automated calendar _creation_ via API — calendars are created manually by a real
   Google account (per Google's own guidance against service-account-owned calendars).
 - No public embedding of the calendars on the site yet (public/shareable access is
   enabled so it can be added later).

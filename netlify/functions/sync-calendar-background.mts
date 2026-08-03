@@ -418,6 +418,18 @@ export default async (_req: Request) => {
     console.log(`sync-calendar-background: activities — inserted ${activityResult.counts.inserted}, updated ${activityResult.counts.updated}, deleted ${activityResult.counts.deleted}, unchanged ${activityResult.counts.unchanged}, failed ${activityResult.failures.length}`)
 
     const allFailures = [...showResult.failures, ...activityResult.failures]
+    const hasChanges = [showResult.counts, activityResult.counts]
+      .some(c => c.inserted > 0 || c.updated > 0 || c.deleted > 0)
+
+    // Most runs are no-ops (nothing to insert/update/delete, nothing failed) — daily
+    // pings full of zeros add noise with no signal, so those are skipped entirely.
+    // Trade-off: healthchecks.io can no longer catch "the cron silently stopped
+    // firing" via a missed check-in on its own, only real changes/failures ping it.
+    if (!hasChanges && allFailures.length === 0) {
+      console.log('sync-calendar-background: no changes, skipping healthcheck ping')
+      return
+    }
+
     const messageParts = [
       formatCounts('shows', showResult.counts, showResult.failures.length),
       formatCounts('activities', activityResult.counts, activityResult.failures.length)

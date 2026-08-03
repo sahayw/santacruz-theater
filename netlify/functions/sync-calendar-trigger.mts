@@ -10,7 +10,9 @@
  * 30s — while the background function (up to 15 minutes) does the real work. See
  * docs/google-calendar-sync.md for the full design.
  *
- * Runs at 04:15 UTC daily (offset from the 02:00 UTC digest cron).
+ * Runs at 10:15 UTC daily (2:15 AM PST / 3:15 AM PDT — overnight Pacific time year-round
+ * despite Netlify cron running in fixed UTC and California observing DST; offset from
+ * the 02:00 UTC digest cron).
  */
 
 import type { Config } from '@netlify/functions'
@@ -33,5 +35,5 @@ export default async (req: Request) => {
 }
 
 export const config: Config = {
-  schedule: '15 4 * * *'
+  schedule: '15 10 * * *'
 }

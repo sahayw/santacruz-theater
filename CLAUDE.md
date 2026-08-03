@@ -315,7 +315,7 @@ On a successful new subscription, `subscribe.mts` sends a one-off welcome email 
 1. Read `last-sent` ISO timestamp from Netlify Blob Storage (store: `audition-notifications`, key: `last-sent`; missing key → treats all records as new).
 2. Load all activity files via `loadAllActivities()` and classify with `classifyForDigest()`: returns `{ newAuditions, updatedAuditions, newEvents, updatedEvents }` — **new** if `createdAt` > last-sent; **updated** if `updatedAt` > last-sent and `createdAt` ≤ last-sent.
 3. If all four buckets are empty, exit without touching the timestamp (still pings `DIGEST_HEALTHCHECK_URL` if set).
-4. `DRY_RUN=true` env var — logs what would be sent without calling Buttondown or updating the timestamp.
+4. `EMAIL_DIGEST_DRY_RUN=true` env var — logs what would be sent without calling Buttondown or updating the timestamp.
 5. POST digest HTML to `https://api.buttondown.email/v1/emails` with `status: "about_to_send"`.
 6. Write the new `last-sent` timestamp to Blob Storage only on success.
 7. Ping `DIGEST_HEALTHCHECK_URL` (if set).
@@ -344,7 +344,7 @@ not yet merged to `main`. Full design, field mapping, API gotchas, and test resu
 [docs/google-calendar-sync.md](../docs/google-calendar-sync.md).
 
 Two functions, both Netlify Functions v2 (`config` export, not the legacy `schedule()`
-wrapper): `sync-calendar-trigger.mts` (scheduled, 04:15 UTC daily, `config.schedule`)
+wrapper): `sync-calendar-trigger.mts` (scheduled, 10:15 UTC daily — 2:15 AM PST / 3:15 AM PDT, `config.schedule`)
 fires one `fetch()` at `sync-calendar-background.mts` (`config.background = true`,
 15-minute ceiling) and returns — Netlify doesn't support one function being both
 scheduled and background, and a full reconciliation (a few hundred writes on a first
@@ -468,24 +468,24 @@ The first entry (`id: "admin"`, `adminOnly: true`) is a sentinel used by the edi
 
 ## Required Netlify environment variables
 
-| Variable                    | Purpose                                                                                                                                 |
-| --------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
-| `GITHUB_TOKEN`              | Fine-grained PAT with Contents read/write — used by `data.mjs` for admin writes                                                         |
-| `GITHUB_OWNER`              | GitHub repository owner — used by `data.mjs`                                                                                            |
-| `GITHUB_REPO`               | GitHub repository name — used by `data.mjs`                                                                                             |
-| `GITHUB_BRANCH`             | Branch to commit to (default: `main`) — used by `data.mjs`                                                                              |
-| `BUTTONDOWN_API_KEY`        | Buttondown API key — used by `subscribe.mts` and `send-digest.mts`                                                                      |
-| `NETLIFY_SITE_ID`           | Site ID — must be set manually; scheduled functions do not receive it automatically                                                     |
-| `NETLIFY_TOKEN`             | Netlify personal access token — required by `send-digest.mts` for Blob Storage access (scheduled functions don't get an injected token) |
-| `DRY_RUN`                   | Optional. Set to `true` to run the digest function without sending email or updating the timestamp                                      |
-| `DIGEST_HEALTHCHECK_URL`    | Optional. Pinged by `send-digest.mts` on completion (success, failure, or nothing-to-send), for external monitoring                     |
-| `SUBSCRIBE_HEALTHCHECK_URL` | Optional. Pinged by `subscribe.mts` on welcome email success (base URL) or failure (`{url}/fail`)                                       |
-| `GOOGLE_SERVICE_ACCOUNT_EMAIL` | Service account email — used by `sync-calendar-background.mts`                                                                       |
-| `GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY` | Service account private key, stored with literal `\n` — used by `sync-calendar-background.mts`                                |
-| `GOOGLE_SHOWS_CALENDAR_ID`  | Calendar ID for the Shows calendar — used by `sync-calendar-background.mts`                                                             |
-| `GOOGLE_ACTIVITIES_CALENDAR_ID` | Calendar ID for the Auditions & Events calendar — used by `sync-calendar-background.mts`                                           |
-| `CALENDAR_SYNC_DRY_RUN`     | Optional. `true` logs planned Calendar sync changes without calling the API                                                             |
-| `CALENDAR_SYNC_HEALTHCHECK_URL` | Optional. Pinged by `sync-calendar-background.mts` on completion (success, base URL) or failure (`{url}/fail`), with count/error detail in the ping body |
+| Variable                             | Purpose                                                                                                                                                                                                                                                               |
+| ------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `GITHUB_TOKEN`                       | Fine-grained PAT with Contents read/write — used by `data.mjs` for admin writes                                                                                                                                                                                       |
+| `GITHUB_OWNER`                       | GitHub repository owner — used by `data.mjs`                                                                                                                                                                                                                          |
+| `GITHUB_REPO`                        | GitHub repository name — used by `data.mjs`                                                                                                                                                                                                                           |
+| `GITHUB_BRANCH`                      | Branch to commit to (default: `main`) — used by `data.mjs`                                                                                                                                                                                                            |
+| `BUTTONDOWN_API_KEY`                 | Buttondown API key — used by `subscribe.mts` and `send-digest.mts`                                                                                                                                                                                                    |
+| `NETLIFY_SITE_ID`                    | Site ID — must be set manually; scheduled functions do not receive it automatically                                                                                                                                                                                   |
+| `NETLIFY_TOKEN`                      | Netlify personal access token — required by `send-digest.mts` for Blob Storage access (scheduled functions don't get an injected token)                                                                                                                               |
+| `EMAIL_DIGEST_DRY_RUN`               | Optional. Set to `true` to run the digest function without sending email or updating the timestamp                                                                                                                                                                    |
+| `DIGEST_HEALTHCHECK_URL`             | Optional. Pinged by `send-digest.mts` on completion (success, failure, or nothing-to-send), for external monitoring                                                                                                                                                   |
+| `SUBSCRIBE_HEALTHCHECK_URL`          | Optional. Pinged by `subscribe.mts` on welcome email success (base URL) or failure (`{url}/fail`)                                                                                                                                                                     |
+| `GOOGLE_SERVICE_ACCOUNT_EMAIL`       | Service account email — used by `sync-calendar-background.mts`                                                                                                                                                                                                        |
+| `GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY` | Service account private key, stored with literal `\n` — used by `sync-calendar-background.mts`                                                                                                                                                                        |
+| `GOOGLE_SHOWS_CALENDAR_ID`           | Calendar ID for the Shows calendar — used by `sync-calendar-background.mts`                                                                                                                                                                                           |
+| `GOOGLE_ACTIVITIES_CALENDAR_ID`      | Calendar ID for the Auditions & Events calendar — used by `sync-calendar-background.mts`                                                                                                                                                                              |
+| `CALENDAR_SYNC_DRY_RUN`              | Optional. `true` logs planned Calendar sync changes without calling the API                                                                                                                                                                                           |
+| `CALENDAR_SYNC_HEALTHCHECK_URL`      | Optional. Pinged by `sync-calendar-background.mts` only when something changed or failed (base URL for success, `{url}/fail` for failure, with count/error detail in the ping body) — no-op runs don't ping, so a missed check-in can't be detected via silence alone |
 
 ## Git workflow
 

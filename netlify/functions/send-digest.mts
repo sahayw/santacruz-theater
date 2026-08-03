@@ -7,7 +7,7 @@
  * Blob Storage, formats a digest via email-template.mts, and sends to all subscribers
  * via the Buttondown broadcast API.
  *
- * Set DRY_RUN=true to log which records would be included without sending.
+ * Set EMAIL_DIGEST_DRY_RUN=true to log which records would be included without sending.
  *
  * Required env vars: BUTTONDOWN_API_KEY, NETLIFY_SITE_ID, NETLIFY_TOKEN
  */
@@ -29,9 +29,9 @@ const pingHealthcheck = () => {
 }
 
 export const handler = schedule('0 2 * * *', async () => {
-  const { BUTTONDOWN_API_KEY, DRY_RUN } = process.env
+  const { BUTTONDOWN_API_KEY, EMAIL_DIGEST_DRY_RUN } = process.env
 
-  const isDryRun = DRY_RUN === 'true'
+  const isDryRun = EMAIL_DIGEST_DRY_RUN === 'true'
 
   if (!BUTTONDOWN_API_KEY) {
     console.error('send-digest: missing BUTTONDOWN_API_KEY')
@@ -40,7 +40,9 @@ export const handler = schedule('0 2 * * *', async () => {
 
   const { NETLIFY_SITE_ID, NETLIFY_TOKEN } = process.env
   if (!NETLIFY_SITE_ID || !NETLIFY_TOKEN) {
-    console.error('send-digest: missing NETLIFY_SITE_ID or NETLIFY_TOKEN (required for Blob Storage)')
+    console.error(
+      'send-digest: missing NETLIFY_SITE_ID or NETLIFY_TOKEN (required for Blob Storage)'
+    )
     return
   }
 
@@ -52,11 +54,21 @@ export const handler = schedule('0 2 * * *', async () => {
 
   // ── 2. Read all activity files and classify new vs updated ───────────────
   const activities = loadAllActivities()
-  const { newAuditions, updatedAuditions, newEvents, updatedEvents } = classifyForDigest(activities, lastSent)
+  const { newAuditions, updatedAuditions, newEvents, updatedEvents } = classifyForDigest(
+    activities,
+    lastSent
+  )
 
-  console.log(`send-digest: ${newAuditions.length} new auditions, ${updatedAuditions.length} updated auditions, ${newEvents.length} new events, ${updatedEvents.length} updated events`)
+  console.log(
+    `send-digest: ${newAuditions.length} new auditions, ${updatedAuditions.length} updated auditions, ${newEvents.length} new events, ${updatedEvents.length} updated events`
+  )
 
-  if (newAuditions.length === 0 && updatedAuditions.length === 0 && newEvents.length === 0 && updatedEvents.length === 0) {
+  if (
+    newAuditions.length === 0 &&
+    updatedAuditions.length === 0 &&
+    newEvents.length === 0 &&
+    updatedEvents.length === 0
+  ) {
     console.log('send-digest: nothing to send')
     await pingHealthcheck()
     return
@@ -76,15 +88,17 @@ export const handler = schedule('0 2 * * *', async () => {
   }
 
   if (isDryRun) {
-    console.log('send-digest: DRY_RUN — skipping send')
+    console.log('send-digest: EMAIL_DIGEST_DRY_RUN — skipping send')
     return
   }
 
   // ── 3. Format and send digest ────────────────────────────────────────────
-  const total = newAuditions.length + updatedAuditions.length + newEvents.length + updatedEvents.length
-  const subject = total === 1
-    ? 'New notice — Santa Cruz Theater'
-    : `${total} theater notices — Santa Cruz Theater`
+  const total =
+    newAuditions.length + updatedAuditions.length + newEvents.length + updatedEvents.length
+  const subject =
+    total === 1
+      ? 'New notice — Santa Cruz Theater'
+      : `${total} theater notices — Santa Cruz Theater`
 
   const html = buildDigestHtml(newAuditions, updatedAuditions, newEvents, updatedEvents, SITE_URL)
 
@@ -92,7 +106,7 @@ export const handler = schedule('0 2 * * *', async () => {
     const sendResp = await fetch(BUTTONDOWN_URL, {
       method: 'POST',
       headers: {
-        Authorization: `Token ${BUTTONDOWN_API_KEY}`,
+        'Authorization': `Token ${BUTTONDOWN_API_KEY}`,
         'Content-Type': 'application/json',
         'X-Buttondown-Live-Dangerously': 'true'
       },

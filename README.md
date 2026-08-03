@@ -314,7 +314,7 @@ netlify/
     fetch-page.mjs            # page-fetch proxy
     subscribe.mts             # Buttondown subscription handler + welcome email
     send-digest.mts           # scheduled daily digest (02:00 UTC)
-    sync-calendar-trigger.mts     # scheduled trigger for the Google Calendar sync (04:15 UTC)
+    sync-calendar-trigger.mts     # scheduled trigger for the Google Calendar sync (10:15 UTC)
     sync-calendar-background.mts  # Google Calendar sync — actual reconciliation work
     lib/
       email-template.mts      # email HTML templates for digest + welcome email
@@ -383,7 +383,7 @@ Required (set in Netlify → Site configuration → Environment variables):
 | `GOOGLE_SHOWS_CALENDAR_ID`  | Calendar ID for the Shows calendar                                             |
 | `GOOGLE_ACTIVITIES_CALENDAR_ID` | Calendar ID for the Auditions & Events calendar                            |
 | `CALENDAR_SYNC_DRY_RUN`     | Optional. `true` logs planned Calendar sync changes without writing            |
-| `CALENDAR_SYNC_HEALTHCHECK_URL` | Optional. Pinged on completion (base URL) or failure (`{url}/fail`)        |
+| `CALENDAR_SYNC_HEALTHCHECK_URL` | Optional. Pinged only when something changed or failed (base URL for success, `{url}/fail` for failure) — no-op runs (nothing to sync) don't ping |
 
 ### Netlify Identity
 

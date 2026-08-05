@@ -370,6 +370,79 @@
         }
       ],
       "description": "Four eccentric Broadway stars descend on a small town when a teenage girl wants to bring her girlfriend to prom and faces community resistance. This Drama Desk Award-winning musical blends laugh-out-loud humor with a timely message about love, inclusion, and the unexpected places solidarity can come from."
+    },
+    {
+      "id": "run-1785895538901",
+      "company": "renegade",
+      "showAbv": "Come from Away",
+      "show": "Come from Away",
+      "description": "Come From Away is based on the true story of the time when the isolated community of Gander, Newfoundland, played host to the world. What started as an average day in a small town turned into an international sleepover, when 38 planes, carrying thousands of people from around the globe, were diverted to Gander’s airstrip on September 11, 2001. Undaunted by culture clashes and language barriers, the people of Gander cheered the stranded travelers with music, an open bar and the recognition that we’re all part of a global family.",
+      "genre": [
+        "Musical"
+      ],
+      "venue": "",
+      "price": "",
+      "discounts": "",
+      "infoUrl": "",
+      "ticketsUrl": "",
+      "performances": [
+        {
+          "date": "2026-12-04",
+          "time": "19:00",
+          "perfType": "Opening",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-12-05",
+          "time": "19:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-12-10",
+          "time": "19:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-12-11",
+          "time": "19:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-12-12",
+          "time": "19:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-12-13",
+          "time": "14:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-12-18",
+          "time": "19:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-12-19",
+          "time": "19:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        }
+      ]
     }
   ]
 }

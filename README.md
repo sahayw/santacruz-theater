@@ -374,24 +374,24 @@ Netlify CI watches `main` and deploys on every push, using the config in `netlif
 
 Required (set in Netlify → Site configuration → Environment variables):
 
-| Variable                    | Purpose                                                                        |
-| --------------------------- | ------------------------------------------------------------------------------ |
-| `GITHUB_TOKEN`              | Fine-grained PAT, Contents r/w (used by `data.mjs`)                            |
-| `GITHUB_OWNER`              | Repository owner (GitHub username)                                             |
-| `GITHUB_REPO`               | Repository name                                                                |
-| `GITHUB_BRANCH`             | Branch to commit to (default: `main`)                                          |
-| `BUTTONDOWN_API_KEY`        | Buttondown API key (used by `subscribe.mts` and digest)                        |
-| `NETLIFY_SITE_ID`           | Site ID (required by digest function for Blob Storage)                         |
-| `NETLIFY_TOKEN`             | Netlify personal access token (required by digest for Blob Storage)            |
-| `DRY_RUN`                   | Optional. `true` runs the digest without sending or recording                  |
-| `DIGEST_HEALTHCHECK_URL`    | Optional. Pinged by the digest function on completion                          |
-| `SUBSCRIBE_HEALTHCHECK_URL` | Optional. Pinged on welcome email success (base URL) or failure (`{url}/fail`) |
-| `GOOGLE_SERVICE_ACCOUNT_EMAIL` | Service account email (Google Calendar sync)                                |
-| `GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY` | Service account private key, literal `\n` (Google Calendar sync)      |
-| `GOOGLE_SHOWS_CALENDAR_ID`  | Calendar ID for the Shows calendar                                             |
-| `GOOGLE_ACTIVITIES_CALENDAR_ID` | Calendar ID for the Auditions & Events calendar                            |
-| `CALENDAR_SYNC_DRY_RUN`     | Optional. `true` logs planned Calendar sync changes without writing            |
-| `CALENDAR_SYNC_HEALTHCHECK_URL` | Optional. Pinged only when something changed or failed (base URL for success, `{url}/fail` for failure) — no-op runs (nothing to sync) don't ping |
+| Variable                             | Purpose                                                                                                                                           |
+| ------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `GITHUB_TOKEN`                       | Fine-grained PAT, Contents r/w (used by `data.mjs`)                                                                                               |
+| `GITHUB_OWNER`                       | Repository owner (GitHub username)                                                                                                                |
+| `GITHUB_REPO`                        | Repository name                                                                                                                                   |
+| `GITHUB_BRANCH`                      | Branch to commit to (default: `main`)                                                                                                             |
+| `BUTTONDOWN_API_KEY`                 | Buttondown API key (used by `subscribe.mts` and digest)                                                                                           |
+| `NETLIFY_SITE_ID`                    | Site ID (required by digest function for Blob Storage)                                                                                            |
+| `NETLIFY_TOKEN`                      | Netlify personal access token (required by digest for Blob Storage)                                                                               |
+| `DRY_RUN`                            | Optional. `true` runs the digest without sending or recording                                                                                     |
+| `DIGEST_HEALTHCHECK_URL`             | Optional. Pinged by the digest function on completion                                                                                             |
+| `SUBSCRIBE_HEALTHCHECK_URL`          | Optional. Pinged on welcome email success (base URL) or failure (`{url}/fail`)                                                                    |
+| `GOOGLE_SERVICE_ACCOUNT_EMAIL`       | Service account email (Google Calendar sync)                                                                                                      |
+| `GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY` | Service account private key, literal `\n` (Google Calendar sync)                                                                                  |
+| `GOOGLE_SHOWS_CALENDAR_ID`           | Calendar ID for the Shows calendar                                                                                                                |
+| `GOOGLE_ACTIVITIES_CALENDAR_ID`      | Calendar ID for the Auditions & Events calendar                                                                                                   |
+| `CALENDAR_SYNC_DRY_RUN`              | Optional. `true` logs planned Calendar sync changes without writing                                                                               |
+| `CALENDAR_SYNC_HEALTHCHECK_URL`      | Optional. Pinged only when something changed or failed (base URL for success, `{url}/fail` for failure) — no-op runs (nothing to sync) don't ping |
 
 ### Netlify Identity
 

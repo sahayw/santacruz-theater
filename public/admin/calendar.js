@@ -1,4 +1,5 @@
 import { IS_DEV, apiFetch, apiPut, buildCompanyOptions } from './api.js'
+import { fmt12, fmtFullDate, renderMd } from '/admin/audition-format.js'
 
 const PERF_TYPES = ['', 'Preview', 'Opening', 'Closing', 'Talk-back']
 const MONTH_MAP = {
@@ -40,6 +41,7 @@ let currentYear = CURRENT_YEAR
 let currentCompanyAbv = ''
 let venuesList = []
 let isDirty = false
+let runSnapshots = new Map()
 let prevCalGenreVals = []
 let isAdminContext = false
 let _resizeMouseMove = null
@@ -437,6 +439,65 @@ tbody td { padding: 2px 4px; vertical-align: middle; }
   white-space: pre;
   min-height: 300px;
 }
+
+.cal-preview-overlay {
+  position: fixed; inset: 0; z-index: 9000;
+  background: rgba(0,0,0,0.55);
+  display: flex; align-items: flex-start; justify-content: center;
+  padding: 40px 20px 40px; overflow-y: auto;
+}
+.cal-preview-modal {
+  background: #f0ede8; border-radius: 8px;
+  width: 100%; max-width: 820px;
+  box-shadow: 0 8px 40px rgba(0,0,0,0.35);
+  overflow: hidden; flex-shrink: 0;
+}
+.cal-preview-modal-hd {
+  background: #2e2a26; padding: 9px 14px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.cal-preview-modal-label {
+  font-size: 11px; font-weight: 500; text-transform: uppercase;
+  letter-spacing: 0.08em; color: rgba(255,255,255,0.5);
+  font-family: 'IBM Plex Sans', sans-serif;
+}
+.cal-preview-close {
+  width: 24px; height: 24px; border: none; background: none;
+  cursor: pointer; color: rgba(255,255,255,0.55); font-size: 20px; line-height: 1;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 3px; padding: 0;
+}
+.cal-preview-close:hover { color: #fff; background: rgba(255,255,255,0.1); }
+.cal-preview-modal-body { padding: 20px; }
+
+.cp-card {
+  background: #fff; border: 1px solid #c8a96e; border-radius: 6px;
+  overflow: hidden; box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+}
+.cp-summary { padding: 14px 16px; }
+.cp-main { display: flex; flex-direction: column; gap: 4px; }
+.cp-title-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.cp-dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
+.cp-title { font-family: 'Playfair Display', Georgia, serif; font-size: 16px; font-weight: 600; color: #1a1612; line-height: 1.25; }
+.cp-genre-badge { font-size: 11px; font-weight: 500; padding: 2px 8px; border-radius: 10px; flex-shrink: 0; letter-spacing: 0.02em; }
+.cp-meta-row { font-size: 12px; color: #6b6259; }
+.cp-detail { background: #f7f4ef; border-top: 1px solid #e0d9d0; padding: 20px 16px 16px; font-family: 'DM Sans', system-ui, sans-serif; }
+.cp-section { margin-bottom: 16px; }
+.cp-section:last-child { margin-bottom: 0; }
+.cp-section-head { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: #6b6259; margin-bottom: 8px; }
+.cp-sub { font-size: 12px; color: #6b6259; line-height: 1.5; }
+.cp-perf-row { display: flex; align-items: baseline; flex-wrap: wrap; gap: 8px; margin-bottom: 6px; font-size: 13px; padding-bottom: 6px; border-bottom: 1px solid #e0d9d0; }
+.cp-perf-row:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+.cp-perf-date { font-weight: 500; color: #1a1612; white-space: nowrap; }
+.cp-perf-time { color: #6b6259; white-space: nowrap; }
+.cp-perf-type { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; padding: 2px 7px; border-radius: 8px; }
+.cp-perf-discounts { font-size: 11px; color: #9c9189; font-style: italic; }
+.cp-link-inline { font-size: 12px; color: #4f5ce0; text-decoration: none; }
+.cp-link-inline:hover { text-decoration: underline; }
+.cp-discounts-default { font-size: 12px; color: #6b6259; padding-top: 8px; border-top: 1px solid #e0d9d0; margin-top: 4px; }
+.cp-links-row { display: flex; gap: 16px; flex-wrap: wrap; padding-top: 12px; border-top: 1px solid #e0d9d0; margin-top: 4px; }
+.cp-action-link { font-size: 13px; font-weight: 500; color: #4f5ce0; text-decoration: none; }
+.cp-action-link:hover { color: #2c3e9a; text-decoration: underline; }
 `
 
 // ── HTML TEMPLATE ──
@@ -473,6 +534,12 @@ const CAL_HTML = `
     <div class="run-editor" id="runEditor" style="display:none">
       <div class="run-header">
         <div class="run-header-title"><span id="editorTitleText"></span><small id="editorSubtitle"></small></div>
+        <button class="btn btn-sm" id="runPreviewBtn"
+          style="background:var(--bg);border:1px solid var(--border)"
+          onclick="cal.openPreview()">Preview</button>
+        <button class="btn btn-sm" id="runRestoreBtn"
+          style="background:var(--bg);border:1px solid var(--border)"
+          onclick="cal.restoreRun()">Restore</button>
         <button class="btn btn-sm" style="background:#fde;color:var(--accent);border:1px solid #fcc" onclick="cal.deleteRun()">Delete run</button>
       </div>
 
@@ -618,6 +685,16 @@ const CAL_HTML = `
 </div>
 
 <input type="file" id="importFile" accept=".json" style="display:none" onchange="cal.handleImport(event)">
+
+<div class="cal-preview-overlay" id="calPreviewOverlay" style="display:none" onclick="cal.closePreviewOutside(event)">
+  <div class="cal-preview-modal">
+    <div class="cal-preview-modal-hd">
+      <span class="cal-preview-modal-label">Preview</span>
+      <button class="cal-preview-close" onclick="cal.closePreview()">×</button>
+    </div>
+    <div class="cal-preview-modal-body" id="calPreviewBody"></div>
+  </div>
+</div>
 `
 
 // ── DATA ACCESS ──
@@ -625,6 +702,16 @@ async function loadShowsDir() {
   const resp = await fetch('/.netlify/functions/data?dir=shows')
   if (!resp.ok) throw new Error(`HTTP ${resp.status}`)
   return resp.json()
+}
+
+// ── SNAPSHOT HELPERS ──
+function makeRunSnapshot(r) {
+  return JSON.stringify(r)
+}
+
+function refreshRunSnapshots() {
+  runSnapshots = new Map()
+  runs.forEach((r) => runSnapshots.set(r.id, makeRunSnapshot(r)))
 }
 
 async function loadCompanyFile(coId, year) {
@@ -636,6 +723,7 @@ async function loadCompanyFile(coId, year) {
     currentYear = data.year || year
     currentCompanyAbv = allCompanies.find((c) => c.id === coId)?.abvName || coId
     isDirty = false
+    refreshRunSnapshots()
     activeRunIdx = runs.length > 0 ? 0 : -1
     document.getElementById('newRunBtn')?.setAttribute('style', '')
     renderSidebar()
@@ -703,7 +791,7 @@ async function initFromContext(context) {
 }
 
 // ── COMPANY / YEAR SELECTION ──
-function onCompanySelect() {
+async function onCompanySelect() {
   const coId = document.getElementById('companySelect').value
   if (!coId) {
     hideYearSelect()
@@ -717,7 +805,13 @@ function onCompanySelect() {
   pendingCompanyId = coId
   const years = allShowFiles.filter((f) => f.companyId === coId).map((f) => f.year)
   populateYearSelect(years)
-  clearEditor()
+  const hasFuture = years.some((y) => y > CURRENT_YEAR)
+  if (!hasFuture && years.includes(CURRENT_YEAR)) {
+    document.getElementById('yearSelect').value = String(CURRENT_YEAR)
+    await loadCompanyFile(coId, CURRENT_YEAR)
+  } else {
+    clearEditor()
+  }
 }
 
 function populateYearSelect(years) {
@@ -775,6 +869,7 @@ function markDirty() {
   isDirty = true
   updateStatus()
   updateSaveBtn()
+  updateRestoreBtn()
 }
 
 function updateSaveBtn() {
@@ -808,6 +903,8 @@ async function saveFile() {
       runs
     })
     isDirty = false
+    refreshRunSnapshots()
+    updateRestoreBtn()
     btn.textContent = 'Saved ✓'
     btn.style.background = 'var(--green)'
     btn.style.color = '#fff'
@@ -891,8 +988,10 @@ function loadRunEditor() {
   document.getElementById('f-showAbv').value = r.showAbv || ''
   document.getElementById('f-show').value = r.show || ''
   const genreSel = document.getElementById('f-genre')
-  const genreArr = Array.isArray(r.genre) ? r.genre : (r.genre ? [r.genre] : [])
-  Array.from(genreSel.options).forEach((o) => { o.selected = genreArr.includes(o.value) })
+  const genreArr = Array.isArray(r.genre) ? r.genre : r.genre ? [r.genre] : []
+  Array.from(genreSel.options).forEach((o) => {
+    o.selected = genreArr.includes(o.value)
+  })
   prevCalGenreVals = genreArr
   document.getElementById('f-venue').value = r.venue || ''
   document.getElementById('f-price').value = r.price || ''
@@ -905,6 +1004,7 @@ function loadRunEditor() {
   document.getElementById('descExpandBtn').textContent = '↕'
   updateEditorTitle()
   renderPerfTable()
+  updateRestoreBtn()
 }
 
 function updateEditorTitle() {
@@ -922,9 +1022,13 @@ function genreChanged() {
   const current = Array.from(sel.selectedOptions).map((o) => o.value)
   if (current.length > MAX_GENRES) {
     const added = current.filter((v) => !prevCalGenreVals.includes(v))
-    const keptPrev = prevCalGenreVals.filter((v) => current.includes(v)).slice(-(MAX_GENRES - added.length))
+    const keptPrev = prevCalGenreVals
+      .filter((v) => current.includes(v))
+      .slice(-(MAX_GENRES - added.length))
     const kept = [...keptPrev, ...added].slice(0, MAX_GENRES)
-    Array.from(sel.options).forEach((o) => { o.selected = kept.includes(o.value) })
+    Array.from(sel.options).forEach((o) => {
+      o.selected = kept.includes(o.value)
+    })
     prevCalGenreVals = kept
   } else {
     prevCalGenreVals = current
@@ -1013,11 +1117,40 @@ function deleteRun() {
   markDirty()
 }
 
+function updateRestoreBtn() {
+  const restoreBtn = document.getElementById('runRestoreBtn')
+  const deleteBtn = restoreBtn?.nextElementSibling
+  if (!restoreBtn || !deleteBtn) return
+  const r = activeRunIdx >= 0 ? runs[activeRunIdx] : null
+  const snap = r ? runSnapshots.get(r.id) : null
+  const restoreActive = !!(snap && snap !== makeRunSnapshot(r))
+  restoreBtn.style.display = restoreActive ? '' : 'none'
+  deleteBtn.style.display = restoreActive ? 'none' : ''
+}
+
+function restoreRun() {
+  if (activeRunIdx < 0) return
+  const r = runs[activeRunIdx]
+  const snap = runSnapshots.get(r.id)
+  if (!snap) return
+  if (
+    !confirm(
+      `Restore "${r.showAbv || r.show || 'this run'}" to its last saved state? Unsaved changes will be lost.`
+    )
+  )
+    return
+  runs[activeRunIdx] = JSON.parse(snap)
+  loadRunEditor()
+  updateStatus()
+  updateSaveBtn()
+}
+
 function clearEditor() {
   runs = []
   currentCompanyId = null
   activeRunIdx = -1
   isDirty = false
+  runSnapshots = new Map()
   renderSidebar()
   updateEmptyState()
   document.getElementById('emptyState').style.display = ''
@@ -1549,6 +1682,94 @@ function venueKeyDown(event, inputEl) {
   }
 }
 
+// ── PREVIEW ──
+function esc(v) {
+  return (v || '').replace(/&/g, '&amp;').replace(/"/g, '&quot;')
+}
+const CAL_DOT_COLORS = {
+  scs: '#ce8481',
+  at: '#7b8bc4',
+  mct: '#71c75f',
+  renegade: '#5dadbe'
+}
+const CAL_GENRE_STYLES = {
+  Musical: 'background:#dce4fb;color:#2c3e9a',
+  Drama: 'background:#fbe5e1;color:#8c3a2e',
+  Comedy: 'background:#dff4d6;color:#2d6020',
+  Other: 'background:#f0ece6;color:#6b6259'
+}
+const CAL_PERF_TYPE_STYLES = {
+  'Preview': 'background:#fff0cc;color:#7a5200',
+  'Opening': 'background:#c8f0da;color:#1a5c35',
+  'Closing': 'background:#ffd4d4;color:#8c1e1e',
+  'Talk-back': 'background:#d4ddff;color:#2035a0'
+}
+
+function fmtPerfTime(t) {
+  if (!t) return ''
+  const h = Number(t.split(':')[0])
+  return `${fmt12(t)}${h < 12 ? 'am' : 'pm'}`
+}
+
+function openPreview() {
+  if (activeRunIdx < 0) return
+  const r = runs[activeRunIdx]
+  const companyName = allCompanies.find((c) => c.id === r.company)?.name || r.company
+  const dotColor = CAL_DOT_COLORS[r.company] || '#dadada'
+  const genreArr = Array.isArray(r.genre) ? r.genre : r.genre ? [r.genre] : []
+
+  const perfsHtml =
+    [...r.performances]
+      .sort((a, b) => (a.date + a.time).localeCompare(b.date + b.time))
+      .map((p) => {
+        return `<div class="cp-perf-row">
+      <span class="cp-perf-date">${fmtFullDate(p.date)}</span>
+      <span class="cp-perf-time">${fmtPerfTime(p.time)}</span>
+      ${p.perfType ? `<span class="cp-perf-type" style="${CAL_PERF_TYPE_STYLES[p.perfType] || ''}">${esc(p.perfType)}</span>` : ''}
+      ${p.discounts ? `<span class="cp-perf-discounts">Discounts: ${esc(p.discounts)}</span>` : ''}
+      ${p.ticketsUrl ? `<a href="${esc(p.ticketsUrl)}" class="cp-link-inline" target="_blank" rel="noopener">Tickets →</a>` : ''}
+    </div>`
+      })
+      .join('') || '<div class="cp-sub">No performances scheduled</div>'
+
+  const linksHtml =
+    r.infoUrl || r.ticketsUrl
+      ? `<div class="cp-links-row">
+    ${r.infoUrl ? `<a href="${esc(r.infoUrl)}" class="cp-action-link" target="_blank" rel="noopener">More info →</a>` : ''}
+    ${r.ticketsUrl ? `<a href="${esc(r.ticketsUrl)}" class="cp-action-link" target="_blank" rel="noopener">Get tickets →</a>` : ''}
+  </div>`
+      : ''
+
+  document.getElementById('calPreviewBody').innerHTML = `
+    <div class="cp-card">
+      <div class="cp-summary">
+        <div class="cp-main">
+          <div class="cp-title-row">
+            <span class="cp-dot" style="background:${dotColor}"></span>
+            <span class="cp-title">${esc(r.showAbv || r.show || 'Untitled')}</span>
+            ${genreArr.map((g) => `<span class="cp-genre-badge" style="${CAL_GENRE_STYLES[g] || ''}">${esc(g)}</span>`).join('')}
+          </div>
+          <div class="cp-meta-row">${esc(companyName)}${r.venue ? ` · ${esc(r.venue)}` : ''}${r.price ? ` · ${esc(r.price)}` : ''}</div>
+        </div>
+      </div>
+      <div class="cp-detail">
+        ${r.description ? `<section class="cp-section"><h4 class="cp-section-head">Description</h4><div class="cp-sub" style="font-size:13px;line-height:1.55;white-space:pre-wrap">${renderMd(r.description)}</div></section>` : ''}
+        <section class="cp-section"><h4 class="cp-section-head">Performances</h4>${perfsHtml}</section>
+        ${r.discounts ? `<div class="cp-discounts-default">Default discounts: ${esc(r.discounts)}</div>` : ''}
+        ${linksHtml}
+      </div>
+    </div>`
+  document.getElementById('calPreviewOverlay').style.display = ''
+}
+
+function closePreview() {
+  document.getElementById('calPreviewOverlay').style.display = 'none'
+}
+
+function closePreviewOutside(e) {
+  if (e.target === document.getElementById('calPreviewOverlay')) closePreview()
+}
+
 // ── MODULE API ──
 export function mount(container, context) {
   injectStyles()
@@ -1569,6 +1790,7 @@ export function mount(container, context) {
     newRun,
     selectRun,
     deleteRun,
+    restoreRun,
     genreChanged,
     runFieldChanged,
     toggleDescExpand,
@@ -1584,7 +1806,10 @@ export function mount(container, context) {
     onVenueInput,
     hideCalVenueDropdown,
     selectVenueForRun,
-    venueKeyDown
+    venueKeyDown,
+    openPreview,
+    closePreview,
+    closePreviewOutside
   }
 
   // Delegated listeners that can't use inline handlers
@@ -1640,6 +1865,7 @@ export function unmount() {
   _resizeMouseUp = null
   delete window.cal
   document.getElementById('cal-venue-dropdown')?.remove()
+  closePreview()
   runs = []
   activeRunIdx = -1
   allCompanies = []
@@ -1650,5 +1876,6 @@ export function unmount() {
   currentCompanyAbv = ''
   venuesList = []
   isDirty = false
+  runSnapshots = new Map()
   isAdminContext = false
 }

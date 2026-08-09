@@ -189,7 +189,7 @@ After choosing an editor tile the editor opens with a context-aware prompt:
 
 The top bar subtitle updates to reflect the active editor ("Edit Performances" or "Edit Activities"). Clicking **← Editors** returns to the hub and resets the title.
 
-For Activities, if only one year of data exists for the company that file loads automatically with no selection required.
+For Activities, if only one year of data exists for the company that file loads automatically with no selection required. Calendar's admin company selector behaves the same way when a company's files have no future-year data and a current-year file exists; Calendar's non-admin flow already auto-loads whenever the assigned company has exactly one year of data.
 
 ### Runs sidebar
 
@@ -206,6 +206,14 @@ A quick-fill tool for recurring schedules. Set a date range, choose days of the 
 ### Paste parser
 
 Accepts free-form date text pasted from a website or email (e.g. `Friday, June 5 at 7:30pm`) and parses it into table rows. Lines that cannot be interpreted are listed separately so nothing is silently dropped.
+
+### Restore
+
+A **Restore** button appears in the run header when the active run has unsaved changes. It reverts the run to its last saved state. The button is hidden when the run is clean and not shown at all for newly created runs (mirroring the Activities editor's Restore behavior).
+
+### Preview
+
+A **Preview** button renders a modal showing the run's full performance schedule — company, title, genre, venue/price, description, and every performance's date/time/type — with per-performance discounts and ticket links shown only when they override the run's defaults.
 
 ### Date and time entry
 

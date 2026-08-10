@@ -7,12 +7,14 @@
       "company": "other",
       "showAbv": "R&G",
       "show": "Rosencrantz and Guildenstern are Dead",
-      "genre": "Drama",
+      "genre": [
+        "Drama"
+      ],
       "venue": "Actors' Theatre",
       "price": "$40",
       "discounts": "Senior / Student $35",
       "infoUrl": "https://randg.live/",
-      "ticketsUrl": "",
+      "ticketsUrl": "https://www.tickettailor.com/events/shtheatrical/2233231/select-date",
       "performances": [
         {
           "date": "2026-08-14",

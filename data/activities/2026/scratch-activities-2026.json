@@ -139,6 +139,60 @@
       "cost": "$15 per session",
       "noticeUrl": "https://scratchsantacruz.com/events/#fight-club",
       "registerUrl": "https://www.signupgenius.com/go/10C0445AEA92BA5FAC61-64259212-fight"
+    },
+    {
+      "id": "activity-1786676961561",
+      "type": "event",
+      "title": "Improv for Actors Workshop Series",
+      "genre": [],
+      "dates": [
+        {
+          "date": "2026-09-12",
+          "startTime": "09:00",
+          "endTime": "12:00",
+          "location": {
+            "name": "Scratch Studios",
+            "address": "02B 303 Potrero St, Santa Cruz, CA 95060"
+          }
+        },
+        {
+          "date": "2026-09-19",
+          "startTime": "09:00",
+          "endTime": "12:00",
+          "location": {
+            "name": "Scratch Studios",
+            "address": "02B 303 Potrero St, Santa Cruz, CA 95060"
+          }
+        },
+        {
+          "date": "2026-09-26",
+          "startTime": "09:00",
+          "endTime": "12:00",
+          "location": {
+            "name": "Scratch Studios",
+            "address": "02B 303 Potrero St, Santa Cruz, CA 95060"
+          }
+        },
+        {
+          "date": "2026-10-03",
+          "startTime": "09:00",
+          "endTime": "12:00",
+          "location": {
+            "name": "Scratch Studios",
+            "address": "02B 303 Potrero St, Santa Cruz, CA 95060"
+          }
+        }
+      ],
+      "createdAt": "2026-08-14T03:09:21.561Z",
+      "updatedAt": "2026-08-14T03:18:15.044Z",
+      "description": "This is a workshop series designed for actors at any level who want to find more of a spark in their scenes, monologues and shows. While improvisation will be heavily featured this is not a traditional improv class. We will work with scenes and monologues, learning techniques and skills that allow these performances to feel fresh every time. If you’ve ever felt that your performance was wooden, or that you can’t figure out how to make your scene feel alive, then this workshop is for you! New and returning actors welcome!",
+      "briefDescription": "Improv for Actors is the second session of its type run by Ian Dyer, to use improvisation methods for traditional acting",
+      "cost": "$50",
+      "noticeUrl": "https://scratchsantacruz.com/events/#improv-for-actors",
+      "registerUrl": "https://www.signupgenius.com/go/10C0445AEA92BA5FAC61-64969141-improv#/",
+      "contact": {
+        "name": "Ian Dyer"
+      }
     }
   ]
 }

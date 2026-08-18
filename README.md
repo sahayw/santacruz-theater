@@ -189,7 +189,7 @@ After choosing an editor tile the editor opens with a context-aware prompt:
 
 The top bar subtitle updates to reflect the active editor ("Edit Performances" or "Edit Activities"). Clicking **← Editors** returns to the hub and resets the title.
 
-For Activities, if only one year of data exists for the company that file loads automatically with no selection required.
+For Activities, if only one year of data exists for the company that file loads automatically with no selection required. Calendar's admin company selector behaves the same way when a company's files have no future-year data and a current-year file exists; Calendar's non-admin flow already auto-loads whenever the assigned company has exactly one year of data.
 
 ### Runs sidebar
 
@@ -206,6 +206,14 @@ A quick-fill tool for recurring schedules. Set a date range, choose days of the 
 ### Paste parser
 
 Accepts free-form date text pasted from a website or email (e.g. `Friday, June 5 at 7:30pm`) and parses it into table rows. Lines that cannot be interpreted are listed separately so nothing is silently dropped.
+
+### Restore
+
+A **Restore** button appears in the run header when the active run has unsaved changes. It reverts the run to its last saved state. The button is hidden when the run is clean and not shown at all for newly created runs (mirroring the Activities editor's Restore behavior).
+
+### Preview
+
+A **Preview** button renders a modal showing the run's full performance schedule — company, title, genre, venue/price, description, and every performance's date/time/type — with per-performance discounts and ticket links shown only when they override the run's defaults.
 
 ### Date and time entry
 
@@ -366,24 +374,24 @@ Netlify CI watches `main` and deploys on every push, using the config in `netlif
 
 Required (set in Netlify → Site configuration → Environment variables):
 
-| Variable                    | Purpose                                                                        |
-| --------------------------- | ------------------------------------------------------------------------------ |
-| `GITHUB_TOKEN`              | Fine-grained PAT, Contents r/w (used by `data.mjs`)                            |
-| `GITHUB_OWNER`              | Repository owner (GitHub username)                                             |
-| `GITHUB_REPO`               | Repository name                                                                |
-| `GITHUB_BRANCH`             | Branch to commit to (default: `main`)                                          |
-| `BUTTONDOWN_API_KEY`        | Buttondown API key (used by `subscribe.mts` and digest)                        |
-| `NETLIFY_SITE_ID`           | Site ID (required by digest function for Blob Storage)                         |
-| `NETLIFY_TOKEN`             | Netlify personal access token (required by digest for Blob Storage)            |
-| `DRY_RUN`                   | Optional. `true` runs the digest without sending or recording                  |
-| `DIGEST_HEALTHCHECK_URL`    | Optional. Pinged by the digest function on completion                          |
-| `SUBSCRIBE_HEALTHCHECK_URL` | Optional. Pinged on welcome email success (base URL) or failure (`{url}/fail`) |
-| `GOOGLE_SERVICE_ACCOUNT_EMAIL` | Service account email (Google Calendar sync)                                |
-| `GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY` | Service account private key, literal `\n` (Google Calendar sync)      |
-| `GOOGLE_SHOWS_CALENDAR_ID`  | Calendar ID for the Shows calendar                                             |
-| `GOOGLE_ACTIVITIES_CALENDAR_ID` | Calendar ID for the Auditions & Events calendar                            |
-| `CALENDAR_SYNC_DRY_RUN`     | Optional. `true` logs planned Calendar sync changes without writing            |
-| `CALENDAR_SYNC_HEALTHCHECK_URL` | Optional. Pinged only when something changed or failed (base URL for success, `{url}/fail` for failure) — no-op runs (nothing to sync) don't ping |
+| Variable                             | Purpose                                                                                                                                           |
+| ------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `GITHUB_TOKEN`                       | Fine-grained PAT, Contents r/w (used by `data.mjs`)                                                                                               |
+| `GITHUB_OWNER`                       | Repository owner (GitHub username)                                                                                                                |
+| `GITHUB_REPO`                        | Repository name                                                                                                                                   |
+| `GITHUB_BRANCH`                      | Branch to commit to (default: `main`)                                                                                                             |
+| `BUTTONDOWN_API_KEY`                 | Buttondown API key (used by `subscribe.mts` and digest)                                                                                           |
+| `NETLIFY_SITE_ID`                    | Site ID (required by digest function for Blob Storage)                                                                                            |
+| `NETLIFY_TOKEN`                      | Netlify personal access token (required by digest for Blob Storage)                                                                               |
+| `DRY_RUN`                            | Optional. `true` runs the digest without sending or recording                                                                                     |
+| `DIGEST_HEALTHCHECK_URL`             | Optional. Pinged by the digest function on completion                                                                                             |
+| `SUBSCRIBE_HEALTHCHECK_URL`          | Optional. Pinged on welcome email success (base URL) or failure (`{url}/fail`)                                                                    |
+| `GOOGLE_SERVICE_ACCOUNT_EMAIL`       | Service account email (Google Calendar sync)                                                                                                      |
+| `GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY` | Service account private key, literal `\n` (Google Calendar sync)                                                                                  |
+| `GOOGLE_SHOWS_CALENDAR_ID`           | Calendar ID for the Shows calendar                                                                                                                |
+| `GOOGLE_ACTIVITIES_CALENDAR_ID`      | Calendar ID for the Auditions & Events calendar                                                                                                   |
+| `CALENDAR_SYNC_DRY_RUN`              | Optional. `true` logs planned Calendar sync changes without writing                                                                               |
+| `CALENDAR_SYNC_HEALTHCHECK_URL`      | Optional. Pinged only when something changed or failed (base URL for success, `{url}/fail` for failure) — no-op runs (nothing to sync) don't ping |
 
 ### Netlify Identity
 

@@ -325,12 +325,14 @@
       "company": "mct",
       "showAbv": "New Works Weekend",
       "show": "New Works Weekend",
-      "genre": "Drama",
+      "genre": [
+        "Drama"
+      ],
       "venue": "Park Hall",
-      "price": "",
+      "price": "$10",
       "discounts": "",
-      "infoUrl": "",
-      "ticketsUrl": "",
+      "infoUrl": "https://mctshows.org/",
+      "ticketsUrl": "https://mctshows.org/buy-tickets/",
       "performances": [
         {
           "date": "2026-08-14",
@@ -354,7 +356,7 @@
           "ticketsUrl": ""
         }
       ],
-      "description": "An exciting weekend of a reading of a new play by a local playwright! "
+      "description": "New Works Weekend is Mountain Community Theater’s celebration of local storytelling. This year, we are thrilled to share eight brand-new, original plays crafted entirely by talented authors from our own community. These performances showcase local talented playwrights’ scripts as they work to bring these stories from the page to the stage. After each performance there will be a talkback with the writers, directors, and readers."
     },
     {
       "id": "run-1779617466366",

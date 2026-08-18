@@ -178,7 +178,7 @@ The canonical venue list lives in `data/sc-theater-venues.json`. Each entry has 
 
 The editor opens with a context-aware prompt:
 
-- **Admin users** — toolbar shows a company selector (populated from `sc-theater-companies.json` via `buildCompanyOptions()`); main panel prompts "Select company / year".
+- **Admin users** — toolbar shows a company selector (populated from `sc-theater-companies.json` via `buildCompanyOptions()`); main panel prompts "Select company / year". If the selected company's files have no future-year data and a current-year file exists, that file loads automatically without requiring a year selection (matching the Activities editor's admin-path auto-load behavior).
 - **Non-admin users** — toolbar shows a year selector for their company; main panel prompts "Select a year". If only one year of data exists for their company, the file is loaded automatically (no selection required).
 
 The **+ New** button in the runs sidebar is hidden until a company file is loaded. The sidebar column stays blank until data is loaded.
@@ -190,6 +190,14 @@ The **Venue** field is a text input with autocomplete driven by `sc-theater-venu
 Import and Export buttons have been removed from the toolbar UI; the underlying functions (`importJSON`, `handleImport`, `openExport`, `closeExport`, `downloadJSON`) are retained in the module for future reinstatement if desired.
 
 Date and time fields use the shared normalization and validation described under [Date and time input](#date-and-time-input--normalization-and-validation).
+
+#### Restore button
+
+A per-run snapshot (`runSnapshots`, keyed by run id) is taken on file load and after every successful save. A **Restore** button appears in the run header (before Delete) when the active run differs from its snapshot, and is hidden (showing Delete instead) when the run is clean — the same mutually-exclusive show/hide pattern as the Activities editor. The Save button's own dirty-check remains a single whole-file `isDirty` flag rather than per-record `computeIsDirty()` — Restore's snapshot comparison is a separate, additional mechanism layered on top.
+
+#### Run preview
+
+The **Preview** button renders a modal showing the run's full performance schedule: company color dot, title, genre badges, venue/price, description (rendered markdown), and every performance's date/time/type, with per-performance discounts/tickets shown only when they override the run's defaults (the defaults themselves are shown once at the bottom of the card). Colors (company dot, perf-type badge, genre badge) match the public `/calendar` page's conventions.
 
 ## Activities (Auditions & Events)
 

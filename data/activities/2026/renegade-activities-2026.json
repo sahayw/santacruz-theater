@@ -120,6 +120,46 @@
         }
       ],
       "noticeUrl": "https://renegadetheaterco.org/2026/rocky-horror-show.html"
+    },
+    {
+      "id": "activity-1787191714843",
+      "type": "audition",
+      "title": "Come from Away",
+      "genre": [
+        "Musical"
+      ],
+      "dates": [
+        {
+          "date": "2026-09-07",
+          "startTime": "17:00",
+          "endTime": "21:00",
+          "location": {
+            "name": "Renegade",
+            "address": "303 Potrero St Unit 33, Santa Cruz, CA 95060"
+          },
+          "notes": "Initial auditions"
+        },
+        {
+          "date": "2026-09-09",
+          "startTime": "17:00",
+          "endTime": "21:00",
+          "location": {
+            "name": "Renegade",
+            "address": "303 Potrero St Unit 33, Santa Cruz, CA 95060"
+          },
+          "notes": "Callbacks"
+        }
+      ],
+      "rolesAvailable": [],
+      "createdAt": "2026-08-20T02:08:34.843Z",
+      "updatedAt": "2026-08-20T02:11:09.845Z",
+      "rehearsalStart": "2026-09-14",
+      "openingDate": "2026-12-04",
+      "productionUrl": "https://www.renegadetheaterco.org/show/come-from-away",
+      "prep": {
+        "acting": "One-minute monologue",
+        "singing": "One-minute cut of song with backing track"
+      }
     }
   ]
 }

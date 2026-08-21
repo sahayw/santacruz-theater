@@ -287,11 +287,13 @@
       "showAbv": "Oscar Wilde",
       "show": "Gross Indecency: The Three Trials of Oscar Wilde",
       "description": "Play by Moises Kaufman, writer of The Laramie Project. Follows the 3 trials of Oscar Wilde that marked his downfall from the height of fame and success to his death following imprisonment in Reading Gaol.",
-      "genre": "Drama",
+      "genre": [
+        "Drama"
+      ],
       "venue": "Veterans Memorial Building",
       "price": "",
       "discounts": "",
-      "infoUrl": "",
+      "infoUrl": "https://three-trials.live/",
       "ticketsUrl": "",
       "performances": [
         {

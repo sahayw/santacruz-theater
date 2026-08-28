@@ -6,14 +6,16 @@
       "id": "run-1781459019046",
       "company": "gih",
       "showAbv": "Henrymania",
-      "show": "Henrymania",
-      "description": "Shakespeare's Henry IV: Part One\nas told in the form of WWE. ",
-      "genre": "Other",
+      "show": "Henrymania IV Pt. 1",
+      "description": "HenryMania IV is Shakespeare's Henry IV Part One in the form of WWE! \nCome boo Hotspur, cheer on Prince Hal, and laugh with everyman's Falstaff. Featuring five matches between the original abridged Shakespearean text from a collection of Santa Cruz's favourite actors. In a unique seating format in the London Nelson Theatre, you'll see Shakespearean soliloquies, dilalogues, and battles as you've never seen them before. ",
+      "genre": [
+        "Other"
+      ],
       "venue": "London Nelson Community Center",
-      "price": "",
-      "discounts": "",
-      "infoUrl": "https://www.gayinnocentheartless.com/current",
-      "ticketsUrl": "",
+      "price": "General admission $25",
+      "discounts": "Student $20",
+      "infoUrl": "https://www.gayinnocentheartless.com/henrymania",
+      "ticketsUrl": "https://www.ticketor.com/henrymania/tickets",
       "performances": [
         {
           "date": "2026-09-24",

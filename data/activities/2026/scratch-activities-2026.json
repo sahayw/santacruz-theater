@@ -217,6 +217,60 @@
       "contact": {
         "email": "ScratchSantaCruz@gmail.com"
       }
+    },
+    {
+      "id": "activity-1787962086508",
+      "type": "event",
+      "title": "Improv for Actors",
+      "genre": [],
+      "dates": [
+        {
+          "date": "2026-09-12",
+          "startTime": "10:00",
+          "endTime": "12:00",
+          "location": {
+            "name": "Scratch Studios",
+            "address": "02B 303 Potrero St, Santa Cruz, CA 95060"
+          }
+        },
+        {
+          "date": "2026-09-19",
+          "startTime": "10:00",
+          "endTime": "12:00",
+          "location": {
+            "name": "Scratch Studios",
+            "address": "02B 303 Potrero St, Santa Cruz, CA 95060"
+          }
+        },
+        {
+          "date": "2026-09-26",
+          "startTime": "10:00",
+          "endTime": "12:00",
+          "location": {
+            "name": "Scratch Studios",
+            "address": "02B 303 Potrero St, Santa Cruz, CA 95060"
+          }
+        },
+        {
+          "date": "2026-10-03",
+          "startTime": "10:00",
+          "endTime": "12:00",
+          "location": {
+            "name": "Scratch Studios",
+            "address": "02B 303 Potrero St, Santa Cruz, CA 95060"
+          }
+        }
+      ],
+      "createdAt": "2026-08-29T00:08:06.508Z",
+      "updatedAt": "2026-08-29T00:14:08.345Z",
+      "description": "This is a workshop series designed for actors at any level who want to find more of a spark in their scenes, monologues and shows. While improvisation will be heavily featured this is not a traditional improv class. We will work with scenes and monologues, learning techniques and skills that allow these performances to feel fresh every time. If you’ve ever felt that your performance was wooden, or that you can’t figure out how to make your scene feel alive, then this workshop is for you! New and returning actors welcome!",
+      "briefDescription": "Workshop for actors at any level who want to find more of a spark in their scenes, monologues and shows",
+      "cost": "$50 per session (negotiable)",
+      "noticeUrl": "https://scratchsantacruz.com/events/#improv-for-actors",
+      "registerUrl": "https://www.signupgenius.com/go/10C0445AEA92BA5FAC61-64969141-improv",
+      "contact": {
+        "email": "ScratchSantaCruz@gmail.com"
+      }
     }
   ]
 }

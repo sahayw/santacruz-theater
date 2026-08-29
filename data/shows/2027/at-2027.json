@@ -222,6 +222,65 @@
           "ticketsUrl": ""
         }
       ]
+    },
+    {
+      "id": "run-1788019619245",
+      "company": "at",
+      "showAbv": "BOTR",
+      "show": "8 Tens @ 8 (Best of the Rest)",
+      "description": "Staged readings of the 8 runners up from this year's 8 Tens @ 8 Festival\nPlays are performed script in hand by an ensemble cast, co-directed by 8 Tens directors.",
+      "genre": [
+        "Other"
+      ],
+      "venue": "Actors' Theatre",
+      "price": "",
+      "discounts": "",
+      "infoUrl": "https://www.santacruzactorstheatre.org/8-tens-at-8-festival",
+      "ticketsUrl": "",
+      "performances": [
+        {
+          "date": "2027-03-05",
+          "time": "20:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2027-03-06",
+          "time": "20:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2027-03-07",
+          "time": "14:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2027-03-12",
+          "time": "20:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2027-03-13",
+          "time": "20:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2027-03-14",
+          "time": "14:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        }
+      ]
     }
   ]
 }

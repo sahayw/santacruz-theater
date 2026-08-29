@@ -139,6 +139,84 @@
       "cost": "$15 per session",
       "noticeUrl": "https://scratchsantacruz.com/events/#fight-club",
       "registerUrl": "https://www.signupgenius.com/go/10C0445AEA92BA5FAC61-64259212-fight"
+    },
+    {
+      "id": "activity-1787961661425",
+      "type": "event",
+      "title": "Fall Fight Club",
+      "genre": [],
+      "dates": [
+        {
+          "date": "2026-10-11",
+          "startTime": "18:00",
+          "endTime": "20:00",
+          "location": {
+            "name": "Scratch Studios",
+            "address": "02B 303 Potrero St, Santa Cruz, CA 95060"
+          },
+          "notes": "Pirate Battle"
+        },
+        {
+          "date": "2026-10-19",
+          "startTime": "18:00",
+          "endTime": "20:00",
+          "location": {
+            "name": "Scratch Studios",
+            "address": "02B 303 Potrero St, Santa Cruz, CA 95060"
+          },
+          "notes": "Basic Scrap"
+        },
+        {
+          "date": "2026-10-25",
+          "startTime": "18:00",
+          "endTime": "20:00",
+          "location": {
+            "name": "Scratch Studios",
+            "address": "02B 303 Potrero St, Santa Cruz, CA 95060"
+          },
+          "notes": "Halloween Horror"
+        },
+        {
+          "date": "2026-11-01",
+          "startTime": "18:00",
+          "endTime": "20:00",
+          "location": {
+            "name": "Scratch Studios",
+            "address": "02B 303 Potrero St, Santa Cruz, CA 95060"
+          },
+          "notes": "Back Alley Knife"
+        },
+        {
+          "date": "2026-11-08",
+          "startTime": "18:00",
+          "endTime": "20:00",
+          "location": {
+            "name": "Scratch Studios",
+            "address": "02B 303 Potrero St, Santa Cruz, CA 95060"
+          },
+          "notes": "Fight Knight"
+        },
+        {
+          "date": "2026-11-15",
+          "startTime": "18:00",
+          "endTime": "20:00",
+          "location": {
+            "name": "Scratch Studios",
+            "address": "02B 303 Potrero St, Santa Cruz, CA 95060"
+          },
+          "notes": "Hong Kong Action"
+        }
+      ],
+      "createdAt": "2026-08-29T00:01:01.425Z",
+      "updatedAt": "2026-08-29T00:08:02.277Z",
+      "description": "Finesse your stage combat skills!\nNow open to beginners, pop in any Sunday (or get a $60 for all 6 sessions) for a variety of stage combat experiences!\nSPACES ARE LIMITED",
+      "briefDescription": "Finesse your stage combat skills!",
+      "cost": "$15 per session, $60 for season",
+      "noticeUrl": "https://scratchsantacruz.com/events/#fight-club",
+      "registerUrl": "https://www.signupgenius.com/go/10C0445AEA92BA5FAC61-65148092-fall#/",
+      "contact": {
+        "email": "ScratchSantaCruz@gmail.com"
+      }
     }
   ]
 }

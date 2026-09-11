@@ -80,11 +80,8 @@ Security constraints:
   internal resources).
 - 8-second timeout, `redirect: 'follow'`.
 
-### Dev-mode Vite proxy — `astro.config.mjs`
-
-A `fetch-page-dev-proxy` Vite plugin intercepts `/.netlify/functions/fetch-page`
-requests during `npm run dev` and performs the same fetch server-side, so the
-admin editor works without needing `netlify dev` running alongside.
+Local dev runs this function for real: `npm run dev` is `netlify dev`, which
+serves `netlify/functions/`.
 
 ---
 

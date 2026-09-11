@@ -367,7 +367,7 @@ Filter helpers: `getUpcomingActivities(activities)`, `getUpcomingAuditions(activ
 
 #### Data migration from current audition files
 
-A one-off migration script (`scripts/migrate-auditions-to-activities.ts`) transforms each existing `data/auditions/<year>/<co>-auditions-<year>.json`:
+A one-off migration script (`scripts/migrate-auditions-to-activities.ts`, since removed — run once and deleted) transformed each `data/auditions/<year>/<co>-auditions-<year>.json`:
 
 1. Rename file to `data/activities/<year>/<co>-activities-<year>.json`
 2. Rename array key `auditions` → `activities`

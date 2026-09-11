@@ -1,20 +1,123 @@
 /**
- * Data file endpoint — reads and writes show/company JSON files via GitHub API.
+ * Data file endpoint — reads and writes show/company/activity JSON files.
  *
  * GET  /.netlify/functions/data?file=shows/2026/scs-2026.json
  *      Returns the file content. No auth required (data is public).
- *
+ * GET  /.netlify/functions/data?dir=shows            (or dir=activities)
+ *      Returns [{ companyId, year }, ...] for every data file found.
  * PUT  /.netlify/functions/data?file=shows/2026/scs-2026.json
  *      Body: full file JSON. Requires a valid Netlify Identity JWT in the
  *      Authorization: Bearer header. Commits the file to GitHub, which
  *      triggers a Netlify rebuild.
  *
- * Required env vars: GITHUB_TOKEN, GITHUB_OWNER, GITHUB_REPO, GITHUB_BRANCH
+ * LOCAL DEV: under `netlify dev` (NETLIFY_DEV=true) every read and write goes
+ * straight to the local `data/` tree — no GitHub API, no auth. Editor changes
+ * land on disk so they can be exercised offline and reviewed with `git diff`
+ * before pushing. Use http://localhost:8888/admin (the netlify dev port), not
+ * the bare Astro port.
+ *
+ * Required env vars (production only): GITHUB_TOKEN, GITHUB_OWNER, GITHUB_REPO, GITHUB_BRANCH
  */
+
+import { promises as fs } from 'node:fs'
+import { join, dirname, sep } from 'node:path'
 
 const FILE_RE = /^[\w-]+(\/[\w-]+)*\.json$/
 
+const LOCAL_FS = process.env.NETLIFY_DEV === 'true'
+const DATA_ROOT = join(process.cwd(), 'data')
+
+function jsonResponse(statusCode, obj) {
+  return {
+    statusCode,
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(obj)
+  }
+}
+
+// ── LOCAL FILESYSTEM MODE (netlify dev) ──────────────────────────────────────
+async function localHandler(event) {
+  // ── DIR LISTING ──
+  const dirParam = event.queryStringParameters?.dir
+  if (dirParam === 'shows' || dirParam === 'activities') {
+    const baseDir = join(DATA_ROOT, dirParam)
+    const nameRe =
+      dirParam === 'activities'
+        ? /^(.+)-activities-(\d{4})\.json$/
+        : /^(.+)-(\d{4})\.json$/
+    let yearDirs
+    try {
+      yearDirs = await fs.readdir(baseDir, { withFileTypes: true })
+    } catch {
+      return jsonResponse(200, [])
+    }
+    const result = []
+    for (const d of yearDirs) {
+      if (!d.isDirectory()) continue
+      let files
+      try {
+        files = await fs.readdir(join(baseDir, d.name))
+      } catch {
+        continue
+      }
+      for (const name of files) {
+        const m = name.match(nameRe)
+        if (m) result.push({ companyId: m[1], year: parseInt(m[2], 10) })
+      }
+    }
+    return jsonResponse(200, result)
+  }
+
+  const fileParam = event.queryStringParameters?.file
+  if (!fileParam || !FILE_RE.test(fileParam)) {
+    return { statusCode: 400, body: 'Invalid or missing file parameter' }
+  }
+  const abs = join(DATA_ROOT, fileParam)
+  if (!abs.startsWith(DATA_ROOT + sep)) {
+    return { statusCode: 400, body: 'Invalid file parameter' }
+  }
+
+  // ── GET ──
+  if (event.httpMethod === 'GET') {
+    try {
+      const content = await fs.readFile(abs, 'utf-8')
+      return {
+        statusCode: 200,
+        headers: { 'Content-Type': 'application/json' },
+        body: content
+      }
+    } catch (e) {
+      if (e.code === 'ENOENT') return { statusCode: 404, body: `Not found: data/${fileParam}` }
+      return { statusCode: 500, body: e.message }
+    }
+  }
+
+  // ── PUT ──
+  if (event.httpMethod === 'PUT') {
+    const bodyText = event.isBase64Encoded
+      ? Buffer.from(event.body, 'base64').toString('utf-8')
+      : event.body || ''
+    try {
+      JSON.parse(bodyText)
+    } catch {
+      return { statusCode: 400, body: 'Request body is not valid JSON' }
+    }
+    try {
+      await fs.mkdir(dirname(abs), { recursive: true })
+      await fs.writeFile(abs, bodyText, 'utf-8')
+      console.log(`[data] local dev write → data/${fileParam}`)
+      return { statusCode: 200, body: 'OK (local dev: wrote to data/ on disk, not committed)' }
+    } catch (e) {
+      return { statusCode: 500, body: e.message }
+    }
+  }
+
+  return { statusCode: 405, body: 'Method not allowed' }
+}
+
 export const handler = async (event, context) => {
+  if (LOCAL_FS) return localHandler(event)
+
   const { GITHUB_TOKEN, GITHUB_OWNER, GITHUB_REPO, BRANCH } = process.env
   const GITHUB_BRANCH = BRANCH || process.env.GITHUB_BRANCH || 'main'
 

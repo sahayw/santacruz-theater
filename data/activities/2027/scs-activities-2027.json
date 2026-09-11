@@ -1,0 +1,30 @@
+{
+  "company": "scs",
+  "year": 2027,
+  "activities": [
+    {
+      "id": "activity-1789083480947",
+      "type": "audition",
+      "title": "2027 season (The Comedy of Errors, Hay Fever, Next to Normal, Julius Caesar, Red, Mary’s Wedding)",
+      "genre": [
+        "Other"
+      ],
+      "dates": [],
+      "rolesAvailable": [],
+      "createdAt": "2026-09-10T23:38:00.945Z",
+      "updatedAt": "2026-09-11T00:23:28.881Z",
+      "notes": "A more detailed breakdown with the roles that may be available will be posted in October",
+      "noticeUrl": "https://santacruzshakespeare.org/about/jobs/auditions/",
+      "prep": {
+        "acting": "Please record two season-appropriate pieces, at least one of them Shakespeare (yes, both can be Shakespeare) under three minutes total. (Shorter is better, this is plenty of time.)\nA slate is welcome but not necessary.\nPlease begin with your Shakespeare piece.\nIf you would like to include some singing, please end with it.\nPlease upload as a single video to YouTube (just Youtube).",
+        "bring": [
+          "Please email auditions@santacruzshakespeare.org with your audition link, please attach an updated headshot and resume,"
+        ]
+      },
+      "contact": {
+        "email": "auditions@santacruzshakespeare.org"
+      },
+      "virtualSubmission": true
+    }
+  ]
+}

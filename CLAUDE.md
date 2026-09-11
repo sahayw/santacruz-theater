@@ -8,13 +8,15 @@ The site is structured as a hub (`/`) linking to four sections: **Calendar** (`/
 
 ## Key commands
 
-| Command                    | Action                                      |
-| -------------------------- | ------------------------------------------- |
-| `npm run dev`              | Dev server at localhost:4321                |
-| `npm run build`            | Build to `dist/`                            |
-| `npm run preview`          | Preview production build locally            |
-| `npm run check-shows`      | Validate show JSON files against schema     |
-| `npm run check-activities` | Validate activity JSON files against schema |
+| Command           | Action                                                                                                          |
+| ----------------- | ------------------------------------------------------------------------------------------------------------- |
+| `npm run dev`     | `netlify dev` at localhost:8888 — the whole system: public pages, functions, and the `/admin` editor          |
+| `npm run check`   | Validate all data JSON (syntax + show schema + activity schema)                                               |
+| `npm run build`   | `npm run check` then Astro build to `dist/` — this is Netlify's build command, not something you run by hand   |
+| `npm run sync`    | `scripts/sync-branches.sh` — ff-sync `main`+`dev` with origin and merge `main` into `dev` (pulls in live `/admin` data edits). Run at the start of a feature branch. |
+| `npm run release` | `scripts/release.sh` — runs `sync`, then merges `dev` into `main` and pushes (Netlify deploys), then back-merges `main` into `dev`. Prompts first, listing the commits it will ship. |
+
+There is no bare `astro dev` / `astro preview` script — `npm run dev` (netlify dev) covers both. Use `npx astro dev` directly if you ever want the lighter server without functions.
 
 ## Documentation files
 
@@ -51,12 +53,14 @@ The site is structured as a hub (`/`) linking to four sections: **Calendar** (`/
 - `public/admin/` — editor SPA at `/admin`
 - `public/images/companies/` — company logos downloaded locally; paths stored in `sc-theater-companies.json`
 - `public/images/services/` — service listing photos uploaded via the services editor
-- `scripts/` — utility scripts (run with `tsx`)
-  - `check-shows.ts` — show data validation
-  - `check-activities.ts` — activity data validation
+- `scripts/` — utility scripts
+  - `check-json.ts` / `check-shows.ts` / `check-activities.ts` — data validation (`tsx`); run together via `npm run check`
+  - `sync-branches.sh` — `npm run sync`: ff-sync `main`+`dev` with origin, then merge `main` into `dev` (pull live editor data edits into `dev`)
+  - `release.sh` — `npm run release`: runs `sync-branches.sh`, then merges `dev` into `main` and pushes (Netlify deploys from `main`), then back-merges `main` into `dev`
 - `docs/` — design documentation (e.g. `color-system.md`, `description-feature.md`)
 - `netlify/functions/` — serverless functions. **New functions should use the Netlify Functions v2 interface** (`export default async (req: Request) => ...` + an `export const config: Config = {...}` for schedule/background, as in `subscribe.mts` and `sync-calendar-trigger.mts`/`sync-calendar-background.mts`) rather than the legacy `export const handler = schedule(...)` wrapper style (`send-digest.mts`, `data.mjs`) — for consistency going forward. Existing legacy-style functions are not being migrated proactively.
-  - `data.mjs` — data read/write endpoint
+  - `data.mjs` — data read/write endpoint (GitHub Contents API in prod; local `data/` filesystem under `netlify dev` — see [Local testing of the editor](#local-testing-of-the-editor))
+  - `upload-image.mjs` — services-editor image upload endpoint (GitHub Contents API in prod; local `public/images/services/` filesystem under `netlify dev`)
   - `fetch-page.mjs` — page-fetch proxy
   - `subscribe.mts` — Buttondown subscription handler (POST), sends a welcome email on new subscriptions
   - `send-digest.mts` — scheduled daily digest (02:00 UTC); reads activities from local data files, sends via Buttondown broadcast API, stores last-sent timestamp in Netlify Blob Storage
@@ -87,6 +91,14 @@ The Identity widget issues a JWT; the editor sends it as `Authorization: Bearer 
 In local dev (`localhost`) authentication is skipped entirely; the hub starts with full admin access and all dataset tiles visible.
 
 The home page (`src/pages/index.astro`) loads the Identity widget so invite and password-reset flows that arrive as `#invite_token` / `#recovery_token` URL fragments can be processed correctly on the personal Netlify plan (which does not support custom email templates).
+
+### Local testing of the editor
+
+`npm run dev` runs `netlify dev` (localhost:8888), which serves `netlify/functions/` — so the editor works fully offline. Open `http://localhost:8888/admin`.
+
+When `NETLIFY_DEV=true` (set automatically by `netlify dev`), `data.mjs` and `upload-image.mjs` switch to a **local filesystem mode**: every GET/PUT/`?dir=` request reads and writes the working-tree `data/` and `public/images/services/` directly — no GitHub API, no Identity JWT. PUT bodies are written verbatim (byte-identical to what a production commit would contain), so a save you don't intend to keep shows as a real diff and reverts cleanly with `git checkout`. Review edits with `git diff`, then commit/push through the normal git workflow. In production (no `NETLIFY_DEV`) both functions are unchanged: GitHub Contents API + `context.clientContext.user`.
+
+For a full test of the deployed path (real Netlify Identity login, commit-to-branch, rebuild), push the feature branch and use its Netlify branch-deploy URL.
 
 ### Date and time input — normalization and validation
 
@@ -127,7 +139,7 @@ Numeric format is assumed `Y-M-D`; 2-digit years are prefixed with `20`. Named-m
 
 Rules: hours 1–11 with no AM/PM suffix are assumed PM (+12). Hour 12 with no suffix stays as `12:00` (noon). Hours 13–23 are taken as-is. Explicit `am`/`pm` suffix (case-insensitive, with or without space) overrides the default. Minutes are optional when using the AM/PM suffix (`7pm` → `19:00`). Separator can be `.` or `:`.
 
-**Validation** — after normalization, invalid entries (bad format, impossible calendar date, hour > 23, minute > 59) are highlighted with a red cell border. Dates outside `currentYear ± 1` are also flagged red. The activities editor additionally shows a text error box beneath the dates table describing each invalid date and listing accepted formats. Empty required fields are not highlighted during editing but are caught at save time. Clicking **Save** runs a full scan and shows a specific error list if anything is invalid; this includes a check that the first activity date (activities) or earliest performance date (calendar) falls in `currentYear` — if not, the error message names the correct year file to use instead. The calendar editor checks every performance row; the activities editor additionally rejects records with no date rows.
+**Validation** — after normalization, invalid entries (bad format, impossible calendar date, hour > 23, minute > 59) are highlighted with a red cell border. Dates outside `currentYear ± 1` are also flagged red. The activities editor additionally shows a text error box beneath the dates table describing each invalid date and listing accepted formats. Empty required fields are not highlighted during editing but are caught at save time. Clicking **Save** runs a full scan and shows a specific error list if anything is invalid; this includes a check that the first activity date (activities) or earliest performance date (calendar) falls in `currentYear` — if not, the error message names the correct year file to use instead. The calendar editor checks every performance row; the activities editor additionally rejects records with no date rows, **except virtual-submission auditions** (`virtualSubmission` checkbox in the Dates toolbar), which may be saved with none. `scripts/check-activities.ts` applies the same exception.
 
 ## Calendar — Shows
 
@@ -224,6 +236,8 @@ One file per company per year. Top-level shape:
 | `organizerUrl`     | `string?`          | Optional organizer website; used when `company` is `"other"`                                                                                                         |
 | `rolesAvailable`   | `AuditionRole[]?`  | **Audition only.** Suppressed when empty                                                                                                                             |
 | `prep`             | `AuditionPrep?`    | **Audition only.** `{ acting?, singing?, dance?, bring? }`                                                                                                           |
+| `virtualSubmission`| `boolean?`         | **Audition only.** No scheduled dates required; the record is always "upcoming" until `closed`. `dates` may still hold an optional deadline row.                       |
+| `closed`           | `boolean?`         | Either type. Retained in the file but excluded from "upcoming" (retire a listing without deleting it). Reversible from the editor.                                     |
 | `rehearsalStart`   | `string?`          | **Audition only.** `YYYY-MM-DD`                                                                                                                                      |
 | `openingDate`      | `string?`          | **Audition only.** `YYYY-MM-DD`                                                                                                                                      |
 | `productionId`     | `string?`          | **Audition only.** Soft ref to a `Run` id in shows data (not exposed in editor UI)                                                                                   |
@@ -261,9 +275,9 @@ One file per company per year. Top-level shape:
 
 `getActivities()` in `src/lib/data.ts` compiles all `data/activities/**/*.json` files via `import.meta.glob` and returns a flat `ActivityEvent[]` (activity + `company` + `year`), sorted by earliest `date` ascending.
 
-The `/events` page is "upcoming" by default — an activity is upcoming when its latest `dates[].date` is ≥ today's date. Past/all filtering and type filtering (All Upcoming / Upcoming Auditions / Upcoming Events / All) are handled client-side.
+The `/events` page is "upcoming" by default — an activity is upcoming when its latest `dates[].date` is ≥ today's date. Exceptions: `closed` activities are never upcoming; `virtualSubmission` auditions are always upcoming (until `closed`), regardless of dates. Past/all filtering and type filtering (All Upcoming / Upcoming Auditions / Upcoming Events / All) are handled client-side. The same three-way rule lives in `netlify/functions/lib/activities-data.mts` `isUpcoming()` for the digest/welcome emails, and in the editor Preview.
 
-Past activity cards show a small "Past" pill in the collapsed header (right side, above the date range), applied client-side via a `.past` CSS class.
+Past activity cards show a small "Past" pill in the collapsed header (right side, above the date range), applied client-side via a `.past` CSS class; `closed` cards show a "Closed" pill instead (`.closed` class), and `virtualSubmission` auditions show a "Virtual" badge next to the title with "Virtual submission" in place of the date range.
 
 #### Deep-linking
 
@@ -275,12 +289,14 @@ Follows the same mount/unmount pattern as `calendar.js`. The company selector is
 
 The sidebar shows **+ Audition** and **+ Event** buttons (hidden until a company file is loaded). They create new records with the type locked at creation — type cannot be changed after a record is created. The sidebar column stays blank until data is loaded.
 
-The form is split into a fixed header (title, subtitle, restore/delete buttons) and a fixed fields row (company, genre [audition only], title, then type-conditional fields), followed by a scrollable body containing: Dates → Roles Available (audition only) → Prepare/Contact → Description (event only) → Notes (audition only).
+The form is split into a fixed header (title, subtitle, Preview / Restore / **Close** / Delete buttons) and a fixed fields row (company, genre [audition only], title, then type-conditional fields), followed by a scrollable body containing: Dates → Roles Available (audition only) → Prepare/Contact → Description (event only) → Notes (audition only).
 
-- **Audition fields** — row 1: Company + Title (span 4) + Genre (col 6, spanning rows 1–3). Rows 2–3: Rehearsal Start, Notice URL, Opening Date, Production URL (left of Genre). Roles Available section. Prepare section (Acting, Singing\*, Dance\*, Bring).
+**Close / Reopen** — header button (before Delete) that toggles `closed` on the record. Closing prompts for confirmation and appends `· closed` to the subtitle; reopening is one click. Both states are a saveable change (Save's dirty-check picks it up). Use it to retire a listing — especially a virtual submission, which never ages out on its own — without losing the record.
+
+- **Audition fields** — row 1: Company + Title (span 4) + Genre (col 6, spanning rows 1–3). Rows 2–3: Rehearsal Start, Notice URL, Opening Date, Production URL (left of Genre). Roles Available section. Prepare section (Acting, Singing\*, Dance\*, Bring). Acting and Bring are multi-line textareas — each line is preserved and rendered on its own line on the public card, deep-link view, and Preview modal (Acting stored as a string with embedded `\n`; Bring stored as `string[]`, one entry per line). Singing and Dance remain single-line.
 - **Event fields** — row 1: Company + Title (span 5, no genre). Row 2: Brief Description (span 4) + Cost (span 2). Row 3: Notice URL (span 3) + Register URL (span 3). Roles Available and Prepare sections hidden.
 - **Other-company fields** (shown when company = "other"): Organizer Name, Organizer URL.
-- **Dates table** — inline-editable rows for date, start time, end time (optional), location name, address, and session notes. Adding a new row pre-populates start time, end time, and location from the previous row.
+- **Dates table** — inline-editable rows for date, start time, end time (optional), location name, address, and session notes. Adding a new row pre-populates start time, end time, and location from the previous row. A **Virtual submission** checkbox in the section toolbar (auditions only) marks the audition as having no scheduled dates — it dims the table, makes dates optional (an application deadline row may still be added), and lifts the save-time "no dates" error. Stored as `virtualSubmission: true`.
 - **Roles table** — inline-editable; audition only; Voice Part column shown only when Musical is one of the selected genres.
 - **Musical-only fields** — Singing and Dance prep rows, and the Voice Part column, shown only when Musical is one of the selected genres.
 
@@ -294,7 +310,9 @@ Same as the former auditions editor: appears in the record header when the activ
 
 #### Card preview
 
-The **Preview** button renders a modal showing what the collapsed + expanded card will look like on the public `/events` page. Preview renders type-conditionally: auditions show genre/roles/prep/dates/notes; events show brief description/dates/description/cost/register/contact. The `.pv-meta-row` and `.pv-roles-row` in the preview mirror the `.aud-meta-row` and `.aud-roles-row` on the public page. When all dates share the same location it is shown once after the date list, matching the public page behaviour.
+The **Preview** button renders a modal showing what the collapsed + expanded card will look like on the public `/events` page. Preview renders type-conditionally: auditions show genre/roles/prep/dates/notes; events show brief description/dates/description/cost/register/contact. The `.pv-meta-row` and `.pv-roles-row` in the preview mirror the `.aud-meta-row` and `.aud-roles-row` on the public page. When all dates share the same location it is shown once after the date list, matching the public page behaviour. `virtualSubmission` auditions show a "Virtual" badge, "Virtual submission" for the date range (when no deadline row), and a stand-in line in the Audition dates section; `closed` records show a "Closed" pip.
+
+Card display changes must be kept in sync across the four rendering paths: (1) `src/pages/events.astro` public template, (2) the deep-link view (reuses that HTML — automatic), (3) `buildPreviewHtml()` in `activities.js`, (4) `netlify/functions/lib/email-template.mts`.
 
 There are four rendering paths that must be kept in sync when making card display changes: (1) public page Astro template, (2) deep-link view (reuses the same Astro HTML — inherits automatically), (3) editor preview (`buildPreviewHtml()` in `activities.js` — must be updated separately), (4) email templates (`email-template.mts` — update when card content changes).
 
@@ -502,3 +520,5 @@ The first entry (`id: "admin"`, `adminOnly: true`) is a sentinel used by the edi
 - No PRs — merge directly; always confirm the current branch with `git branch` before committing
 - Never commit directly to `main` or `dev`
 - Netlify deploys from `main` — only merge to `main` when the fix is verified
+- **Live editor writes land on `main`** (admin `data.mjs` commits there). Run `npm run sync` at the start of a feature branch to pull those data edits into local `main` and `dev`.
+- **`npm run release`** runs `sync` first, then promotes `dev` → `main` (deploy) and back-merges. Prompts before pushing, listing the commits it will ship.

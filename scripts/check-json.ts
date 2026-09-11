@@ -1,7 +1,6 @@
 /**
  * Validates that all JSON files under data/ are syntactically valid.
- * Run with: npm run check-json
- * Also run automatically as part of build and preview.
+ * Run via `npm run check` (bundled with the schema validators); also part of `npm run build`.
  */
 import { readdirSync, readFileSync, statSync } from 'fs'
 import { resolve, join, relative } from 'path'

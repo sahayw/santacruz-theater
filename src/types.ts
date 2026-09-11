@@ -86,10 +86,10 @@ export interface ActivityContact {
 }
 
 export interface AuditionPrep {
-  acting?: string
+  acting?: string // may contain newlines; rendered line-for-line
   singing?: string
   dance?: string
-  bring?: string[]
+  bring?: string[] // one entry per line; rendered line-for-line
 }
 
 export type ActivityType = 'audition' | 'event'
@@ -106,6 +106,8 @@ export interface Activity {
   organizerUrl?: string // optional organizer website when company is "other"
   rolesAvailable?: AuditionRole[] // audition only; suppressed when empty
   prep?: AuditionPrep // audition only
+  virtualSubmission?: boolean // audition only; no scheduled dates — always "upcoming" until closed
+  closed?: boolean // either type; retained but excluded from "upcoming" (retire without deleting)
   rehearsalStart?: string // audition only; YYYY-MM-DD
   openingDate?: string // audition only; YYYY-MM-DD
   productionId?: string // audition only; soft ref to a Run id

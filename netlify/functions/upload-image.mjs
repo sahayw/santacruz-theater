@@ -8,21 +8,73 @@
  *      which triggers a Netlify rebuild so the image becomes available at
  *      /images/services/<filename>.
  *
- * Required env vars: GITHUB_TOKEN, GITHUB_OWNER, GITHUB_REPO, GITHUB_BRANCH
+ * LOCAL DEV: under `netlify dev` (NETLIFY_DEV=true) the image is written
+ * straight to public/images/services/ on disk — no GitHub API, no auth — so
+ * services-editor uploads can be tested offline and reviewed with `git diff`.
+ *
+ * Required env vars (production only): GITHUB_TOKEN, GITHUB_OWNER, GITHUB_REPO, GITHUB_BRANCH
  */
+
+import { promises as fs } from 'node:fs'
+import { join, sep } from 'node:path'
 
 const FILENAME_RE = /^[\w-]+\.(jpg|jpeg|png|webp)$/i
 
+const LOCAL_FS = process.env.NETLIFY_DEV === 'true'
+const IMAGES_ROOT = join(process.cwd(), 'public', 'images', 'services')
+
+function parseBody(event) {
+  const raw = event.isBase64Encoded
+    ? Buffer.from(event.body, 'base64').toString('utf-8')
+    : event.body || ''
+  return JSON.parse(raw)
+}
+
 export const handler = async (event, context) => {
+  if (event.httpMethod !== 'PUT') {
+    return { statusCode: 405, body: 'Method not allowed' }
+  }
+
+  // ── LOCAL FILESYSTEM MODE (netlify dev) ──
+  if (LOCAL_FS) {
+    let body
+    try {
+      body = parseBody(event)
+    } catch {
+      return { statusCode: 400, body: 'Request body is not valid JSON' }
+    }
+    const { filename, content } = body
+    if (!filename || !FILENAME_RE.test(filename)) {
+      return {
+        statusCode: 400,
+        body: 'Invalid filename — must use only letters, numbers, hyphens with a .jpg, .jpeg, .png, or .webp extension'
+      }
+    }
+    if (!content || typeof content !== 'string') {
+      return { statusCode: 400, body: 'Missing image content' }
+    }
+    const abs = join(IMAGES_ROOT, filename)
+    if (!abs.startsWith(IMAGES_ROOT + sep)) {
+      return { statusCode: 400, body: 'Invalid filename' }
+    }
+    try {
+      await fs.mkdir(IMAGES_ROOT, { recursive: true })
+      await fs.writeFile(abs, Buffer.from(content, 'base64'))
+      console.log(`[upload-image] local dev write → public/images/services/${filename}`)
+      return {
+        statusCode: 200,
+        body: 'OK (local dev: wrote to public/images/services/ on disk, not committed)'
+      }
+    } catch (e) {
+      return { statusCode: 500, body: e.message }
+    }
+  }
+
   const { GITHUB_TOKEN, GITHUB_OWNER, GITHUB_REPO, BRANCH } = process.env
   const GITHUB_BRANCH = BRANCH || process.env.GITHUB_BRANCH || 'main'
 
   if (!GITHUB_TOKEN || !GITHUB_OWNER || !GITHUB_REPO) {
     return { statusCode: 500, body: 'Server misconfiguration: missing GitHub env vars' }
-  }
-
-  if (event.httpMethod !== 'PUT') {
-    return { statusCode: 405, body: 'Method not allowed' }
   }
 
   const user = context.clientContext?.user
@@ -32,10 +84,7 @@ export const handler = async (event, context) => {
 
   let body
   try {
-    const raw = event.isBase64Encoded
-      ? Buffer.from(event.body, 'base64').toString('utf-8')
-      : event.body || ''
-    body = JSON.parse(raw)
+    body = parseBody(event)
   } catch {
     return { statusCode: 400, body: 'Request body is not valid JSON' }
   }

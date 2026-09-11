@@ -6,15 +6,11 @@
     "node": ">=22.12.0"
   },
   "scripts": {
-    "dev": "astro dev",
-    "netlify": "netlify dev",
-    "merge-remote-dev": "git pull --rebase origin dev",
-    "build": "tsx scripts/check-json.ts && tsx scripts/check-shows.ts && tsx scripts/check-activities.ts && astro build",
-    "preview": "tsx scripts/check-json.ts && tsx scripts/check-shows.ts && tsx scripts/check-activities.ts && astro preview",
-    "release": "git diff --quiet && git diff --cached --quiet && git checkout dev && git pull origin dev && git checkout main && git pull origin main && git merge dev && git push origin main && git checkout dev && git merge main && git push origin dev",
-    "check-json": "tsx scripts/check-json.ts",
-    "check-shows": "tsx scripts/check-shows.ts",
-    "check-activities": "tsx scripts/check-activities.ts"
+    "dev": "netlify dev",
+    "check": "tsx scripts/check-json.ts && tsx scripts/check-shows.ts && tsx scripts/check-activities.ts",
+    "build": "npm run check && astro build",
+    "sync": "bash scripts/sync-branches.sh",
+    "release": "bash scripts/release.sh"
   },
   "dependencies": {
     "@netlify/blobs": "^8.2.0",

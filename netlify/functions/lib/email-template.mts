@@ -21,6 +21,11 @@ function activityBlock(a: DigestActivity, isUpdated: boolean, baseUrl: string) {
     ? `<tr><td colspan="3" style="padding:2px 0;font-size:12px;color:#9c9189">+ ${a.dates.length - 3} more date${a.dates.length - 3 > 1 ? 's' : ''}</td></tr>`
     : ''
 
+  const isVirtual = a.type === 'audition' && !!a.virtualSubmission
+  const datesHtml = isVirtual && !a.dates.some(d => d.date)
+    ? `<div style="font-size:13px;color:#6b6259;margin-bottom:10px">Virtual submission &mdash; no scheduled dates. See the audition notice for how to apply.</div>`
+    : `<table style="border-collapse:collapse;font-size:13px;margin-bottom:10px">${dateRows}${moreDates}</table>`
+
   const subLine = a.type === 'audition' && a.openingDate
     ? `Opens ${fmtShortDate(a.openingDate)}`
     : a.type === 'event' && a.briefDescription
@@ -33,7 +38,7 @@ function activityBlock(a: DigestActivity, isUpdated: boolean, baseUrl: string) {
     ${isUpdated ? '<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:#2c3e9a;background:#dce4fb;display:inline-block;padding:2px 8px;border-radius:8px;margin-bottom:8px">Updated</div>' : ''}
     <div style="font-family:Georgia,\'Times New Roman\',serif;font-size:18px;font-weight:600;color:#1a1612;margin-bottom:3px">${esc(a.title)}</div>
     <div style="font-size:13px;color:#6b6259;margin-bottom:10px">${esc(a.companyName)}${subLine ? ` &middot; ${esc(subLine)}` : ''}</div>
-    <table style="border-collapse:collapse;font-size:13px;margin-bottom:10px">${dateRows}${moreDates}</table>
+    ${datesHtml}
     <a href="${esc(url)}" style="display:inline-block;font-size:13px;font-weight:500;color:#4f5ce0;text-decoration:none">${linkLabel} &rarr;</a>
   </div>`
 }

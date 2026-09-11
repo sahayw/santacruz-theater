@@ -54,11 +54,13 @@ The `/events` page lists upcoming auditions and events from Santa Cruz County th
 
 **Audition cards** show the production title, genre badge(s), company colour dot, opening date, a roles summary, and the audition date range. Expanding reveals full audition dates and times, locations, preparation requirements (acting, singing, dance, what to bring), a roles table, and contact info.
 
+**Virtual-submission auditions** (submission-based calls with no scheduled sessions) carry a "Virtual" badge, show "Virtual submission" in place of the date range, and stay in the "upcoming" list indefinitely — until an editor **closes** them. A closed activity (either type) is kept in the data but drops out of "upcoming" and shows a "Closed" pill.
+
 **Event cards** show the event title, a brief description if provided, the company colour dot, and the date range. Expanding reveals full event dates and times, locations, description, cost, a register link if provided, and contact info.
 
 When all dates for an activity share the same location, the location is shown once after the date list rather than repeated per row.
 
-Past cards show a small "Past" pill in the collapsed header.
+Past cards show a small "Past" pill in the collapsed header; closed cards show "Closed" instead.
 
 A filter bar with **Company**, **Genre** (applied to auditions only), **Show** (All Upcoming / Upcoming Auditions / Upcoming Events / All) controls narrows the list client-side. Filter defaults to All Upcoming.
 
@@ -68,7 +70,7 @@ A subscribe widget below the page header invites email sign-ups (hidden in deep-
 
 ### Activities data
 
-Covers both auditions and other event types. Data lives in `data/activities/<year>/<company-id>-activities-<year>.json` — one file per company per year. `getActivities()` in `src/lib/data.ts` imports all files at build time and returns a flat, sorted `ActivityEvent[]`. The upcoming/past distinction is determined client-side from the user's current date.
+Covers both auditions and other event types. Data lives in `data/activities/<year>/<company-id>-activities-<year>.json` — one file per company per year. `getActivities()` in `src/lib/data.ts` imports all files at build time and returns a flat, sorted `ActivityEvent[]`. The upcoming/past distinction is determined client-side from the user's current date, with two overrides: `closed` activities are never upcoming, and `virtualSubmission` auditions are always upcoming until closed. The digest/welcome emails apply the same rule via `isUpcoming()` in `netlify/functions/lib/activities-data.mts`.
 
 Location is stored per `ActivityDate`, so different sessions of the same activity can be in different venues. Voice Part is only shown when Musical is one of the selected genres; Singing and Dance prep fields are similarly Musical-only. Genre is used for auditions only; event cards carry no genre.
 
@@ -176,7 +178,7 @@ The Identity widget is pinned to `https://santacruz.theater/.netlify/identity` s
 
 Data in `data/shows/<year>/<company-id>-<year>.json` and `data/activities/<year>/<company-id>-activities-<year>.json` is read and written via the `/.netlify/functions/data` endpoint, which commits to GitHub and triggers a rebuild.
 
-It is not recommended to edit these files by hand. The scripts `check-shows.ts` and `check-activities.ts` can be used to check for consistency of data with code expectations. Files can be archived by moving to some alternate directory.
+It is not recommended to edit these files by hand. `npm run check` (or `check:shows` / `check:activities`) checks consistency of data with code expectations. Files can be archived by moving to some alternate directory.
 
 `src/lib/data.ts` imports all show and activity JSON at build time via `import.meta.glob`. `getPerformances()` flattens runs into a sorted `PerformanceEvent[]` with per-slot overrides resolved; `getActivities()` flattens activities into a sorted `ActivityEvent[]`.
 
@@ -222,7 +224,7 @@ Both the calendar and activities editors accept relaxed date and time formats an
 - **Dates** — `YYYY-MM-DD` is canonical, but `/` and `.` separators and 2-digit years are accepted: `26/6/13`, `2026.6.13`, `26-6-13` all normalize to `2026-06-13`. Order is always Y-M-D.
 - **Times** — dot separator accepted: `21.30` normalizes to `21:30`. Hours 1–11 with no AM/PM suffix are assumed PM.
 
-Invalid entries (impossible dates, out-of-range hours or minutes) are highlighted with a red cell border immediately. Clicking **Save** runs a full validation pass across all records in the file and shows a specific error list before aborting — empty required fields and activity records with no date rows are caught here.
+Invalid entries (impossible dates, out-of-range hours or minutes) are highlighted with a red cell border immediately. Clicking **Save** runs a full validation pass across all records in the file and shows a specific error list before aborting — empty required fields and activity records with no date rows are caught here (a virtual-submission audition is exempt from the date-rows check).
 
 ### Saving
 
@@ -241,6 +243,8 @@ The sidebar column stays blank until a company file is loaded. Two sidebar butto
 ### Activity dates
 
 Each activity record has one or more date rows, each with a date, start time, optional end time, optional location (name and address), and session notes. Date and time fields use the same normalization and validation as the calendar editor. A record with no date rows cannot be saved. Adding a new date row pre-populates times and location from the previous row.
+
+A **Virtual submission** checkbox in the Dates toolbar (auditions only) marks a submission-based call with no scheduled sessions: the dates table becomes optional (an application deadline row may still be added) and the no-dates save error is lifted. A **Close / Reopen** button in the record header retires a listing (drops it from "upcoming") without deleting it — reversible any time.
 
 ### Roles table (auditions only)
 
@@ -315,10 +319,11 @@ public/
     api.js                    # shared editor API helpers
   images/companies/           # locally stored company logos
   images/services/            # locally stored service listing photos
-astro.config.mjs              # Astro config, including Vite dev proxy
+astro.config.mjs              # Astro config — only a dev-server /admin → /admin/ redirect
 netlify/
   functions/
-    data.mjs                  # data read/write endpoint
+    data.mjs                  # data read/write endpoint (GitHub in prod, local fs under netlify dev)
+    upload-image.mjs          # services-editor image upload (GitHub in prod, local fs under netlify dev)
     fetch-page.mjs            # page-fetch proxy
     subscribe.mts             # Buttondown subscription handler + welcome email
     send-digest.mts           # scheduled daily digest (02:00 UTC)
@@ -332,8 +337,11 @@ netlify/
       company-data.mts        # fs-based company name/primary-venue lookup (calendar sync)
       google-calendar.mts     # Google Calendar API client (calendar sync)
 scripts/
-  check-shows.ts              # show data validation
-  check-activities.ts         # activity data validation
+  check-json.ts               # data JSON syntax validation
+  check-shows.ts              # show data schema validation
+  check-activities.ts         # activity data schema validation
+  sync-branches.sh            # npm run sync — pull live data edits into main + dev
+  release.sh                  # npm run release — promote dev to main and back-merge
 docs/
   color-system.md             # color reference
   description-feature.md      # notes on show description extraction feature (not currently used)
@@ -349,26 +357,31 @@ docs/
 ```sh
 nvm use          # Node 22 (.nvmrc)
 npm install
-npm run dev      # http://localhost:4321
+npm run dev      # netlify dev → http://localhost:8888
 ```
 
-| Command                    | Action                                           |
-| -------------------------- | ------------------------------------------------ |
-| `npm run dev`              | Dev server at localhost:4321                     |
-| `npm run build`            | Production build to `dist/`                      |
-| `npm run preview`          | Preview the production build locally             |
-| `npm run check-shows`      | Validates all show JSON files against schema     |
-| `npm run check-activities` | Validates all activity JSON files against schema |
+| Command           | Action                                                                                          |
+| ----------------- | -------------------------------------------------------------------------------------------- |
+| `npm run dev`     | `netlify dev` at localhost:8888 — public pages, functions, and the `/admin` editor           |
+| `npm run check`   | Validate all data JSON (syntax + show schema + activity schema)                              |
+| `npm run build`   | `npm run check`, then Astro build to `dist/` — Netlify's build command, not run by hand      |
+| `npm run sync`    | ff-sync `main`+`dev` with origin and merge `main` into `dev` (pulls in live `/admin` data edits) |
+| `npm run release` | runs `sync`, then merges `dev` → `main` and pushes (Netlify deploys), then back-merges `main` → `dev` |
+
+There is no separate `astro dev` / `astro preview` script — `npm run dev` covers both. Use `npx astro dev` if you want the lighter server without functions.
+
+### Testing the `/admin` editors locally
+
+`npm run dev` (`netlify dev`) serves `netlify/functions/`, so the editors work fully offline — open **http://localhost:8888/admin**. `data.mjs` and `upload-image.mjs` read and write the local working-tree `data/` and `public/images/services/` directly (no GitHub, no login); saves land on disk as ordinary file changes you review with `git diff` and commit through the normal git workflow. Production behaviour (GitHub Contents API + Netlify Identity) is unchanged.
 
 ## Build & deploy
 
 ```sh
-npm run build     # outputs to dist/
-npm run preview   # verify locally before pushing
-npm release       # git merge dev to main and sync back to dev, so commits remain consistent
+npm run sync      # pull any data edits made on the live site (those commits land on main)
+npm run release   # sync, then merge dev → main and push (Netlify deploys), then back-merge main → dev
 ```
 
-Netlify CI watches `main` and deploys on every push, using the config in `netlify.toml`.
+`npm run release` runs `npm run sync` first, lists the commits it will ship, and prompts before pushing. Netlify CI watches `main` and deploys on every push, using the config in `netlify.toml`.
 
 ### Netlify environment variables
 

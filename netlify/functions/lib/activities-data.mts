@@ -67,6 +67,8 @@ export function loadAllActivities(): DigestActivity[] {
 }
 
 export function isUpcoming(a: DigestActivity, todayStr = new Date().toISOString().slice(0, 10)): boolean {
+  if (a.closed) return false
+  if (a.virtualSubmission) return true // no scheduled dates — always current until closed
   return (a.dates.map(d => d.date).filter(Boolean).sort().pop() ?? '') >= todayStr
 }
 

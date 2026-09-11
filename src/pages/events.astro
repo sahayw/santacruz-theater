@@ -120,6 +120,8 @@ function roleTypeLabel(type: string): string {
                   data-genre={act.genre.join(',')}
                   data-latest-date={latest}
                   data-type={act.type}
+                  data-virtual={act.type === 'audition' && act.virtualSubmission ? 'true' : undefined}
+                  data-closed={act.closed ? 'true' : undefined}
                 >
                   {/* ── Collapsed summary ── */}
                   <button class="aud-summary" aria-expanded="false">
@@ -127,6 +129,9 @@ function roleTypeLabel(type: string): string {
                       <div class="aud-title-row">
                         <span class="aud-title">{act.title}</span>
                         {act.type === 'event' && <span class="type-badge type-event">Event</span>}
+                        {act.type === 'audition' && act.virtualSubmission && (
+                          <span class="type-badge type-virtual">Virtual</span>
+                        )}
                         {act.type !== 'event' &&
                           act.genre.map((g) => (
                             <span class={`genre-badge ${genreClass(g)}`}>{g}</span>
@@ -149,10 +154,19 @@ function roleTypeLabel(type: string): string {
                       )}
                     </div>
                     <div class="aud-aside">
+                      <span class="aud-closed-pip" aria-hidden="true">
+                        Closed
+                      </span>
                       <span class="aud-past-pip" aria-hidden="true">
                         Past
                       </span>
-                      <span class="aud-date-range">{fmtAudDateRange(act.dates)}</span>
+                      <span class="aud-date-range">
+                        {act.type === 'audition' &&
+                        act.virtualSubmission &&
+                        !act.dates.some((d) => d.date)
+                          ? 'Virtual submission'
+                          : fmtAudDateRange(act.dates)}
+                      </span>
                       <span class="aud-chevron" aria-hidden="true" />
                     </div>
                   </button>
@@ -165,6 +179,12 @@ function roleTypeLabel(type: string): string {
                         <div class="detail-left">
                           <section class="detail-section">
                             <h4 class="detail-section-head">Audition dates</h4>
+                            {act.virtualSubmission && !act.dates.some((d) => d.date) && (
+                              <p class="detail-virtual-note">
+                                Virtual submission — no scheduled audition dates. See the audition
+                                notice for how to apply.
+                              </p>
+                            )}
                             {(() => {
                               const _locs = act.dates.map((d) => d.location?.name).filter(Boolean)
                               const _shared =
@@ -221,7 +241,7 @@ function roleTypeLabel(type: string): string {
                               {act.prep.acting && (
                                 <div class="detail-prep-row">
                                   <span class="prep-label">Acting</span>
-                                  <span>{act.prep.acting}</span>
+                                  <span class="prep-value">{act.prep.acting}</span>
                                 </div>
                               )}
                               {act.prep.singing && (
@@ -239,7 +259,7 @@ function roleTypeLabel(type: string): string {
                               {act.prep.bring && act.prep.bring.length > 0 && (
                                 <div class="detail-prep-row">
                                   <span class="prep-label">Bring</span>
-                                  <span>{act.prep.bring.join(', ')}</span>
+                                  <span class="prep-value">{act.prep.bring.join('\n')}</span>
                                 </div>
                               )}
                             </section>
@@ -853,7 +873,13 @@ function roleTypeLabel(type: string): string {
     color: #1a6b50;
   }
 
-  .aud-past-pip {
+  .type-virtual {
+    background: #eef0f7;
+    color: #4a4f80;
+  }
+
+  .aud-past-pip,
+  .aud-closed-pip {
     display: none;
     font-size: 10px;
     font-weight: 600;
@@ -866,7 +892,11 @@ function roleTypeLabel(type: string): string {
     background: rgba(0, 0, 0, 0.06);
   }
 
-  .aud-card.past .aud-past-pip {
+  .aud-card.past:not(.closed) .aud-past-pip {
+    display: inline-block;
+  }
+
+  .aud-card.closed .aud-closed-pip {
     display: inline-block;
   }
 
@@ -932,6 +962,11 @@ function roleTypeLabel(type: string): string {
     grid-template-columns: 1fr 1fr;
     gap: 24px 32px;
     margin-bottom: 16px;
+  }
+
+  /* No right column (no roles / no description) → left column spans full width */
+  .detail-grid:not(:has(.detail-right)) {
+    grid-template-columns: 1fr;
   }
 
   .detail-left,
@@ -1029,6 +1064,17 @@ function roleTypeLabel(type: string): string {
     padding-top: 2px;
     flex-shrink: 0;
     min-width: 48px;
+  }
+
+  .prep-value {
+    white-space: pre-line;
+  }
+
+  .detail-virtual-note {
+    font-size: 13px;
+    line-height: 1.5;
+    color: var(--ink-muted);
+    margin: 0;
   }
 
   /* Contact */
@@ -1217,9 +1263,19 @@ function roleTypeLabel(type: string): string {
   const filterShow = document.getElementById('filter-show')
   const emptyEl = document.getElementById('aud-empty')
 
-  // Mark past cards (drives the Past pip via CSS)
+  // A card is "not upcoming" if it's closed, or (unless it's a virtual
+  // submission) its latest date is in the past. Drives the Past/Closed pips
+  // and the "upcoming" filters.
+  function notUpcoming(card) {
+    if (card.dataset.closed === 'true') return true
+    if (card.dataset.virtual === 'true') return false
+    return (card.dataset.latestDate ?? '') < TODAY
+  }
+
+  // Mark past / closed cards (drives the pips via CSS)
   cards.forEach((card) => {
-    if ((card.dataset.latestDate ?? '') < TODAY) card.classList.add('past')
+    if (card.dataset.closed === 'true') card.classList.add('closed')
+    if (notUpcoming(card)) card.classList.add('past')
   })
 
   function updateFilters() {
@@ -1240,8 +1296,7 @@ function roleTypeLabel(type: string): string {
 
     cards.forEach((card) => {
       const matchCo = !co || card.dataset.company === co
-      const latest = card.dataset.latestDate ?? ''
-      const isPast = latest < TODAY
+      const isPast = notUpcoming(card)
       const isAud = card.dataset.type === 'audition'
 
       let matchSh

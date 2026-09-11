@@ -74,8 +74,11 @@ for (const year of yearDirs) {
         if (!VALID_GENRES.has(g as string)) err(al, `genre[${gi}] invalid: ${g}`)
       })
 
-      if (!Array.isArray(a.dates) || (a.dates as unknown[]).length === 0) {
-        err(al, 'dates must be a non-empty array')
+      const isVirtual = a.type === 'audition' && a.virtualSubmission === true
+      if (!Array.isArray(a.dates)) {
+        err(al, 'dates must be an array')
+      } else if ((a.dates as unknown[]).length === 0) {
+        if (!isVirtual) err(al, 'dates must be a non-empty array (unless virtualSubmission is set)')
       } else {
         const dates = a.dates as Record<string, unknown>[]
         dates.forEach((d, di) => {
@@ -85,6 +88,8 @@ for (const year of yearDirs) {
           if (d.endTime !== undefined && !isTime(d.endTime)) err(dl, `endTime must be HH:MM if present, got: ${d.endTime}`)
         })
       }
+
+      if (a.closed !== undefined && typeof a.closed !== 'boolean') err(al, 'closed must be a boolean if present')
 
       if (!isIso8601(a.createdAt)) err(al, 'createdAt must be ISO 8601 timestamp')
       if (!isIso8601(a.updatedAt)) err(al, 'updatedAt must be ISO 8601 timestamp')
@@ -105,6 +110,7 @@ for (const year of yearDirs) {
         }
         if (a.rehearsalStart !== undefined && !isDate(a.rehearsalStart)) err(al, `rehearsalStart must be YYYY-MM-DD, got: ${a.rehearsalStart}`)
         if (a.openingDate !== undefined && !isDate(a.openingDate)) err(al, `openingDate must be YYYY-MM-DD, got: ${a.openingDate}`)
+        if (a.virtualSubmission !== undefined && typeof a.virtualSubmission !== 'boolean') err(al, 'virtualSubmission must be a boolean if present')
         // Flag event-only fields used on audition
         if (a.briefDescription !== undefined) err(al, 'briefDescription is event-only')
         if (a.cost !== undefined) err(al, 'cost is event-only')
@@ -114,6 +120,7 @@ for (const year of yearDirs) {
       if (a.type === 'event') {
         if (a.rolesAvailable !== undefined) err(al, 'rolesAvailable is audition-only')
         if (a.prep !== undefined) err(al, 'prep is audition-only')
+        if (a.virtualSubmission !== undefined) err(al, 'virtualSubmission is audition-only')
         if (a.rehearsalStart !== undefined) err(al, 'rehearsalStart is audition-only')
         if (a.openingDate !== undefined) err(al, 'openingDate is audition-only')
         if (a.productionUrl !== undefined) err(al, 'productionUrl is audition-only')

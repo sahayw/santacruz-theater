@@ -183,6 +183,13 @@ const ACT_CSS = `
   font-size: 10px; font-weight: 500; text-transform: uppercase;
   letter-spacing: 0.07em; color: var(--ink-mid); flex: 1;
 }
+.act-virtual-toggle {
+  display: flex; align-items: center; gap: 5px;
+  font-size: 10px; font-weight: 500; text-transform: uppercase;
+  letter-spacing: 0.05em; color: var(--ink-mid); cursor: pointer; white-space: nowrap;
+}
+.act-virtual-toggle input { margin: 0; cursor: pointer; }
+.act-dates-section.is-virtual .act-table-wrap { opacity: 0.4; }
 .act-table-wrap { overflow-x: auto; }
 .act-table { width: 100%; border-collapse: collapse; }
 .act-table thead th {
@@ -253,6 +260,11 @@ const ACT_CSS = `
   min-width: 44px; flex-shrink: 0;
 }
 .act-prep-row .act-cell-input { border-color: var(--border); background: var(--surface); }
+.act-prep-row-ml { align-items: flex-start; }
+.act-prep-row-ml .act-prep-label { padding-top: 4px; }
+.act-prep-row-ml textarea.act-cell-input {
+  resize: vertical; height: 40px; line-height: 1.5;
+}
 .act-bring-row {
   grid-column: 1 / -1;
   display: flex; align-items: flex-start; gap: 6px;
@@ -387,8 +399,13 @@ const ACT_CSS = `
   font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em;
   color: #9c9189; background: rgba(0,0,0,0.06); padding: 2px 7px; border-radius: 8px;
 }
+.pv-virtual-badge {
+  font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em;
+  padding: 2px 7px; border-radius: 8px; flex-shrink: 0; background: #eef0f7; color: #4a4f80;
+}
 .pv-detail { background: #f7f4ef; border-top: 1px solid #e0d9d0; padding: 20px 16px 16px; font-family: 'DM Sans', system-ui, sans-serif; }
 .pv-detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px 32px; margin-bottom: 16px; }
+.pv-detail-grid:not(:has(.pv-detail-right)) { grid-template-columns: 1fr; }
 .pv-detail-left, .pv-detail-right { min-width: 0; }
 .pv-section { margin-bottom: 16px; }
 .pv-section:last-child { margin-bottom: 0; }
@@ -472,6 +489,9 @@ const ACT_HTML = `
         <button class="btn btn-sm" id="actRestoreBtn"
           style="background:var(--bg);border:1px solid var(--border)"
           onclick="act.restoreActivity()">Restore</button>
+        <button class="btn btn-sm" id="actCloseBtn"
+          style="background:var(--bg);border:1px solid var(--border)"
+          onclick="act.toggleClosed()">Close</button>
         <button class="btn btn-sm" style="background:#fde;color:var(--accent);border:1px solid #fcc"
           onclick="act.deleteActivity()">Delete</button>
       </div>
@@ -550,11 +570,15 @@ const ACT_HTML = `
       <div class="act-scroll-body">
 
         <!-- 1. Dates -->
-        <div class="act-section act-dates-section">
+        <div class="act-section act-dates-section" id="actDatesSection">
           <div class="act-section-toolbar">
             <span class="act-section-label"><span id="actDatesLabel">Dates</span>
               <span id="actDatesCount" style="color:var(--ink-faint);font-family:'IBM Plex Mono',monospace;font-size:10px"></span>
             </span>
+            <label class="act-virtual-toggle" id="actVirtualToggle" style="display:none">
+              <input type="checkbox" id="af-virtual" onchange="act.fieldChanged()">
+              Virtual submission — no scheduled dates
+            </label>
             <button class="btn btn-sm" style="background:var(--bg);border:1px solid var(--border)"
               onclick="act.addDateRow()">+ Add row</button>
           </div>
@@ -598,9 +622,9 @@ const ACT_HTML = `
         <div class="act-section act-prep-contact">
           <div class="act-prep-col" id="actPrepCol">
             <div class="act-prep-head">Prepare</div>
-            <div class="act-prep-row">
+            <div class="act-prep-row act-prep-row-ml">
               <label class="act-prep-label">Acting</label>
-              <input class="act-cell-input" id="af-prep-acting" placeholder="e.g. Cold read from script" oninput="act.fieldChanged()">
+              <textarea class="act-cell-input" id="af-prep-acting" placeholder="e.g. Cold read from script&#10;One note per line" oninput="act.fieldChanged()"></textarea>
             </div>
             <div class="act-prep-row" id="act-singing-row">
               <label class="act-prep-label">Singing</label>
@@ -981,7 +1005,7 @@ function renderSidebar() {
     .map(
       ({ a, i }) => `
     <div class="act-list-item ${i === activeActIdx ? 'active' : ''}" onclick="act.selectAct(${i})">
-      <div class="act-item-meta">${a.type === 'event' ? 'Event' : 'Audition'}${(Array.isArray(a.genre) ? a.genre : []).length ? ' · ' + (Array.isArray(a.genre) ? a.genre : []).join('/') : ''}</div>
+      <div class="act-item-meta">${a.type === 'event' ? 'Event' : 'Audition'}${(Array.isArray(a.genre) ? a.genre : []).length ? ' · ' + (Array.isArray(a.genre) ? a.genre : []).join('/') : ''}${a.virtualSubmission ? ' · virtual' : ''}${a.closed ? ' · closed' : ''}</div>
       <div class="act-item-title">${a.title || 'Untitled'}</div>
     </div>`
     )
@@ -1030,6 +1054,7 @@ function loadActEditor() {
   document.getElementById('af-org-name').value = a.organizerName || ''
   document.getElementById('af-org-url').value = a.organizerUrl || ''
 
+  document.getElementById('af-virtual').checked = !!a.virtualSubmission
   document.getElementById('af-prep-acting').value = a.prep?.acting || ''
   document.getElementById('af-prep-singing').value = a.prep?.singing || ''
   document.getElementById('af-prep-dance').value = a.prep?.dance || ''
@@ -1053,6 +1078,8 @@ function loadActEditor() {
   updateEditorTitle()
   updateTypeLayout()
   updateMusicLayout()
+  updateVirtualDim()
+  updateClosedBtn()
   renderDatesTable()
   renderRolesTable()
   updateRestoreBtn()
@@ -1064,7 +1091,23 @@ function updateEditorTitle() {
   const genreLabel = (Array.isArray(a.genre) ? a.genre : a.genre ? [a.genre] : []).join(' / ')
   const typeLabel = a.type === 'event' ? 'Event' : 'Audition'
   document.getElementById('actSubtitle').textContent =
-    ` · ${typeLabel}${genreLabel ? ' · ' + genreLabel : ''}`
+    ` · ${typeLabel}${genreLabel ? ' · ' + genreLabel : ''}${a.closed ? ' · closed' : ''}`
+}
+
+// Dim the dates table when the audition is a virtual submission (dates optional).
+function updateVirtualDim() {
+  const section = document.getElementById('actDatesSection')
+  if (!section) return
+  const a = activeActIdx >= 0 ? activities[activeActIdx] : null
+  section.classList.toggle('is-virtual', !!(a && a.type === 'audition' && a.virtualSubmission))
+}
+
+// Toggle the header Close/Reopen button label to match the record state.
+function updateClosedBtn() {
+  const btn = document.getElementById('actCloseBtn')
+  if (!btn) return
+  const a = activeActIdx >= 0 ? activities[activeActIdx] : null
+  btn.textContent = a && a.closed ? 'Reopen' : 'Close'
 }
 
 function updateRestoreBtn() {
@@ -1087,6 +1130,7 @@ function updateTypeLayout() {
   const prepCol = document.getElementById('actPrepCol')
   const bringRow = document.getElementById('actBringRow')
   const datesLabel = document.getElementById('actDatesLabel')
+  const virtualToggle = document.getElementById('actVirtualToggle')
   const genreGroup = document.getElementById('afGenreGroup')
   const titleGroup = document.getElementById('afTitleGroup')
   const descSection = document.getElementById('actDescSection')
@@ -1098,6 +1142,7 @@ function updateTypeLayout() {
     rolesSection && (rolesSection.style.display = 'none')
     prepCol && (prepCol.style.display = 'none')
     bringRow && (bringRow.style.display = 'none')
+    if (virtualToggle) virtualToggle.style.display = 'none'
     if (datesLabel) datesLabel.textContent = 'Dates'
     if (genreGroup) genreGroup.style.display = 'none'
     if (titleGroup) titleGroup.style.gridColumn = 'span 5'
@@ -1109,6 +1154,7 @@ function updateTypeLayout() {
     rolesSection && (rolesSection.style.display = '')
     prepCol && (prepCol.style.display = '')
     bringRow && (bringRow.style.display = '')
+    if (virtualToggle) virtualToggle.style.display = ''
     if (datesLabel) datesLabel.textContent = 'Audition Dates'
     if (genreGroup) genreGroup.style.display = ''
     if (titleGroup) titleGroup.style.gridColumn = 'span 4'
@@ -1184,6 +1230,7 @@ function fieldChanged() {
     a.openingDate = document.getElementById('af-opening').value || undefined
     a.noticeUrl = document.getElementById('af-notice-url').value || undefined
     a.productionUrl = document.getElementById('af-prod-url').value || undefined
+    a.virtualSubmission = document.getElementById('af-virtual').checked || undefined
     a.briefDescription = undefined
     a.cost = undefined
     a.registerUrl = undefined
@@ -1195,7 +1242,7 @@ function fieldChanged() {
       .filter(Boolean)
     const musical = a.genre.includes('Musical')
     const prep = {
-      acting: document.getElementById('af-prep-acting').value || undefined,
+      acting: document.getElementById('af-prep-acting').value.trim() || undefined,
       singing: musical ? document.getElementById('af-prep-singing').value || undefined : undefined,
       dance: musical ? document.getElementById('af-prep-dance').value || undefined : undefined,
       bring: bring.length ? bring : undefined
@@ -1209,6 +1256,7 @@ function fieldChanged() {
     a.rehearsalStart = undefined
     a.openingDate = undefined
     a.productionUrl = undefined
+    a.virtualSubmission = undefined
     a.prep = undefined
     a.rolesAvailable = undefined
   }
@@ -1227,6 +1275,28 @@ function fieldChanged() {
 
   updateEditorTitle()
   updateMusicLayout()
+  updateVirtualDim()
+  renderSidebar()
+  markDirty()
+}
+
+// ── CLOSE / REOPEN ──
+function toggleClosed() {
+  if (activeActIdx < 0) return
+  const a = activities[activeActIdx]
+  if (!a.closed) {
+    if (
+      !confirm(
+        `Close "${a.title || 'this activity'}"? It stays in the file but drops off the public "upcoming" list. You can reopen it later.`
+      )
+    )
+      return
+    a.closed = true
+  } else {
+    a.closed = undefined
+  }
+  updateClosedBtn()
+  updateEditorTitle()
   renderSidebar()
   markDirty()
 }
@@ -1439,7 +1509,10 @@ function collectErrors() {
     const label = a.title || `Activity ${ai + 1}`
     const nonEmptyDates = (a.dates || []).filter((d) => !isEmptyDateRow(d))
     if (nonEmptyDates.length === 0) {
-      errors.push(`"${label}": no dates`)
+      // Virtual-submission auditions are allowed to have no dates.
+      if (!(a.type === 'audition' && a.virtualSubmission)) {
+        errors.push(`"${label}": no dates`)
+      }
     } else {
       nonEmptyDates.forEach((d, di) => {
         if (!isValidDate(d.date))
@@ -1849,9 +1922,11 @@ function openPreview() {
   const genreArr = Array.isArray(a.genre) ? a.genre : a.genre ? [a.genre] : []
   const TODAY = new Date().toISOString().slice(0, 10)
   const latestD = [...(a.dates || [])].sort((x, y) => y.date.localeCompare(x.date))[0]?.date ?? ''
-  const isPast = latestD && latestD < TODAY
-  const showVoice = genreArr.includes('Musical')
   const isEvent = a.type === 'event'
+  const isVirtual = !isEvent && !!a.virtualSubmission
+  const hasDates = (a.dates || []).some((d) => d.date)
+  const isPast = !a.closed && !isVirtual && latestD && latestD < TODAY
+  const showVoice = genreArr.includes('Musical')
   const displayName =
     currentCompanyId === 'other' && a.organizerName ? a.organizerName : companyName
 
@@ -1886,7 +1961,8 @@ function openPreview() {
     <span class="pv-location-name">${esc(_pvShared.name)}</span>
     ${_pvShared.address ? `<span class="pv-sub"> · ${esc(_pvShared.address)}</span>` : ''}
   </div>`
-        : '') || '<div class="pv-sub">No dates set</div>'
+        : '') ||
+    `<div class="pv-sub">${isVirtual ? 'Virtual submission — see the notice for how to apply' : 'No dates set'}</div>`
 
   let leftColHtml = `<section class="pv-section"><h4 class="pv-section-head">${isEvent ? 'Dates' : 'Audition dates'}</h4>${datesHtml}</section>`
 
@@ -1894,7 +1970,7 @@ function openPreview() {
     const rows = []
     if (a.prep.acting)
       rows.push(
-        `<div class="pv-prep-row"><span class="pv-prep-label">Acting</span><span>${esc(a.prep.acting)}</span></div>`
+        `<div class="pv-prep-row"><span class="pv-prep-label">Acting</span><span>${esc(a.prep.acting).replace(/\n/g, '<br>')}</span></div>`
       )
     if (a.prep.singing)
       rows.push(
@@ -1906,7 +1982,7 @@ function openPreview() {
       )
     if (a.prep.bring?.length)
       rows.push(
-        `<div class="pv-prep-row"><span class="pv-prep-label">Bring</span><span>${esc(a.prep.bring.join(', '))}</span></div>`
+        `<div class="pv-prep-row"><span class="pv-prep-label">Bring</span><span>${a.prep.bring.map(esc).join('<br>')}</span></div>`
       )
     if (rows.length)
       leftColHtml += `<section class="pv-section"><h4 class="pv-section-head">Prepare</h4>${rows.join('')}</section>`
@@ -1976,6 +2052,7 @@ function openPreview() {
             <span class="pv-dot" style="background:${dotColor}"></span>
             <span class="pv-title">${esc(a.title || 'Untitled')}</span>
             ${isEvent ? '<span class="pv-type-badge">Event</span>' : ''}
+            ${isVirtual ? '<span class="pv-virtual-badge">Virtual</span>' : ''}
             ${!isEvent ? genreArr.map((g) => `<span class="pv-genre-badge" style="${PV_GENRE_STYLES[g] || ''}">${esc(g)}</span>`).join('') : ''}
           </div>
           ${isEvent && a.briefDescription ? `<div class="pv-brief-row">${esc(a.briefDescription)}</div>` : ''}
@@ -1983,8 +2060,8 @@ function openPreview() {
           ${!isEvent ? `<div class="pv-roles-row">${rolesRow}</div>` : ''}
         </div>
         <div class="pv-aside">
-          ${isPast ? '<span class="pv-past-pip">Past</span>' : ''}
-          <span class="pv-date-range">${fmtAudDateRange(a.dates)}</span>
+          ${a.closed ? '<span class="pv-past-pip">Closed</span>' : isPast ? '<span class="pv-past-pip">Past</span>' : ''}
+          <span class="pv-date-range">${isVirtual && !hasDates ? 'Virtual submission' : fmtAudDateRange(a.dates)}</span>
         </div>
       </div>
       <div class="pv-detail">
@@ -2023,6 +2100,7 @@ export function mount(container, context) {
     selectAct,
     restoreActivity,
     deleteActivity,
+    toggleClosed,
     genreChanged,
     fieldChanged,
     toggleDescExpand,

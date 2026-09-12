@@ -1,5 +1,107 @@
 {
   "company": "svpa",
   "year": 2026,
-  "runs": []
+  "runs": [
+    {
+      "id": "run-1789227400865",
+      "company": "svpa",
+      "showAbv": "Annie",
+      "show": "Annie",
+      "description": "Annie is a musical, based on the 1924 comic strip, Little Orphan Annie. The play tells the story of Annie, a young orphan who lives in a miserable orphanage run by the cruel Miss Hannigan.\n\nSet in 1930s New York, Annie's life changes when she is chosen to spend Christmas with billionaire Oliver Warbucks, as she embarks on a journey to find her real parents while facing many challenges along the way.\n\nThe play is filled with trials and tribulations, scoundrels and good rich people (yes, there are some), and in the best Broadway tradition, it has a happy ending.",
+      "genre": [
+        "Musical"
+      ],
+      "venue": "The Landing, SV",
+      "price": "$33 - $39",
+      "discounts": "Senior/Student $28, Children @23",
+      "infoUrl": "https://www.onthestage.tickets/show/scotts-valley-performing-arts/6a1b286467d38677bc7e7c41",
+      "ticketsUrl": "https://www.onthestage.tickets/show/scotts-valley-performing-arts/6a1b286467d38677bc7e7c41/tickets#/productions-view",
+      "performances": [
+        {
+          "date": "2026-09-18",
+          "time": "19:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-09-19",
+          "time": "14:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-09-19",
+          "time": "19:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-09-20",
+          "time": "14:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-09-25",
+          "time": "19:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-09-26",
+          "time": "14:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-09-26",
+          "time": "19:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-09-27",
+          "time": "14:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-10-02",
+          "time": "19:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-10-03",
+          "time": "14:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-10-03",
+          "time": "19:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-10-04",
+          "time": "14:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        }
+      ]
+    }
+  ]
 }

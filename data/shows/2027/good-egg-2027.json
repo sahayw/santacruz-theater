@@ -1,5 +1,149 @@
 {
   "company": "good-egg",
   "year": 2027,
-  "runs": []
+  "runs": [
+    {
+      "id": "run-1791848268270",
+      "company": "good-egg",
+      "showAbv": "Constellations",
+      "show": "Constellations",
+      "description": "An exciting and dramatic romance set amidst the backdrop of a truly quantum universe. This two-hander, starring Sarah K. Michael and Ian Dyer, will showcase two characters interacting throughout different realities and the infinite possibilities and central truths of this one imperfect relationship",
+      "genre": [
+        "Drama"
+      ],
+      "venue": "Veterans Memorial Building",
+      "price": "",
+      "discounts": "",
+      "infoUrl": "",
+      "ticketsUrl": "",
+      "performances": [
+        {
+          "date": "2027-02-04",
+          "time": "19:00",
+          "perfType": "Opening",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2027-02-05",
+          "time": "19:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2027-02-06",
+          "time": "14:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2027-02-06",
+          "time": "19:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2027-02-07",
+          "time": "14:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2027-02-07",
+          "time": "19:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2027-02-11",
+          "time": "19:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2027-02-12",
+          "time": "19:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2027-02-13",
+          "time": "14:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2027-02-13",
+          "time": "19:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2027-02-14",
+          "time": "14:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2027-02-14",
+          "time": "19:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2027-02-18",
+          "time": "19:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2027-02-19",
+          "time": "19:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2027-02-20",
+          "time": "14:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2027-02-20",
+          "time": "19:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2027-02-21",
+          "time": "14:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2027-02-21",
+          "time": "19:00",
+          "perfType": "Closing",
+          "discounts": "",
+          "ticketsUrl": ""
+        }
+      ]
+    }
+  ]
 }

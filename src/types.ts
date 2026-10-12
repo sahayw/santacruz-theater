@@ -50,6 +50,7 @@ export interface CompanyEntry {
   website?: string
   logo?: string
   logoDark?: boolean
+  logoFill?: boolean
   editors?: CompanyEditor[]
   adminOnly?: boolean
 }

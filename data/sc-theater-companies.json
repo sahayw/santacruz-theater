@@ -103,6 +103,14 @@
       "logo": "/images/companies/milo-rep-logo.png"
     },
     {
+      "id": "good-egg",
+      "abvName": "Good Egg",
+      "name": "Good Egg Productions",
+      "website": "https://www.goodeggsantacruz.com/",
+      "logo": "/images/companies/good-egg-logo.png",
+      "logoFill": true
+    },
+    {
       "id": "gih",
       "abvName": "GIH",
       "name": "Gay Innocent Heartless",

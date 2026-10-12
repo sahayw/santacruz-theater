@@ -31,7 +31,7 @@ const venueNames = Object.fromEntries(venuesData.venues.map((v) => [v.code, v.na
           companies.map((company) => (
             <a
               href={company.website}
-              class={`company-card${company.logoDark ? ' card--dark-logo' : ''}`}
+              class={`company-card${company.logoDark ? ' card--dark-logo' : ''}${company.logoFill ? ' card--fill-logo' : ''}`}
               target="_blank"
               rel="noopener noreferrer"
               aria-label={company.name}
@@ -151,6 +151,15 @@ const venueNames = Object.fromEntries(venuesData.venues.map((v) => [v.code, v.na
     background: #1a1612;
   }
 
+  /* square-format logo: trim vertical padding so it fills the card height */
+  .card--fill-logo .card-logo-area {
+    padding: 2px 12px;
+  }
+
+  .card--fill-logo .company-logo {
+    max-height: 106px; /* card height (110px) minus vertical padding (2×2px) */
+  }
+
   .company-logo {
     max-width: 100%;
     max-height: 86px; /* card height (110px) minus vertical padding (2×12px) */
@@ -225,6 +234,14 @@ const venueNames = Object.fromEntries(venuesData.venues.map((v) => [v.code, v.na
 
     .company-logo {
       max-height: 66px; /* 86 - 2×10 */
+    }
+
+    .card--fill-logo .card-logo-area {
+      padding: 2px 10px;
+    }
+
+    .card--fill-logo .company-logo {
+      max-height: 82px; /* 86 - 2×2 */
     }
   }
 </style>

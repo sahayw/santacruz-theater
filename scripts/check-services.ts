@@ -20,6 +20,16 @@ const errors: string[] = []
 const warnings: string[] = []
 
 const file = JSON.parse(readFileSync(join(ROOT, 'data', LABEL), 'utf-8'))
+const categoriesFile = JSON.parse(
+  readFileSync(join(ROOT, 'data', 'sc-theater-service-categories.json'), 'utf-8')
+)
+// Listings store leaf-level subcategory ids only. The categories file is hand-edited,
+// so a renamed or removed subcategory would leave listings pointing at a dead id.
+const VALID_SUBCATEGORIES = new Set<string>(
+  (categoriesFile.categories as { subcategories: { id: string }[] }[]).flatMap((c) =>
+    c.subcategories.map((s) => s.id)
+  )
+)
 if (!Array.isArray(file.listings)) {
   console.error(`${LABEL}: missing listings array`)
   process.exit(1)
@@ -37,6 +47,10 @@ const seenIds = new Set<string>()
   if (typeof l.name !== 'string') err('name must be a string')
   if (!Array.isArray(l.categories) || l.categories.some((c) => typeof c !== 'string'))
     err('categories must be an array of strings')
+  else
+    for (const c of l.categories as string[])
+      if (!VALID_SUBCATEGORIES.has(c))
+        err(`category "${c}" is not a subcategory in sc-theater-service-categories.json`)
   if (typeof l.contact !== 'object' || l.contact === null) err('contact must be an object')
   if (typeof l.active !== 'boolean') err('active must be a boolean')
   if (!isIso8601(l.createdAt)) err('createdAt must be ISO 8601 timestamp')

@@ -212,7 +212,10 @@ only), description?: string }`.
 Category: `{ id, label, subcategories: ServiceSubcategory[] }`.
 Subcategory: `{ id, label, description? }` — `description`, when set, is
 the pill text shown on listing cards (falls back to `label`). Listings
-store only leaf-level subcategory ids, never a top-level category id.
+store only leaf-level subcategory ids, never a top-level category id;
+`check-services.ts` fails the build if a listing references an id that isn't
+a subcategory here, so renaming or removing one means updating the affected
+listings in the same change.
 
 #### `ServiceListing`
 
@@ -580,8 +583,11 @@ construction):
   booleans; ISO 8601 `createdAt`/`updatedAt`; audition-only and event-only
   fields don't appear on the other type.
 - `check-services.ts` — field types; `id` is `service-<timestamp>` and
-  unique; `active` boolean; ISO 8601 timestamps; no `_`-prefixed editor-only
-  fields.
+  unique; every category is a subcategory id in
+  `sc-theater-service-categories.json` (the editor can only pick existing
+  ones, but that file is hand-edited — renaming or removing a subcategory
+  fails the build until the affected listings are updated); `active` boolean;
+  ISO 8601 timestamps; no `_`-prefixed editor-only fields.
 
 ## 10. Local development
 

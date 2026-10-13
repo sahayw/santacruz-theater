@@ -174,7 +174,9 @@ link.
 **What an editor controls**: this dataset is admin-only. Categories and
 subcategories are their own hand-edited file (a category's display pill
 text can differ from its label — "Headshot Photography" rather than
-"Headshots", say). A listing picks one or more subcategories through the
+"Headshots", say). Changing a pill's text is safe; renaming or removing a
+subcategory stops the site building until every listing using it is moved to
+another category. A listing picks one or more subcategories through the
 same two-level control used on the public filter, uploads an optional
 photo, and can be toggled active/inactive — inactive listings are hidden
 from the public site without being deleted, the same "keep the record,

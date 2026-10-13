@@ -69,9 +69,9 @@ export function renderMd(raw: string) {
         '<a href="$2" target="_blank" rel="noopener">$1</a>'
       )
   const lines = escapeHtml(raw).replace(/\r\n?/g, '\n').split('\n')
-  const blocks = []
-  let paragraphLines = []
-  let listItems = []
+  const blocks: string[] = []
+  let paragraphLines: string[] = []
+  let listItems: string[] = []
 
   const flushParagraph = () => {
     if (paragraphLines.length) blocks.push(paragraphLines.map(renderInline).join('\n'))

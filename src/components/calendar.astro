@@ -1695,7 +1695,8 @@ const filterCompanies = companiesData.companies.filter((c) => activeCompanyCodes
     window.scrollTo(0, 0)
   }
 
-  function openSheet(dateStr, runId = null) {
+  async function openSheet(dateStr, runId = null) {
+    const renderMd = await renderMdPromise
     let perfs = perfsByDate(filteredPerfs)[dateStr] || []
     if (runId) perfs = perfs.filter((p) => p.runId === runId)
     if (!perfs.length) return

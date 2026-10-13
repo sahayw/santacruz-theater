@@ -145,12 +145,14 @@
       "showAbv": "Machinal",
       "show": "Machinal",
       "description": "Play by Sophie Treadwell.\nDirected by Robin Aronson.\nFirst performed on Broadway in 1928 and inspired by a sensational, media-frenzied murder trial, Machinal is a rare treasure of American Expressionism by a female playwright that tells the electrifying story of a Young Woman who, trapped by stifling expectations in a hard, mechanized society, performs an act of desperation to free herself, only to pay the ultimate price.",
-      "genre": "Drama",
+      "genre": [
+        "Drama"
+      ],
       "venue": "Cabrillo Crocker Theater",
-      "price": "",
-      "discounts": "",
+      "price": "$23-30",
+      "discounts": "Senior, Student",
       "infoUrl": "",
-      "ticketsUrl": "",
+      "ticketsUrl": "https://cabrillovapa.universitytickets.com/w/event.aspx?id=2130",
       "performances": [
         {
           "date": "2026-10-30",

@@ -449,17 +449,17 @@
     {
       "id": "run-1786676538445",
       "company": "renegade",
-      "showAbv": "Romeo",
-      "show": "Romeo + Juliet",
+      "showAbv": "Romeo & Juliet",
+      "show": "Romeo and Juliet",
       "description": "",
       "genre": [
         "Drama"
       ],
-      "venue": "",
-      "price": "",
-      "discounts": "",
+      "venue": "London Nelson Community Center",
+      "price": "$33.42",
+      "discounts": "Student: $28.22",
       "infoUrl": "",
-      "ticketsUrl": "",
+      "ticketsUrl": "https://onthestage.tickets/show/renegade-theater-co/6ab80d030bee17532f888ac4/tickets#/productions-view",
       "performances": []
     }
   ]

@@ -1,5 +1,6 @@
 import { IS_DEV, apiFetch, apiPut, buildCompanyOptions } from './api.js'
 import { fmt12, fmtFullDate, renderMd } from '/admin/audition-format.js'
+import { markdownToolbar } from './markdown-editor.js'
 
 const PERF_TYPES = ['', 'Preview', 'Opening', 'Closing', 'Talk-back']
 const MONTH_MAP = {
@@ -217,23 +218,6 @@ const CAL_CSS = `
   gap: 4px;
 }
 .desc-toolbar { display: flex; align-items: center; gap: 6px; }
-.desc-fmt-btns { display: flex; gap: 3px; }
-.desc-fmt-btn {
-  font-family: 'IBM Plex Sans', sans-serif;
-  font-size: 11px;
-  width: 22px; height: 20px;
-  border: 1px solid var(--border);
-  border-radius: 2px;
-  background: var(--surface);
-  color: var(--ink);
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0;
-  line-height: 1;
-}
-.desc-fmt-btn:hover { background: var(--bg); border-color: var(--ink-mid); }
 .desc-expand-btn {
   margin-left: auto;
   font-size: 13px;
@@ -590,14 +574,11 @@ const CAL_HTML = `
       <div class="desc-section">
         <div class="desc-toolbar">
           <label class="field-label" style="margin-bottom:0">Description</label>
-          <div class="desc-fmt-btns">
-            <button class="desc-fmt-btn" onclick="cal.fmtDesc('bold')" title="Bold"><strong>B</strong></button>
-            <button class="desc-fmt-btn" onclick="cal.fmtDesc('italic')" title="Italic"><em>I</em></button>
-          </div>
+          ${markdownToolbar('f-description')}
           <button class="desc-expand-btn" id="descExpandBtn" onclick="cal.toggleDescExpand()" title="Expand / collapse">↕</button>
         </div>
         <textarea class="field-input desc-textarea" id="f-description" rows="1"
-          placeholder="Brief narrative — supports **bold** and *italic*"
+          data-markdown-editor placeholder="Brief narrative"
           oninput="cal.runFieldChanged()"></textarea>
       </div>
 
@@ -1059,27 +1040,6 @@ function toggleDescExpand() {
   const btn = document.getElementById('descExpandBtn')
   ta.classList.toggle('expanded')
   btn.textContent = ta.classList.contains('expanded') ? '↑' : '↕'
-}
-
-function fmtDesc(type) {
-  const ta = document.getElementById('f-description')
-  const s = ta.selectionStart,
-    e = ta.selectionEnd
-  const sel = ta.value.slice(s, e)
-  const m = type === 'bold' ? '**' : '*'
-  let newVal, ns, ne
-  if (sel) {
-    newVal = ta.value.slice(0, s) + m + sel + m + ta.value.slice(e)
-    ns = s + m.length
-    ne = e + m.length
-  } else {
-    newVal = ta.value.slice(0, s) + m + m + ta.value.slice(e)
-    ns = ne = s + m.length
-  }
-  ta.value = newVal
-  ta.setSelectionRange(ns, ne)
-  ta.focus()
-  runFieldChanged()
 }
 
 // ── RUN CRUD ──
@@ -1794,7 +1754,6 @@ export function mount(container, context) {
     genreChanged,
     runFieldChanged,
     toggleDescExpand,
-    fmtDesc,
     addRow,
     deleteRow,
     cellChanged,

@@ -120,7 +120,12 @@ function roleTypeLabel(type: string): string {
                   data-genre={act.genre.join(',')}
                   data-latest-date={latest}
                   data-type={act.type}
-                  data-virtual={act.type === 'audition' && act.virtualSubmission ? 'true' : undefined}
+                  data-virtual={
+                    act.type === 'audition' && act.virtualSubmission ? 'true' : undefined
+                  }
+                  data-dates-by-request={
+                    act.type === 'event' && act.datesByRequest ? 'true' : undefined
+                  }
                   data-closed={act.closed ? 'true' : undefined}
                 >
                   {/* ── Collapsed summary ── */}
@@ -161,11 +166,15 @@ function roleTypeLabel(type: string): string {
                         Past
                       </span>
                       <span class="aud-date-range">
-                        {act.type === 'audition' &&
-                        act.virtualSubmission &&
+                        {act.type === 'event' &&
+                        act.datesByRequest &&
                         !act.dates.some((d) => d.date)
-                          ? 'Virtual submission'
-                          : fmtAudDateRange(act.dates)}
+                          ? 'On request'
+                          : act.type === 'audition' &&
+                              act.virtualSubmission &&
+                              !act.dates.some((d) => d.date)
+                            ? 'Virtual submission'
+                            : fmtAudDateRange(act.dates)}
                       </span>
                       <span class="aud-chevron" aria-hidden="true" />
                     </div>
@@ -337,6 +346,9 @@ function roleTypeLabel(type: string): string {
                         <div class="detail-left">
                           <section class="detail-section">
                             <h4 class="detail-section-head">Dates</h4>
+                            {act.datesByRequest && !act.dates.some((d) => d.date) && (
+                              <p class="detail-virtual-note">On request</p>
+                            )}
                             {(() => {
                               const _locs = act.dates.map((d) => d.location?.name).filter(Boolean)
                               const _shared =
@@ -463,9 +475,8 @@ function roleTypeLabel(type: string): string {
                                 <div
                                   class="detail-sub"
                                   style="font-size:13px;color:var(--ink);line-height:1.55;white-space:pre-wrap"
-                                >
-                                  {act.description}
-                                </div>
+                                  set:html={renderMd(act.description)}
+                                />
                               </section>
                             )}
                           </div>
@@ -1263,12 +1274,11 @@ function roleTypeLabel(type: string): string {
   const filterShow = document.getElementById('filter-show')
   const emptyEl = document.getElementById('aud-empty')
 
-  // A card is "not upcoming" if it's closed, or (unless it's a virtual
-  // submission) its latest date is in the past. Drives the Past/Closed pips
-  // and the "upcoming" filters.
+  // Date-free virtual auditions and by-request events stay upcoming until closed.
   function notUpcoming(card) {
     if (card.dataset.closed === 'true') return true
     if (card.dataset.virtual === 'true') return false
+    if (card.dataset.datesByRequest === 'true' && !card.dataset.latestDate) return false
     return (card.dataset.latestDate ?? '') < TODAY
   }
 

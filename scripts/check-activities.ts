@@ -35,8 +35,8 @@ function err(file: string, msg: string) {
 let yearDirs: string[] = []
 try {
   yearDirs = readdirSync(ACTIVITIES_ROOT, { withFileTypes: true })
-    .filter(d => d.isDirectory())
-    .map(d => d.name)
+    .filter((d) => d.isDirectory())
+    .map((d) => d.name)
 } catch {
   console.log('No data/activities/ directory found — skipping check.')
   process.exit(0)
@@ -44,7 +44,7 @@ try {
 
 for (const year of yearDirs) {
   const dir = join(ACTIVITIES_ROOT, year)
-  const files = readdirSync(dir).filter(f => FILE_RE.test(f))
+  const files = readdirSync(dir).filter((f) => FILE_RE.test(f))
 
   for (const file of files) {
     const label = `activities/${year}/${file}`
@@ -59,37 +59,54 @@ for (const year of yearDirs) {
     const f = raw as Record<string, unknown>
     if (typeof f.company !== 'string') err(label, 'missing company string')
     if (typeof f.year !== 'number') err(label, 'missing year number')
-    if (!Array.isArray(f.activities)) { err(label, 'missing activities array'); continue }
+    if (!Array.isArray(f.activities)) {
+      err(label, 'missing activities array')
+      continue
+    }
 
     const acts = f.activities as Record<string, unknown>[]
     for (let i = 0; i < acts.length; i++) {
       const a = acts[i]
       const al = `${label} activity[${i}] (${a.id || 'no-id'})`
 
-      if (typeof a.id !== 'string' || !a.id.startsWith('activity-')) err(al, 'id must be "activity-<timestamp>"')
-      if (!VALID_TYPES.has(a.type as string)) err(al, `type must be "audition" or "event", got: ${a.type}`)
+      if (typeof a.id !== 'string' || !a.id.startsWith('activity-'))
+        err(al, 'id must be "activity-<timestamp>"')
+      if (!VALID_TYPES.has(a.type as string))
+        err(al, `type must be "audition" or "event", got: ${a.type}`)
       if (typeof a.title !== 'string' || !a.title) err(al, 'title is required')
       if (!Array.isArray(a.genre)) err(al, 'genre must be an array')
-      else (a.genre as unknown[]).forEach((g, gi) => {
-        if (!VALID_GENRES.has(g as string)) err(al, `genre[${gi}] invalid: ${g}`)
-      })
+      else
+        (a.genre as unknown[]).forEach((g, gi) => {
+          if (!VALID_GENRES.has(g as string)) err(al, `genre[${gi}] invalid: ${g}`)
+        })
 
       const isVirtual = a.type === 'audition' && a.virtualSubmission === true
+      const datesByRequest = a.type === 'event' && a.datesByRequest === true
       if (!Array.isArray(a.dates)) {
         err(al, 'dates must be an array')
       } else if ((a.dates as unknown[]).length === 0) {
-        if (!isVirtual) err(al, 'dates must be a non-empty array (unless virtualSubmission is set)')
+        if (!isVirtual && !datesByRequest) {
+          err(
+            al,
+            'dates must be a non-empty array (unless virtualSubmission or datesByRequest is set)'
+          )
+        }
       } else {
         const dates = a.dates as Record<string, unknown>[]
         dates.forEach((d, di) => {
           const dl = `${al} dates[${di}]`
           if (!isDate(d.date)) err(dl, `date must be YYYY-MM-DD, got: ${d.date}`)
           if (!isTime(d.startTime)) err(dl, `startTime must be HH:MM, got: ${d.startTime}`)
-          if (d.endTime !== undefined && !isTime(d.endTime)) err(dl, `endTime must be HH:MM if present, got: ${d.endTime}`)
+          if (d.endTime !== undefined && !isTime(d.endTime))
+            err(dl, `endTime must be HH:MM if present, got: ${d.endTime}`)
         })
       }
 
-      if (a.closed !== undefined && typeof a.closed !== 'boolean') err(al, 'closed must be a boolean if present')
+      if (a.closed !== undefined && typeof a.closed !== 'boolean')
+        err(al, 'closed must be a boolean if present')
+      if (a.datesByRequest !== undefined && typeof a.datesByRequest !== 'boolean') {
+        err(al, 'datesByRequest must be a boolean if present')
+      }
 
       if (!isIso8601(a.createdAt)) err(al, 'createdAt must be ISO 8601 timestamp')
       if (!isIso8601(a.updatedAt)) err(al, 'updatedAt must be ISO 8601 timestamp')
@@ -103,15 +120,21 @@ for (const year of yearDirs) {
             const roles = a.rolesAvailable as Record<string, unknown>[]
             roles.forEach((r, ri) => {
               if (typeof r.role !== 'string') err(al, `roles[${ri}].role must be string`)
-              if (!VALID_ROLE_TYPES.has(r.type as string)) err(al, `roles[${ri}].type invalid: ${r.type}`)
-              if (!VALID_GENDERS.has(r.gender as string)) err(al, `roles[${ri}].gender invalid: ${r.gender}`)
+              if (!VALID_ROLE_TYPES.has(r.type as string))
+                err(al, `roles[${ri}].type invalid: ${r.type}`)
+              if (!VALID_GENDERS.has(r.gender as string))
+                err(al, `roles[${ri}].gender invalid: ${r.gender}`)
             })
           }
         }
-        if (a.rehearsalStart !== undefined && !isDate(a.rehearsalStart)) err(al, `rehearsalStart must be YYYY-MM-DD, got: ${a.rehearsalStart}`)
-        if (a.openingDate !== undefined && !isDate(a.openingDate)) err(al, `openingDate must be YYYY-MM-DD, got: ${a.openingDate}`)
-        if (a.virtualSubmission !== undefined && typeof a.virtualSubmission !== 'boolean') err(al, 'virtualSubmission must be a boolean if present')
+        if (a.rehearsalStart !== undefined && !isDate(a.rehearsalStart))
+          err(al, `rehearsalStart must be YYYY-MM-DD, got: ${a.rehearsalStart}`)
+        if (a.openingDate !== undefined && !isDate(a.openingDate))
+          err(al, `openingDate must be YYYY-MM-DD, got: ${a.openingDate}`)
+        if (a.virtualSubmission !== undefined && typeof a.virtualSubmission !== 'boolean')
+          err(al, 'virtualSubmission must be a boolean if present')
         // Flag event-only fields used on audition
+        if (a.datesByRequest !== undefined) err(al, 'datesByRequest is event-only')
         if (a.briefDescription !== undefined) err(al, 'briefDescription is event-only')
         if (a.cost !== undefined) err(al, 'cost is event-only')
       }
@@ -131,7 +154,7 @@ for (const year of yearDirs) {
 
 if (errors.length) {
   console.error(`\nActivities validation failed — ${errors.length} error(s):\n`)
-  errors.forEach(e => console.error('  ✗', e))
+  errors.forEach((e) => console.error('  ✗', e))
   process.exit(1)
 } else {
   console.log('Activities validation passed.')

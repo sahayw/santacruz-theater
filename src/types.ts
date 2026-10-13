@@ -17,7 +17,7 @@ export interface Run {
   company: string
   showAbv: string // short display label, e.g. "Much Ado"
   show: string // full title, e.g. "Much Ado About Nothing (Shakespeare)"
-  description?: string // optional narrative paragraph; supports **bold** and *italic*
+  description?: string // optional narrative; supports bold, italic, links, and bullet lists
   genre: Genre[]
   venue: string
   price: string
@@ -100,7 +100,7 @@ export interface Activity {
   type: ActivityType
   title: string // production name (audition) or event name
   briefDescription?: string // event only: short blurb for collapsed card header
-  description?: string // full description; supports **bold** and *italic*
+  description?: string // full description; supports bold, italic, links, and bullet lists
   genre: Genre[]
   dates: ActivityDate[]
   organizerName?: string // required when company is "other"
@@ -108,6 +108,7 @@ export interface Activity {
   rolesAvailable?: AuditionRole[] // audition only; suppressed when empty
   prep?: AuditionPrep // audition only
   virtualSubmission?: boolean // audition only; no scheduled dates — always "upcoming" until closed
+  datesByRequest?: boolean // event only; no scheduled dates — always "upcoming" until closed
   closed?: boolean // either type; retained but excluded from "upcoming" (retire without deleting)
   rehearsalStart?: string // audition only; YYYY-MM-DD
   openingDate?: string // audition only; YYYY-MM-DD
@@ -158,7 +159,7 @@ export interface ServiceListing {
   contact: ServiceContact
   photo?: string // local path e.g. "/images/services/jane-smith.jpg"
   url?: string
-  description?: string // supports **bold** and *italic*
+  description?: string // supports bold, italic, links, and bullet lists
   active: boolean
   createdAt: string
   updatedAt: string

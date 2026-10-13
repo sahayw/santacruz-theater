@@ -1,4 +1,6 @@
 import { IS_DEV, apiFetch, apiPut, apiUploadImage } from './api.js'
+import { markdownToolbar } from './markdown-editor.js'
+import { renderMd } from '/admin/audition-format.js'
 
 const STYLES_ID = 'svc-editor-styles'
 const FILE_PATH = 'sc-theater-services.json'
@@ -236,10 +238,6 @@ const SVC_CSS = `
   background: var(--bg);
   display: flex; flex-direction: column; gap: 4px;
 }
-.svc-desc-head {
-  font-size: 9px; font-weight: 500; text-transform: uppercase;
-  letter-spacing: 0.08em; color: var(--ink-mid);
-}
 .svc-desc-textarea {
   font-family: 'IBM Plex Mono', monospace; font-size: 12px;
   padding: 4px 7px; border: 1px solid var(--border); border-radius: 3px;
@@ -441,9 +439,9 @@ const SVC_HTML = `
 
         <!-- Description -->
         <div class="svc-desc-section">
-          <div class="svc-desc-head">Description — supports **bold**, *italic*, and [link text](https://url)</div>
+          ${markdownToolbar('sf-desc')}
           <textarea class="svc-desc-textarea" id="sf-desc" rows="8"
-            placeholder="Full description…" oninput="svcEd.fieldChanged()"></textarea>
+            data-markdown-editor placeholder="Full description…" oninput="svcEd.fieldChanged()"></textarea>
         </div>
 
       </div><!-- /.svc-scroll-body -->
@@ -945,34 +943,32 @@ async function saveFile() {
 }
 
 // ── PREVIEW ──
-function renderDesc(raw) {
-  return String(raw || '')
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-    .replace(/\*([^*\n]+?)\*/g, '<em>$1</em>')
-    .replace(/\[([^\]]+)\]\((https?:\/\/[^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>')
-}
-
 function openPreview() {
   if (activeIdx < 0) return
   const l = listings[activeIdx]
-  const photoSrc = pendingUpload ? pendingUpload.dataUrl : (l._photoDataUrl || l.photo || null)
+  const photoSrc = pendingUpload ? pendingUpload.dataUrl : l._photoDataUrl || l.photo || null
 
   const pillsHtml = (l.categories || [])
     .map((catId) => `<span class="spv-pill">${esc(subPillMap[catId] ?? catId)}</span>`)
     .join('')
 
   const contactHtml = [
-    l.contact?.name    ? `<span class="spv-contact-name">${esc(l.contact.name)}</span>` : '',
-    l.contact?.tel     ? `<a href="tel:${esc(l.contact.tel)}" class="spv-contact-link">${esc(l.contact.tel)}</a>` : '',
-    l.contact?.email   ? `<a href="mailto:${esc(l.contact.email)}" class="spv-contact-link">${esc(l.contact.email)}</a>` : '',
-    l.contact?.address ? `<span class="spv-contact-address">${esc(l.contact.address)}</span>` : '',
-  ].filter(Boolean).join('')
+    l.contact?.name ? `<span class="spv-contact-name">${esc(l.contact.name)}</span>` : '',
+    l.contact?.tel
+      ? `<a href="tel:${esc(l.contact.tel)}" class="spv-contact-link">${esc(l.contact.tel)}</a>`
+      : '',
+    l.contact?.email
+      ? `<a href="mailto:${esc(l.contact.email)}" class="spv-contact-link">${esc(l.contact.email)}</a>`
+      : '',
+    l.contact?.address ? `<span class="spv-contact-address">${esc(l.contact.address)}</span>` : ''
+  ]
+    .filter(Boolean)
+    .join('')
 
-  const descHtml = l.description ? `<div class="spv-desc">${renderDesc(l.description)}</div>` : ''
-  const urlHtml  = l.url ? `<div class="spv-url-row"><a href="${esc(l.url)}" class="spv-action-link" target="_blank" rel="noopener">More info →</a></div>` : ''
+  const descHtml = l.description ? `<div class="spv-desc">${renderMd(l.description)}</div>` : ''
+  const urlHtml = l.url
+    ? `<div class="spv-url-row"><a href="${esc(l.url)}" class="spv-action-link" target="_blank" rel="noopener">More info →</a></div>`
+    : ''
 
   document.getElementById('svcPreviewBody').innerHTML = `
     <div class="spv-card">

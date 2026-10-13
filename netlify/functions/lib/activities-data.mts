@@ -29,8 +29,8 @@ export function loadAllActivities(): DigestActivity[] {
   let yearDirs: string[] = []
   try {
     yearDirs = readdirSync(ACTIVITIES_ROOT, { withFileTypes: true })
-      .filter(d => d.isDirectory())
-      .map(d => d.name)
+      .filter((d) => d.isDirectory())
+      .map((d) => d.name)
   } catch (e) {
     console.error('activities-data: failed to read activities directory:', e)
     return activities
@@ -40,7 +40,7 @@ export function loadAllActivities(): DigestActivity[] {
     const dir = join(ACTIVITIES_ROOT, year)
     let files: string[] = []
     try {
-      files = readdirSync(dir).filter(f => FILE_RE.test(f))
+      files = readdirSync(dir).filter((f) => FILE_RE.test(f))
     } catch (e) {
       console.error(`activities-data: failed to read ${dir}:`, e)
       continue
@@ -66,10 +66,20 @@ export function loadAllActivities(): DigestActivity[] {
   return activities
 }
 
-export function isUpcoming(a: DigestActivity, todayStr = new Date().toISOString().slice(0, 10)): boolean {
+export function isUpcoming(
+  a: DigestActivity,
+  todayStr = new Date().toISOString().slice(0, 10)
+): boolean {
   if (a.closed) return false
   if (a.virtualSubmission) return true // no scheduled dates — always current until closed
-  return (a.dates.map(d => d.date).filter(Boolean).sort().pop() ?? '') >= todayStr
+  if (a.type === 'event' && a.datesByRequest && !a.dates.some((d) => d.date)) return true
+  return (
+    (a.dates
+      .map((d) => d.date)
+      .filter(Boolean)
+      .sort()
+      .pop() ?? '') >= todayStr
+  )
 }
 
 function byEarliestDate(a: DigestActivity, b: DigestActivity) {
@@ -77,32 +87,44 @@ function byEarliestDate(a: DigestActivity, b: DigestActivity) {
 }
 
 export function getUpcomingActivities(activities: DigestActivity[]): DigestActivity[] {
-  return activities.filter(a => isUpcoming(a)).sort(byEarliestDate)
+  return activities.filter((a) => isUpcoming(a)).sort(byEarliestDate)
 }
 
 export function getUpcomingAuditions(activities: DigestActivity[]): DigestActivity[] {
-  return activities.filter(a => a.type === 'audition' && isUpcoming(a)).sort(byEarliestDate)
+  return activities.filter((a) => a.type === 'audition' && isUpcoming(a)).sort(byEarliestDate)
 }
 
 export function getUpcomingEvents(activities: DigestActivity[]): DigestActivity[] {
-  return activities.filter(a => a.type === 'event' && isUpcoming(a)).sort(byEarliestDate)
+  return activities.filter((a) => a.type === 'event' && isUpcoming(a)).sort(byEarliestDate)
 }
 
 export function classifyForDigest(activities: DigestActivity[], lastSent: Date) {
   const newAuditions = activities
-    .filter(a => a.type === 'audition' && new Date(a.createdAt) > lastSent)
+    .filter((a) => a.type === 'audition' && new Date(a.createdAt) > lastSent)
     .sort(byEarliestDate)
 
   const updatedAuditions = activities
-    .filter(a => a.type === 'audition' && new Date(a.updatedAt) > lastSent && new Date(a.createdAt) <= lastSent && isUpcoming(a))
+    .filter(
+      (a) =>
+        a.type === 'audition' &&
+        new Date(a.updatedAt) > lastSent &&
+        new Date(a.createdAt) <= lastSent &&
+        isUpcoming(a)
+    )
     .sort(byEarliestDate)
 
   const newEvents = activities
-    .filter(a => a.type === 'event' && new Date(a.createdAt) > lastSent)
+    .filter((a) => a.type === 'event' && new Date(a.createdAt) > lastSent)
     .sort(byEarliestDate)
 
   const updatedEvents = activities
-    .filter(a => a.type === 'event' && new Date(a.updatedAt) > lastSent && new Date(a.createdAt) <= lastSent && isUpcoming(a))
+    .filter(
+      (a) =>
+        a.type === 'event' &&
+        new Date(a.updatedAt) > lastSent &&
+        new Date(a.createdAt) <= lastSent &&
+        isUpcoming(a)
+    )
     .sort(byEarliestDate)
 
   return { newAuditions, updatedAuditions, newEvents, updatedEvents }

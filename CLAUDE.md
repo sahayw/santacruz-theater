@@ -8,25 +8,25 @@ The site is a hub (`/`) linking to four sections: **Calendar** (`/calendar`), **
 
 ## Documentation map
 
-| Doc | What it's for |
-| --- | --- |
-| `CLAUDE.md` (this file) | Agent orientation: where things are, conventions, gotchas |
-| [`docs/feature-guide.md`](docs/feature-guide.md) | **Canonical description of what the system does** — every public-facing and editorial capability, written for anyone (not just editors) who wants the full picture without exploring the site. Read this to understand a feature before changing it. |
-| [`docs/implementation.md`](docs/implementation.md) | **Canonical technical reference** — data schemas, data flow, the `/admin` SPA, shared modules, functions, email, env vars, build/deploy. Read this before touching code. |
-| [`docs/google-calendar-sync.md`](docs/google-calendar-sync.md) | Google Calendar mirror — design, field mapping, API gotchas. Kept separate; still under active development. |
-| `README.md` | GitHub-facing intro + quick start; points here for depth |
+| Doc                                                            | What it's for                                                                                                                                                                                                                                        |
+| -------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `CLAUDE.md` (this file)                                        | Agent orientation: where things are, conventions, gotchas                                                                                                                                                                                            |
+| [`docs/feature-guide.md`](docs/feature-guide.md)               | **Canonical description of what the system does** — every public-facing and editorial capability, written for anyone (not just editors) who wants the full picture without exploring the site. Read this to understand a feature before changing it. |
+| [`docs/implementation.md`](docs/implementation.md)             | **Canonical technical reference** — data schemas, data flow, the `/admin` SPA, shared modules, functions, email, env vars, build/deploy. Read this before touching code.                                                                             |
+| [`docs/google-calendar-sync.md`](docs/google-calendar-sync.md) | Google Calendar mirror — design, field mapping, API gotchas. Kept separate; still under active development.                                                                                                                                          |
+| `README.md`                                                    | GitHub-facing intro + quick start; points here for depth                                                                                                                                                                                             |
 
 **When you change a feature or its data shape, update `docs/implementation.md` (schema/mechanics) and `docs/feature-guide.md` (user-visible behavior) in the same change — don't let them drift from the code or each other.**
 
 ## Key commands
 
-| Command           | Action                                                                                                          |
-| ----------------- | ------------------------------------------------------------------------------------------------------------- |
-| `npm run dev`     | `netlify dev` at localhost:8888 — the whole system: public pages, functions, and the `/admin` editor          |
-| `npm run check`   | Validate all data JSON (syntax + show schema + activity schema)                                               |
-| `npm run build`   | `npm run check` then Astro build to `dist/` — this is Netlify's build command, not something you run by hand   |
-| `npm run sync`    | Pull live `/admin` data edits into local `main` + `dev`. Run at the start of a feature branch.                 |
-| `npm run release` | Sync, then promote `dev` → `main` (deploy) and back-merge. Prompts, listing the commits it will ship.          |
+| Command           | Action                                                                                                       |
+| ----------------- | ------------------------------------------------------------------------------------------------------------ |
+| `npm run dev`     | `netlify dev` at localhost:8888 — the whole system: public pages, functions, and the `/admin` editor         |
+| `npm run check`   | Validate all data JSON (syntax + show schema + activity schema)                                              |
+| `npm run build`   | `npm run check` then Astro build to `dist/` — this is Netlify's build command, not something you run by hand |
+| `npm run sync`    | Pull live `/admin` data edits into local `main` + `dev`. Run at the start of a feature branch.               |
+| `npm run release` | Sync, then promote `dev` → `main` (deploy) and back-merge. Prompts, listing the commits it will ship.        |
 
 There is no bare `astro dev` / `astro preview` script — `npm run dev` (netlify dev) covers both. Use `npx astro dev` directly if you ever want the lighter server without functions (the `/admin` editor won't load data there).
 
@@ -45,9 +45,9 @@ There is no bare `astro dev` / `astro preview` script — `npm run dev` (netlify
 
 ## Cross-cutting rules — easy to miss, don't skip
 
-- **The "upcoming" rule for activities** (`closed` → never; `virtualSubmission` → always; else latest date ≥ today) is implemented independently in the `/events` client filter, `isUpcoming()` in `activities-data.mts`, and the editor Preview. Keep all three in sync — see `docs/implementation.md` §6.
+- **The "upcoming" rule for activities**: `closed` is never upcoming; virtual auditions without dates and events with `datesByRequest` and no dates stay upcoming; otherwise the latest date must be today or later. It is implemented in the `/events` client filter, `isUpcoming()` in `activities-data.mts`, and the editor Preview. Keep all three in sync — see `docs/implementation.md` §6.
 - **Activity cards have four rendering paths**: the public Astro template, the deep-link view (inherits automatically), the editor's `buildPreviewHtml()`, and `email-template.mts`. A card-display change needs all four checked.
-- **Three separate markdown renderers exist** and are not the same function: `audition-format.ts`'s `renderMd()` (bold/italic/links, shared by events + email + editor), `calendar.astro`'s local `renderMd()` (bold/italic only, show descriptions), and `services.astro`'s `renderDesc()` (duplicated again client-side in `services.js`'s Preview). Changing markdown rules means touching the right one(s) deliberately.
+- **Rich-text fields share one Markdown renderer**: `src/lib/audition-format.ts`'s `renderMd()` escapes HTML and formats bold, italic, HTTP(S) links, and unordered lists. Activity, calendar, and service public views and editor previews must use it. Their textareas share the toolbar/shortcut logic in `public/admin/markdown-editor.js`; don't add local Markdown renderers.
 - **Data schema changes** need updating `docs/implementation.md` §3, the relevant `check-*.ts` validator, and usually `docs/feature-guide.md`.
 - **`data.mjs` / `upload-image.mjs` have two modes** (GitHub API in prod, local filesystem under `netlify dev`) — see `docs/implementation.md` §4/§10 before changing either.
 

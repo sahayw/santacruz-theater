@@ -120,8 +120,10 @@
       "company": "renegade",
       "showAbv": "Cry Baby",
       "show": "Cry Baby (Teen show)",
-      "genre": "Musical",
-      "venue": "",
+      "genre": [
+        "Musical"
+      ],
+      "venue": "London Nelson Community Center",
       "price": "",
       "discounts": "",
       "infoUrl": "https://renegadetheaterco.org/2026/cry-baby.html",

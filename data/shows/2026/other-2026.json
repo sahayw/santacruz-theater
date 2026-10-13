@@ -464,6 +464,44 @@
           "ticketsUrl": ""
         }
       ]
+    },
+    {
+      "id": "run-1791918917067",
+      "company": "other",
+      "showAbv": "39 Steps",
+      "show": "The 39 Steps, Abridged",
+      "description": "The 39 Steps is a parody play adapted from the 1935 film by Alfred Hitchcock",
+      "genre": [
+        "Comedy"
+      ],
+      "venue": "Cabrillo Black Box Theater",
+      "price": "",
+      "discounts": "",
+      "infoUrl": "",
+      "ticketsUrl": "",
+      "performances": [
+        {
+          "date": "2026-11-20",
+          "time": "19:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-11-21",
+          "time": "19:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-11-22",
+          "time": "14:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        }
+      ]
     }
   ]
 }

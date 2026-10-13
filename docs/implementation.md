@@ -571,13 +571,18 @@ the build; *warning* asks "Save anyway?" (changed records only) / is printed.
 The editor drops blank activity date rows (no date and no start time) before
 applying the rules, matching what it saves.
 
+Warnings are skipped for **historic runs** — last performance date before
+today (`todayIso()`, local time) — in `runIssues()` and for
+`check-shows.ts`'s ordering warning, so past seasons don't add noise. Errors
+still apply to them. A run with no performances isn't historic.
+
 **Structural checks** (check scripts only — the editors guarantee these by
 construction):
 
 - `check-shows.ts` — field types; `company` is a known company id; genres
   valid and ≤ 2 (`MAX_GENRES`, after coercing legacy single-string values);
   `perfType` valid; run ids unique across files. Warns on performances not in
-  date/time order.
+  date/time order (not for historic runs).
 - `check-activities.ts` — field types; `id` is `activity-<timestamp>`; `type`
   is `audition`/`event`; genres valid; role `type`/`gender` valid; booleans are
   booleans; ISO 8601 `createdAt`/`updatedAt`; audition-only and event-only

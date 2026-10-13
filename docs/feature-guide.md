@@ -253,7 +253,8 @@ will build, and anything it would refuse fails the build.
 ### What's required
 
 **Required** fields block Save until they're filled in. **Recommended**
-fields can be left empty, but Save asks "Save anyway?" first.
+fields can be left empty, but Save asks "Save anyway?" first — except for a
+run whose last performance has already passed, which is never asked about.
 
 **Calendar run**
 

@@ -8,7 +8,7 @@ import { readdirSync, readFileSync } from 'fs'
 import { resolve, join } from 'path'
 import { fileURLToPath } from 'url'
 import type { Genre, PerfType, Run, ShowsFile, PerformanceEvent } from '../src/types.ts'
-import { MAX_GENRES, runIssues } from '../src/lib/data-rules.ts'
+import { MAX_GENRES, runIssues, todayIso } from '../src/lib/data-rules.ts'
 
 const __dirname = resolve(fileURLToPath(import.meta.url), '..')
 const root = resolve(__dirname, '..')
@@ -21,6 +21,7 @@ const companiesJson = JSON.parse(
 const VALID_COMPANIES = new Set<string>(companiesJson.companies.map((c: { id: string }) => c.id))
 const VALID_GENRES = new Set<Genre>(['Drama', 'Musical', 'Comedy', 'Other'])
 const VALID_PERF_TYPES = new Set<PerfType>(['', 'Preview', 'Opening', 'Closing', 'Talk-back'])
+const today = todayIso()
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/
 const TIME_RE = /^\d{2}:\d{2}$/
 
@@ -88,6 +89,9 @@ function validateShowsFile(
     assert(Array.isArray(runValue.performances), `${loc}.performances must be an array`)
 
     let previousSortKey = ''
+    // Historic runs (last performance before today) don't get warnings
+    const perfDates = (runValue.performances as { date?: unknown }[]).map((p) => String(p.date))
+    const isHistoric = perfDates.length > 0 && perfDates.every((d) => d < today)
     runValue.performances.forEach((perfValue, perfIndex) => {
       const ploc = `${loc}.performances[${perfIndex}]`
       assert(isRecord(perfValue), `${ploc} must be an object`)
@@ -104,7 +108,7 @@ function validateShowsFile(
       assert(VALID_PERF_TYPES.has(perfType), `${ploc}.perfType has invalid value: ${perfType}`)
 
       const sortKey = `${date}T${time}`
-      if (previousSortKey > sortKey) {
+      if (previousSortKey > sortKey && !isHistoric) {
         orderingWarnings.push(
           `${loc}.performances is not ordered by date/time (${sortKey} after ${previousSortKey})`
         )

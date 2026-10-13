@@ -49,7 +49,14 @@ function firstDateYearIssue(dates: string[], fileYear: number, what: string) {
   return `first ${what} ${first} is in ${yr} — it belongs in the ${yr} file`
 }
 
-export function runIssues(run: Run, fileYear: number): RuleIssues {
+/** Today as `YYYY-MM-DD` in local time. */
+export function todayIso() {
+  const d = new Date()
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+}
+
+/** Warnings are skipped for a historic run — one whose last performance is before `today`. */
+export function runIssues(run: Run, fileYear: number, today = todayIso()): RuleIssues {
   const errors: string[] = []
   const warnings: string[] = []
 
@@ -71,6 +78,12 @@ export function runIssues(run: Run, fileYear: number): RuleIssues {
     'performance'
   )
   if (yearIssue) errors.push(yearIssue)
+
+  const lastDate = run.performances
+    .map((p) => p.date)
+    .sort()
+    .at(-1)
+  if (lastDate && lastDate < today) return { errors, warnings }
 
   if (!run.performances.length) warnings.push('no performances — it won’t appear on the calendar')
   if (isBlank(run.price)) warnings.push('Price is empty')

@@ -360,6 +360,51 @@
           "ticketsUrl": ""
         }
       ]
+    },
+    {
+      "id": "run-1791850043550",
+      "company": "other",
+      "showAbv": "The Flick",
+      "show": "The Flick",
+      "description": "Set in a failing movie theater in central Massachusetts, three employees sweep up spilled popcorn and tend to the last remaining 35-mm film projector in the state. Their daily struggles and quiet heartbreaks in the search for connection remind audiences to hold on to authenticity in hard times.",
+      "genre": [
+        "Comedy"
+      ],
+      "venue": "Theater Arts B100 Studio Theater at UC Santa Cruz",
+      "price": "Free–$20",
+      "discounts": "“Pay What You Like”",
+      "infoUrl": "https://events.ucsc.edu/series/barnstorm-presents-the-flick/",
+      "ticketsUrl": "",
+      "performances": [
+        {
+          "date": "2026-10-29",
+          "time": "19:30",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-10-30",
+          "time": "19:30",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-10-31",
+          "time": "14:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-11-01",
+          "time": "19:30",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        }
+      ]
     }
   ]
 }

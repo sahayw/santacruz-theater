@@ -33,9 +33,9 @@
         "email": "roaronso@cabrillo.edu"
       },
       "productionUrl": "https://www.cabrillo.edu/theatre-arts/",
-      "notes": "Cabrillo College Theatre Arts production of Sophie Treadwell's Machinal, directed by Robin Aronson. Inclusive casting — all students and community actors welcome. Rehearsals Tuesday–Friday evenings 6:30–9:30 PM. Performances October 30 – November 15, 2026. College credit available (TA 29/529, TA 27/527).",
+      "notes": "Cabrillo College Theatre Arts production of Sophie Treadwell's Machinal, directed by Robin Aronson. \nInclusive casting — all students and community actors welcome. \nRehearsals Tuesday–Friday evenings 6:30–9:30 PM. Performances October 30 – November 15, 2026. \nCollege credit available (TA 29/529, TA 27/527).",
       "createdAt": "2026-06-14T12:00:00.000Z",
-      "updatedAt": "2026-06-14T17:57:11.481Z",
+      "updatedAt": "2026-10-13T15:47:28.768Z",
       "rehearsalStart": "2026-08-28",
       "type": "audition",
       "title": "Machinal",
@@ -168,6 +168,23 @@
       ],
       "noticeUrl": "https://three-trials.live/#auditions",
       "productionUrl": "https://three-trials.live/"
+    },
+    {
+      "id": "activity-1791907412501",
+      "type": "event",
+      "title": "Audition Clinic",
+      "genre": [],
+      "dates": [],
+      "createdAt": "2026-10-13T16:03:32.501Z",
+      "updatedAt": "2026-10-13T16:13:23.721Z",
+      "description": "**Does your monologue or song need a tune-up?**\nThis clinic can be used for whatever you need, for example, another eye on a monologue, scene, or song, further physical or vocal development of your pieces, or research into new audition material you haven't tried before.\nPractice in a private, comfortable space.",
+      "datesByRequest": true,
+      "briefDescription": "Individual audition coaching, on request",
+      "cost": "30 min $20, 55 minutes $35",
+      "organizerName": "Dor Atkinson",
+      "contact": {
+        "email": "dorcosbyatkinson@gmail.com"
+      }
     }
   ]
 }

@@ -53,16 +53,59 @@ export function fmtAudDateRange(dates: ActivityDate[]) {
 }
 
 export function renderMd(raw: string) {
-  return raw
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-    .replace(/\*([^*\n]+?)\*/g, '<em>$1</em>')
-    .replace(
-      /\[([^\]]+)\]\((https?:\/\/[^)]+)\)/g,
-      '<a href="$2" target="_blank" rel="noopener">$1</a>'
-    )
+  const escapeHtml = (text: string) =>
+    text
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;')
+  const renderInline = (text: string) =>
+    text
+      .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+      .replace(/\*([^*\n]+?)\*/g, '<em>$1</em>')
+      .replace(
+        /\[([^\]]+)\]\((https?:\/\/[^)]+)\)/g,
+        '<a href="$2" target="_blank" rel="noopener">$1</a>'
+      )
+  const lines = escapeHtml(raw).replace(/\r\n?/g, '\n').split('\n')
+  const blocks = []
+  let paragraphLines = []
+  let listItems = []
+
+  const flushParagraph = () => {
+    if (paragraphLines.length) blocks.push(paragraphLines.map(renderInline).join('\n'))
+    paragraphLines = []
+  }
+  const flushList = () => {
+    if (listItems.length) {
+      blocks.push(
+        `<ul class="md-list" style="margin:0.4em 0;padding-left:1.4em;white-space:normal">${listItems.map((item) => `<li>${item}</li>`).join('')}</ul>`
+      )
+    }
+    listItems = []
+  }
+
+  for (let index = 0; index < lines.length; index++) {
+    const bullet = lines[index].match(/^\s*[-*+]\s+(.+)$/)
+    if (bullet) {
+      flushParagraph()
+      listItems.push(renderInline(bullet[1]))
+    } else if (
+      !lines[index].trim() &&
+      listItems.length &&
+      /^\s*[-*+]\s+/.test(lines[index + 1] || '')
+    ) {
+      continue
+    } else {
+      flushList()
+      paragraphLines.push(lines[index])
+    }
+  }
+
+  flushParagraph()
+  flushList()
+  return blocks.join('\n')
 }
 
 export function rolesSum(roles: AuditionRole[]) {

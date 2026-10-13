@@ -1,36 +1,55 @@
-import { fmtAudDateRange, fmtFullDate, fmtTimeRange, fmtShortDate } from '../../../src/lib/audition-format.ts'
+import {
+  fmtAudDateRange,
+  fmtFullDate,
+  fmtTimeRange,
+  fmtShortDate
+} from '../../../src/lib/audition-format.ts'
 import type { DigestActivity } from './activities-data.mts'
 
 function esc(s: string) {
-  return (s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
+  return (s || '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
 }
 
 function activityBlock(a: DigestActivity, isUpdated: boolean, baseUrl: string) {
   const id = a.id.replace('activity-', '')
   const url = `${baseUrl}/events?id=${id}`
 
-  const dateRows = a.dates.slice(0, 3).map(ad =>
-    `<tr>
+  const dateRows = a.dates
+    .slice(0, 3)
+    .map(
+      (ad) =>
+        `<tr>
       <td style="padding:3px 14px 3px 0;color:#1a1612;font-weight:500;white-space:nowrap">${esc(fmtFullDate(ad.date))}</td>
       <td style="padding:3px 14px 3px 0;color:#6b6259;white-space:nowrap">${esc(fmtTimeRange(ad.startTime, ad.endTime ?? ''))}</td>
       <td style="padding:3px 0;color:#6b6259">${ad.location ? esc(ad.location.name) : ''}</td>
     </tr>`
-  ).join('')
+    )
+    .join('')
 
-  const moreDates = a.dates.length > 3
-    ? `<tr><td colspan="3" style="padding:2px 0;font-size:12px;color:#9c9189">+ ${a.dates.length - 3} more date${a.dates.length - 3 > 1 ? 's' : ''}</td></tr>`
-    : ''
+  const moreDates =
+    a.dates.length > 3
+      ? `<tr><td colspan="3" style="padding:2px 0;font-size:12px;color:#9c9189">+ ${a.dates.length - 3} more date${a.dates.length - 3 > 1 ? 's' : ''}</td></tr>`
+      : ''
 
   const isVirtual = a.type === 'audition' && !!a.virtualSubmission
-  const datesHtml = isVirtual && !a.dates.some(d => d.date)
-    ? `<div style="font-size:13px;color:#6b6259;margin-bottom:10px">Virtual submission &mdash; no scheduled dates. See the audition notice for how to apply.</div>`
-    : `<table style="border-collapse:collapse;font-size:13px;margin-bottom:10px">${dateRows}${moreDates}</table>`
+  const noScheduledDates = !a.dates.some((d) => d.date)
+  const datesHtml =
+    noScheduledDates && isVirtual
+      ? `<div style="font-size:13px;color:#6b6259;margin-bottom:10px">Virtual submission &mdash; no scheduled dates. See the audition notice for how to apply.</div>`
+      : noScheduledDates && a.type === 'event' && a.datesByRequest
+        ? `<div style="font-size:13px;color:#6b6259;margin-bottom:10px">On request</div>`
+        : `<table style="border-collapse:collapse;font-size:13px;margin-bottom:10px">${dateRows}${moreDates}</table>`
 
-  const subLine = a.type === 'audition' && a.openingDate
-    ? `Opens ${fmtShortDate(a.openingDate)}`
-    : a.type === 'event' && a.briefDescription
-      ? a.briefDescription
-      : ''
+  const subLine =
+    a.type === 'audition' && a.openingDate
+      ? `Opens ${fmtShortDate(a.openingDate)}`
+      : a.type === 'event' && a.briefDescription
+        ? a.briefDescription
+        : ''
 
   const linkLabel = a.type === 'event' ? 'View event details' : 'View audition details'
 
@@ -51,7 +70,8 @@ export function buildDigestHtml(
   baseUrl: string
 ) {
   const sections: string[] = []
-  const hasAny = newAuditions.length + updatedAuditions.length + newEvents.length + updatedEvents.length > 0
+  const hasAny =
+    newAuditions.length + updatedAuditions.length + newEvents.length + updatedEvents.length > 0
 
   if (!hasAny) return ''
 
@@ -60,19 +80,30 @@ export function buildDigestHtml(
 
   let first = true
   if (newAuditions.length > 0) {
-    sections.push(hd('New Auditions', !first) + newAuditions.map(a => activityBlock(a, false, baseUrl)).join(''))
+    sections.push(
+      hd('New Auditions', !first) +
+        newAuditions.map((a) => activityBlock(a, false, baseUrl)).join('')
+    )
     first = false
   }
   if (updatedAuditions.length > 0) {
-    sections.push(hd('Updated Auditions', !first) + updatedAuditions.map(a => activityBlock(a, true, baseUrl)).join(''))
+    sections.push(
+      hd('Updated Auditions', !first) +
+        updatedAuditions.map((a) => activityBlock(a, true, baseUrl)).join('')
+    )
     first = false
   }
   if (newEvents.length > 0) {
-    sections.push(hd('New Events', !first) + newEvents.map(a => activityBlock(a, false, baseUrl)).join(''))
+    sections.push(
+      hd('New Events', !first) + newEvents.map((a) => activityBlock(a, false, baseUrl)).join('')
+    )
     first = false
   }
   if (updatedEvents.length > 0) {
-    sections.push(hd('Updated Events', !first) + updatedEvents.map(a => activityBlock(a, true, baseUrl)).join(''))
+    sections.push(
+      hd('Updated Events', !first) +
+        updatedEvents.map((a) => activityBlock(a, true, baseUrl)).join('')
+    )
   }
 
   return `<!DOCTYPE html>
@@ -103,14 +134,20 @@ export function buildDigestHtml(
 </html>`
 }
 
-export function buildWelcomeHtml(auditions: DigestActivity[], events: DigestActivity[], baseUrl: string) {
-  const audBody = auditions.length > 0
-    ? auditions.map(a => activityBlock(a, false, baseUrl)).join('')
-    : `<div style="font-size:14px;color:#6b6259;padding:8px 0 4px">No upcoming auditions right now &mdash; you'll be notified when new ones are posted.</div>`
+export function buildWelcomeHtml(
+  auditions: DigestActivity[],
+  events: DigestActivity[],
+  baseUrl: string
+) {
+  const audBody =
+    auditions.length > 0
+      ? auditions.map((a) => activityBlock(a, false, baseUrl)).join('')
+      : `<div style="font-size:14px;color:#6b6259;padding:8px 0 4px">No upcoming auditions right now &mdash; you'll be notified when new ones are posted.</div>`
 
-  const evtBody = events.length > 0
-    ? events.map(a => activityBlock(a, false, baseUrl)).join('')
-    : `<div style="font-size:14px;color:#6b6259;padding:8px 0 4px">No upcoming events right now &mdash; you'll be notified when new ones are posted.</div>`
+  const evtBody =
+    events.length > 0
+      ? events.map((a) => activityBlock(a, false, baseUrl)).join('')
+      : `<div style="font-size:14px;color:#6b6259;padding:8px 0 4px">No upcoming events right now &mdash; you'll be notified when new ones are posted.</div>`
 
   const hd = (text: string) =>
     `<h2 style="font-family:Georgia,'Times New Roman',serif;font-size:19px;font-weight:600;color:#1a1612;margin:0 0 12px 0">${text}</h2>`

@@ -115,7 +115,7 @@ One file per company per year. Top-level: `{ company, year, runs: [<Run>] }`.
 | `company`      | `string`        | the company's `abvName`                                                                                         |
 | `showAbv`      | `string`        | short label for calendar chips                                                                                  |
 | `show`         | `string`        | full title                                                                                                      |
-| `description`  | `string?`       | supports `**bold**` / `*italic*`                                                                                |
+| `description`  | `string?`       | supports bold, italic, `[text](https://url)` links, and `-` bullet lists                                        |
 | `genre`        | `Genre[]`       | up to 2 of `Drama \| Musical \| Comedy \| Other`; legacy single-string values coerced to a 1-item array on read |
 | `venue`        | `string`        | name from the venue list, or free text                                                                          |
 | `price`        | `string`        | e.g. `"$72-$92"`                                                                                                |
@@ -141,38 +141,40 @@ One file per company per year. Top-level: `{ company, year, activities:
 
 #### `Activity`
 
-| Field                            | Type                    | Notes                                                                          |
-| -------------------------------- | ----------------------- | ------------------------------------------------------------------------------ |
-| `id`                             | `string`                | `"activity-<timestamp>"`, editor-assigned                                      |
-| `type`                           | `'audition' \| 'event'` | set at creation, immutable in the editor                                       |
-| `title`                          | `string`                | production name or event title                                                 |
-| `briefDescription`               | `string?`               | **event only** — collapsed-card blurb                                          |
-| `description`                    | `string?`               | **event only** — expanded description                                          |
-| `genre`                          | `Genre[]`               | **audition only**                                                              |
-| `dates`                          | `ActivityDate[]`        | ordered sessions, each with its own location                                   |
-| `organizerName` / `organizerUrl` | `string?`               | used when `company` is `"other"`                                               |
-| `rolesAvailable`                 | `AuditionRole[]?`       | **audition only**, suppressed when empty                                       |
-| `prep`                           | `AuditionPrep?`         | **audition only** — `{ acting?, singing?, dance?, bring? }`                    |
-| `virtualSubmission`              | `boolean?`              | **audition only** — see below                                                  |
-| `closed`                         | `boolean?`              | either type — see below                                                        |
-| `rehearsalStart` / `openingDate` | `string?`               | **audition only**, `YYYY-MM-DD`                                                |
-| `productionId`                   | `string?`               | **audition only** — soft ref to a `Run.id`, not exposed in the editor          |
-| `cost`                           | `string?`               | **event only**                                                                 |
-| `registerUrl`                    | `string?`               | **event only**                                                                 |
-| `contact`                        | `ActivityContact?`      | `{ name?, email?, phone? }`                                                    |
-| `noticeUrl`                      | `string?`               | primary info link                                                              |
-| `productionUrl`                  | `string?`               | **audition only**                                                              |
-| `notes`                          | `string?`               | **audition only** — full-width, supports `**bold**`, `*italic*`, `[text](url)` |
-| `createdAt` / `updatedAt`        | `string`                | ISO 8601                                                                       |
+| Field                            | Type                    | Notes                                                                                 |
+| -------------------------------- | ----------------------- | ------------------------------------------------------------------------------------- |
+| `id`                             | `string`                | `"activity-<timestamp>"`, editor-assigned                                             |
+| `type`                           | `'audition' \| 'event'` | set at creation, immutable in the editor                                              |
+| `title`                          | `string`                | production name or event title                                                        |
+| `briefDescription`               | `string?`               | **event only** — collapsed-card blurb                                                 |
+| `description`                    | `string?`               | **event only** — expanded description; supports bold, italic, links, and bullet lists |
+| `genre`                          | `Genre[]`               | **audition only**                                                                     |
+| `dates`                          | `ActivityDate[]`        | ordered sessions, each with its own location                                          |
+| `organizerName` / `organizerUrl` | `string?`               | used when `company` is `"other"`                                                      |
+| `rolesAvailable`                 | `AuditionRole[]?`       | **audition only**, suppressed when empty                                              |
+| `prep`                           | `AuditionPrep?`         | **audition only** — `{ acting?, singing?, dance?, bring? }`                           |
+| `virtualSubmission`              | `boolean?`              | **audition only** — see below                                                         |
+| `datesByRequest`                 | `boolean?`              | **event only** — allows no scheduled dates; remains upcoming until closed             |
+| `closed`                         | `boolean?`              | either type — see below                                                               |
+| `rehearsalStart` / `openingDate` | `string?`               | **audition only**, `YYYY-MM-DD`                                                       |
+| `productionId`                   | `string?`               | **audition only** — soft ref to a `Run.id`, not exposed in the editor                 |
+| `cost`                           | `string?`               | **event only**                                                                        |
+| `registerUrl`                    | `string?`               | **event only**                                                                        |
+| `contact`                        | `ActivityContact?`      | `{ name?, email?, phone? }`                                                           |
+| `noticeUrl`                      | `string?`               | primary info link                                                                     |
+| `productionUrl`                  | `string?`               | **audition only**                                                                     |
+| `notes`                          | `string?`               | **audition only** — full-width; supports bold, italic, links, and bullet lists        |
+| `createdAt` / `updatedAt`        | `string`                | ISO 8601                                                                              |
 
 `virtualSubmission: true` lifts the "must have at least one date" rule for
 an audition (in both the editor and `check-activities.ts`) and makes the
 record always "upcoming" (see [§8](#8-email-notifications) and the `/events`
 filter logic) regardless of dates — an optional deadline row is still
-allowed and, if present, is shown normally. `closed: true` (either type)
-excludes a record from "upcoming" without deleting it, and is reversible
-from the editor. See [§6](#6-shared-front-end-logic) for the full
-"upcoming" rule.
+allowed and, if present, is shown normally. `datesByRequest: true` allows an
+event to omit scheduled dates; it displays "On request" and remains upcoming
+until closed. `closed: true` (either type) excludes a record from "upcoming"
+without deleting it, and is reversible from the editor. See
+[§6](#6-shared-front-end-logic) for the full "upcoming" rule.
 
 #### `ActivityDate`
 
@@ -214,7 +216,7 @@ store only leaf-level subcategory ids, never a top-level category id.
 | `contact`                 | `ServiceContact` | `{ name?, tel?, email?, address? }` — at least `tel` or `email` |
 | `photo`                   | `string?`        | local path under `public/images/services/`                      |
 | `url`                     | `string?`        |                                                                 |
-| `description`             | `string?`        | supports `**bold**`, `*italic*`, `[text](url)`                  |
+| `description`             | `string?`        | supports bold, italic, links, and bullet lists                  |
 | `active`                  | `boolean`        | `false` hides it from public pages without deleting it          |
 | `createdAt` / `updatedAt` | `string`         | ISO 8601                                                        |
 
@@ -305,14 +307,15 @@ Validation (impossible dates, out-of-range hours/minutes, dates outside
 required-field + date-count scan runs on Save and blocks it with a
 specific error list. The Calendar editor requires every performance to
 have a date; the Activities editor requires every record to have at least
-one date row **except** `virtualSubmission` auditions — `collectErrors()`
-in `activities.js` and `scripts/check-activities.ts` both apply that
-exception, and must be kept in sync if the rule ever changes.
+one date row except `virtualSubmission` auditions and `datesByRequest`
+events — `collectErrors()` in `activities.js` and `scripts/check-activities.ts`
+both apply those exceptions, and must be kept in sync if the rule ever changes.
 
 **The "upcoming" rule** — defined once conceptually, implemented in three
-places that must agree: `closed` is never upcoming; `virtualSubmission`
-(and not closed) is always upcoming; otherwise upcoming means the latest
-`dates[].date` is ≥ today. Implementations: the `/events` client-side
+places that must agree: `closed` is never upcoming; virtual auditions with
+no scheduled dates and events with `datesByRequest` and no scheduled dates
+are always upcoming; otherwise upcoming means the latest `dates[].date` is ≥
+today. Implementations: the `/events` client-side
 filter (`src/pages/events.astro`), `isUpcoming()` in
 `netlify/functions/lib/activities-data.mts` (digest + welcome email), and
 the editor's own Preview modal.
@@ -320,8 +323,9 @@ the editor's own Preview modal.
 **`src/lib/audition-format.ts`** — pure functions, no Astro or DOM
 dependency: `fmt12`, `fmtTimeRange`, `fmtFullDate`, `fmtShortDate`,
 `fmtAudDateRange`, `rolesSum`, `renderMd` (HTML-escapes, then converts
-`**bold**`, `*italic*`, `[text](url)`). This is the single source of truth
-for activity-display formatting, consumed by:
+bold, italic, `[text](https://url)` links, and unordered bullet lists). This
+is the single source of truth for rich-text display across activities,
+calendar entries, and services, consumed by:
 
 - `src/pages/events.astro` — imported directly at build time
 - `netlify/functions/send-digest.mts` — resolved via esbuild bundling
@@ -334,18 +338,20 @@ for activity-display formatting, consumed by:
   `src/pages/admin/audition-format.js.ts` (Vite `?raw` + two regexes strip
   TypeScript syntax from the source). Never hand-maintain a duplicate file
   at `public/admin/audition-format.js`.
+- `public/admin/calendar.js` and `public/admin/services.js` — use the same
+  generated browser module for Preview rendering.
+- `src/pages/services.astro` and the client script in
+  `src/components/calendar.astro` — import the same formatter directly.
 
 **Card display has four rendering paths that must be kept in sync** when
 changing what an activity card shows: (1) the public `events.astro`
 template, (2) the deep-link view (reuses the same Astro HTML —
 automatic), (3) `buildPreviewHtml()` in `activities.js`, (4)
-`netlify/functions/lib/email-template.mts`. `calendar.astro`'s
-description-panel `renderMd()` is a **separate, local** bold/italic-only
-copy, distinct from `audition-format.ts`'s (which also handles links) —
-another pair to keep in sync if the markdown rules ever change. Services'
-`renderDesc()` is duplicated the same way, once server-side in
-`services.astro` and once client-side in `services.js` for its Preview
-modal.
+`netlify/functions/lib/email-template.mts`. Rich-text fields must use
+`renderMd()` in both Preview and public display; do not add local Markdown
+renderers. The shared admin toolbar in `public/admin/markdown-editor.js`
+provides bold, italic, link, and bullet-list controls and Ctrl/Cmd+B/I
+shortcuts for every rich-text textarea.
 
 **Layout note**: both the public detail grid (`.detail-grid` in
 `events.astro`) and the editor's Preview modal (`.pv-detail-grid` in

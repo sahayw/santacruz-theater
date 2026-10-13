@@ -2,6 +2,7 @@
 import BaseHead from '../components/BaseHead.astro'
 import SiteNav from '../components/SiteNav.astro'
 import { getServices, getServiceCategories } from '../lib/data.ts'
+import { renderMd } from '../lib/audition-format.ts'
 
 const listings = getServices()
 const categories = getServiceCategories()
@@ -25,22 +26,9 @@ const catsJson = JSON.stringify(
   categories.map((cat) => ({
     id: cat.id,
     label: cat.label,
-    subcategories: cat.subcategories.map((s) => ({ id: s.id, label: s.label })),
+    subcategories: cat.subcategories.map((s) => ({ id: s.id, label: s.label }))
   }))
 )
-
-function renderDesc(raw: string): string {
-  return raw
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-    .replace(/\*([^*\n]+?)\*/g, '<em>$1</em>')
-    .replace(
-      /\[([^\]]+)\]\((https?:\/\/[^)]+)\)/g,
-      '<a href="$2" target="_blank" rel="noopener">$1</a>'
-    )
-}
 ---
 
 <!doctype html>
@@ -66,37 +54,39 @@ function renderDesc(raw: string): string {
           Production resources for Santa Cruz County theater — people, equipment, spaces
         </p>
         <div class="cat-index-grid">
-        {
-          categories.map((cat) => {
-            const catActive = activeCatIds.has(cat.id)
-            return (
-              <div class="cat-index-group">
-                {catActive ? (
-                  <a class="cat-parent-link" href={`/services?category=${cat.id}`}>
-                    {cat.label}
-                  </a>
-                ) : (
-                  <span class="cat-parent-link cat-inactive">{cat.label}</span>
-                )}
-                <div class="cat-subs-list">
-                  {cat.subcategories.map((sub) => {
-                    const subActive = activeSubIds.has(sub.id)
-                    return subActive ? (
-                      <a class="cat-sub-link" href={`/services?category=${sub.id}`}>
-                        {sub.label}
-                      </a>
-                    ) : (
-                      <span class="cat-sub-link cat-inactive">{sub.label}</span>
-                    )
-                  })}
+          {
+            categories.map((cat) => {
+              const catActive = activeCatIds.has(cat.id)
+              return (
+                <div class="cat-index-group">
+                  {catActive ? (
+                    <a class="cat-parent-link" href={`/services?category=${cat.id}`}>
+                      {cat.label}
+                    </a>
+                  ) : (
+                    <span class="cat-parent-link cat-inactive">{cat.label}</span>
+                  )}
+                  <div class="cat-subs-list">
+                    {cat.subcategories.map((sub) => {
+                      const subActive = activeSubIds.has(sub.id)
+                      return subActive ? (
+                        <a class="cat-sub-link" href={`/services?category=${sub.id}`}>
+                          {sub.label}
+                        </a>
+                      ) : (
+                        <span class="cat-sub-link cat-inactive">{sub.label}</span>
+                      )
+                    })}
+                  </div>
                 </div>
-              </div>
-            )
-          })
-        }
+              )
+            })
+          }
         </div>
         <p class="cat-index-footer">
-          If you would like to add an entry to this listing please email details to <a href="mailto:admin@santacruz.theater">admin@santacruz.theater</a>
+          If you would like to add an entry to this listing please email details to <a
+            href="mailto:admin@santacruz.theater">admin@santacruz.theater</a
+          >
         </p>
       </div>
 
@@ -118,8 +108,7 @@ function renderDesc(raw: string): string {
                   width="10"
                   height="6"
                   viewBox="0 0 10 6"
-                  aria-hidden="true"
-                  ><path d="M0 0l5 6 5-6z" fill="currentColor"></path></svg
+                  aria-hidden="true"><path d="M0 0l5 6 5-6z" fill="currentColor"></path></svg
                 >
               </button>
               <div class="filter-dropdown-panel" id="filter-dropdown-panel" hidden>
@@ -163,7 +152,11 @@ function renderDesc(raw: string): string {
       <div class="svc-list" id="svc-list" hidden>
         {
           listings.map((listing) => (
-            <div class="svc-card" data-id={listing.id} data-categories={listing.categories.join(',')}>
+            <div
+              class="svc-card"
+              data-id={listing.id}
+              data-categories={listing.categories.join(',')}
+            >
               <button class="svc-summary" aria-expanded="false">
                 <div class="svc-main">
                   <div class="svc-name-row">
@@ -204,13 +197,13 @@ function renderDesc(raw: string): string {
                   </div>
                 </div>
                 <div class="svc-aside">
-                  <span class="svc-chevron" aria-hidden="true"></span>
+                  <span class="svc-chevron" aria-hidden="true" />
                 </div>
               </button>
 
               <div class="svc-detail" hidden>
                 {listing.description && (
-                  <div class="svc-desc" set:html={renderDesc(listing.description)} />
+                  <div class="svc-desc" set:html={renderMd(listing.description)} />
                 )}
                 {listing.url && (
                   <div class="svc-url-row">
@@ -232,7 +225,7 @@ function renderDesc(raw: string): string {
       <div class="svc-not-found" id="svc-not-found" hidden></div>
     </main>
 
-    <script is:inline set:html={`window.SVC_CATS=${catsJson};`}></script>
+    <script is:inline set:html={`window.SVC_CATS=${catsJson};`} />
   </body>
 </html>
 

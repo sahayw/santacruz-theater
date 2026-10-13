@@ -43,8 +43,11 @@ by color.
 
 **What an editor controls**: a "run" is one production — title, abbreviated
 label for calendar chips, up to two genres, venue, price, a default discount
-line, an optional narrative description (supports `**bold**` and
-`*italic*`), and links to the info page and default ticket purchase page.
+line, an optional narrative description (supports bold, italic, hyperlinks,
+and bulleted lists), and links to the info page and default ticket purchase
+page. The description editor provides formatting controls and Ctrl/Cmd+B/I
+shortcuts.
+
 Each run has an ordered list of performances — date, time, an optional type
 tag (Preview / Opening / Closing / Talk-back), and per-performance overrides
 for discounts or the ticket link when a specific performance differs from
@@ -73,10 +76,11 @@ cards** show the production title, genre, company, opening date, a roles
 summary, and the audition date range; expanding shows every session's date
 and time, locations, what to prepare (acting, singing, dance, what to
 bring), the full roles table, and contact info. **Event cards** show the
-event title, a short blurb if set, company, and date range; expanding shows
-full session details, a longer description, cost, a register link if set,
-and contact info. When every session for a record shares one location, that
-location is shown once rather than repeated per row.
+event title, a short blurb if set, company, and date range (or "On request"
+when dates are by request); expanding shows full session details or "On
+request", a longer description, cost, a register link if set, and contact
+info. When every session for a record shares one location, that location is
+shown once rather than repeated per row.
 
 A record can be a **virtual submission** — an audition with no in-person
 session, evaluated from submitted material. These show a "Virtual" badge and
@@ -86,6 +90,7 @@ them to age past. Any record, audition or event, can also be **closed**:
 it's kept on file but drops out of the upcoming list (shown with a "Closed"
 pill) without being deleted, which is how a virtual submission — or
 anything else with no natural end date — gets retired.
+Events with **Dates by request** also stay upcoming until closed.
 
 Past records show a "Past" pill. A filter bar narrows by company, genre
 (auditions only), and a show setting (All Upcoming / Upcoming Auditions /
@@ -104,15 +109,19 @@ one of the genres, and an optional casting note — the whole roles section is
 skipped on the public page if left empty), a "prepare" section (what to
 bring for acting, and — Musical only — singing and dance; the Acting and
 Bring fields are multi-line, so each line you enter shows as its own line on
-the public card), and a full-width notes field supporting bold, italic, and
-links. Checking **Virtual submission** in the dates section lifts the
-requirement for a scheduled date entirely (an application deadline can still
+the public card), and a full-width notes field supporting bold, italic,
+hyperlinks, and bulleted lists. The notes editor provides formatting controls
+and Ctrl/Cmd+B/I shortcuts. Checking **Virtual submission** in the dates
+section lifts the requirement for a scheduled date entirely (an application deadline can still
 be entered as an optional date row) and dims the table to show it's
 optional.
 
 For an event: a brief one-line description for the collapsed card, a longer
-description for the expanded view, a cost line, and an optional
-registration link.
+description for the expanded view (supporting bold, italic, hyperlinks, and
+bulleted lists), a cost line, and an optional registration link. The long
+description editor provides the same formatting controls and shortcuts. In
+the dates section, **Dates by request** allows the event to have no scheduled
+date rows and displays "On request" publicly.
 
 Both types share: a dates table (date, start time, optional end time,
 location name/address, session notes — adding a row copies the time and
@@ -156,7 +165,8 @@ matching listings, with a two-level checkbox control to broaden or narrow
 further without returning to the grid. A `?id=` link opens one listing
 directly. Listing cards show name, category tags, optional photo, and
 contact info collapsed; expanding adds the full description (supporting
-bold, italic, and links) and an optional "More info" link.
+bold, italic, hyperlinks, and bulleted lists) and an optional "More info"
+link.
 
 **What an editor controls**: this dataset is admin-only. Categories and
 subcategories are their own hand-edited file (a category's display pill
@@ -166,6 +176,8 @@ same two-level control used on the public filter, uploads an optional
 photo, and can be toggled active/inactive — inactive listings are hidden
 from the public site without being deleted, the same "keep the record,
 just stop showing it" pattern as a closed audition or event.
+Descriptions support bold, italic, hyperlinks, and bulleted lists through
+the shared formatting controls and Ctrl/Cmd+B/I shortcuts.
 
 ---
 

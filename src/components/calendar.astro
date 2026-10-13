@@ -1101,6 +1101,7 @@ const filterCompanies = companiesData.companies.filter((c) => activeCompanyCodes
 
 <script define:vars={{ performances, companies: companiesData.companies }} is:inline>
   const PERFORMANCES = performances
+  const renderMdPromise = import('/admin/audition-format.js').then((module) => module.renderMd)
   const CARD_DESCRIPTION_LINES = 4
   const TODAY = new Date().toISOString().slice(0, 10)
   const COMPANY_COLORS = {
@@ -1262,16 +1263,8 @@ const filterCompanies = companiesData.companies.filter((c) => activeCompanyCodes
   let activeDescRunId = null
   let descPanelShownAt = 0
 
-  function renderMd(text) {
-    return text
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-      .replace(/\*(.+?)\*/g, '<em>$1</em>')
-  }
-
-  function showDescPanel(s, chipEl, isTouch = false) {
+  async function showDescPanel(s, chipEl, isTouch = false) {
+    const renderMd = await renderMdPromise
     const panel = document.getElementById('showDescPanel')
     const description = (s.description || '').trimEnd()
     let html = `<div class="desc-panel-header">

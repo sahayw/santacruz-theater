@@ -8,6 +8,7 @@ import {
   rolesSum,
   renderMd
 } from '/admin/audition-format.js'
+import { markdownToolbar } from './markdown-editor.js'
 
 const ROLE_TYPES = ['lead', 'supporting', 'ensemble']
 const ROLE_GENDERS = ['any', 'female', 'male']
@@ -189,7 +190,7 @@ const ACT_CSS = `
   letter-spacing: 0.05em; color: var(--ink-mid); cursor: pointer; white-space: nowrap;
 }
 .act-virtual-toggle input { margin: 0; cursor: pointer; }
-.act-dates-section.is-virtual .act-table-wrap { opacity: 0.4; }
+.act-dates-section.is-dates-optional .act-table-wrap { opacity: 0.4; }
 .act-table-wrap { overflow-x: auto; }
 .act-table { width: 100%; border-collapse: collapse; }
 .act-table thead th {
@@ -579,6 +580,10 @@ const ACT_HTML = `
               <input type="checkbox" id="af-virtual" onchange="act.fieldChanged()">
               Virtual submission — no scheduled dates
             </label>
+            <label class="act-virtual-toggle" id="actDatesByRequestToggle" style="display:none">
+              <input type="checkbox" id="af-dates-by-request" onchange="act.fieldChanged()">
+              Dates by request
+            </label>
             <button class="btn btn-sm" style="background:var(--bg);border:1px solid var(--border)"
               onclick="act.addDateRow()">+ Add row</button>
           </div>
@@ -662,21 +667,23 @@ const ACT_HTML = `
         <div class="act-section act-desc-section" id="actDescSection">
           <div class="act-desc-toolbar">
             <label class="act-field-label" style="margin-bottom:0">Description</label>
+            ${markdownToolbar('af-description')}
             <button class="act-expand-btn" id="actDescExpandBtn" onclick="act.toggleDescExpand()" title="Expand">↕</button>
           </div>
           <textarea class="act-desc-textarea" id="af-description" rows="1"
-            placeholder="Optional full description (supports **bold** and *italic*)"
+            data-markdown-editor placeholder="Optional full description"
             oninput="act.autoResizeTextarea(this); act.fieldChanged()"></textarea>
         </div>
 
         <!-- 5. Notes (auditions only) -->
         <div class="act-section act-notes-section" id="actNotesSection">
           <div class="act-notes-toolbar">
-            <label class="act-field-label" style="margin-bottom:0">Notes — supports **bold**, *italic*, and [link text](https://url)</label>
+            <label class="act-field-label" style="margin-bottom:0">Notes</label>
+            ${markdownToolbar('af-notes')}
             <button class="act-expand-btn" id="actNotesExpandBtn" onclick="act.toggleNotesExpand()" title="Expand">↕</button>
           </div>
           <textarea class="act-notes-textarea" id="af-notes" rows="1"
-            placeholder="Additional notes shown at bottom of card"
+            data-markdown-editor placeholder="Additional notes shown at bottom of card"
             oninput="act.autoResizeTextarea(this); act.fieldChanged()"></textarea>
         </div>
 
@@ -1055,6 +1062,7 @@ function loadActEditor() {
   document.getElementById('af-org-url').value = a.organizerUrl || ''
 
   document.getElementById('af-virtual').checked = !!a.virtualSubmission
+  document.getElementById('af-dates-by-request').checked = !!a.datesByRequest
   document.getElementById('af-prep-acting').value = a.prep?.acting || ''
   document.getElementById('af-prep-singing').value = a.prep?.singing || ''
   document.getElementById('af-prep-dance').value = a.prep?.dance || ''
@@ -1078,7 +1086,7 @@ function loadActEditor() {
   updateEditorTitle()
   updateTypeLayout()
   updateMusicLayout()
-  updateVirtualDim()
+  updateOptionalDatesDim()
   updateClosedBtn()
   renderDatesTable()
   renderRolesTable()
@@ -1094,12 +1102,18 @@ function updateEditorTitle() {
     ` · ${typeLabel}${genreLabel ? ' · ' + genreLabel : ''}${a.closed ? ' · closed' : ''}`
 }
 
-// Dim the dates table when the audition is a virtual submission (dates optional).
-function updateVirtualDim() {
+// Dim the dates table when an activity does not have scheduled dates.
+function updateOptionalDatesDim() {
   const section = document.getElementById('actDatesSection')
   if (!section) return
   const a = activeActIdx >= 0 ? activities[activeActIdx] : null
-  section.classList.toggle('is-virtual', !!(a && a.type === 'audition' && a.virtualSubmission))
+  section.classList.toggle(
+    'is-dates-optional',
+    !!(
+      a &&
+      ((a.type === 'audition' && a.virtualSubmission) || (a.type === 'event' && a.datesByRequest))
+    )
+  )
 }
 
 // Toggle the header Close/Reopen button label to match the record state.
@@ -1131,6 +1145,7 @@ function updateTypeLayout() {
   const bringRow = document.getElementById('actBringRow')
   const datesLabel = document.getElementById('actDatesLabel')
   const virtualToggle = document.getElementById('actVirtualToggle')
+  const datesByRequestToggle = document.getElementById('actDatesByRequestToggle')
   const genreGroup = document.getElementById('afGenreGroup')
   const titleGroup = document.getElementById('afTitleGroup')
   const descSection = document.getElementById('actDescSection')
@@ -1143,6 +1158,7 @@ function updateTypeLayout() {
     prepCol && (prepCol.style.display = 'none')
     bringRow && (bringRow.style.display = 'none')
     if (virtualToggle) virtualToggle.style.display = 'none'
+    if (datesByRequestToggle) datesByRequestToggle.style.display = ''
     if (datesLabel) datesLabel.textContent = 'Dates'
     if (genreGroup) genreGroup.style.display = 'none'
     if (titleGroup) titleGroup.style.gridColumn = 'span 5'
@@ -1155,6 +1171,7 @@ function updateTypeLayout() {
     prepCol && (prepCol.style.display = '')
     bringRow && (bringRow.style.display = '')
     if (virtualToggle) virtualToggle.style.display = ''
+    if (datesByRequestToggle) datesByRequestToggle.style.display = 'none'
     if (datesLabel) datesLabel.textContent = 'Audition Dates'
     if (genreGroup) genreGroup.style.display = ''
     if (titleGroup) titleGroup.style.gridColumn = 'span 4'
@@ -1219,10 +1236,12 @@ function fieldChanged() {
     a.genre = []
     a.description = document.getElementById('af-description').value || undefined
     a.notes = undefined
+    a.datesByRequest = document.getElementById('af-dates-by-request').checked || undefined
   } else {
     a.genre = Array.from(document.getElementById('af-genre').selectedOptions).map((o) => o.value)
     a.notes = document.getElementById('af-notes').value || undefined
     a.description = undefined
+    a.datesByRequest = undefined
   }
 
   if (type === 'audition') {
@@ -1275,7 +1294,7 @@ function fieldChanged() {
 
   updateEditorTitle()
   updateMusicLayout()
-  updateVirtualDim()
+  updateOptionalDatesDim()
   renderSidebar()
   markDirty()
 }
@@ -1509,8 +1528,11 @@ function collectErrors() {
     const label = a.title || `Activity ${ai + 1}`
     const nonEmptyDates = (a.dates || []).filter((d) => !isEmptyDateRow(d))
     if (nonEmptyDates.length === 0) {
-      // Virtual-submission auditions are allowed to have no dates.
-      if (!(a.type === 'audition' && a.virtualSubmission)) {
+      // Virtual auditions and events with dates by request can omit scheduled dates.
+      if (
+        !(a.type === 'audition' && a.virtualSubmission) &&
+        !(a.type === 'event' && a.datesByRequest)
+      ) {
         errors.push(`"${label}": no dates`)
       }
     } else {
@@ -1925,6 +1947,7 @@ function openPreview() {
   const isEvent = a.type === 'event'
   const isVirtual = !isEvent && !!a.virtualSubmission
   const hasDates = (a.dates || []).some((d) => d.date)
+  const showDatesByRequest = isEvent && a.datesByRequest && !hasDates
   const isPast = !a.closed && !isVirtual && latestD && latestD < TODAY
   const showVoice = genreArr.includes('Musical')
   const displayName =
@@ -1962,7 +1985,7 @@ function openPreview() {
     ${_pvShared.address ? `<span class="pv-sub"> · ${esc(_pvShared.address)}</span>` : ''}
   </div>`
         : '') ||
-    `<div class="pv-sub">${isVirtual ? 'Virtual submission — see the notice for how to apply' : 'No dates set'}</div>`
+    `<div class="pv-sub">${showDatesByRequest ? 'On request' : isVirtual ? 'Virtual submission — see the notice for how to apply' : 'No dates set'}</div>`
 
   let leftColHtml = `<section class="pv-section"><h4 class="pv-section-head">${isEvent ? 'Dates' : 'Audition dates'}</h4>${datesHtml}</section>`
 
@@ -2026,7 +2049,7 @@ function openPreview() {
   }
 
   if (isEvent && a.description) {
-    rightColHtml = `<section class="pv-section"><h4 class="pv-section-head">About</h4><div class="pv-sub" style="font-size:13px;line-height:1.55;white-space:pre-wrap">${esc(a.description)}</div></section>`
+    rightColHtml = `<section class="pv-section"><h4 class="pv-section-head">About</h4><div class="pv-sub" style="font-size:13px;line-height:1.55;white-space:pre-wrap">${renderMd(a.description)}</div></section>`
   }
 
   const metaRow = `${esc(displayName)}${!isEvent && a.openingDate ? ` · Opens ${fmtShortDate(a.openingDate)}` : ''}${!isEvent && a.rehearsalStart ? ` · Rehearsals start ${fmtShortDate(a.rehearsalStart)}` : ''}`
@@ -2061,7 +2084,7 @@ function openPreview() {
         </div>
         <div class="pv-aside">
           ${a.closed ? '<span class="pv-past-pip">Closed</span>' : isPast ? '<span class="pv-past-pip">Past</span>' : ''}
-          <span class="pv-date-range">${isVirtual && !hasDates ? 'Virtual submission' : fmtAudDateRange(a.dates)}</span>
+          <span class="pv-date-range">${showDatesByRequest ? 'On request' : isVirtual && !hasDates ? 'Virtual submission' : fmtAudDateRange(a.dates)}</span>
         </div>
       </div>
       <div class="pv-detail">

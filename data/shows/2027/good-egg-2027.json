@@ -157,8 +157,8 @@
       "venue": "Actors' Theatre",
       "price": "$35",
       "discounts": "Same-day rush tickets may be available",
-      "infoUrl": "",
-      "ticketsUrl": "https://www.goodeggsantacruz.com/currentseason",
+      "infoUrl": "https://www.goodeggsantacruz.com/currentseason",
+      "ticketsUrl": "",
       "performances": [
         {
           "date": "2027-05-20",

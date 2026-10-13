@@ -53,8 +53,8 @@ tag (Preview / Opening / Closing / Talk-back), and per-performance overrides
 for discounts or the ticket link when a specific performance differs from
 the run's default (a preview night at a different price, say).
 
-The venue field autocompletes from a shared venue list, so venues stay
-consistently named across companies. Two tools speed up entering a run's
+The venue field suggests entries from a shared venue list, but custom venue
+names are allowed and displayed as entered. Two tools speed up entering a run's
 performance schedule: a **pattern generator** that fills in a recurring
 weekly pattern (choose a date range, days of the week, a time, and it adds
 every matching slot at once), and a **paste parser** that turns loosely

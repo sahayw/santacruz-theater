@@ -16,16 +16,10 @@ const showsDir = resolve(root, 'data/shows')
 const companiesJson = JSON.parse(
   readFileSync(resolve(root, 'data/sc-theater-companies.json'), 'utf8')
 )
-const venuesJson = JSON.parse(readFileSync(resolve(root, 'data/sc-theater-venues.json'), 'utf8'))
 
 const VALID_COMPANIES = new Set<string>(companiesJson.companies.map((c: { id: string }) => c.id))
 const VALID_GENRES = new Set<Genre>(['Drama', 'Musical', 'Comedy', 'Other'])
 const MAX_GENRES = 2
-const VALID_VENUES = new Set<string>([
-  ...venuesJson.venues.map((v: { name: string }) => v.name),
-  'Other',
-  ''
-])
 const VALID_PERF_TYPES = new Set<PerfType>(['', 'Preview', 'Opening', 'Closing', 'Talk-back'])
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/
 const TIME_RE = /^\d{2}:\d{2}$/
@@ -58,20 +52,30 @@ function validateShowsFile(
     assert(isRecord(runValue), `${loc} must be an object`)
 
     const company = expectString(runValue.company, `${loc}.company`)
-    const venue = expectString(runValue.venue, `${loc}.venue`)
+    expectString(runValue.venue, `${loc}.venue`)
 
     assert(VALID_COMPANIES.has(company), `${loc}.company has invalid value: ${company}`)
-    assert(VALID_VENUES.has(venue), `${loc}.venue has invalid value: ${venue}`)
 
     const rawGenre = runValue.genre
     const genres: Genre[] = Array.isArray(rawGenre)
       ? (rawGenre as unknown[]).map((g) => {
-          assert(typeof g === 'string' && VALID_GENRES.has(g as Genre), `${loc}.genre contains invalid value: ${g}`)
+          assert(
+            typeof g === 'string' && VALID_GENRES.has(g as Genre),
+            `${loc}.genre contains invalid value: ${g}`
+          )
           return g as Genre
         })
       : typeof rawGenre === 'string' && rawGenre !== ''
-        ? (assert(VALID_GENRES.has(rawGenre as Genre), `${loc}.genre has invalid value: ${rawGenre}`), [rawGenre as Genre])
-        : (assert(rawGenre === '' || rawGenre === undefined || Array.isArray(rawGenre), `${loc}.genre must be an array or empty string`), [])
+        ? (assert(
+            VALID_GENRES.has(rawGenre as Genre),
+            `${loc}.genre has invalid value: ${rawGenre}`
+          ),
+          [rawGenre as Genre])
+        : (assert(
+            rawGenre === '' || rawGenre === undefined || Array.isArray(rawGenre),
+            `${loc}.genre must be an array or empty string`
+          ),
+          [])
     assert(genres.length <= MAX_GENRES, `${loc}.genre has more than ${MAX_GENRES} values`)
 
     expectString(runValue.id, `${loc}.id`)

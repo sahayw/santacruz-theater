@@ -100,8 +100,9 @@ own selectors (`buildCompanyOptions()` in `api.js`) sort independently by
 ### Venues — `data/sc-theater-venues.json`
 
 Each entry: `{ code, name, address, website }`. Drives venue autocomplete in
-both the Calendar and Activities editors. `Run.venue` (below) stores the
-venue **name** from this list, or `"Other"` for an unlisted venue.
+both the Calendar and Activities editors as convenience suggestions.
+`Run.venue` (below) stores the entered venue string, whether it is a listed
+venue or custom free text, and the calendar displays that value.
 
 ### Shows — `data/shows/<year>/<company-id>-<year>.json`
 
@@ -117,7 +118,7 @@ One file per company per year. Top-level: `{ company, year, runs: [<Run>] }`.
 | `show`         | `string`        | full title                                                                                                      |
 | `description`  | `string?`       | supports bold, italic, `[text](https://url)` links, and `-` bullet lists                                        |
 | `genre`        | `Genre[]`       | up to 2 of `Drama \| Musical \| Comedy \| Other`; legacy single-string values coerced to a 1-item array on read |
-| `venue`        | `string`        | name from the venue list, or free text                                                                          |
+| `venue`        | `string`        | registered venue name or custom free text; autocomplete is advisory                                             |
 | `price`        | `string`        | e.g. `"$72-$92"`                                                                                                |
 | `discounts`    | `string`        | default, overridable per performance                                                                            |
 | `infoUrl`      | `string`        |                                                                                                                 |

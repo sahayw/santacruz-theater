@@ -545,7 +545,7 @@ const CAL_HTML = `
         <div class="field-group">
           <label class="field-label">Venue</label>
           <input class="field-input" id="f-venue" placeholder="Venue name" autocomplete="off"
-            oninput="cal.onVenueInput(this)" onfocus="cal.onVenueInput(this)"
+            oninput="cal.onVenueInput(this); cal.runFieldChanged()" onfocus="cal.onVenueInput(this)"
             onblur="setTimeout(()=>cal.hideCalVenueDropdown(),150)"
             onkeydown="cal.venueKeyDown(event,this)">
         </div>

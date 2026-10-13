@@ -8,8 +8,10 @@
       "showAbv": "Romeo & Juliet",
       "show": "Romeo and Juliet",
       "description": "William Shakespeare’s tragedy about two young \"star-crossed lovers\" from feuding families, the Montagues and Capulets, whose deaths ultimately reconcile their warring households.",
-      "genre": "Drama",
-      "venue": "",
+      "genre": [
+        "Drama"
+      ],
+      "venue": "SV High School",
       "price": "",
       "discounts": "",
       "infoUrl": "https://milorep.org/",

@@ -324,8 +324,9 @@ return `{ errors, warnings }`. Each editor's `collectIssues()` calls them on
 Save — errors block it with a list; warnings (only for records changed since
 load/save) ask "Save anyway?". `check-shows.ts`, `check-activities.ts` and
 `check-services.ts` call the same functions at build — errors fail the
-build; warnings are printed. **Change a rule there, never in an editor or
-check script**, and update the table in
+build; warnings are printed. The full list is in the
+[rule reference](#rule-reference) (§9). **Change a rule there, never in an
+editor or check script**, and update both the rule reference and
 [feature-guide.md §7](feature-guide.md#whats-required). The check scripts
 additionally verify structure the editors guarantee by construction (field
 types, id formats, timestamps, type-only fields, the genre cap after legacy
@@ -538,6 +539,49 @@ regression cases). Run together via `npm run check`, which also runs as the
 first step of `npm run build` (Netlify's build command). Warnings (missing
 recommended details, out-of-order performances) are printed but don't fail
 the build.
+
+### Rule reference
+
+**Shared rules** (`src/lib/data-rules.ts`) — enforced identically by the
+editor on Save and by the check script at build. *Error* blocks Save / fails
+the build; *warning* asks "Save anyway?" (changed records only) / is printed.
+
+| Record                 | Rule                                                                                     | Level   |
+| ---------------------- | ---------------------------------------------------------------------------------------- | ------- |
+| Run                    | `show` non-blank                                                                         | error   |
+| Run                    | `showAbv` non-blank, ≤ 20 characters (`SHOW_ABV_MAX`)                                    | error   |
+| Run                    | `venue` non-blank                                                                        | error   |
+| Run                    | every performance: `date` a real `YYYY-MM-DD` within file year ± 1; `time` `HH:MM` 00:00–23:59 | error   |
+| Run                    | earliest performance date is in the file's year                                          | error   |
+| Run                    | `price`, `infoUrl`, `description` non-blank                                              | warning |
+| Run                    | at least one performance                                                                 | warning |
+| Activity               | `title` non-blank                                                                        | error   |
+| Activity               | at least one date, unless audition + `virtualSubmission` or event + `datesByRequest`     | error   |
+| Activity               | every date row: `date` as above; `startTime` valid; `endTime` valid if present           | error   |
+| Activity               | earliest date is in the file's year                                                      | error   |
+| Audition               | `rehearsalStart` / `openingDate` real `YYYY-MM-DD` if present                            | error   |
+| Event                  | one of `contact.email`, `contact.phone`, `noticeUrl`, `registerUrl`, `organizerUrl`      | error   |
+| Listing                | `name` non-blank                                                                         | error   |
+| Listing                | at least one category                                                                    | error   |
+| Listing                | `contact.tel` or `contact.email`                                                         | error   |
+
+The editor drops blank activity date rows (no date and no start time) before
+applying the rules, matching what it saves.
+
+**Structural checks** (check scripts only — the editors guarantee these by
+construction):
+
+- `check-shows.ts` — field types; `company` is a known company id; genres
+  valid and ≤ 2 (`MAX_GENRES`, after coercing legacy single-string values);
+  `perfType` valid; run ids unique across files. Warns on performances not in
+  date/time order.
+- `check-activities.ts` — field types; `id` is `activity-<timestamp>`; `type`
+  is `audition`/`event`; genres valid; role `type`/`gender` valid; booleans are
+  booleans; ISO 8601 `createdAt`/`updatedAt`; audition-only and event-only
+  fields don't appear on the other type.
+- `check-services.ts` — field types; `id` is `service-<timestamp>` and
+  unique; `active` boolean; ISO 8601 timestamps; no `_`-prefixed editor-only
+  fields.
 
 ## 10. Local development
 

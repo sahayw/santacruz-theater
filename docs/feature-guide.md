@@ -46,7 +46,9 @@ label for calendar chips, up to two genres, venue, price, a default discount
 line, an optional narrative description (supports bold, italic, hyperlinks,
 and bulleted lists), and links to the info page and default ticket purchase
 page. The description editor provides formatting controls and Ctrl/Cmd+B/I
-shortcuts.
+shortcuts. Title, abbreviation, and venue are required; price, info URL, and
+description are recommended — see
+[What's required](#whats-required).
 
 Each run has an ordered list of performances — date, time, an optional type
 tag (Preview / Opening / Closing / Talk-back), and per-performance overrides
@@ -127,8 +129,9 @@ Both types share: a dates table (date, start time, optional end time,
 location name/address, session notes — adding a row copies the time and
 location from the previous one, since sessions of the same activity are
 often at the same place), a contact block (name/email/phone), and — when the
-record belongs to "Other" rather than a named company — an organizer name
-and URL.
+record belongs to "Other" rather than a named company — an optional
+organizer name and URL. Every record needs a title, and an event also needs a
+contact email, phone, or link — see [What's required](#whats-required).
 
 A record's header has **Close** (or **Reopen**, once closed) alongside
 Preview / Restore / Delete — see the virtual-submission/closed description
@@ -177,7 +180,9 @@ photo, and can be toggled active/inactive — inactive listings are hidden
 from the public site without being deleted, the same "keep the record,
 just stop showing it" pattern as a closed audition or event.
 Descriptions support bold, italic, hyperlinks, and bulleted lists through
-the shared formatting controls and Ctrl/Cmd+B/I shortcuts.
+the shared formatting controls and Ctrl/Cmd+B/I shortcuts. A listing needs a
+name, at least one category, and a phone or email — see
+[What's required](#whats-required).
 
 ---
 
@@ -245,12 +250,37 @@ will build, and anything it would refuse fails the build.
 
 ### What's required
 
-| Record            | Required (blocks Save)                                                                                                                                                                                                                  | Recommended (asks before saving) |
-| ----------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------- |
-| Calendar run      | Full show title; abbreviation (up to 20 characters); venue; a valid date and time on every performance                                                                                                                                  | Price; info URL; description; at least one performance |
-| Audition or event | Title; at least one date row with a valid date and start time (not needed for virtual-submission auditions or "Dates by request" events); a valid end time if one is entered; valid rehearsal-start and opening dates if entered | —                                |
-| Event (also)      | A contact email, contact phone, or a link — info, registration, or (for "Other") organizer                                                                                                                                             | —                                |
-| Service listing   | Name; at least one category; a phone or email                                                                                                                                                                                          | —                                |
+**Required** fields block Save until they're filled in. **Recommended**
+fields can be left empty, but Save asks "Save anyway?" first.
+
+**Calendar run**
+
+- Required: full show title; abbreviation (up to 20 characters); venue;
+  every performance row has a valid date and time.
+- Recommended: price; info URL; description; at least one performance (a run
+  without performances never appears on the calendar).
+- Optional: genre (up to two), discounts, tickets URL.
+
+**Audition or event**
+
+- Required: title.
+- Required: at least one date row with a valid date and start time — except a
+  virtual-submission audition or a "Dates by request" event, which may have
+  none. A date row left completely blank is ignored.
+- Required if entered: a valid end time; for auditions, valid rehearsal-start
+  and opening dates.
+- The first date must fall in the year of the file you're editing.
+
+**Event (in addition)**
+
+- Required: a way to follow up — a contact email, a contact phone, or a link
+  (the info link, the registration link, or for "Other" records the organizer
+  URL). Any one is enough.
+
+**Service listing**
+
+- Required: name; at least one category; a phone or an email.
+- Optional: photo, website, description, contact name and address.
 
 ### Preview, Restore, and Save
 

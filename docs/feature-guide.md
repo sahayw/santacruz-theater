@@ -1,327 +1,279 @@
 # Feature Guide
 
-The site supports two types of users: visitors who can look up information, and editors who create or update listings.
-For implementation details see
+What the site does, for visitors and for editors. For how it's built, see
 [`implementation.md`](implementation.md).
+
+## Contents
+
+1. [Overview](#1-overview)
+2. [Calendar](#2-calendar)
+3. [Auditions & Events](#3-auditions--events)
+4. [Companies](#4-companies)
+5. [Services](#5-services)
+6. [About & contact](#6-about--contact)
+7. [Editing conventions](#7-editing-conventions)
+8. [Email updates](#8-email-updates)
+9. [Publishing & access](#9-publishing--access)
 
 ---
 
 ## 1. Overview
 
-The site is a hub (`/`) linking to four public sections — **Calendar**,
-**Companies**, **Events** (auditions and other events), and **Services** — plus
-an **About** page with a contact form. A persistent top nav is shared across
-every inner page.
-
-All content is maintained through a data editor at `/admin`, organized as a
-hub of tiles — one per dataset (Calendar, Activities, Companies, Services).
-Saving a change in the editor publishes it directly: the site rebuilds
-automatically and the update is live within a few minutes, with no separate
-publish step. Editors sign in with a Netlify Identity account; each account
-is scoped to specific datasets — most editors manage only their own
-company's calendar and/or activities, while a small number of site admins
-can edit anything, including the company directory and services (see
-[§9 Publishing & access](#9-publishing--access)).
+- **Public site**: a hub (`/`) linking to **Calendar**, **Companies**,
+  **Events**, and **Services**, plus **About**. Every inner page shares a top
+  nav.
+- **Editor** (`/admin`): one tile per dataset — Calendar, Activities,
+  Companies, Services. Saving publishes; the change is live within a few
+  minutes.
+- **Access**: editors sign in with Netlify Identity and see only the datasets
+  they're granted — usually their own company's calendar and/or activities.
+  Admins can edit everything. See [§9](#9-publishing--access).
 
 ---
 
-## 2. Calendar — Shows
+## 2. Calendar
 
-**What visitors see** (`/calendar`): a full-year grid by default — every
-month, with day cells colored by which company is performing that day (a
-neutral color when more than one company shares a day). Hovering (or
-tapping, on touch) a day shows every performance on that date with company,
-time, and title; clicking drills into a week-by-week view for that week.
+### Visitors — `/calendar`
 
-The weekly view lists one chip per running production, with hover/tap
-revealing a description panel when the run has one, next to day-by-day
-columns of performance time bars. Clicking a bar opens a card with the full
-title, company, venue, date/time, price, discounts, and ticket/info links —
-the ticket link is simply absent if none is set. Filters at the top narrow
-by company, genre, and time of day. A footer legend identifies every company
-by color.
+- **Year view** (default): every month, each day colored by the company
+  performing (neutral when several share a day). Hover or tap a day to list
+  its performances; click to open that week.
+- **Week view**: one chip per running production (hover/tap shows its
+  description), beside day columns of performance time bars. Clicking a bar
+  opens a card: title, company, venue, date/time, price, discounts, and
+  ticket/info links.
+- **Filters**: company, genre, time of day. A footer legend maps colors to
+  companies.
 
-**What an editor controls**: a "run" is one production — title, abbreviated
-label for calendar chips, up to two genres, venue, price, a default discount
-line, an optional narrative description (supports bold, italic, hyperlinks,
-and bulleted lists), and links to the info page and default ticket purchase
-page. The description editor provides formatting controls and Ctrl/Cmd+B/I
-shortcuts. Title, abbreviation, and venue are required; price, info URL, and
-description are recommended — see
-[What's required](#whats-required).
+### Editors
 
-Each run has an ordered list of performances — date, time, an optional type
-tag (Preview / Opening / Closing / Talk-back), and per-performance overrides
-for discounts or the ticket link when a specific performance differs from
-the run's default (a preview night at a different price, say).
+A **run** is one production:
 
-The venue field suggests entries from a shared venue list, but custom venue
-names are allowed and displayed as entered. Two tools speed up entering a run's
-performance schedule: a **pattern generator** that fills in a recurring
-weekly pattern (choose a date range, days of the week, a time, and it adds
-every matching slot at once), and a **paste parser** that turns loosely
-formatted text copied from a poster or email (`Friday, June 5 at 7:30pm`)
-into rows — anything it can't interpret is listed separately rather than
-silently dropped.
+| Field                        | Notes                                                      |
+| ---------------------------- | ---------------------------------------------------------- |
+| Title, abbreviation          | Required. Abbreviation (≤ 20 chars) labels chips.          |
+| Venue                        | Required. Suggests from the venue list; free text allowed. |
+| Genre                        | Up to two.                                                 |
+| Price, info URL, description | Recommended. Description is [rich text](#rich-text).       |
+| Discounts, tickets URL       | Defaults for every performance.                            |
 
-An admin sees a company selector before choosing what to edit; a
-company-scoped editor goes straight to a year selector for their own
-company (and skips even that if there's only one year of data).
+Each run has an ordered list of **performances**: date, time, optional type
+(Preview / Opening / Closing / Talk-back), and optional per-performance
+discounts or ticket link that override the run's defaults.
+
+Two shortcuts fill in performances:
+
+- **Pattern generator** — date range + weekdays + time → every matching slot.
+- **Paste parser** — turns text like `Friday, June 5 at 7:30pm` into rows;
+  lines it can't read are listed, not dropped.
+
+Admins pick a company first; company editors go straight to a year (skipped
+if there's only one).
 
 ---
 
 ## 3. Auditions & Events
 
-**What visitors see** (`/events`): a filterable list of audition calls and
-other events, collapsed to a one-line summary by default. **Audition
-cards** show the production title, genre, company, opening date, a roles
-summary, and the audition date range; expanding shows every session's date
-and time, locations, what to prepare (acting, singing, dance, what to
-bring), the full roles table, and contact info. **Event cards** show the
-event title, a short blurb if set, company, and date range (or "On request"
-when dates are by request); expanding shows full session details or "On
-request", a longer description, cost, a register link if set, and contact
-info. When every session for a record shares one location, that location is
-shown once rather than repeated per row.
+### Visitors — `/events`
 
-A record can be a **virtual submission** — an audition with no in-person
-session, evaluated from submitted material. These show a "Virtual" badge and
-"Virtual submission" in place of a date range, and — unlike everything
-else — stay in the upcoming list indefinitely, since there's no date for
-them to age past. Any record, audition or event, can also be **closed**:
-it's kept on file but drops out of the upcoming list (shown with a "Closed"
-pill) without being deleted, which is how a virtual submission — or
-anything else with no natural end date — gets retired.
-Events with **Dates by request** also stay upcoming until closed.
+A filterable list of collapsed cards; click to expand.
 
-Past records show a "Past" pill. A filter bar narrows by company, genre
-(auditions only), and a show setting (All Upcoming / Upcoming Auditions /
-Upcoming Events / All), defaulting to All Upcoming. A `?id=` link opens one
-record directly, expanded, with everything else hidden — used for sharing a
-specific listing and for links in emailed digests.
+| Card     | Collapsed                                                      | Expanded adds                                                   |
+| -------- | -------------------------------------------------------------- | --------------------------------------------------------------- |
+| Audition | title, genre, company, opening date, roles summary, date range | every session, locations, what to prepare, roles table, contact |
+| Event    | title, blurb, company, date range (or "On request")            | sessions, description, cost, register link, contact             |
 
-**What an editor controls**: creating a new record locks in whether it's an
-**Audition** or an **Event** — that choice can't change later, since the two
-types show different fields.
+- A location shared by every session is shown once.
+- **Status pills**: "Virtual", "Closed", "Past".
+- **Filters**: company, genre (auditions only), and All Upcoming (default) /
+  Upcoming Auditions / Upcoming Events / All.
+- **Deep link**: `?id=` shows one record, expanded, alone — used for sharing
+  and in email digests.
 
-For an audition: genre (up to two), rehearsal start and opening dates, a
-notice URL and a separate production-info URL, a roles table (role name,
-type, gender, age range, an optional voice part shown only when Musical is
-one of the genres, and an optional casting note — the whole roles section is
-skipped on the public page if left empty), a "prepare" section (what to
-bring for acting, and — Musical only — singing and dance; the Acting and
-Bring fields are multi-line, so each line you enter shows as its own line on
-the public card), and a full-width notes field supporting bold, italic,
-hyperlinks, and bulleted lists. The notes editor provides formatting controls
-and Ctrl/Cmd+B/I shortcuts. Checking **Virtual submission** in the dates
-section lifts the requirement for a scheduled date entirely (an application deadline can still
-be entered as an optional date row) and dims the table to show it's
-optional.
+**What counts as upcoming**
 
-For an event: a brief one-line description for the collapsed card, a longer
-description for the expanded view (supporting bold, italic, hyperlinks, and
-bulleted lists), a cost line, and an optional registration link. The long
-description editor provides the same formatting controls and shortcuts. In
-the dates section, **Dates by request** allows the event to have no scheduled
-date rows and displays "On request" publicly.
+| Record                                    | Upcoming?                  |
+| ----------------------------------------- | -------------------------- |
+| Closed                                    | Never                      |
+| Virtual-submission audition with no dates | Always (until closed)      |
+| "Dates by request" event with no dates    | Always (until closed)      |
+| Anything else                             | Until its last date passes |
 
-Both types share: a dates table (date, start time, optional end time,
-location name/address, session notes — adding a row copies the time and
-location from the previous one, since sessions of the same activity are
-often at the same place), a contact block (name/email/phone), and — when the
-record belongs to "Other" rather than a named company — an optional
-organizer name and URL. Every record needs a title, and an event also needs a
-contact email, phone, or link — see [What's required](#whats-required).
+**Closing** keeps a record on file but removes it from the upcoming list —
+the way to retire anything with no end date. **Reopen** reverses it.
 
-A record's header has **Close** (or **Reopen**, once closed) alongside
-Preview / Restore / Delete — see the virtual-submission/closed description
-above for what it does.
+### Editors
+
+A new record is an **Audition** or an **Event**; this can't change later.
+
+**Both types**
+
+- Title (required).
+- **Dates table**: date, start time, optional end time, location
+  name/address, session notes. A new row copies the previous row's time and
+  location.
+- Contact: name, email, phone.
+- For records under "Other" (no listed company): organizer name and URL.
+- Header buttons: Preview / Restore / Delete, plus **Close** / **Reopen**.
+
+**Audition only**
+
+- Genre (up to two); rehearsal-start and opening dates; notice URL;
+  production-info URL.
+- **Roles table**: name, type, gender, age range, casting note, and voice
+  part (Musical only). Omitted from the public card if empty.
+- **Prepare**: acting and what to bring (multi-line — each line displays
+  separately); singing and dance (Musical only).
+- **Notes**: [rich text](#rich-text).
+- **Virtual submission**: no scheduled date needed. An optional deadline row
+  can still be added.
+
+**Event only**
+
+- One-line blurb (collapsed card) and long description ([rich
+  text](#rich-text), expanded card).
+- Cost; registration link.
+- **Dates by request**: no dates needed; shows "On request".
+- Needs at least one contact route — email, phone, or a link.
 
 ---
 
 ## 4. Companies
 
-**What visitors see** (`/companies`): a card grid of Santa Cruz County
-theater companies with logo and a link to their website.
+**Visitors** — `/companies`: a card grid of county theater companies with
+logos and website links.
 
-**What an editor controls**: the company roster is maintained by hand
-(admin only, not through a form) — name, abbreviated name, primary venue,
-website, and a locally-stored logo (downloaded once so the site has no
-runtime dependency on outside image hosts; a logo that's white or light
-gets a dark card background). This same file is also where **access is
-granted** — each entry can list one or more editor email addresses and which
-datasets each may edit (for example, one person editing only that company's
-calendar, another editing both calendar and activities). A special entry
-grants full site-wide admin access to a set of emails; another holds runs
-for companies not individually listed on the Companies page, editable by
-admins only.
+**Admins** edit the companies file by hand (not through a form):
+
+- Name, abbreviation, primary venue, website.
+- Logo, stored locally (light logos get a dark card).
+- **Access grants**: each company lists editor emails and the datasets each
+  may edit.
+- Two special entries, not shown publicly: **admin** (emails with full
+  access) and **other** (runs and activities for unlisted companies; admins
+  only).
 
 ---
 
 ## 5. Services
 
-**What visitors see** (`/services`): production resources — photographers,
-equipment rental, rehearsal and performance spaces, technical crew,
-coaching — organized into categories and subcategories. The default view is
-a category grid; clicking a category (or a narrower subcategory) filters to
-matching listings, with a two-level checkbox control to broaden or narrow
-further without returning to the grid. A `?id=` link opens one listing
-directly. Listing cards show name, category tags, optional photo, and
-contact info collapsed; expanding adds the full description (supporting
-bold, italic, hyperlinks, and bulleted lists) and an optional "More info"
-link.
+**Visitors** — `/services`: production resources (photographers, rentals,
+spaces, crew, coaching) by category.
 
-**What an editor controls**: this dataset is admin-only. Categories and
-subcategories are their own hand-edited file (a category's display pill
-text can differ from its label — "Headshot Photography" rather than
-"Headshots", say). Changing a pill's text is safe; renaming or removing a
-subcategory stops the site building until every listing using it is moved to
-another category. A listing picks one or more subcategories through the
-same two-level control used on the public filter, uploads an optional
-photo, and can be toggled active/inactive — inactive listings are hidden
-from the public site without being deleted, the same "keep the record,
-just stop showing it" pattern as a closed audition or event.
-Descriptions support bold, italic, hyperlinks, and bulleted lists through
-the shared formatting controls and Ctrl/Cmd+B/I shortcuts. A listing needs a
-name, at least one category, and a phone or email — see
-[What's required](#whats-required).
+- Default view is a category grid. Clicking a category or subcategory
+  filters the list; a two-level checkbox control widens or narrows it.
+- Cards show name, category tags, optional photo, and contact; expanding
+  adds the description and an optional "More info" link.
+- `?id=` opens one listing.
+
+**Admins** (this dataset is admin-only):
+
+- **Listing**: name, one or more subcategories, phone or email (all
+  required); photo, website, [rich-text](#rich-text) description, contact
+  name and address (optional).
+- **Active / inactive**: inactive listings are hidden, not deleted.
+- **Categories** live in a hand-edited file. A subcategory's pill text can
+  differ from its label ("Headshot Photography" vs "Headshots"). Changing pill
+  text is safe; renaming or removing a subcategory **breaks the build** until
+  every listing using it is reassigned.
 
 ---
 
 ## 6. About & contact
 
-`/about` explains the site and includes a contact form; a submission
-notifies the site owner by email and the visitor sees an on-page
-confirmation. There's nothing here for a dataset editor to maintain — the
-page and form are static.
+`/about` describes the site and has a contact form. Submissions email the
+site owner; the visitor sees a confirmation. Nothing to edit.
 
 ---
 
-## 7. Shared editing conventions
+## 7. Editing conventions
 
-These apply across every editor and are described once here rather than
-repeated per section.
+These apply in every editor.
 
-### Entering dates
+### Dates
 
-Typed dates are normalized to `YYYY-MM-DD` as soon as you move to the next
-field. Accepted input includes:
+Typed dates become `YYYY-MM-DD` when you leave the field. Numbers are read
+Year-Month-Day; a 2-digit year gets `20` prepended. Month names assume the
+current year.
 
-| You type                 | Becomes                                   |
-| ------------------------ | ----------------------------------------- |
-| `26/1/2` or `2026/1/2`   | `2026-01-02`                              |
-| `26.01.02` or `2026-1-2` | `2026-01-02`                              |
-| `Oct 30` / `Oct. 30`     | `2026-10-30` (current year assumed)       |
-| `Friday, Oct. 30`        | `2026-10-30` (day-of-week prefix dropped) |
-| `Sat. Nov 7`             | `2026-11-07`                              |
-| `Oct 30 2026`            | `2026-10-30`                              |
+| You type                                     | Becomes      |
+| -------------------------------------------- | ------------ |
+| `26/1/2`, `2026/1/2`, `26.01.02`, `2026-1-2` | `2026-01-02` |
+| `Oct 30`, `Oct. 30`, `Friday, Oct. 30`       | `2026-10-30` |
+| `Sat. Nov 7`                                 | `2026-11-07` |
+| `Oct 30 2026`                                | `2026-10-30` |
 
-Numeric input is always read as Year-Month-Day; a 2-digit year is prefixed
-with `20`. The Calendar editor's date-paste panel (see
-[§2](#2-calendar--shows)) accepts the same named-month formats.
+The Calendar paste parser accepts the same month-name formats.
 
-### Entering times
+### Times
 
-| You type          | Becomes           | Why                                       |
-| ----------------- | ----------------- | ----------------------------------------- |
-| `7pm`             | `19:00`           | explicit suffix                           |
-| `10am`            | `10:00`           | explicit suffix                           |
-| `12pm`            | `12:00`           | noon                                      |
-| `12am`            | `00:00`           | midnight                                  |
-| `2.00` or `7.30`  | `14:00` / `19:30` | no suffix on hours 1–11 is assumed **PM** |
-| `12.00`           | `12:00`           | no suffix, 12 stays noon                  |
-| `19:30` / `21.30` | `19:30` / `21:30` | 24-hour input passes through unchanged    |
+`.` or `:` both work as separators.
 
-Either `.` or `:` works as the separator, and minutes are optional with an
-am/pm suffix (`7pm` is enough).
+| You type         | Becomes          | Rule                     |
+| ---------------- | ---------------- | ------------------------ |
+| `7pm`, `10am`    | `19:00`, `10:00` | explicit suffix          |
+| `12pm`, `12am`   | `12:00`, `00:00` | noon, midnight           |
+| `2.00`, `7.30`   | `14:00`, `19:30` | no suffix, 1–11 → **PM** |
+| `12.00`          | `12:00`          | no suffix, 12 → noon     |
+| `19:30`, `21.30` | `19:30`, `21:30` | 24-hour passes through   |
 
-### What gets flagged
+### Rich text
 
-An impossible date, an hour over 23, or a minute over 59 is outlined in red
-as soon as you enter it. A date more than one year from the file you're
-editing (e.g. a 2028 date in a 2026 file) is flagged too. Empty required
-fields aren't marked while you're still working, but **Save** always runs a
-full check first and lists every problem — including, if the first
-performance or activity date doesn't belong in the year of file you have
-open, which year's file you should be using instead. Problems block the save;
-missing *recommended* details only ask "Save anyway?", and only for records
-you've changed.
-
-The site build runs exactly the same checks, so anything the editor accepts
-will build, and anything it would refuse fails the build.
+Descriptions and notes support **bold**, _italic_, links, and bulleted
+lists, via toolbar buttons or Ctrl/Cmd+B / Ctrl/Cmd+I.
 
 ### What's required
 
-**Required** fields block Save until they're filled in. **Recommended**
-fields can be left empty, but Save asks "Save anyway?" first — except for a
-run whose last performance has already passed, which is never asked about.
+- **Required** — Save is blocked until fixed.
+- **Recommended** — Save asks "Save anyway?" (only for records you changed,
+  and never for a run whose last performance has passed).
 
-**Calendar run**
+| Record            | Required                                                                                                                                                                         | Recommended                                                                         |
+| ----------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------- |
+| Calendar run      | title; abbreviation (≤ 20 chars); venue; valid date and time on every performance                                                                                                | price; info URL; description; at least one performance (otherwise it never appears) |
+| Audition or event | title; at least one date with a valid date and start time (except virtual auditions and "Dates by request" events); valid end time, rehearsal-start and opening dates if entered | —                                                                                   |
+| Event (also)      | one of: contact email, contact phone, info link, registration link, organizer URL                                                                                                | —                                                                                   |
+| Service listing   | name; at least one category; phone or email                                                                                                                                      | —                                                                                   |
 
-- Required: full show title; abbreviation (up to 20 characters); venue;
-  every performance row has a valid date and time.
-- Recommended: price; info URL; description; at least one performance (a run
-  without performances never appears on the calendar).
-- Optional: genre (up to two), discounts, tickets URL.
+Completely blank date rows are ignored.
 
-**Audition or event**
+### Errors
 
-- Required: title.
-- Required: at least one date row with a valid date and start time — except a
-  virtual-submission audition or a "Dates by request" event, which may have
-  none. A date row left completely blank is ignored.
-- Required if entered: a valid end time; for auditions, valid rehearsal-start
-  and opening dates.
-- The first date must fall in the year of the file you're editing.
+- Impossible dates and out-of-range times turn red immediately, as do dates
+  more than a year from the file's year.
+- **Save** checks everything and lists every problem — including a first
+  date in the wrong year, naming the file it belongs in.
+- The site build runs the same checks: anything the editor saves will build.
 
-**Event (in addition)**
+### Preview, Restore, Save
 
-- Required: a way to follow up — a contact email, a contact phone, or a link
-  (the info link, the registration link, or for "Other" records the organizer
-  URL). Any one is enough.
-
-**Service listing**
-
-- Required: name; at least one category; a phone or an email.
-- Optional: photo, website, description, contact name and address.
-
-### Preview, Restore, and Save
-
-Every record editor has a **Preview** button that shows exactly what the
-record will look like on the public site — collapsed and expanded — without
-publishing anything. A **Restore** button appears next to it only once you've
-made an unsaved change, and reverts the record to how it was last saved;
-it disappears again once there's nothing to revert. **Save** publishes the
-whole file (all records for that company/year) — the button and the on-page
-status line reflect whether there's anything unsaved.
+- **Preview** — shows the record as the public site will (collapsed and
+  expanded) without publishing.
+- **Restore** — appears only with unsaved changes; reverts to the last save.
+- **Save** — publishes the whole file (every record for that company and
+  year).
 
 ---
 
 ## 8. Email updates
 
-Visitors can subscribe to email updates from `/events` or the standalone
-`/subscribe` page. Subscribing immediately sends a welcome email listing
-everything currently upcoming (auditions and events, each in their own
-section — or a line saying there's nothing posted right now, if the list is
-empty). After that, subscribers get **one digest email per day** covering
-anything newly posted or meaningfully updated since the previous digest —
-new and updated auditions and events each in their own section — and
-nothing at all on a day with no changes. Every email includes an
-unsubscribe link. There's no editor-facing configuration for this — it
-follows automatically from activity records being created or edited.
+Visitors subscribe on `/events` or `/subscribe`.
+
+- **Welcome email**, sent immediately: everything currently upcoming,
+  auditions and events in separate sections.
+- **Daily digest**: new and updated auditions and events since the last
+  digest. No changes, no email.
+- Every email has an unsubscribe link. Nothing to configure — it follows
+  from edits to activity records.
 
 ---
 
 ## 9. Publishing & access
 
-Saving a change anywhere in `/admin` publishes it: the site rebuilds and the
-change is live within a few minutes, the same lag as any other update.
-Google Calendar mirrors of the performance and activity schedules (still
-under development — see [`google-calendar-sync.md`](google-calendar-sync.md))
-update on their own daily schedule rather than immediately.
-
-Editing access is per-email, per-dataset, set in the Companies file (see
-[§4](#4-companies)): most people can edit only their own company's Calendar
-and/or Activities data; Companies and Services are admin-only. Signing in
-uses Netlify Identity — an account is created by invitation, matched to an
-email address listed in that file.
+- **Publishing**: every Save in `/admin` rebuilds the site; live in a few
+  minutes. The Google Calendar mirrors
+  ([`google-calendar-sync.md`](google-calendar-sync.md)) update once a day.
+- **Access**: per email, per dataset, set in the companies file
+  ([§4](#4-companies)). Companies and Services are admin-only.
+- **Accounts**: Netlify Identity, by invitation, to an email listed in that
+  file.

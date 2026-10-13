@@ -67,8 +67,10 @@
       "showAbv": "Gruesome",
       "show": "Gruesome Playground Injuries",
       "description": "Play by Rajiv Joseph that chronicles the 30-year relationship between two friends, Kayleen and Doug, using their physical and emotional wounds as a framework to explore love, pain, and connection.",
-      "genre": "Drama",
-      "venue": "",
+      "genre": [
+        "Drama"
+      ],
+      "venue": "SV High School",
       "price": "",
       "discounts": "",
       "infoUrl": "https://milorep.org/",

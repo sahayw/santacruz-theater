@@ -23,7 +23,7 @@ The site is a hub (`/`) linking to four sections: **Calendar** (`/calendar`), **
 | Command           | Action                                                                                                       |
 | ----------------- | ------------------------------------------------------------------------------------------------------------ |
 | `npm run dev`     | `netlify dev` at localhost:8888 — the whole system: public pages, functions, and the `/admin` editor         |
-| `npm run check`   | Validate all data JSON (syntax + show schema + activity schema)                                              |
+| `npm run check`   | Validate all data JSON (syntax + show, activity, service schemas)                                             |
 | `npm run build`   | `npm run check` then Astro build to `dist/` — this is Netlify's build command, not something you run by hand |
 | `npm run sync`    | Pull live `/admin` data edits into local `main` + `dev`. Run at the start of a feature branch.               |
 | `npm run release` | Sync, then promote `dev` → `main` (deploy) and back-merge. Prompts, listing the commits it will ship.        |
@@ -33,8 +33,8 @@ There is no bare `astro dev` / `astro preview` script — `npm run dev` (netlify
 ## Folder conventions
 
 - `src/components/` — `calendar.astro` (calendar UI), `SiteNav.astro` (shared nav)
-- `src/pages/` — file-based routes: `index`, `calendar`, `companies`, `events`, `subscribe`, `services`, `about`, `admin/audition-format.js.ts` (serves the shared formatting module as a browser ES module)
-- `src/lib/` — `data.ts` (build-time data loading), `audition-format.ts` (shared formatting — see `docs/implementation.md` §6)
+- `src/pages/` — file-based routes: `index`, `calendar`, `companies`, `events`, `subscribe`, `services`, `about`, `admin/audition-format.js.ts` / `admin/data-rules.js.ts` (serve the shared modules as browser ES modules)
+- `src/lib/` — `data.ts` (build-time data loading), `audition-format.ts` (shared formatting), `data-rules.ts` (shared validation rules), `browser-module.ts` (serves a `src/lib` module to `/admin`) — see `docs/implementation.md` §6
 - `src/types.ts` — shared data types
 - `data/` — canonical data files; schemas in `docs/implementation.md` §3
 - `public/admin/` — the editor SPA
@@ -48,6 +48,7 @@ There is no bare `astro dev` / `astro preview` script — `npm run dev` (netlify
 - **The "upcoming" rule for activities**: `closed` is never upcoming; virtual auditions without dates and events with `datesByRequest` and no dates stay upcoming; otherwise the latest date must be today or later. It is implemented in the `/events` client filter, `isUpcoming()` in `activities-data.mts`, and the editor Preview. Keep all three in sync — see `docs/implementation.md` §6.
 - **Activity cards have four rendering paths**: the public Astro template, the deep-link view (inherits automatically), the editor's `buildPreviewHtml()`, and `email-template.mts`. A card-display change needs all four checked.
 - **Rich-text fields share one Markdown renderer**: `src/lib/audition-format.ts`'s `renderMd()` escapes HTML and formats bold, italic, HTTP(S) links, and unordered lists. Activity, calendar, and service public views and editor previews must use it. Their textareas share the toolbar/shortcut logic in `public/admin/markdown-editor.js`; don't add local Markdown renderers.
+- **Validation rules live only in `src/lib/data-rules.ts`**, used by both the editors (on Save) and `scripts/check-*.ts` (at build) so they can't disagree. Never add a required-field or date rule directly to an editor or check script.
 - **Data schema changes** need updating `docs/implementation.md` §3, the relevant `check-*.ts` validator, and usually `docs/feature-guide.md`.
 - **`data.mjs` / `upload-image.mjs` have two modes** (GitHub API in prod, local filesystem under `netlify dev`) — see `docs/implementation.md` §4/§10 before changing either.
 

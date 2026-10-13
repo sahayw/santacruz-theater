@@ -1,6 +1,7 @@
 import { IS_DEV, apiFetch, apiPut, apiUploadImage } from './api.js'
 import { markdownToolbar } from './markdown-editor.js'
 import { renderMd } from '/admin/audition-format.js'
+import { listingIssues } from '/admin/data-rules.js'
 
 const STYLES_ID = 'svc-editor-styles'
 const FILE_PATH = 'sc-theater-services.json'
@@ -843,16 +844,19 @@ function subCatChanged(parentId) {
 }
 
 // ── VALIDATION ──
-function collectErrors() {
+// Rules live in src/lib/data-rules.ts (shared with scripts/check-services.ts).
+// Warnings are only raised for listings changed since the last load/save.
+function collectIssues() {
   const errors = []
+  const warnings = []
   for (const l of listings) {
-    if (!l.name) errors.push(`Listing ${l.id}: Name is required`)
-    if (!l.categories.length) errors.push(`"${l.name || l.id}": At least one category is required`)
-    if (!l.contact?.tel && !l.contact?.email) {
-      errors.push(`"${l.name || l.id}": Contact must have at least a phone or email`)
-    }
+    const label = l.name || l.id
+    const issues = listingIssues(l)
+    issues.errors.forEach((m) => errors.push(`"${label}": ${m}`))
+    if (snapshots.get(l.id) !== snapshot(l))
+      issues.warnings.forEach((m) => warnings.push(`"${label}": ${m}`))
   }
-  return errors
+  return { errors, warnings }
 }
 
 // ── PERSISTENCE ──
@@ -879,11 +883,13 @@ async function saveFile() {
     alert('Please log in to save.')
     return
   }
-  const errors = collectErrors()
+  const { errors, warnings } = collectIssues()
   if (errors.length) {
     alert('Cannot save — fix these issues:\n\n' + errors.join('\n'))
     return
   }
+  if (warnings.length && !confirm('Missing details:\n\n' + warnings.join('\n') + '\n\nSave anyway?'))
+    return
   const btn = document.getElementById('svcSaveBtn')
   btn.disabled = true
 
@@ -919,7 +925,9 @@ async function saveFile() {
       const { updatedAt, ...rest } = l
       const snap = snapshots.get(l.id)
       const changed = !snap || snap !== JSON.stringify(rest)
-      return { ...l, updatedAt: changed ? now : l.updatedAt }
+      // Drop editor-only fields (e.g. _photoDataUrl, the in-memory photo preview)
+      const saved = Object.fromEntries(Object.entries(l).filter(([k]) => !k.startsWith('_')))
+      return { ...saved, updatedAt: changed ? now : l.updatedAt }
     })
     await apiPut(FILE_PATH, { listings: cleanListings })
     cleanListings.forEach((cl, i) => {

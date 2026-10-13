@@ -7,7 +7,7 @@
   },
   "scripts": {
     "dev": "netlify dev",
-    "check": "tsx scripts/check-json.ts && tsx scripts/check-shows.ts && tsx scripts/check-activities.ts && tsx scripts/check-markdown.ts",
+    "check": "tsx scripts/check-json.ts && tsx scripts/check-shows.ts && tsx scripts/check-activities.ts && tsx scripts/check-services.ts && tsx scripts/check-markdown.ts",
     "build": "npm run check && astro build",
     "sync": "bash scripts/sync-branches.sh",
     "release": "bash scripts/release.sh"

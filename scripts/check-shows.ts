@@ -8,6 +8,7 @@ import { readdirSync, readFileSync } from 'fs'
 import { resolve, join } from 'path'
 import { fileURLToPath } from 'url'
 import type { Genre, PerfType, Run, ShowsFile, PerformanceEvent } from '../src/types.ts'
+import { MAX_GENRES, runIssues } from '../src/lib/data-rules.ts'
 
 const __dirname = resolve(fileURLToPath(import.meta.url), '..')
 const root = resolve(__dirname, '..')
@@ -19,7 +20,6 @@ const companiesJson = JSON.parse(
 
 const VALID_COMPANIES = new Set<string>(companiesJson.companies.map((c: { id: string }) => c.id))
 const VALID_GENRES = new Set<Genre>(['Drama', 'Musical', 'Comedy', 'Other'])
-const MAX_GENRES = 2
 const VALID_PERF_TYPES = new Set<PerfType>(['', 'Preview', 'Opening', 'Closing', 'Talk-back'])
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/
 const TIME_RE = /^\d{2}:\d{2}$/
@@ -111,6 +111,12 @@ function validateShowsFile(
       }
       previousSortKey = sortKey
     })
+
+    // Content rules shared with the /admin editor
+    const label = `${loc} (${runValue.showAbv || runValue.show || runValue.id})`
+    const issues = runIssues(runValue as unknown as Run, value.year as number)
+    issues.errors.forEach((m) => ruleErrors.push(`${label}: ${m}`))
+    issues.warnings.forEach((m) => ruleWarnings.push(`${label}: ${m}`))
   })
 
   return Object.assign(value as unknown as ShowsFile, { __orderingWarnings: orderingWarnings })
@@ -150,6 +156,8 @@ const yearDirs = readdirSync(showsDir, { withFileTypes: true })
 
 const allRawRuns: Run[] = []
 const allOrderingWarnings: string[] = []
+const ruleErrors: string[] = []
+const ruleWarnings: string[] = []
 const seenRunIds = new Set<string>()
 
 let fileCount = 0
@@ -168,6 +176,12 @@ for (const year of yearDirs) {
     allOrderingWarnings.push(...validated.__orderingWarnings)
     fileCount++
   }
+}
+
+if (ruleErrors.length) {
+  console.error(`\nShows validation failed — ${ruleErrors.length} error(s):\n`)
+  ruleErrors.forEach((e) => console.error('  ✗', e))
+  process.exit(1)
 }
 
 const performances = flattenAndSort(allRawRuns)
@@ -193,5 +207,9 @@ console.log(
 if (allOrderingWarnings.length) {
   console.log(`Ordering warnings    : ${allOrderingWarnings.length}`)
   allOrderingWarnings.forEach((warning) => console.log(`  - ${warning}`))
+}
+if (ruleWarnings.length) {
+  console.log(`Missing details      : ${ruleWarnings.length}`)
+  ruleWarnings.forEach((warning) => console.log(`  - ${warning}`))
 }
 console.log('─────────────────────────────────────────')

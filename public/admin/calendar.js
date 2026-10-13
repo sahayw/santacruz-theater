@@ -1,5 +1,6 @@
 import { IS_DEV, apiFetch, apiPut, buildCompanyOptions } from './api.js'
 import { fmt12, fmtFullDate, renderMd } from '/admin/audition-format.js'
+import { MAX_GENRES, isDateNearYear, isValidTime, runIssues } from '/admin/data-rules.js'
 import { markdownToolbar } from './markdown-editor.js'
 
 const PERF_TYPES = ['', 'Preview', 'Opening', 'Closing', 'Talk-back']
@@ -869,11 +870,13 @@ async function saveFile() {
     alert('Please log in to save.')
     return
   }
-  const errors = collectErrors()
+  const { errors, warnings } = collectIssues()
   if (errors.length) {
     alert('Cannot save — fix these issues:\n\n' + errors.join('\n'))
     return
   }
+  if (warnings.length && !confirm('Missing details:\n\n' + warnings.join('\n') + '\n\nSave anyway?'))
+    return
   const btn = document.getElementById('saveBtn')
   btn.disabled = true
   btn.textContent = 'Saving…'
@@ -995,8 +998,6 @@ function updateEditorTitle() {
     ? ` · ${allCompanies.find((c) => c.id === r.company)?.abvName || r.company}`
     : ''
 }
-
-const MAX_GENRES = 2
 
 function genreChanged() {
   const sel = document.getElementById('f-genre')
@@ -1134,11 +1135,7 @@ function normalizeDate(v) {
   return `${y}-${m.padStart(2, '0')}-${d.padStart(2, '0')}`
 }
 function isValidDate(v) {
-  if (!v || !/^\d{4}-\d{2}-\d{2}$/.test(v)) return false
-  const [y, m, d] = v.split('-').map(Number)
-  const dt = new Date(y, m - 1, d)
-  if (!(dt.getFullYear() === y && dt.getMonth() === m - 1 && dt.getDate() === d)) return false
-  return y >= currentYear - 1 && y <= currentYear + 1
+  return isDateNearYear(v, currentYear)
 }
 function normalizeTime(v) {
   if (!v) return v
@@ -1163,39 +1160,22 @@ function normalizeTime(v) {
   if (h >= 1 && h <= 11) h += 12 // 12 stays as noon; 13–23 already 24-hour
   return `${String(h).padStart(2, '0')}:${mins}`
 }
-function isValidTime(v) {
-  if (!v) return false
-  const norm = v.replace('.', ':')
-  if (!/^\d{1,2}:\d{2}$/.test(norm)) return false
-  const [h, m] = norm.split(':').map(Number)
-  return h >= 0 && h <= 23 && m >= 0 && m <= 59
-}
 function setInvalid(id, invalid) {
   document.getElementById(id)?.classList.toggle('invalid', invalid)
 }
-function collectErrors() {
+// Rules live in src/lib/data-rules.ts (shared with scripts/check-shows.ts).
+// Warnings are only raised for runs changed since the last load/save.
+function collectIssues() {
   const errors = []
+  const warnings = []
   runs.forEach((run, ri) => {
-    const label = run.show || `Run ${ri + 1}`
-    run.performances.forEach((p, pi) => {
-      if (!isValidDate(p.date))
-        errors.push(`"${label}" — row ${pi + 1}: date "${p.date || '(empty)'}"`)
-      if (!isValidTime(p.time))
-        errors.push(`"${label}" — row ${pi + 1}: time "${p.time || '(empty)'}"`)
-    })
-    const validDates = run.performances
-      .map((p) => p.date)
-      .filter(isValidDate)
-      .sort()
-    if (validDates.length > 0) {
-      const yr = parseInt(validDates[0].slice(0, 4), 10)
-      if (yr !== currentYear)
-        errors.push(
-          `"${label}": first performance ${validDates[0]} is in ${yr} — use the year selector to edit the ${yr} file`
-        )
-    }
+    const label = run.showAbv || run.show || `Run ${ri + 1}`
+    const issues = runIssues(run, currentYear)
+    issues.errors.forEach((m) => errors.push(`"${label}": ${m}`))
+    if (runSnapshots.get(run.id) !== makeRunSnapshot(run))
+      issues.warnings.forEach((m) => warnings.push(`"${label}": ${m}`))
   })
-  return errors
+  return { errors, warnings }
 }
 
 // ── PERFORMANCE TABLE ──

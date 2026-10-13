@@ -44,10 +44,13 @@ src/
   components/     calendar.astro (calendar UI), SiteNav.astro
   layouts/        page layout wrappers
   pages/          file-based routes — index, calendar, companies, events,
-                  subscribe, services, about, admin/audition-format.js.ts
+                  subscribe, services, about, admin/audition-format.js.ts,
+                  admin/data-rules.js.ts
   lib/
     data.ts             build-time data loading (import.meta.glob)
     audition-format.ts  shared formatting — Astro + functions + browser
+    data-rules.ts       shared validation rules — editors + check scripts
+    browser-module.ts   transpiles a src/lib module for /admin (see §6)
   types.ts        shared TypeScript interfaces
   styles/         global CSS
 data/             canonical data files — see §3
@@ -57,6 +60,7 @@ public/
 netlify/
   functions/      serverless functions — see §7
 scripts/          check-json.ts, check-shows.ts, check-activities.ts,
+                  check-services.ts, check-markdown.ts,
                   sync-branches.sh, release.sh
 docs/             feature-guide.md, implementation.md (this file),
                   google-calendar-sync.md
@@ -114,16 +118,16 @@ One file per company per year. Top-level: `{ company, year, runs: [<Run>] }`.
 | -------------- | --------------- | --------------------------------------------------------------------------------------------------------------- |
 | `id`           | `string`        | `"run-<timestamp>"`, editor-assigned                                                                            |
 | `company`      | `string`        | the company's `abvName`                                                                                         |
-| `showAbv`      | `string`        | short label for calendar chips                                                                                  |
-| `show`         | `string`        | full title                                                                                                      |
+| `showAbv`      | `string`        | short label for calendar chips; required, ≤ 20 characters                                                       |
+| `show`         | `string`        | full title; required                                                                                            |
 | `description`  | `string?`       | supports bold, italic, `[text](https://url)` links, and `-` bullet lists                                        |
 | `genre`        | `Genre[]`       | up to 2 of `Drama \| Musical \| Comedy \| Other`; legacy single-string values coerced to a 1-item array on read |
-| `venue`        | `string`        | registered venue name or custom free text; autocomplete is advisory                                             |
-| `price`        | `string`        | e.g. `"$72-$92"`                                                                                                |
+| `venue`        | `string`        | registered venue name or custom free text; autocomplete is advisory; required                                   |
+| `price`        | `string`        | e.g. `"$72-$92"`; empty is a warning                                                                            |
 | `discounts`    | `string`        | default, overridable per performance                                                                            |
-| `infoUrl`      | `string`        |                                                                                                                 |
+| `infoUrl`      | `string`        | empty is a warning                                                                                              |
 | `ticketsUrl`   | `string`        | default, overridable per performance                                                                            |
-| `performances` | `Performance[]` | ordered                                                                                                         |
+| `performances` | `Performance[]` | ordered; empty is a warning (the run never appears on the calendar)                                             |
 
 #### `Performance`
 
@@ -146,7 +150,7 @@ One file per company per year. Top-level: `{ company, year, activities:
 | -------------------------------- | ----------------------- | ------------------------------------------------------------------------------------- |
 | `id`                             | `string`                | `"activity-<timestamp>"`, editor-assigned                                             |
 | `type`                           | `'audition' \| 'event'` | set at creation, immutable in the editor                                              |
-| `title`                          | `string`                | production name or event title                                                        |
+| `title`                          | `string`                | production name or event title; required                                              |
 | `briefDescription`               | `string?`               | **event only** — collapsed-card blurb                                                 |
 | `description`                    | `string?`               | **event only** — expanded description; supports bold, italic, links, and bullet lists |
 | `genre`                          | `Genre[]`               | **audition only**                                                                     |
@@ -176,6 +180,9 @@ event to omit scheduled dates; it displays "On request" and remains upcoming
 until closed. `closed: true` (either type) excludes a record from "upcoming"
 without deleting it, and is reversible from the editor. See
 [§6](#6-shared-front-end-logic) for the full "upcoming" rule.
+
+An **event** must have at least one way to follow up: `contact.email`,
+`contact.phone`, `noticeUrl`, `registerUrl`, or `organizerUrl`.
 
 #### `ActivityDate`
 
@@ -219,6 +226,10 @@ store only leaf-level subcategory ids, never a top-level category id.
 | `url`                     | `string?`        |                                                                 |
 | `description`             | `string?`        | supports bold, italic, links, and bullet lists                  |
 | `active`                  | `boolean`        | `false` hides it from public pages without deleting it          |
+
+The editor keeps underscore-prefixed fields in memory only (e.g.
+`_photoDataUrl`, the preview of a just-uploaded photo) and strips them on
+save; `check-services.ts` rejects any that reach the file.
 | `createdAt` / `updatedAt` | `string`         | ISO 8601                                                        |
 
 `getServiceCategories()` / `getServices()` in `src/lib/data.ts` import both
@@ -303,14 +314,29 @@ and a Save that PUTs the whole file.
 `normalizeTime()` in `activities.js`; `parseDate()` for the Calendar
 editor's paste panel; the accepted-format tables are user-facing and live
 in [feature-guide.md §7](feature-guide.md#7-shared-editing-conventions)).
-Validation (impossible dates, out-of-range hours/minutes, dates outside
-`currentYear ± 1`) highlights the offending cell immediately; a full
-required-field + date-count scan runs on Save and blocks it with a
-specific error list. The Calendar editor requires every performance to
-have a date; the Activities editor requires every record to have at least
-one date row except `virtualSubmission` auditions and `datesByRequest`
-events — `collectErrors()` in `activities.js` and `scripts/check-activities.ts`
-both apply those exceptions, and must be kept in sync if the rule ever changes.
+Invalid cells (impossible dates, out-of-range hours/minutes, dates outside
+`currentYear ± 1`) are highlighted immediately.
+
+**Validation rules** — every record-level rule lives once, in
+`src/lib/data-rules.ts`: `runIssues(run, fileYear)`,
+`activityIssues(activity, fileYear)` and `listingIssues(listing)` each
+return `{ errors, warnings }`. Each editor's `collectIssues()` calls them on
+Save — errors block it with a list; warnings (only for records changed since
+load/save) ask "Save anyway?". `check-shows.ts`, `check-activities.ts` and
+`check-services.ts` call the same functions at build — errors fail the
+build; warnings are printed. **Change a rule there, never in an editor or
+check script**, and update the table in
+[feature-guide.md §7](feature-guide.md#whats-required). The check scripts
+additionally verify structure the editors guarantee by construction (field
+types, id formats, timestamps, type-only fields, the genre cap after legacy
+string coercion, no `_`-prefixed fields).
+
+**Serving `src/lib` modules to the editor** — `src/pages/admin/*.js.ts`
+routes import a module's source with `?raw` and pass it to
+`browserModuleResponse()` (`src/lib/browser-module.ts`), which transpiles it
+with TypeScript's `transpileModule` at build time. Any TypeScript syntax is
+fine in these modules; they just can't import runtime values from other
+files (type-only imports are dropped).
 
 **The "upcoming" rule** — defined once conceptually, implemented in three
 places that must agree: `closed` is never upcoming; virtual auditions with
@@ -336,8 +362,8 @@ calendar entries, and services, consumed by:
   otherwise collapses multi-line notes
 - `public/admin/activities.js` — imports it at runtime from
   `/admin/audition-format.js`, a browser ES module generated by
-  `src/pages/admin/audition-format.js.ts` (Vite `?raw` + two regexes strip
-  TypeScript syntax from the source). Never hand-maintain a duplicate file
+  `src/pages/admin/audition-format.js.ts` (Vite `?raw` + `browserModuleResponse()`,
+  see "Serving `src/lib` modules" above). Never hand-maintain a duplicate file
   at `public/admin/audition-format.js`.
 - `public/admin/calendar.js` and `public/admin/services.js` — use the same
   generated browser module for Preview rendering.
@@ -505,10 +531,13 @@ something went wrong, since it fires on every successful run including
 
 ## 9. Validation scripts
 
-`scripts/check-json.ts` (syntax), `check-shows.ts`, `check-activities.ts`
-(schema + cross-field rules, including the virtual-submission dates
-exception). Run together via `npm run check`, which also runs as the first
-step of `npm run build` (Netlify's build command).
+`scripts/check-json.ts` (syntax), `check-shows.ts`, `check-activities.ts`,
+`check-services.ts` (structure + the shared rules in `src/lib/data-rules.ts`
+— see [§6](#6-shared-front-end-logic)), `check-markdown.ts` (renderer
+regression cases). Run together via `npm run check`, which also runs as the
+first step of `npm run build` (Netlify's build command). Warnings (missing
+recommended details, out-of-order performances) are printed but don't fail
+the build.
 
 ## 10. Local development
 

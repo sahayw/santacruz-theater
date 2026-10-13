@@ -5,6 +5,8 @@
 import { readFileSync, readdirSync } from 'node:fs'
 import { join, dirname } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import type { Activity } from '../src/types.ts'
+import { activityIssues } from '../src/lib/data-rules.ts'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const ROOT = join(__dirname, '..')
@@ -19,14 +21,9 @@ const VALID_GENDERS = new Set(['female', 'male', 'any'])
 function isIso8601(v: unknown): boolean {
   return typeof v === 'string' && /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/.test(v)
 }
-function isDate(v: unknown): boolean {
-  return typeof v === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(v)
-}
-function isTime(v: unknown): boolean {
-  return typeof v === 'string' && /^\d{2}:\d{2}$/.test(v)
-}
 
 const errors: string[] = []
+const warnings: string[] = []
 
 function err(file: string, msg: string) {
   errors.push(`${file}: ${msg}`)
@@ -73,34 +70,14 @@ for (const year of yearDirs) {
         err(al, 'id must be "activity-<timestamp>"')
       if (!VALID_TYPES.has(a.type as string))
         err(al, `type must be "audition" or "event", got: ${a.type}`)
-      if (typeof a.title !== 'string' || !a.title) err(al, 'title is required')
+      if (typeof a.title !== 'string') err(al, 'title must be a string')
       if (!Array.isArray(a.genre)) err(al, 'genre must be an array')
       else
         (a.genre as unknown[]).forEach((g, gi) => {
           if (!VALID_GENRES.has(g as string)) err(al, `genre[${gi}] invalid: ${g}`)
         })
 
-      const isVirtual = a.type === 'audition' && a.virtualSubmission === true
-      const datesByRequest = a.type === 'event' && a.datesByRequest === true
-      if (!Array.isArray(a.dates)) {
-        err(al, 'dates must be an array')
-      } else if ((a.dates as unknown[]).length === 0) {
-        if (!isVirtual && !datesByRequest) {
-          err(
-            al,
-            'dates must be a non-empty array (unless virtualSubmission or datesByRequest is set)'
-          )
-        }
-      } else {
-        const dates = a.dates as Record<string, unknown>[]
-        dates.forEach((d, di) => {
-          const dl = `${al} dates[${di}]`
-          if (!isDate(d.date)) err(dl, `date must be YYYY-MM-DD, got: ${d.date}`)
-          if (!isTime(d.startTime)) err(dl, `startTime must be HH:MM, got: ${d.startTime}`)
-          if (d.endTime !== undefined && !isTime(d.endTime))
-            err(dl, `endTime must be HH:MM if present, got: ${d.endTime}`)
-        })
-      }
+      if (!Array.isArray(a.dates)) err(al, 'dates must be an array')
 
       if (a.closed !== undefined && typeof a.closed !== 'boolean')
         err(al, 'closed must be a boolean if present')
@@ -127,10 +104,6 @@ for (const year of yearDirs) {
             })
           }
         }
-        if (a.rehearsalStart !== undefined && !isDate(a.rehearsalStart))
-          err(al, `rehearsalStart must be YYYY-MM-DD, got: ${a.rehearsalStart}`)
-        if (a.openingDate !== undefined && !isDate(a.openingDate))
-          err(al, `openingDate must be YYYY-MM-DD, got: ${a.openingDate}`)
         if (a.virtualSubmission !== undefined && typeof a.virtualSubmission !== 'boolean')
           err(al, 'virtualSubmission must be a boolean if present')
         // Flag event-only fields used on audition
@@ -148,6 +121,13 @@ for (const year of yearDirs) {
         if (a.openingDate !== undefined) err(al, 'openingDate is audition-only')
         if (a.productionUrl !== undefined) err(al, 'productionUrl is audition-only')
       }
+
+      // Content rules shared with the /admin editor
+      if (typeof a.title === 'string' && Array.isArray(a.dates)) {
+        const issues = activityIssues(a as unknown as Activity, Number(year))
+        issues.errors.forEach((m) => err(al, m))
+        issues.warnings.forEach((m) => warnings.push(`${al}: ${m}`))
+      }
     }
   }
 }
@@ -158,4 +138,8 @@ if (errors.length) {
   process.exit(1)
 } else {
   console.log('Activities validation passed.')
+}
+if (warnings.length) {
+  console.log(`Missing details (${warnings.length}):`)
+  warnings.forEach((w) => console.log('  -', w))
 }

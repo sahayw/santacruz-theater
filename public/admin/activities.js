@@ -8,6 +8,7 @@ import {
   rolesSum,
   renderMd
 } from '/admin/audition-format.js'
+import { activityIssues, isDateNearYear, isRealDate, isValidTime } from '/admin/data-rules.js'
 import { markdownToolbar } from './markdown-editor.js'
 
 const ROLE_TYPES = ['lead', 'supporting', 'ensemble']
@@ -936,11 +937,13 @@ async function saveFile() {
     alert('Please log in to save.')
     return
   }
-  const errors = collectErrors()
+  const { errors, warnings } = collectIssues()
   if (errors.length) {
     alert('Cannot save — fix these issues:\n\n' + errors.join('\n'))
     return
   }
+  if (warnings.length && !confirm('Missing details:\n\n' + warnings.join('\n') + '\n\nSave anyway?'))
+    return
   const btn = document.getElementById('actSaveBtn')
   btn.disabled = true
   btn.textContent = 'Saving…'
@@ -1493,18 +1496,7 @@ function normalizeDate(v) {
   return `${y}-${m.padStart(2, '0')}-${d.padStart(2, '0')}`
 }
 function isValidDate(v) {
-  if (!v || !/^\d{4}-\d{2}-\d{2}$/.test(v)) return false
-  const [y, m, d] = v.split('-').map(Number)
-  const dt = new Date(y, m - 1, d)
-  if (!(dt.getFullYear() === y && dt.getMonth() === m - 1 && dt.getDate() === d)) return false
-  return y >= currentYear - 1 && y <= currentYear + 1
-}
-function isValidTime(v) {
-  if (!v) return false
-  const norm = v.replace('.', ':')
-  if (!/^\d{1,2}:\d{2}$/.test(norm)) return false
-  const [h, m] = norm.split(':').map(Number)
-  return h >= 0 && h <= 23 && m >= 0 && m <= 59
+  return isDateNearYear(v, currentYear)
 }
 function setActInvalid(id, invalid) {
   document.getElementById(id)?.classList.toggle('invalid', invalid)
@@ -1520,41 +1512,25 @@ function normalizeHeaderDate(id) {
     el.value = norm
     fieldChanged()
   }
-  setActInvalid(id, !!el.value && !isValidDate(el.value))
+  setActInvalid(id, !!el.value && !isRealDate(el.value))
 }
-function collectErrors() {
+// Rules live in src/lib/data-rules.ts (shared with scripts/check-activities.ts),
+// applied to each activity as it will be saved (blank date rows dropped).
+// Warnings are only raised for activities changed since the last load/save.
+function collectIssues() {
   const errors = []
+  const warnings = []
   activities.forEach((a, ai) => {
     const label = a.title || `Activity ${ai + 1}`
-    const nonEmptyDates = (a.dates || []).filter((d) => !isEmptyDateRow(d))
-    if (nonEmptyDates.length === 0) {
-      // Virtual auditions and events with dates by request can omit scheduled dates.
-      if (
-        !(a.type === 'audition' && a.virtualSubmission) &&
-        !(a.type === 'event' && a.datesByRequest)
-      ) {
-        errors.push(`"${label}": no dates`)
-      }
-    } else {
-      nonEmptyDates.forEach((d, di) => {
-        if (!isValidDate(d.date))
-          errors.push(`"${label}" — date row ${di + 1}: date "${d.date || '(empty)'}"`)
-        if (!isValidTime(d.startTime))
-          errors.push(`"${label}" — date row ${di + 1}: start time "${d.startTime || '(empty)'}"`)
-        if (d.endTime && !isValidTime(d.endTime))
-          errors.push(`"${label}" — date row ${di + 1}: end time "${d.endTime}"`)
-      })
-    }
-    const firstDate = (a.dates || []).find((d) => isValidDate(d.date))?.date
-    if (firstDate) {
-      const yr = parseInt(firstDate.slice(0, 4), 10)
-      if (yr !== currentYear)
-        errors.push(
-          `"${label}": first date ${firstDate} is in ${yr} — use the year selector to edit the ${yr} file`
-        )
-    }
+    const issues = activityIssues(
+      { ...a, dates: (a.dates || []).filter((d) => !isEmptyDateRow(d)) },
+      currentYear
+    )
+    issues.errors.forEach((m) => errors.push(`"${label}": ${m}`))
+    if (actSnapshots.get(a.id) !== makeActivitySnapshot(a))
+      issues.warnings.forEach((m) => warnings.push(`"${label}": ${m}`))
   })
-  return errors
+  return { errors, warnings }
 }
 
 // ── DATES TABLE ──

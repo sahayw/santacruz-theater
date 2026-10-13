@@ -236,7 +236,21 @@ editing (e.g. a 2028 date in a 2026 file) is flagged too. Empty required
 fields aren't marked while you're still working, but **Save** always runs a
 full check first and lists every problem — including, if the first
 performance or activity date doesn't belong in the year of file you have
-open, which year's file you should be using instead.
+open, which year's file you should be using instead. Problems block the save;
+missing *recommended* details only ask "Save anyway?", and only for records
+you've changed.
+
+The site build runs exactly the same checks, so anything the editor accepts
+will build, and anything it would refuse fails the build.
+
+### What's required
+
+| Record            | Required (blocks Save)                                                                                                                                                                                                                  | Recommended (asks before saving) |
+| ----------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------- |
+| Calendar run      | Full show title; abbreviation (up to 20 characters); venue; a valid date and time on every performance                                                                                                                                  | Price; info URL; description; at least one performance |
+| Audition or event | Title; at least one date row with a valid date and start time (not needed for virtual-submission auditions or "Dates by request" events); a valid end time if one is entered; valid rehearsal-start and opening dates if entered | —                                |
+| Event (also)      | A contact email, contact phone, or a link — info, registration, or (for "Other") organizer                                                                                                                                             | —                                |
+| Service listing   | Name; at least one category; a phone or email                                                                                                                                                                                          | —                                |
 
 ### Preview, Restore, and Save
 

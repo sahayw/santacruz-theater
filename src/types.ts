@@ -103,7 +103,7 @@ export interface Activity {
   description?: string // full description; supports bold, italic, links, and bullet lists
   genre: Genre[]
   dates: ActivityDate[]
-  organizerName?: string // required when company is "other"
+  organizerName?: string // optional; used when company is "other"
   organizerUrl?: string // optional organizer website when company is "other"
   rolesAvailable?: AuditionRole[] // audition only; suppressed when empty
   prep?: AuditionPrep // audition only

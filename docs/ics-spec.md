@@ -323,6 +323,20 @@ performance `URL`s point at `/runs`, which only exists after phase C.
 | C     | `/runs` page, the Add to Calendar dialog and its placements, the editor Preview's full schedule.                                                                                                                   |
 | D     | Final docs pass (`implementation.md`, `feature-guide.md`, CLAUDE.md); drop the old `ICS spec` stash.                                                                                                               |
 
+**Releasing phase A.** The data migration is its own commit, and it's
+regenerated at release time instead of being merged as committed. Live editor
+saves land on `main` daily, so the committed id lines would conflict with
+them. The ids carry no meaning until feeds are published, so regenerating
+them loses nothing.
+
+1. `npm run sync`.
+2. Merge `ics-feeds` into `dev`. Resolve any `data/` conflicts by taking
+   `main`'s version (`git checkout main -- data/`).
+3. `npx tsx scripts/migrate-occurrence-ids.ts`, then `npm run check`, then
+   commit.
+4. `npm run release`, at a quiet time
+   ([release race](#occurrence-ids)).
+
 Every phase updates `docs/implementation.md` §3 (schemas) and
 `docs/feature-guide.md` for whatever it ships, per CLAUDE.md.
 

@@ -41,11 +41,12 @@ src/
   layouts/        page layout wrappers
   pages/          routes — index, calendar, companies, events, subscribe,
                   services, about, admin/audition-format.js.ts,
-                  admin/data-rules.js.ts
+                  admin/data-rules.js.ts, admin/occurrence-ids.js.ts
   lib/
     data.ts             build-time data loading (import.meta.glob)
     audition-format.ts  shared formatting — Astro, functions, browser
     data-rules.ts       shared validation rules — editors + check scripts
+    occurrence-ids.ts   perf-/session- id generator + backfill (§6)
     browser-module.ts   serves a src/lib module to /admin (§6)
   types.ts        shared TypeScript interfaces
   styles/         global CSS
@@ -56,7 +57,9 @@ public/
 netlify/functions/  serverless functions (§7)
 scripts/          check-json.ts, check-shows.ts, check-activities.ts,
                   check-services.ts, check-markdown.ts,
+                  migrate-occurrence-ids.ts (one-off),
                   sync-branches.sh, release.sh
+tests/            vitest unit tests + fixtures/ (§9)
 docs/             feature-guide.md, implementation.md
 astro.config.mjs  one dev-server redirect (§10)
 netlify.toml      build command, included_files, headers
@@ -119,12 +122,14 @@ One file per company per year: `{ company, year, runs: [<Run>] }`.
 | `infoUrl`      | `string`        | empty → warning                                              |
 | `ticketsUrl`   | `string`        | default; overridable per performance                         |
 | `performances` | `Performance[]` | ordered; empty → warning (run never appears on the calendar) |
+| `updatedAt`    | `string?`       | ISO 8601; set by the editor on Save when the run changed     |
 
 #### `Performance`
 
-`{ date: "YYYY-MM-DD", time: "HH:MM" (24h), perfType: "" | Preview | Opening
-| Closing | Talk-back, discounts, ticketsUrl }` — non-empty `discounts` /
-`ticketsUrl` override the run's.
+`{ id: "perf-<timestamp>", date: "YYYY-MM-DD", time: "HH:MM" (24h), perfType:
+"" | Preview | Opening | Closing | Talk-back, discounts, ticketsUrl }` —
+non-empty `discounts` / `ticketsUrl` override the run's. `id` is a stable
+[occurrence id](#occurrence-ids--srcliboccurrence-idsts).
 
 `getPerformances()` (`src/lib/data.ts`) flattens all runs into a
 `PerformanceEvent[]` with run fields merged and overrides resolved, sorted
@@ -168,8 +173,10 @@ Validation rules (required dates, event contact route, etc.) are in the
 
 #### `ActivityDate`
 
-`{ date: "YYYY-MM-DD", startTime: "HH:MM", endTime?: "HH:MM", notes?,
-location?: { name, address? } }` — location is per session.
+`{ id: "session-<timestamp>", date: "YYYY-MM-DD", startTime: "HH:MM",
+endTime?: "HH:MM", notes?, location?: { name, address? } }` — location is per
+session. `id` is a stable
+[occurrence id](#occurrence-ids--srcliboccurrence-idsts).
 
 #### `AuditionRole`
 
@@ -266,7 +273,11 @@ last deploy, not live edits.
 **Editor shape** (all three): company/year selector (admins get a company
 dropdown) → resizable record sidebar → record form with
 Preview/Restore/Delete (Activities adds Close/Reopen) → Save PUTs the whole
-file.
+file. The Calendar and Activities editors give every new performance or
+session row an occurrence id, and backfill missing ones on load
+([§6](#occurrence-ids--srcliboccurrence-idsts)). On Save, the Calendar editor
+stamps `updatedAt` on runs changed since load, as Activities does for
+activities.
 
 ## 6. Shared front-end logic
 
@@ -297,6 +308,28 @@ panel). Accepted formats are documented in
 with TypeScript's `transpileModule` at build. Any TypeScript syntax works;
 runtime imports from other files don't (type-only imports are dropped).
 Never hand-maintain a copy under `public/admin/`.
+
+### Occurrence ids — `src/lib/occurrence-ids.ts`
+
+Every `Performance` (`perf-<epoch-ms>`) and `ActivityDate`
+(`session-<epoch-ms>`) has a persisted id. It never changes when the row's
+date or time is edited, and it is the identity behind calendar feed UIDs
+([`ics-spec.md`](ics-spec.md)). Ids are never derived from date, time or
+array position.
+
+- `createIdGenerator(prefix)` is monotonic within one generator. If the clock
+  hasn't moved past the last id issued, it uses `last + 1`, so the pattern
+  generator and paste importer can create many rows at once.
+- `ensurePerformanceIds()` / `ensureSessionIds()` add ids only to rows
+  without one, placing `id` first in the object.
+  - The editors call them on load, **before** taking snapshots, so backfilled
+    ids don't mark the file dirty or bump `updatedAt`. That matters because
+    the digest reads `updatedAt`. The ids are written on the next real save.
+  - `scripts/migrate-occurrence-ids.ts` (`npx tsx …`) applies the same helpers
+    to every data file. It never touches `updatedAt`, keeps each file's
+    trailing-newline style, and is idempotent.
+- `check-shows.ts` / `check-activities.ts` fail the build on a missing,
+  malformed or duplicate id ([§9](#9-validation-scripts)).
 
 ### Formatting — `src/lib/audition-format.ts`
 
@@ -460,6 +493,8 @@ missing ping always means a problem.
 - `check-shows.ts`, `check-activities.ts`, `check-services.ts` — the shared
   rules below plus structural checks.
 - `check-markdown.ts` — `renderMd` regression cases.
+- `vitest run` — unit tests in `tests/`. They run against fixture data in
+  `tests/fixtures/`, never live `data/`, so an editor save can't break them.
 
 Errors fail the build; warnings print.
 
@@ -499,8 +534,10 @@ construction):
 
 - `check-shows.ts` — field types; `company` is a known id; genres valid, ≤ 2
   (`MAX_GENRES`, after legacy coercion); `perfType` valid; run ids unique
-  across files. Warns on out-of-order performances (not for historic runs).
-- `check-activities.ts` — field types; `id` format; `type` valid; genres,
+  across files; performance `id` is `perf-<timestamp>` and unique across
+  files; `updatedAt` ISO 8601 if present. Warns on out-of-order performances (not for historic runs).
+- `check-activities.ts` — field types; `id` format; session `id` is
+  `session-<timestamp>` and unique across files; `type` valid; genres,
   role `type`/`gender` valid; booleans; ISO 8601 timestamps; no
   audition-only fields on events or vice versa.
 - `check-services.ts` — field types; `id` format and uniqueness; every

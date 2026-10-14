@@ -9,6 +9,7 @@ import { resolve, join } from 'path'
 import { fileURLToPath } from 'url'
 import type { Genre, PerfType, Run, ShowsFile, PerformanceEvent } from '../src/types.ts'
 import { MAX_GENRES, runIssues, todayIso } from '../src/lib/data-rules.ts'
+import { PERF_ID_RE } from '../src/lib/occurrence-ids.ts'
 
 const __dirname = resolve(fileURLToPath(import.meta.url), '..')
 const root = resolve(__dirname, '..')
@@ -24,6 +25,9 @@ const VALID_PERF_TYPES = new Set<PerfType>(['', 'Preview', 'Opening', 'Closing',
 const today = todayIso()
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/
 const TIME_RE = /^\d{2}:\d{2}$/
+const ISO_RE = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/
+// Performance ids are unique across every file, not just within a run
+const seenPerfIds = new Set<string>()
 
 function assert(condition: unknown, message: string): asserts condition {
   if (!condition) throw new Error(message)
@@ -86,6 +90,11 @@ function validateShowsFile(
     expectString(runValue.discounts, `${loc}.discounts`)
     expectString(runValue.infoUrl, `${loc}.infoUrl`)
     expectString(runValue.ticketsUrl, `${loc}.ticketsUrl`)
+    if (runValue.updatedAt !== undefined)
+      assert(
+        typeof runValue.updatedAt === 'string' && ISO_RE.test(runValue.updatedAt),
+        `${loc}.updatedAt must be an ISO 8601 timestamp`
+      )
     assert(Array.isArray(runValue.performances), `${loc}.performances must be an array`)
 
     let previousSortKey = ''
@@ -95,6 +104,11 @@ function validateShowsFile(
     runValue.performances.forEach((perfValue, perfIndex) => {
       const ploc = `${loc}.performances[${perfIndex}]`
       assert(isRecord(perfValue), `${ploc} must be an object`)
+
+      const perfId = expectString(perfValue.id, `${ploc}.id`)
+      assert(PERF_ID_RE.test(perfId), `${ploc}.id must be "perf-<timestamp>", got: ${perfId}`)
+      assert(!seenPerfIds.has(perfId), `${ploc}.id is a duplicate: ${perfId}`)
+      seenPerfIds.add(perfId)
 
       const date = expectString(perfValue.date, `${ploc}.date`)
       const time = expectString(perfValue.time, `${ploc}.time`)

@@ -4,6 +4,7 @@ export type PerfType = '' | 'Preview' | 'Opening' | 'Closing' | 'Talk-back'
 
 /** One date/time slot within a run. */
 export interface Performance {
+  id: string // "perf-<timestamp>", stable identifier (calendar feed UID)
   date: string // YYYY-MM-DD
   time: string // HH:MM (24-hour)
   perfType: PerfType
@@ -25,6 +26,7 @@ export interface Run {
   infoUrl: string
   ticketsUrl: string
   performances: Performance[]
+  updatedAt?: string // ISO 8601; set by the editor when the run changes (calendar feed LAST-MODIFIED)
 }
 
 /** Shape of each data/shows/<year>/<company>-<year>.json file. */
@@ -68,6 +70,7 @@ export interface AuditionRole {
 }
 
 export interface ActivityDate {
+  id: string // "session-<timestamp>", stable identifier (calendar feed UID)
   date: string // YYYY-MM-DD
   startTime: string // HH:MM 24-hour
   endTime?: string // HH:MM 24-hour (optional)

@@ -22,7 +22,7 @@ The site is a hub (`/`) linking to four sections: **Calendar** (`/calendar`), **
 | Command           | Action                                                                                                       |
 | ----------------- | ------------------------------------------------------------------------------------------------------------ |
 | `npm run dev`     | `netlify dev` at localhost:8888 — the whole system: public pages, functions, and the `/admin` editor         |
-| `npm run check`   | Validate all data JSON (syntax + show, activity, service schemas)                                             |
+| `npm run check`   | Validate all data JSON (syntax + show, activity, service schemas), then run the vitest unit tests            |
 | `npm run build`   | `npm run check` then Astro build to `dist/` — this is Netlify's build command, not something you run by hand |
 | `npm run sync`    | Pull live `/admin` data edits into local `main` + `dev`. Run at the start of a feature branch.               |
 | `npm run release` | Sync, then promote `dev` → `main` (deploy) and back-merge. Prompts, listing the commits it will ship.        |
@@ -32,14 +32,15 @@ There is no bare `astro dev` / `astro preview` script — `npm run dev` (netlify
 ## Folder conventions
 
 - `src/components/` — `calendar.astro` (calendar UI), `SiteNav.astro` (shared nav)
-- `src/pages/` — file-based routes: `index`, `calendar`, `companies`, `events`, `subscribe`, `services`, `about`, `admin/audition-format.js.ts` / `admin/data-rules.js.ts` (serve the shared modules as browser ES modules)
-- `src/lib/` — `data.ts` (build-time data loading), `audition-format.ts` (shared formatting), `data-rules.ts` (shared validation rules), `browser-module.ts` (serves a `src/lib` module to `/admin`) — see `docs/implementation.md` §6
+- `src/pages/` — file-based routes: `index`, `calendar`, `companies`, `events`, `subscribe`, `services`, `about`, `admin/audition-format.js.ts` / `admin/data-rules.js.ts` / `admin/occurrence-ids.js.ts` (serve the shared modules as browser ES modules)
+- `src/lib/` — `data.ts` (build-time data loading), `audition-format.ts` (shared formatting), `data-rules.ts` (shared validation rules), `occurrence-ids.ts` (stable `perf-`/`session-` ids), `browser-module.ts` (serves a `src/lib` module to `/admin`) — see `docs/implementation.md` §6
 - `src/types.ts` — shared data types
 - `data/` — canonical data files; schemas in `docs/implementation.md` §3
 - `public/admin/` — the editor SPA
 - `public/images/companies/`, `public/images/services/` — locally stored images
-- `scripts/` — `check-*.ts` (`npm run check`), `sync-branches.sh` / `release.sh` (`npm run sync` / `release`)
-- `docs/` — `feature-guide.md`, `implementation.md`
+- `scripts/` — `check-*.ts` (`npm run check`), `sync-branches.sh` / `release.sh` (`npm run sync` / `release`), `migrate-occurrence-ids.ts` (one-off, `npx tsx`)
+- `tests/` — vitest unit tests (run by `npm run check`); fixture data in `tests/fixtures/`, never live `data/`
+- `docs/` — `feature-guide.md`, `implementation.md`, `ics-spec.md` (calendar feeds, in progress)
 - `netlify/functions/` — serverless functions; full list and purpose in `docs/implementation.md` §7. **New functions use the Netlify Functions v2 interface** (`export default async (req: Request) => ...` + `export const config`) rather than the legacy `export const handler = schedule(...)` style — existing legacy functions (`data.mjs`, `send-digest.mts`) aren't being migrated proactively.
 
 ## Cross-cutting rules — easy to miss, don't skip

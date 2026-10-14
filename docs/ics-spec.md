@@ -1,7 +1,8 @@
 # ICS Calendar Feeds — Spec
 
-Status: **phases A–C built on `ics-feeds` (A and B merged to `dev`; not yet
-released).** Revised 2026-10-14 from the original August draft. Replaces the Google Calendar sync, which was removed
+Status: **released 2026-10-14 (`ba58e77`).** This is now the design record;
+for how the shipped system works, see `implementation.md` and
+`feature-guide.md`. Revised 2026-10-14 from the original August draft. Replaces the Google Calendar sync, which was removed
 in `bda183f`. That commit's parent still has the old event-building code for
 reference.
 
@@ -392,7 +393,7 @@ performance page links point at `/runs`, which only exists after phase C.
 | C     | `/runs` page, the Add to Calendar dialog and its placements, the editor Preview's full schedule.                                                                                                                   |
 | D     | Final docs pass (`implementation.md`, `feature-guide.md`, CLAUDE.md); drop the old `ICS spec` stash.                                                                                                               |
 
-**Releasing phase A.** The data migration is its own commit, and it's
+**Releasing phase A** (done; kept for reference). The data migration is its own commit, and it's
 regenerated at release time instead of being merged as committed. Live editor
 saves land on `main` daily, so the committed id lines would conflict with
 them. The ids carry no meaning until feeds are published, so regenerating

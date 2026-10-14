@@ -7,6 +7,7 @@ import { join, dirname } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import type { Activity } from '../src/types.ts'
 import { activityIssues } from '../src/lib/data-rules.ts'
+import { SESSION_ID_RE } from '../src/lib/occurrence-ids.ts'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const ROOT = join(__dirname, '..')
@@ -24,6 +25,7 @@ function isIso8601(v: unknown): boolean {
 
 const errors: string[] = []
 const warnings: string[] = []
+const seenSessionIds = new Set<string>()
 
 function err(file: string, msg: string) {
   errors.push(`${file}: ${msg}`)
@@ -78,6 +80,13 @@ for (const year of yearDirs) {
         })
 
       if (!Array.isArray(a.dates)) err(al, 'dates must be an array')
+      else
+        (a.dates as Record<string, unknown>[]).forEach((d, di) => {
+          if (typeof d.id !== 'string' || !SESSION_ID_RE.test(d.id))
+            err(al, `dates[${di}].id must be "session-<timestamp>", got: ${d.id ?? '(missing)'}`)
+          else if (seenSessionIds.has(d.id)) err(al, `dates[${di}].id is a duplicate: ${d.id}`)
+          else seenSessionIds.add(d.id)
+        })
 
       if (a.closed !== undefined && typeof a.closed !== 'boolean')
         err(al, 'closed must be a boolean if present')

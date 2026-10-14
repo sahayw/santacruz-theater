@@ -1,0 +1,36 @@
+{
+  "company": "tst",
+  "year": 2026,
+  "activities": [
+    {
+      "id": "activity-1700000000001",
+      "type": "audition",
+      "title": "Fixture Auditions",
+      "genre": [],
+      "dates": [
+        {
+          "date": "2026-02-01",
+          "startTime": "18:00",
+          "endTime": "21:00",
+          "notes": "Bring a headshot"
+        },
+        {
+          "date": "2026-02-02",
+          "startTime": "18:00"
+        }
+      ],
+      "createdAt": "2026-01-01T00:00:00.000Z",
+      "updatedAt": "2026-01-02T00:00:00.000Z"
+    },
+    {
+      "id": "activity-1700000000002",
+      "type": "audition",
+      "title": "Virtual",
+      "genre": [],
+      "dates": [],
+      "virtualSubmission": true,
+      "createdAt": "2026-01-01T00:00:00.000Z",
+      "updatedAt": "2026-01-01T00:00:00.000Z"
+    }
+  ]
+}

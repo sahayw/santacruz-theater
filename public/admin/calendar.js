@@ -1,6 +1,7 @@
 import { IS_DEV, apiFetch, apiPut, buildCompanyOptions } from './api.js'
 import { fmt12, fmtFullDate, renderMd } from '/admin/audition-format.js'
 import { MAX_GENRES, isDateNearYear, isValidTime, runIssues } from '/admin/data-rules.js'
+import { createIdGenerator, ensurePerformanceIds } from '/admin/occurrence-ids.js'
 import { markdownToolbar } from './markdown-editor.js'
 
 const PERF_TYPES = ['', 'Preview', 'Opening', 'Closing', 'Talk-back']
@@ -31,6 +32,7 @@ const MONTH_MAP = {
   december: 12
 }
 const CURRENT_YEAR = 2026
+const nextPerfId = createIdGenerator('perf')
 
 // ── MODULE STATE (reset on each mount) ──
 let runs = []
@@ -701,6 +703,8 @@ async function loadCompanyFile(coId, year) {
   try {
     const data = await apiFetch(`shows/${year}/${coId}-${year}.json`)
     runs = data.runs || []
+    // Before snapshots, so backfilled ids don't count as an edit; written on next save
+    ensurePerformanceIds(runs, nextPerfId)
     currentCompanyId = coId
     currentYear = data.year || year
     currentCompanyAbv = allCompanies.find((c) => c.id === coId)?.abvName || coId
@@ -881,10 +885,17 @@ async function saveFile() {
   btn.disabled = true
   btn.textContent = 'Saving…'
   try {
+    const now = new Date().toISOString()
+    const savedRuns = runs.map((r) =>
+      runSnapshots.get(r.id) === makeRunSnapshot(r) ? r : { ...r, updatedAt: now }
+    )
     await apiPut(`shows/${currentYear}/${currentCompanyId}-${currentYear}.json`, {
       company: currentCompanyId,
       year: currentYear,
-      runs
+      runs: savedRuns
+    })
+    savedRuns.forEach((r, i) => {
+      runs[i].updatedAt = r.updatedAt
     })
     isDirty = false
     refreshRunSnapshots()
@@ -1273,6 +1284,7 @@ function cellKey(event, rowIdx, field) {
 function addRow() {
   if (activeRunIdx < 0) return
   runs[activeRunIdx].performances.push({
+    id: nextPerfId(),
     date: '',
     time: '',
     perfType: '',
@@ -1320,7 +1332,7 @@ function generatePattern() {
   for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
     if (activeDays.includes(d.getDay())) {
       const ds = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
-      perfs.push({ date: ds, time, perfType: '', discounts: '', ticketsUrl: '' })
+      perfs.push({ id: nextPerfId(), date: ds, time, perfType: '', discounts: '', ticketsUrl: '' })
     }
   }
   if (!perfs.length) {
@@ -1446,7 +1458,14 @@ function parsePaste() {
     const multi = parseCommaSeparatedDates(line)
     if (multi) {
       multi.forEach((date) =>
-        perfs.push({ date, time: defaultTime, perfType: '', discounts: '', ticketsUrl: '' })
+        perfs.push({
+          id: nextPerfId(),
+          date,
+          time: defaultTime,
+          perfType: '',
+          discounts: '',
+          ticketsUrl: ''
+        })
       )
       return
     }
@@ -1457,6 +1476,7 @@ function parsePaste() {
     }
     if (typeof result === 'object') {
       perfs.push({
+        id: nextPerfId(),
         date: result.date,
         time: result.time || defaultTime,
         perfType: extractPerfType(line),
@@ -1464,7 +1484,14 @@ function parsePaste() {
         ticketsUrl: ''
       })
     } else {
-      perfs.push({ date: result, time: defaultTime, perfType: '', discounts: '', ticketsUrl: '' })
+      perfs.push({
+        id: nextPerfId(),
+        date: result,
+        time: defaultTime,
+        perfType: '',
+        discounts: '',
+        ticketsUrl: ''
+      })
     }
   })
   if (perfs.length) {

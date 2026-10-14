@@ -7,8 +7,8 @@
   },
   "scripts": {
     "dev": "netlify dev",
-    "check": "tsx scripts/check-json.ts && tsx scripts/check-shows.ts && tsx scripts/check-activities.ts && tsx scripts/check-services.ts && tsx scripts/check-markdown.ts",
-    "build": "npm run check && astro build",
+    "check": "tsx scripts/check-json.ts && tsx scripts/check-shows.ts && tsx scripts/check-activities.ts && tsx scripts/check-services.ts && tsx scripts/check-markdown.ts && vitest run",
+    "build": "npm run check && astro build && tsx scripts/check-feeds.ts",
     "sync": "bash scripts/sync-branches.sh",
     "release": "bash scripts/release.sh"
   },
@@ -20,8 +20,10 @@
   "devDependencies": {
     "@astrojs/check": "^0.9.9",
     "@types/node": "^25.9.1",
+    "ical.js": "^2.2.1",
     "netlify-cli": "^26.1.0",
     "tsx": "^4.19.4",
-    "typescript": "^6.0.3"
+    "typescript": "^6.0.3",
+    "vitest": "^3.2.7"
   }
 }

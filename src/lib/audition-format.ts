@@ -36,7 +36,8 @@ export function fmtShortDate(dateStr: string) {
   return `${MONTHS[m - 1]} ${d}`
 }
 
-export function fmtAudDateRange(dates: ActivityDate[]) {
+/** Date range across any dated rows — activity sessions or performances. */
+export function fmtAudDateRange(dates: Pick<ActivityDate, 'date'>[]) {
   const ds = dates.filter((d) => d.date)
   if (!ds.length) return ''
   if (ds.length === 1) {
@@ -106,6 +107,28 @@ export function renderMd(raw: string) {
   flushParagraph()
   flushList()
   return blocks.join('\n')
+}
+
+/**
+ * Plain-text counterpart to renderMd() for non-HTML outputs (calendar feeds): drops
+ * bold/italic markers, keeps only a link's text (calendar apps would show the raw URL in
+ * full; the event links to our page instead), and writes bullets as `• item`. Same
+ * Markdown subset as renderMd(); no escaping — callers escape for their own format.
+ */
+export function mdToPlain(raw: string) {
+  return raw
+    .replace(/\r\n?/g, '\n')
+    .split('\n')
+    .map((line) => {
+      const bullet = line.match(/^\s*[-*+]\s+(.+)$/)
+      const text = (bullet ? bullet[1] : line)
+        .replace(/\[([^\]]+)\]\((https?:\/\/[^)]+)\)/g, '$1')
+        .replace(/\*\*(.+?)\*\*/g, '$1')
+        .replace(/\*([^*\n]+?)\*/g, '$1')
+      return bullet ? `• ${text}` : text
+    })
+    .join('\n')
+    .trim()
 }
 
 export function rolesSum(roles: AuditionRole[]) {

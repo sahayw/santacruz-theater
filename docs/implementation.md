@@ -37,15 +37,20 @@ How the system is built. For what it does, see
 
 ```
 src/
-  components/     calendar.astro (calendar UI), SiteNav.astro
+  components/     calendar.astro (calendar UI), SiteNav.astro,
+                  AddToCalendar.astro (feed dialog, §6)
   layouts/        page layout wrappers
-  pages/          routes — index, calendar, companies, events, subscribe,
+  pages/          routes — index, calendar, companies, events, runs, subscribe,
                   services, about, admin/audition-format.js.ts,
-                  admin/data-rules.js.ts
+                  admin/data-rules.js.ts, admin/occurrence-ids.js.ts,
+                  [...feed].ics.ts (calendar feeds, §6)
   lib/
     data.ts             build-time data loading (import.meta.glob)
     audition-format.ts  shared formatting — Astro, functions, browser
     data-rules.ts       shared validation rules — editors + check scripts
+    occurrence-ids.ts   perf-/session- id generator + backfill (§6)
+    calendar-model.ts   runs/activities → calendar events + feeds (§6)
+    ics.ts              RFC 5545 serializer for the feeds (§6)
     browser-module.ts   serves a src/lib module to /admin (§6)
   types.ts        shared TypeScript interfaces
   styles/         global CSS
@@ -56,7 +61,10 @@ public/
 netlify/functions/  serverless functions (§7)
 scripts/          check-json.ts, check-shows.ts, check-activities.ts,
                   check-services.ts, check-markdown.ts,
+                  check-feeds.ts (post-build),
+                  migrate-occurrence-ids.ts (one-off),
                   sync-branches.sh, release.sh
+tests/            vitest unit tests + fixtures/ (§9)
 docs/             feature-guide.md, implementation.md
 astro.config.mjs  one dev-server redirect (§10)
 netlify.toml      build command, included_files, headers
@@ -119,15 +127,18 @@ One file per company per year: `{ company, year, runs: [<Run>] }`.
 | `infoUrl`      | `string`        | empty → warning                                              |
 | `ticketsUrl`   | `string`        | default; overridable per performance                         |
 | `performances` | `Performance[]` | ordered; empty → warning (run never appears on the calendar) |
+| `updatedAt`    | `string?`       | ISO 8601; set by the editor on Save when the run changed     |
 
 #### `Performance`
 
-`{ date: "YYYY-MM-DD", time: "HH:MM" (24h), perfType: "" | Preview | Opening
-| Closing | Talk-back, discounts, ticketsUrl }` — non-empty `discounts` /
-`ticketsUrl` override the run's.
+`{ id: "perf-<timestamp>", date: "YYYY-MM-DD", time: "HH:MM" (24h), perfType:
+"" | Preview | Opening | Closing | Talk-back, discounts, ticketsUrl }` —
+non-empty `discounts` / `ticketsUrl` override the run's. `id` is a stable
+[occurrence id](#occurrence-ids--srcliboccurrence-idsts).
 
 `getPerformances()` (`src/lib/data.ts`) flattens all runs into a
-`PerformanceEvent[]` with run fields merged and overrides resolved, sorted
+`PerformanceEvent[]` (each carrying its performance `id`) with run fields
+merged and overrides resolved, sorted
 by date then time.
 
 ### Activities — `data/activities/<year>/<company-id>-activities-<year>.json`
@@ -168,8 +179,10 @@ Validation rules (required dates, event contact route, etc.) are in the
 
 #### `ActivityDate`
 
-`{ date: "YYYY-MM-DD", startTime: "HH:MM", endTime?: "HH:MM", notes?,
-location?: { name, address? } }` — location is per session.
+`{ id: "session-<timestamp>", date: "YYYY-MM-DD", startTime: "HH:MM",
+endTime?: "HH:MM", notes?, location?: { name, address? } }` — location is per
+session. `id` is a stable
+[occurrence id](#occurrence-ids--srcliboccurrence-idsts).
 
 #### `AuditionRole`
 
@@ -266,7 +279,11 @@ last deploy, not live edits.
 **Editor shape** (all three): company/year selector (admins get a company
 dropdown) → resizable record sidebar → record form with
 Preview/Restore/Delete (Activities adds Close/Reopen) → Save PUTs the whole
-file.
+file. The Calendar and Activities editors give every new performance or
+session row an occurrence id, and backfill missing ones on load
+([§6](#occurrence-ids--srcliboccurrence-idsts)). On Save, the Calendar editor
+stamps `updatedAt` on runs changed since load, as Activities does for
+activities.
 
 ## 6. Shared front-end logic
 
@@ -298,13 +315,38 @@ with TypeScript's `transpileModule` at build. Any TypeScript syntax works;
 runtime imports from other files don't (type-only imports are dropped).
 Never hand-maintain a copy under `public/admin/`.
 
+### Occurrence ids — `src/lib/occurrence-ids.ts`
+
+Every `Performance` (`perf-<epoch-ms>`) and `ActivityDate`
+(`session-<epoch-ms>`) has a persisted id. It never changes when the row's
+date or time is edited, and it is the identity behind calendar feed UIDs
+([`ics-spec.md`](ics-spec.md)). Ids are never derived from date, time or
+array position.
+
+- `createIdGenerator(prefix)` is monotonic within one generator. If the clock
+  hasn't moved past the last id issued, it uses `last + 1`, so the pattern
+  generator and paste importer can create many rows at once.
+- `ensurePerformanceIds()` / `ensureSessionIds()` add ids only to rows
+  without one, placing `id` first in the object.
+  - The editors call them on load, **before** taking snapshots, so backfilled
+    ids don't mark the file dirty or bump `updatedAt`. That matters because
+    the digest reads `updatedAt`. The ids are written on the next real save.
+  - `scripts/migrate-occurrence-ids.ts` (`npx tsx …`) applies the same helpers
+    to every data file. It never touches `updatedAt`, keeps each file's
+    trailing-newline style, and is idempotent.
+- `check-shows.ts` / `check-activities.ts` fail the build on a missing,
+  malformed or duplicate id ([§9](#9-validation-scripts)).
+
 ### Formatting — `src/lib/audition-format.ts`
 
 Pure functions, no Astro/DOM dependency: `fmt12`, `fmtTimeRange`,
 `fmtFullDate`, `fmtShortDate`, `fmtAudDateRange`, `rolesSum`, and
 **`renderMd`** — HTML-escapes, then renders bold, italic,
 `[text](https://url)` links, and `-` bullet lists. The only Markdown
-renderer; don't add others.
+renderer; don't add others. **`mdToPlain`** is its plain-text counterpart
+for the calendar feeds: it removes emphasis markers, keeps only a link's
+text (calendar apps would show raw URLs in full), and writes bullets as
+`• item`. Change the two together.
 
 | Consumer                                                           | How it gets the module                                                         |
 | ------------------------------------------------------------------ | ------------------------------------------------------------------------------ |
@@ -331,10 +373,127 @@ A change to what an activity card shows must be checked in all four:
 3. `buildPreviewHtml()` in `activities.js`
 4. `netlify/functions/lib/email-template.mts`
 
+Exception: the per-session **Add to my calendar** links and **Download all
+dates** exist only on the web paths (1–2). They open a dialog that the
+Preview and emails don't have.
+
 **Layout**: the public `.detail-grid` and Preview `.pv-detail-grid` are
 two-column grids with an optional right column (roles / description). Each
 has a `:not(:has(.detail-right))`-style rule that collapses to one column
 when it's absent (e.g. a virtual audition with no roles).
+
+### Calendar feeds
+
+Static iCalendar (RFC 5545) files, generated at build time and served by
+Netlify's CDN, which handles ETag/304. There's no function and no
+calendar-service API. The design and its rationale are in
+[`ics-spec.md`](ics-spec.md).
+
+| File                     | Contents                              | Use          |
+| ------------------------ | ------------------------------------- | ------------ |
+| `/runs.ics`              | all performances                      | subscription |
+| `/runs/company/{id}.ics` | one company's performances            | subscription |
+| `/activities.ics`        | sessions of all auditions and events  | subscription |
+| `/auditions.ics`         | audition sessions only                | subscription |
+| `/activities/{id}.ics`   | one activity's sessions ("all dates") | download     |
+| `/performances/{id}.ics` | one performance                       | download     |
+| `/sessions/{id}.ics`     | one activity session                  | download     |
+
+`{id}` is the bare epoch from the record's or occurrence's id, with the
+prefix stripped.
+
+- **`src/lib/calendar-model.ts`** (pure) turns runs and activities into
+  `CalendarEvent`s, and `buildFeeds()` groups them into the feeds above.
+  - **Window**: subscriptions keep events from 12 months before the build
+    onward (`HISTORY_MONTHS`). Download files aren't windowed.
+  - **`Feed.subscribable`**: true only for the four kinds of subscription.
+    `ics.ts` adds the refresh hints (`REFRESH-INTERVAL`, `X-PUBLISHED-TTL`)
+    only to those.
+  - **Closed and undated activities**: a closed activity publishes no events.
+    Its `activities/{id}.ics` exists but is empty, and it has no session
+    files. Undated sessions are skipped.
+  - **Event fields**:
+    - UID: `{occurrence id}@santacruz.theater`.
+    - Times: wall-clock America/Los_Angeles. With no end time, an event
+      lasts 2 hours.
+    - Location: a venue name or code is looked up in `sc-theater-venues.json`.
+      Sessions fall back to the company's `primaryVenue`.
+    - Page link: `/runs?id=` or `/events?id=`. It appears only as the
+      description's last line. There's no `URL` property, which Apple would
+      show as a second, duplicate link.
+    - Description: plain text, via `mdToPlain`. It contains no third-party
+      URLs; it ends with one short `Details & tickets: …/runs?id=` (or
+      `Details: …`) line pointing at our page. The dialog's Google add-event
+      link turns that line into a real link, since Google renders HTML there.
+- **`src/lib/ics.ts`** is a hand-written serializer. It escapes text, folds
+  lines at 75 octets (never inside a UTF-8 sequence), uses CRLF and a fixed
+  America/Los_Angeles `VTIMEZONE`, and orders events by start, then UID.
+  - `DTSTAMP` / `LAST-MODIFIED` come from the record's `updatedAt`, or from
+    a run's id timestamp if it has none. They are **never** the build time.
+  - As a result, unchanged data produces byte-identical files, and calendar
+    apps see no phantom changes.
+- **`src/pages/[...feed].ics.ts`** is a single catch-all static endpoint that
+  writes every feed. `netlify.toml` sets
+  `Content-Type: text/calendar; charset=utf-8` for `/*.ics`.
+- **UI — `src/components/AddToCalendar.astro`**: a single native `<dialog>`
+  per page, with three modes chosen by the trigger's attribute.
+  - **Subscribe**: `data-ics-feed` + `data-ics-name`, or `data-ics-choices`
+    (a JSON list of `{label, feed, name}`) + `data-ics-choice-label` for a
+    picker. It shows a `webcal://` link, Google's
+    `calendar.google.com/calendar/r?cid=<webcal URL>` link, and a copyable
+    `https` URL.
+  - **One event**: `data-ics-event="performances/{id}"` or
+    `"sessions/{id}"`.
+    - The dialog fetches that event's own `.ics` file and parses it (a small
+      reader for this exact format) to show the summary, date and location.
+    - It builds Google's add-event link
+      (`calendar/render?action=TEMPLATE&…&ctz=America/Los_Angeles`) from the
+      same file, so the event details are defined in one place: the model.
+    - **Apple / Outlook** downloads the file.
+  - **All dates**: `data-ics-download="activities/{id}"` + `data-ics-name`.
+    It lists the file's dates and offers a download only.
+  - **Shared behaviour**:
+    - Clicks are delegated from `document`, so triggers in client-rendered
+      markup (the calendar's show cards) work.
+    - URLs come from `location.origin`, so branch deploys use their own
+      files.
+    - Subscription names come from `FEED_NAMES` in `calendar-model.ts`.
+  - **Usage tracking**: each action sends a Plausible custom event. Plausible
+    loads only in production builds (`BaseHead.astro`), and the call is a
+    no-op where it isn't loaded.
+    - `Calendar subscribe` — props `calendar` (feed name) and `app` (`Apple /
+Outlook`, `Google`, `Copy link`);
+    - `Calendar add event` — props `event` (summary) and `app`;
+    - `Calendar download all dates` — props `activity` and `app`.
+
+    These measure interest, not subscribers. The feeds are static files, and
+    Google and Outlook.com fetch them once on behalf of all their users, so
+    subscribers can't be counted reliably. To see the events in Plausible,
+    each event name must be added as a custom-event goal in the dashboard.
+
+- **Placements**:
+  - **`calendar.astro`**:
+    - a bar button with a company picker, hidden unless
+      `body.scroll-mode` (week view);
+    - per-card **All dates** / **Add to my calendar** links. These need
+      `PerformanceEvent.id`.
+  - **`events.astro`**:
+    - the banner picker;
+    - a per-session-row button for open activities, which the client script
+      hides for past dates;
+    - **Download all dates** in the links row for open activities with two
+      or more dated sessions.
+  - **`runs.astro`**: a per-performance-row button, hidden for past rows.
+- **`/runs` (`src/pages/runs.astro`)**: lists runs that have performances
+  (index / filter / `?id=` deep link, like `/events`) with the full schedule.
+  It's deliberately not in `SiteNav`. It is the page link in performance
+  events, and the calendar's **All dates** link.
+- **Checks**:
+  - Unit tests (`tests/calendar-model.test.ts`, `tests/ics.test.ts`) run on
+    fixtures and parse the output with `ical.js`, including daylight-saving
+    boundaries.
+  - `scripts/check-feeds.ts` runs after `astro build` and checks every real
+    feed in `dist/` the same way ([§9](#9-validation-scripts)).
 
 ## 7. Netlify functions
 
@@ -460,6 +619,20 @@ missing ping always means a problem.
 - `check-shows.ts`, `check-activities.ts`, `check-services.ts` — the shared
   rules below plus structural checks.
 - `check-markdown.ts` — `renderMd` regression cases.
+- `vitest run` — unit tests in `tests/`. They run against fixture data in
+  `tests/fixtures/`, never live `data/`, so an editor save can't break them.
+
+After `astro build`, `npm run build` also runs `check-feeds.ts`. It parses
+every generated `dist/**/*.ics` with `ical.js` and fails on:
+
+- a parse error;
+- a line over 75 octets, or a line ending that isn't CRLF;
+- a missing required property;
+- a duplicate UID within a feed;
+- an event that ends before it starts.
+
+This validates real data on every deploy, which the fixture-based tests
+can't.
 
 Errors fail the build; warnings print.
 
@@ -499,8 +672,10 @@ construction):
 
 - `check-shows.ts` — field types; `company` is a known id; genres valid, ≤ 2
   (`MAX_GENRES`, after legacy coercion); `perfType` valid; run ids unique
-  across files. Warns on out-of-order performances (not for historic runs).
-- `check-activities.ts` — field types; `id` format; `type` valid; genres,
+  across files; performance `id` is `perf-<timestamp>` and unique across
+  files; `updatedAt` ISO 8601 if present. Warns on out-of-order performances (not for historic runs).
+- `check-activities.ts` — field types; `id` format; session `id` is
+  `session-<timestamp>` and unique across files; `type` valid; genres,
   role `type`/`gender` valid; booleans; ISO 8601 timestamps; no
   audition-only fields on events or vice versa.
 - `check-services.ts` — field types; `id` format and uniqueness; every
@@ -541,8 +716,8 @@ Set in Netlify → Site configuration → Environment variables.
 
 ## 12. Build, deploy & branch workflow
 
-- **Build**: Netlify runs `npm run build` (`npm run check` + `astro build`)
-  on every push to `main`. `netlify.toml` also sets `included_files` (§4)
+- **Build**: Netlify runs `npm run build` (`npm run check` + `astro build` +
+  `check-feeds.ts`) on every push to `main`. `netlify.toml` also sets `included_files` (§4)
   and headers.
 - **Branches**: fixes and small enhancements branch from and merge to
   `main`; major features from and to `dev`. No PRs; never commit directly to

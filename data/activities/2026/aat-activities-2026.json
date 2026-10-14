@@ -17,6 +17,7 @@
       "title": "Dear Evan Hansen",
       "dates": [
         {
+          "id": "session-1791991837930",
           "date": "2026-06-29",
           "startTime": "17:30",
           "endTime": "22:00",
@@ -27,6 +28,7 @@
           "notes": "Vocal"
         },
         {
+          "id": "session-1791991837931",
           "date": "2026-06-30",
           "startTime": "17:30",
           "endTime": "22:00",
@@ -37,6 +39,7 @@
           "notes": "Vocal"
         },
         {
+          "id": "session-1791991837932",
           "date": "2026-07-01",
           "startTime": "17:30",
           "endTime": "22:00",
@@ -47,6 +50,7 @@
           "notes": "Acting & Dancing"
         },
         {
+          "id": "session-1791991837933",
           "date": "2026-07-02",
           "startTime": "17:30",
           "endTime": "22:00",

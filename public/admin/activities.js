@@ -9,11 +9,13 @@ import {
   renderMd
 } from '/admin/audition-format.js'
 import { activityIssues, isDateNearYear, isRealDate, isValidTime } from '/admin/data-rules.js'
+import { createIdGenerator, ensureSessionIds } from '/admin/occurrence-ids.js'
 import { markdownToolbar } from './markdown-editor.js'
 
 const ROLE_TYPES = ['lead', 'supporting', 'ensemble']
 const ROLE_GENDERS = ['any', 'female', 'male']
 const CURRENT_YEAR = 2026
+const nextSessionId = createIdGenerator('session')
 const STYLES_ID = 'act-editor-styles'
 
 // ── MODULE STATE ──
@@ -745,6 +747,9 @@ async function loadCompanyFile(coId, year) {
   try {
     const data = await apiFetch(`activities/${year}/${coId}-activities-${year}.json`)
     activities = data.activities || []
+    // Before snapshots, so backfilled ids don't count as an edit (or bump updatedAt);
+    // written on next save
+    ensureSessionIds(activities, nextSessionId)
     currentCompanyId = coId
     currentYear = data.year || year
     currentCompanyAbv = allCompanies.find((c) => c.id === coId)?.abvName || coId
@@ -1351,7 +1356,7 @@ function newAudition() {
     type: 'audition',
     title: '',
     genre: [],
-    dates: [{ date: '', startTime: '' }],
+    dates: [{ id: nextSessionId(), date: '', startTime: '' }],
     rolesAvailable: [],
     createdAt: now,
     updatedAt: now
@@ -1370,7 +1375,7 @@ function newEvent() {
     type: 'event',
     title: '',
     genre: [],
-    dates: [{ date: '', startTime: '' }],
+    dates: [{ id: nextSessionId(), date: '', startTime: '' }],
     createdAt: now,
     updatedAt: now
   })
@@ -1720,7 +1725,7 @@ function addDateRow() {
   if (activeActIdx < 0) return
   const dates = activities[activeActIdx].dates
   const prev = dates.length > 0 ? dates[dates.length - 1] : null
-  const newRow = { date: '', startTime: '' }
+  const newRow = { id: nextSessionId(), date: '', startTime: '' }
   if (prev?.startTime) newRow.startTime = prev.startTime
   if (prev?.endTime) newRow.endTime = prev.endTime
   if (prev?.location) newRow.location = { ...prev.location }

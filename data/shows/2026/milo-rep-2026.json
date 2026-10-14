@@ -18,6 +18,7 @@
       "ticketsUrl": "",
       "performances": [
         {
+          "id": "perf-1791991838073",
           "date": "2026-07-17",
           "time": "19:30",
           "perfType": "",
@@ -25,6 +26,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838074",
           "date": "2026-07-18",
           "time": "14:00",
           "perfType": "",
@@ -32,6 +34,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838075",
           "date": "2026-07-19",
           "time": "19:30",
           "perfType": "",
@@ -39,6 +42,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838076",
           "date": "2026-07-23",
           "time": "19:30",
           "perfType": "",
@@ -46,6 +50,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838077",
           "date": "2026-07-26",
           "time": "19:30",
           "perfType": "",
@@ -53,6 +58,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838078",
           "date": "2026-07-25",
           "time": "14:00",
           "perfType": "",
@@ -77,6 +83,7 @@
       "ticketsUrl": "",
       "performances": [
         {
+          "id": "perf-1791991838079",
           "date": "2026-07-18",
           "time": "19:30",
           "perfType": "",
@@ -84,6 +91,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838080",
           "date": "2026-07-19",
           "time": "14:00",
           "perfType": "",
@@ -91,6 +99,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838081",
           "date": "2026-07-24",
           "time": "19:00",
           "perfType": "",
@@ -98,6 +107,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838082",
           "date": "2026-07-25",
           "time": "14:00",
           "perfType": "",

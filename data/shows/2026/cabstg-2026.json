@@ -15,6 +15,7 @@
       "ticketsUrl": "https://cabrillostage.universitytickets.com/w/default.aspx",
       "performances": [
         {
+          "id": "perf-1791991837993",
           "date": "2026-07-09",
           "time": "19:30",
           "perfType": "Preview",
@@ -22,6 +23,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991837994",
           "date": "2026-07-10",
           "time": "19:30",
           "perfType": "",
@@ -29,6 +31,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991837995",
           "date": "2026-07-11",
           "time": "19:30",
           "perfType": "",
@@ -36,6 +39,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991837996",
           "date": "2026-07-12",
           "time": "14:00",
           "perfType": "Talk-back",
@@ -43,6 +47,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991837997",
           "date": "2026-07-16",
           "time": "19:30",
           "perfType": "",
@@ -50,6 +55,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991837998",
           "date": "2026-07-17",
           "time": "19:30",
           "perfType": "",
@@ -57,6 +63,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991837999",
           "date": "2026-07-18",
           "time": "19:30",
           "perfType": "",
@@ -64,6 +71,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838000",
           "date": "2026-07-19",
           "time": "14:00",
           "perfType": "",
@@ -71,6 +79,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838001",
           "date": "2026-07-23",
           "time": "19:30",
           "perfType": "",
@@ -78,6 +87,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838002",
           "date": "2026-07-24",
           "time": "19:30",
           "perfType": "",
@@ -85,6 +95,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838003",
           "date": "2026-07-25",
           "time": "19:30",
           "perfType": "",
@@ -92,6 +103,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838004",
           "date": "2026-07-26",
           "time": "14:00",
           "perfType": "",
@@ -99,6 +111,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838005",
           "date": "2026-07-30",
           "time": "19:30",
           "perfType": "",
@@ -106,6 +119,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838006",
           "date": "2026-07-31",
           "time": "19:30",
           "perfType": "",
@@ -113,6 +127,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838007",
           "date": "2026-08-01",
           "time": "19:30",
           "perfType": "",
@@ -120,6 +135,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838008",
           "date": "2026-08-02",
           "time": "14:00",
           "perfType": "",

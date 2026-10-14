@@ -322,6 +322,13 @@ Placements:
 run's full schedule, with per-performance overrides, in the same card layout
 that `/runs` now uses.
 
+**Usage tracking**: the dialog sends Plausible custom events (`Calendar
+subscribe`, `Calendar add event`, `Calendar download all dates`), with the
+calendar or event name and the app chosen. This counts interest, not
+subscribers. Counting actual feed fetches (for example with an edge
+function) was considered and rejected: Google and Outlook.com fetch once on
+behalf of all their users, so the numbers wouldn't mean much.
+
 ## Testing
 
 **Unit tests** (vitest, `tests/`, fixtures in `tests/fixtures/`, run by

@@ -96,6 +96,18 @@
 
   let choices: Choice[] = []
 
+  // ── Usage tracking (Plausible custom events; no-op where Plausible isn't loaded) ──
+  // Records interest, not ongoing subscribers — see docs/ics-spec.md.
+  type Props = Record<string, string>
+  function track(event: string, props: Props) {
+    const w = window as unknown as {
+      plausible?: (event: string, options: { props: Props }) => void
+    }
+    w.plausible?.(event, { props })
+  }
+  let tracking: { event: string; props: Props } = { event: '', props: {} }
+  const trackAs = (app: string) => () => track(tracking.event, { ...tracking.props, app })
+
   // ── Reading our own .ics output (fixed, known format) ──
   function parseEvents(text: string): IcsEvent[] {
     const lines = text.replace(/\r\n[ \t]/g, '').split(/\r\n/)
@@ -167,6 +179,7 @@
 
   // ── Modes ──
   function showSubscribe(feed: string, name: string) {
+    tracking = { event: 'Calendar subscribe', props: { calendar: name } }
     const path = `/${feed}.ics`
     const webcal = `webcal://${location.host}${path}`
     nameEl.textContent = name
@@ -178,6 +191,9 @@
   }
 
   async function showSave(path: string, fallbackName: string, single: boolean) {
+    tracking = single
+      ? { event: 'Calendar add event', props: { event: fallbackName || path } }
+      : { event: 'Calendar download all dates', props: { activity: fallbackName } }
     nameEl.textContent = fallbackName
     whenList.innerHTML = ''
     downloadLink.href = `/${path}.ics`
@@ -193,6 +209,7 @@
       if (single && events[0]) {
         const e = events[0]
         nameEl.textContent = e.summary
+        tracking.props = { event: e.summary }
         whenList.innerHTML = ''
         whenList.append(li(fmtWhen(e.start)))
         if (e.location) whenList.append(li(e.location))
@@ -238,7 +255,13 @@
     if (c) showSubscribe(c.feed, c.name)
   })
 
+  webcalLink.addEventListener('click', trackAs('Apple / Outlook'))
+  googleSubLink.addEventListener('click', trackAs('Google'))
+  downloadLink.addEventListener('click', trackAs('Apple / Outlook'))
+  googleEventLink.addEventListener('click', trackAs('Google'))
+
   copyBtn.addEventListener('click', async () => {
+    trackAs('Copy link')()
     try {
       await navigator.clipboard.writeText(urlInput.value)
       copyBtn.textContent = 'Copied ✓'

@@ -344,8 +344,9 @@ Pure functions, no Astro/DOM dependency: `fmt12`, `fmtTimeRange`,
 **`renderMd`** — HTML-escapes, then renders bold, italic,
 `[text](https://url)` links, and `-` bullet lists. The only Markdown
 renderer; don't add others. **`mdToPlain`** is its plain-text counterpart
-for the calendar feeds: it removes emphasis markers, writes links as
-`text (url)` and bullets as `• item`. Change the two together.
+for the calendar feeds: it removes emphasis markers, keeps only a link's
+text (calendar apps would show raw URLs in full), and writes bullets as
+`• item`. Change the two together.
 
 | Consumer                                                           | How it gets the module                                                         |
 | ------------------------------------------------------------------ | ------------------------------------------------------------------------------ |
@@ -418,7 +419,10 @@ prefix stripped.
     - Location: a venue name or code is looked up in `sc-theater-venues.json`.
       Sessions fall back to the company's `primaryVenue`.
     - URL: `/runs?id=` or `/events?id=`.
-    - Description: plain text, via `mdToPlain`.
+    - Description: plain text, via `mdToPlain`. It contains no third-party
+      URLs; it ends with one short `Details & tickets: …/runs?id=` (or
+      `Details: …`) line pointing at our page. The dialog's Google add-event
+      link turns that line into a real link, since Google renders HTML there.
 - **`src/lib/ics.ts`** is a hand-written serializer. It escapes text, folds
   lines at 75 octets (never inside a UTF-8 sequence), uses CRLF and a fixed
   America/Los_Angeles `VTIMEZONE`, and orders events by start, then UID.

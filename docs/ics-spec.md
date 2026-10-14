@@ -175,19 +175,33 @@ Rules carried over from the old sync:
   in `src/lib/audition-format.ts`, kept beside `renderMd()` so Markdown
   handling stays in one module:
   - bold and italic markers are removed;
-  - `[text](url)` becomes `text (url)`;
+  - `[text](url)` becomes just `text` (calendar apps would show the raw URL in
+    full);
   - `- item` becomes `• item`.
 - **Description contents**
   - Performances, in order:
     1. the perf type (e.g. "Opening performance");
     2. the run description;
-    3. price, discounts, the tickets link and the info link. Per-performance
-       discounts and ticket links override the run's.
-  - Auditions: a summary of the roles, then the session notes.
+    3. price and discounts (per-performance discounts override the run's);
+    4. `Details & tickets: https://santacruz.theater/runs?id={id}`, or just
+       `Details: …` when there's no ticket link.
+  - Auditions: a summary of the roles, the session notes, then
+    `Details: https://santacruz.theater/events?id={id}`.
   - Events, in order:
     1. the description (or brief description);
     2. the session notes;
-    3. cost and the registration link.
+    3. cost;
+    4. `Details & registration: …/events?id={id}`, or `Details: …` when there's
+       no registration link.
+  - **No third-party URLs in descriptions.** Calendar apps show any URL in a
+    plain-text description in full, and ticket-vendor URLs can be very long.
+    The single short link to our page leads to the ticket, info and
+    registration links, and those stay current even when a copy in someone's
+    calendar doesn't.
+  - **Linked text where it's supported.** In Google's add-event link (single
+    events), the dialog turns each `Label: https://…` line into a link
+    reading "Label". Google's add-event page renders HTML; `.ics` files can't
+    rely on that.
 - **URL property**
   - Performances: `https://santacruz.theater/runs?id={id}`. This page arrives
     in phase C; see [Phases](#phases).

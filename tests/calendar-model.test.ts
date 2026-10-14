@@ -10,11 +10,9 @@ import {
 import { activity, ctx, run } from './fixtures/calendar.ts'
 
 describe('mdToPlain', () => {
-  it('drops emphasis, writes links as text (url), and bullets as •', () => {
+  it('drops emphasis, keeps only link text, and writes bullets as •', () => {
     expect(mdToPlain('**bold** and *italic*')).toBe('bold and italic')
-    expect(mdToPlain('[tickets](https://example.com/t?a=1)')).toBe(
-      'tickets (https://example.com/t?a=1)'
-    )
+    expect(mdToPlain('[tickets](https://example.com/t?a=1)')).toBe('tickets')
     expect(mdToPlain('Intro\n- one\n* two\n+ three')).toBe('Intro\n• one\n• two\n• three')
   })
 
@@ -52,15 +50,27 @@ describe('performanceEvents', () => {
     expect(opening.lastModified).toBe('2026-09-01T12:00:00.000Z')
   })
 
-  it('writes a plain-text description with per-performance overrides', () => {
+  it('writes a plain-text description ending in one short link to our page', () => {
     expect(opening.description).toBe(
       'Opening performance\n\nShakespeare in the park.\n• Bring a blanket\n\n' +
-        'Price: $20\nDiscounts: Students $10\nTickets: https://example.com/tickets\n' +
-        'More info: https://example.com/info'
+        'Price: $20\nDiscounts: Students $10\n\n' +
+        'Details & tickets: https://santacruz.theater/runs?id=1700000000000'
     )
     expect(matinee.description).toContain('Discounts: Pay what you can')
-    expect(matinee.description).toContain('Tickets: https://example.com/matinee')
     expect(matinee.description).not.toContain('performance\n')
+    // No raw third-party URLs — the runs page carries the ticket and info links
+    expect(opening.description).not.toContain('example.com')
+    expect(matinee.description).not.toContain('example.com')
+  })
+
+  it('says just "Details" when a run has no ticket link', () => {
+    const [e] = performanceEvents(
+      run({ ticketsUrl: '', performances: [run().performances[0]] }),
+      ctx
+    )
+    expect(
+      e.description.endsWith('\n\nDetails: https://santacruz.theater/runs?id=1700000000000')
+    ).toBe(true)
   })
 
   it('keeps the same UID when a performance’s date and time change', () => {
@@ -88,7 +98,10 @@ describe('sessionEvents', () => {
     expect(first.uid).toBe('session-1700000000101@santacruz.theater')
     expect(first.kind).toBe('audition')
     expect(first.summary).toBe('Audition: Hamlet Auditions — Test Theatre')
-    expect(first.description).toBe('Roles: 1 female · 1 any · ensemble\n\nPrepare a monologue')
+    expect(first.description).toBe(
+      'Roles: 1 female · 1 any · ensemble\n\nPrepare a monologue\n\n' +
+        'Details: https://santacruz.theater/events?id=1700000000100'
+    )
     expect(first.location).toBe('Test Hall · 1 Main St, Santa Cruz, CA 95060')
     expect(first.url).toBe('https://santacruz.theater/events?id=1700000000100')
     expect(first.end).toEqual({ date: '2026-11-05', time: '21:00' })
@@ -122,7 +135,8 @@ describe('sessionEvents', () => {
     expect(e.kind).toBe('event')
     expect(e.summary).toBe('Event: Stage Combat Workshop — Fight Club SC')
     expect(e.description).toBe(
-      'Learn safe falls\n\nCost: $15\nRegister: https://example.com/register'
+      'Learn safe falls\n\nCost: $15\n\n' +
+        'Details & registration: https://santacruz.theater/events?id=1700000000100'
     )
     expect(e.location).toBe('Black Box')
     expect(e.end).toEqual({ date: '2026-11-08', time: '00:30' }) // past midnight

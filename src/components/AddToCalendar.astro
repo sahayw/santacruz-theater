@@ -137,11 +137,27 @@
     return `${date} · ${time.replace(':00', '').toLowerCase()}`
   }
 
+  /**
+   * Description as HTML for Google's add-event page, which (unlike .ics clients) renders
+   * links: a `Label: https://…` line becomes a link reading "Label".
+   */
+  function googleDetails(description: string) {
+    const esc = (t: string) => t.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    return description
+      .slice(0, 1500)
+      .split('\n')
+      .map((line) => {
+        const link = line.match(/^(.+?): (https?:\/\/\S+)$/)
+        return link ? `<a href="${esc(link[2])}">${esc(link[1])}</a>` : esc(line)
+      })
+      .join('<br>')
+  }
+
   /** Google Calendar's add-event link, pre-filled; times stay in the event's own zone. */
   function googleEventUrl(e: IcsEvent) {
-    const details = [e.description && e.description.slice(0, 1200), e.url]
-      .filter(Boolean)
-      .join('\n\n')
+    const details = e.description
+      ? googleDetails(e.description)
+      : `<a href="${e.url}">Details on santacruz.theater</a>`
     const params = new URLSearchParams({
       action: 'TEMPLATE',
       text: e.summary,

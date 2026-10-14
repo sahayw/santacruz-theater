@@ -142,12 +142,10 @@ export function performanceEvents(run: Run, ctx: CalendarContext): CalendarEvent
       description: paragraphs(
         p.perfType && `${p.perfType} performance`,
         run.description && mdToPlain(run.description),
-        lines(
-          run.price && `Price: ${run.price}`,
-          discounts && `Discounts: ${discounts}`,
-          ticketsUrl && `Tickets: ${ticketsUrl}`,
-          run.infoUrl && `More info: ${run.infoUrl}`
-        )
+        lines(run.price && `Price: ${run.price}`, discounts && `Discounts: ${discounts}`),
+        // One short link to our page (which has the ticket and info links) rather than
+        // raw third-party URLs, which calendar apps show in full
+        `${ticketsUrl ? 'Details & tickets' : 'Details'}: ${url}`
       ),
       location,
       url,
@@ -212,11 +210,8 @@ export function sessionEvents(activity: CompanyActivity, ctx: CalendarContext): 
         roles && `Roles: ${roles}`,
         body && mdToPlain(body),
         d.notes && mdToPlain(d.notes),
-        activity.type === 'event' &&
-          lines(
-            activity.cost && `Cost: ${activity.cost}`,
-            activity.registerUrl && `Register: ${activity.registerUrl}`
-          )
+        activity.type === 'event' && activity.cost && `Cost: ${activity.cost}`,
+        `${activity.type === 'event' && activity.registerUrl ? 'Details & registration' : 'Details'}: ${url}`
       ),
       location: sessionLocation(d, activity, ctx),
       url,

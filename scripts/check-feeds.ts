@@ -49,7 +49,7 @@ export function feedProblems(text: string): string[] {
   for (const vevent of calendar.getAllSubcomponents('vevent')) {
     const event = new ICAL.Event(vevent)
     const label = event.uid || '(no UID)'
-    for (const prop of ['uid', 'dtstamp', 'dtstart', 'dtend', 'summary', 'url'])
+    for (const prop of ['uid', 'dtstamp', 'dtstart', 'dtend', 'summary', 'description'])
       if (!vevent.hasProperty(prop)) problems.push(`${label}: missing ${prop.toUpperCase()}`)
     if (uids.has(event.uid)) problems.push(`${label}: duplicate UID`)
     uids.add(event.uid)

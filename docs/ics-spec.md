@@ -202,10 +202,14 @@ Rules carried over from the old sync:
     events), the dialog turns each `Label: https://…` line into a link
     reading "Label". Google's add-event page renders HTML; `.ics` files can't
     rely on that.
-- **URL property**
-  - Performances: `https://santacruz.theater/runs?id={id}`. This page arrives
-    in phase C; see [Phases](#phases).
-  - Sessions: `https://santacruz.theater/events?id={id}`.
+- **Page link**: performances link to
+  `https://santacruz.theater/runs?id={id}` and sessions to
+  `https://santacruz.theater/events?id={id}`. The link appears **once**, as the
+  description's last line.
+  - There's no `URL` property. Apple Calendar shows `URL` as a separate link
+    field, which duplicated the description line.
+  - Google and most other apps ignore `URL` anyway, so the description line
+    is the copy every app shows.
 
 ## ICS output (`src/lib/ics.ts`)
 
@@ -308,7 +312,8 @@ Placements:
   per-performance perf type, discounts or ticket link that differs from the
   run's.
 - It is **not** in the nav or on the home page. It exists as the target of
-  feed `URL` properties and of the calendar card's **All dates** link.
+  the page links in calendar events and of the calendar card's **All dates**
+  link.
 
 **Calendar editor Preview**: no change was needed. It already showed the
 run's full schedule, with per-performance overrides, in the same card layout
@@ -368,7 +373,7 @@ break these tests.
 
 Each phase is merged to the `ics-feeds` branch, and then to `dev`, once you've
 tested it. Phases B and C are released to `main` together. Phase B's
-performance `URL`s point at `/runs`, which only exists after phase C.
+performance page links point at `/runs`, which only exists after phase C.
 
 | Phase | Work                                                                                                                                                                                                               |
 | ----- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |

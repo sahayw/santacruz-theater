@@ -94,7 +94,8 @@ function eventLines(e: CalendarEvent) {
     `SUMMARY:${escapeText(e.summary)}`,
     e.description && `DESCRIPTION:${escapeText(e.description)}`,
     e.location && `LOCATION:${escapeText(e.location)}`,
-    `URL:${e.url}`,
+    // No URL property: the description's last line already links to our page, and
+    // Apple Calendar would show the same link a second time as its own field
     'END:VEVENT'
   ].filter((l): l is string => Boolean(l))
 }

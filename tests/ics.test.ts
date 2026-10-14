@@ -78,9 +78,11 @@ describe('serializeFeed', () => {
     expect(opening.summary).toBe('Much Ado — Test Theatre')
     expect(opening.location).toBe('Test Hall · 1 Main St, Santa Cruz, CA 95060')
     expect(opening.description).toContain('Shakespeare in the park.\n• Bring a blanket')
-    expect(opening.component.getFirstPropertyValue('url')).toBe(
-      'https://santacruz.theater/runs?id=1700000000000'
+    // The page link appears once, as the description's last line — no URL property
+    expect(opening.description).toMatch(
+      /\n\nDetails & tickets: https:\/\/santacruz\.theater\/runs\?id=1700000000000$/
     )
+    expect(opening.component.hasProperty('url')).toBe(false)
     expect(opening.component.getFirstPropertyValue('dtstamp')?.toString()).toBe(
       '2026-09-01T12:00:00Z'
     )

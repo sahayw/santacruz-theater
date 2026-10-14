@@ -74,8 +74,7 @@
     start: string // YYYYMMDDTHHMMSS, America/Los_Angeles
     end: string
     location: string
-    description: string
-    url: string
+    description: string // always ends with a `Details…: https://santacruz.theater/…` line
   }
 
   const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as T
@@ -118,7 +117,6 @@
         else if (key === 'DTEND') cur.end = value
         else if (key === 'LOCATION') cur.location = unescape(value)
         else if (key === 'DESCRIPTION') cur.description = unescape(value)
-        else if (key === 'URL') cur.url = value
       }
     }
     return events
@@ -155,9 +153,7 @@
 
   /** Google Calendar's add-event link, pre-filled; times stay in the event's own zone. */
   function googleEventUrl(e: IcsEvent) {
-    const details = e.description
-      ? googleDetails(e.description)
-      : `<a href="${e.url}">Details on santacruz.theater</a>`
+    const details = googleDetails(e.description || '')
     const params = new URLSearchParams({
       action: 'TEMPLATE',
       text: e.summary,

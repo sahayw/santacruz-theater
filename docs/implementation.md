@@ -418,7 +418,9 @@ prefix stripped.
       lasts 2 hours.
     - Location: a venue name or code is looked up in `sc-theater-venues.json`.
       Sessions fall back to the company's `primaryVenue`.
-    - URL: `/runs?id=` or `/events?id=`.
+    - Page link: `/runs?id=` or `/events?id=`. It appears only as the
+      description's last line. There's no `URL` property, which Apple would
+      show as a second, duplicate link.
     - Description: plain text, via `mdToPlain`. It contains no third-party
       URLs; it ends with one short `Details & tickets: …/runs?id=` (or
       `Details: …`) line pointing at our page. The dialog's Google add-event
@@ -471,7 +473,7 @@ prefix stripped.
   - **`runs.astro`**: a per-performance-row button, hidden for past rows.
 - **`/runs` (`src/pages/runs.astro`)**: lists runs that have performances
   (index / filter / `?id=` deep link, like `/events`) with the full schedule.
-  It's deliberately not in `SiteNav`. It is the `URL` target for performance
+  It's deliberately not in `SiteNav`. It is the page link in performance
   events, and the calendar's **All dates** link.
 - **Checks**:
   - Unit tests (`tests/calendar-model.test.ts`, `tests/ics.test.ts`) run on

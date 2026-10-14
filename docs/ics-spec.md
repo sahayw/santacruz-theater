@@ -1,7 +1,7 @@
 # ICS Calendar Feeds — Spec
 
-Status: **approved design, not yet implemented.** Revised 2026-10-14 from the
-original August draft. Replaces the Google Calendar sync, which was removed
+Status: **phases A and B built on `ics-feeds` (not yet released); phase C
+next.** Revised 2026-10-14 from the original August draft. Replaces the Google Calendar sync, which was removed
 in `bda183f`. That commit's parent still has the old event-building code for
 reference.
 
@@ -144,7 +144,8 @@ interface CalendarEvent {
 Rules carried over from the old sync:
 
 - **Performances**
-  - Summary: `{showAbv || show} — {company name}`.
+  - Summary: `{showAbv || show} — {company name}`, or just the title for the
+    `other` company.
   - End time: start + 2 hours, since performances have no end time.
   - Location: `run.venue`, looked up by name or code in
     `sc-theater-venues.json` and formatted as `Name · Address`. If there's no
@@ -152,7 +153,9 @@ Rules carried over from the old sync:
 - **Sessions**
   - Summary: `Audition: {title} — {org}` or `Event: {title} — {org}`. `{org}`
     is `organizerName` when the company is `other`, otherwise the company name.
-  - End time: `endTime` if set, otherwise start + 2 hours.
+    The ` — {org}` part is dropped when there's no organizer.
+  - End time: `endTime` if set, otherwise start + 2 hours. An `endTime` at or
+    before the start time means the session ends the next day.
   - Location: `ActivityDate.location` (the address, or the name looked up as a
     venue). Otherwise the company's `primaryVenue`.
 - **Description**: plain text. Markdown is converted with a new `mdToPlain()`
@@ -162,10 +165,16 @@ Rules carried over from the old sync:
   - `[text](url)` becomes `text (url)`;
   - `- item` becomes `• item`.
 - **Description contents**
-  - Performances: perf type (Opening, Preview, and so on), the run
-    description, price, discounts and the tickets link.
+  - Performances, in order:
+    1. the perf type (e.g. "Opening performance");
+    2. the run description;
+    3. price, discounts, the tickets link and the info link. Per-performance
+       discounts and ticket links override the run's.
   - Auditions: a summary of the roles, then the session notes.
-  - Events: the description (or brief description), then the session notes.
+  - Events, in order:
+    1. the description (or brief description);
+    2. the session notes;
+    3. cost and the registration link.
 - **URL property**
   - Performances: `https://santacruz.theater/runs?id={id}`. This page arrives
     in phase C; see [Phases](#phases).
@@ -178,7 +187,7 @@ Rules carried over from the old sync:
   - `PRODID:-//santacruz.theater//Calendar Feeds//EN`
   - `CALSCALE:GREGORIAN`
   - `METHOD:PUBLISH`
-  - `X-WR-CALNAME`
+  - `NAME` / `X-WR-CALNAME`, and `DESCRIPTION` / `X-WR-CALDESC`
   - `X-WR-TIMEZONE:America/Los_Angeles`
   - advisory refresh hints: `REFRESH-INTERVAL;VALUE=DURATION:PT12H` and
     `X-PUBLISHED-TTL:PT12H`
@@ -204,20 +213,16 @@ Rules carried over from the old sync:
 
 ## Build-time endpoints
 
-Astro static endpoints (`GET` + `getStaticPaths`), each a thin wrapper around
-`calendar-model.ts` + `ics.ts`:
+One catch-all Astro static endpoint, `src/pages/[...feed].ics.ts`, writes
+every feed:
 
-```
-src/pages/runs.ics.ts
-src/pages/runs/[id].ics.ts
-src/pages/runs/company/[company].ics.ts
-src/pages/activities.ics.ts
-src/pages/activities/[id].ics.ts
-src/pages/auditions.ics.ts
-```
+- `getStaticPaths()` calls `buildFeeds()` and returns one path per feed.
+- It loads companies and venues by importing the JSON directly, as
+  `companies.astro` does.
+- It uses `todayIso()` for the history window.
 
-`src/lib/data.ts` gains venue and company loaders as needed (`getVenues()`,
-`getCompanies()`).
+The original plan was six separate endpoint files. They would have been
+near-identical, so one route does the job with less code.
 
 ## Website UI (phase C)
 

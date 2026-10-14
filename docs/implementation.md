@@ -41,12 +41,15 @@ src/
   layouts/        page layout wrappers
   pages/          routes — index, calendar, companies, events, subscribe,
                   services, about, admin/audition-format.js.ts,
-                  admin/data-rules.js.ts, admin/occurrence-ids.js.ts
+                  admin/data-rules.js.ts, admin/occurrence-ids.js.ts,
+                  [...feed].ics.ts (calendar feeds, §6)
   lib/
     data.ts             build-time data loading (import.meta.glob)
     audition-format.ts  shared formatting — Astro, functions, browser
     data-rules.ts       shared validation rules — editors + check scripts
     occurrence-ids.ts   perf-/session- id generator + backfill (§6)
+    calendar-model.ts   runs/activities → calendar events + feeds (§6)
+    ics.ts              RFC 5545 serializer for the feeds (§6)
     browser-module.ts   serves a src/lib module to /admin (§6)
   types.ts        shared TypeScript interfaces
   styles/         global CSS
@@ -57,6 +60,7 @@ public/
 netlify/functions/  serverless functions (§7)
 scripts/          check-json.ts, check-shows.ts, check-activities.ts,
                   check-services.ts, check-markdown.ts,
+                  check-feeds.ts (post-build),
                   migrate-occurrence-ids.ts (one-off),
                   sync-branches.sh, release.sh
 tests/            vitest unit tests + fixtures/ (§9)
@@ -337,7 +341,9 @@ Pure functions, no Astro/DOM dependency: `fmt12`, `fmtTimeRange`,
 `fmtFullDate`, `fmtShortDate`, `fmtAudDateRange`, `rolesSum`, and
 **`renderMd`** — HTML-escapes, then renders bold, italic,
 `[text](https://url)` links, and `-` bullet lists. The only Markdown
-renderer; don't add others.
+renderer; don't add others. **`mdToPlain`** is its plain-text counterpart
+for the calendar feeds: it removes emphasis markers, writes links as
+`text (url)` and bullets as `• item`. Change the two together.
 
 | Consumer                                                           | How it gets the module                                                         |
 | ------------------------------------------------------------------ | ------------------------------------------------------------------------------ |
@@ -368,6 +374,54 @@ A change to what an activity card shows must be checked in all four:
 two-column grids with an optional right column (roles / description). Each
 has a `:not(:has(.detail-right))`-style rule that collapses to one column
 when it's absent (e.g. a virtual audition with no roles).
+
+### Calendar feeds
+
+Static iCalendar (RFC 5545) files, generated at build time and served by
+Netlify's CDN, which handles ETag/304. There's no function and no
+calendar-service API. The design and its rationale are in
+[`ics-spec.md`](ics-spec.md).
+
+| Feed                     | Contents                                    |
+| ------------------------ | ------------------------------------------- |
+| `/runs.ics`              | all performances                            |
+| `/runs/company/{id}.ics` | one company's performances                  |
+| `/runs/{id}.ics`         | one run's performances (bare id, no prefix) |
+| `/activities.ics`        | sessions of all auditions and events        |
+| `/auditions.ics`         | audition sessions only                      |
+| `/activities/{id}.ics`   | one activity's sessions                     |
+
+- **`src/lib/calendar-model.ts`** (pure) turns runs and activities into
+  `CalendarEvent`s, and `buildFeeds()` groups them into the feeds above.
+  - **Window**: the composite and company feeds keep events from 12 months
+    before the build onward (`HISTORY_MONTHS`). Per-record feeds keep all of
+    their events.
+  - **Closed and undated activities**: a closed activity publishes no events,
+    though its own feed still exists, empty. Undated sessions are skipped.
+  - **Event fields**:
+    - UID: `{occurrence id}@santacruz.theater`.
+    - Times: wall-clock America/Los_Angeles. With no end time, an event
+      lasts 2 hours.
+    - Location: a venue name or code is looked up in `sc-theater-venues.json`.
+      Sessions fall back to the company's `primaryVenue`.
+    - URL: `/runs?id=` or `/events?id=`.
+    - Description: plain text, via `mdToPlain`.
+- **`src/lib/ics.ts`** is a hand-written serializer. It escapes text, folds
+  lines at 75 octets (never inside a UTF-8 sequence), uses CRLF and a fixed
+  America/Los_Angeles `VTIMEZONE`, and orders events by start, then UID.
+  - `DTSTAMP` / `LAST-MODIFIED` come from the record's `updatedAt`, or from
+    a run's id timestamp if it has none. They are **never** the build time.
+  - As a result, unchanged data produces byte-identical files, and calendar
+    apps see no phantom changes.
+- **`src/pages/[...feed].ics.ts`** is a single catch-all static endpoint that
+  writes every feed. `netlify.toml` sets
+  `Content-Type: text/calendar; charset=utf-8` for `/*.ics`.
+- **Checks**:
+  - Unit tests (`tests/calendar-model.test.ts`, `tests/ics.test.ts`) run on
+    fixtures and parse the output with `ical.js`, including daylight-saving
+    boundaries.
+  - `scripts/check-feeds.ts` runs after `astro build` and checks every real
+    feed in `dist/` the same way ([§9](#9-validation-scripts)).
 
 ## 7. Netlify functions
 
@@ -496,6 +550,18 @@ missing ping always means a problem.
 - `vitest run` — unit tests in `tests/`. They run against fixture data in
   `tests/fixtures/`, never live `data/`, so an editor save can't break them.
 
+After `astro build`, `npm run build` also runs `check-feeds.ts`. It parses
+every generated `dist/**/*.ics` with `ical.js` and fails on:
+
+- a parse error;
+- a line over 75 octets, or a line ending that isn't CRLF;
+- a missing required property;
+- a duplicate UID within a feed;
+- an event that ends before it starts.
+
+This validates real data on every deploy, which the fixture-based tests
+can't.
+
 Errors fail the build; warnings print.
 
 ### Rule reference
@@ -578,8 +644,8 @@ Set in Netlify → Site configuration → Environment variables.
 
 ## 12. Build, deploy & branch workflow
 
-- **Build**: Netlify runs `npm run build` (`npm run check` + `astro build`)
-  on every push to `main`. `netlify.toml` also sets `included_files` (§4)
+- **Build**: Netlify runs `npm run build` (`npm run check` + `astro build` +
+  `check-feeds.ts`) on every push to `main`. `netlify.toml` also sets `included_files` (§4)
   and headers.
 - **Branches**: fixes and small enhancements branch from and merge to
   `main`; major features from and to `dev`. No PRs; never commit directly to

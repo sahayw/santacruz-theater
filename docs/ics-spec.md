@@ -284,8 +284,11 @@ at a similar size, so it's clear what's being added.
 
 Placements:
 
-- **`/calendar`**: next to the filter bar, **week (list) view only**. The
-  year view doesn't show what you'd be subscribing to.
+- **`/calendar`**: at the right-hand end of the bar, **week (list) view
+  only**. The year view doesn't show what you'd be subscribing to.
+  - **Filters** sit at the other (left) end, beside the view switch, so they
+    don't look like they shape the subscription.
+  - On phones both are icon buttons, and the filter panel spans the bar.
   - The dialog has its own Company selector. It is _not_ tied to the page's
     live filters, and offers the same companies as `#filterCompany`.
   - "All companies" subscribes to `/runs.ics`; a company subscribes to

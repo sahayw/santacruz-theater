@@ -25,14 +25,52 @@ const feedChoices = JSON.stringify([
 ---
 
 <div class="cal-bar">
-  <button class="back-annual-btn" id="backBtn">← Annual</button>
-  <button class="list-view-btn" id="listViewBtn">List view →</button>
+  <!-- Left: view switch + page filters. Right: calendar subscription — kept apart so the
+       filters don't look like they shape the subscription. -->
+  <div class="bar-left">
+    <button class="back-annual-btn" id="backBtn">← Annual</button>
+    <button class="list-view-btn" id="listViewBtn">List view →</button>
+    <div class="filter-area">
+      <button class="filter-toggle-btn" id="filterToggleBtn" aria-label="Filters" title="Filters">
+        <svg class="filter-icon" viewBox="0 0 16 16" width="13" height="13" aria-hidden="true"
+          ><path d="M2 3h12l-4.5 5.5V13l-3 1.5v-6z" fill="none" stroke="currentColor"
+          ></path></svg
+        ><span id="filterLabel">Filters</span>
+      </button>
+      <div class="filter-dropdown" id="filterDropdown">
+        <div class="filter-row">
+          <label>Company</label>
+          <select id="filterCompany">
+            <option value="">All</option>
+            {filterCompanies.map((c) => <option value={c.id}>{c.name}</option>)}
+          </select>
+        </div>
+        <div class="filter-row">
+          <label>Genre</label>
+          <select id="filterGenre">
+            <option value="">All</option>
+            <option value="Drama">Drama</option>
+            <option value="Musical">Musical</option>
+            <option value="Comedy">Comedy</option>
+          </select>
+        </div>
+        <div class="filter-row">
+          <label>Time</label>
+          <select id="filterTime">
+            <option value="">All</option>
+            <option value="Mat">Matinee</option>
+            <option value="Eve">Evening</option>
+          </select>
+        </div>
+      </div>
+    </div>
+  </div>
   <div class="year-nav">
     <button class="year-step" id="yearPrev" aria-label="Previous year">‹</button>
     <span class="year-display" id="yearDisplay">2026</span>
     <button class="year-step" id="yearNext" aria-label="Next year">›</button>
   </div>
-  <div class="filter-area">
+  <div class="bar-right">
     <button
       class="cal-feed-btn"
       type="button"
@@ -48,35 +86,6 @@ const feedChoices = JSON.stringify([
       >
       <span class="cal-feed-label">Add to my calendar</span>
     </button>
-    <button class="filter-toggle-btn" id="filterToggleBtn"
-      ><span id="filterLabel">Filters</span></button
-    >
-    <div class="filter-dropdown" id="filterDropdown">
-      <div class="filter-row">
-        <label>Company</label>
-        <select id="filterCompany">
-          <option value="">All</option>
-          {filterCompanies.map((c) => <option value={c.id}>{c.name}</option>)}
-        </select>
-      </div>
-      <div class="filter-row">
-        <label>Genre</label>
-        <select id="filterGenre">
-          <option value="">All</option>
-          <option value="Drama">Drama</option>
-          <option value="Musical">Musical</option>
-          <option value="Comedy">Comedy</option>
-        </select>
-      </div>
-      <div class="filter-row">
-        <label>Time</label>
-        <select id="filterTime">
-          <option value="">All</option>
-          <option value="Mat">Matinee</option>
-          <option value="Eve">Evening</option>
-        </select>
-      </div>
-    </div>
   </div>
 </div>
 
@@ -192,10 +201,19 @@ const feedChoices = JSON.stringify([
   }
 
   /* View-switch buttons — each shown only in the opposite mode */
-  .back-annual-btn,
-  .list-view-btn {
+  .bar-left {
     grid-column: 1;
     justify-self: start;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .bar-right {
+    grid-column: 3;
+    justify-self: end;
+  }
+  .back-annual-btn,
+  .list-view-btn {
     background: none;
     border: none;
     color: rgba(255, 255, 255, 0.65);
@@ -259,12 +277,7 @@ const feedChoices = JSON.stringify([
 
   /* Filter toggle button */
   .filter-area {
-    grid-column: 3;
-    justify-self: end;
     position: relative;
-    display: flex;
-    align-items: center;
-    gap: 6px;
   }
   /* Add to calendar — matches the filter toggle; icon-only on narrow screens */
   .cal-feed-btn {
@@ -290,8 +303,30 @@ const feedChoices = JSON.stringify([
     }
   }
   @media (max-width: 640px) {
-    .cal-feed-label {
+    .cal-feed-label,
+    #filterLabel {
       display: none;
+    }
+  }
+  .filter-icon {
+    display: none;
+  }
+  @media (max-width: 640px) {
+    .filter-icon {
+      display: block;
+    }
+    .filter-toggle-btn {
+      padding: 4px 8px;
+    }
+  }
+  @media (max-width: 480px) {
+    /* .cal-bar's transform makes it the containing block, so this spans the bar */
+    .cal-bar .filter-dropdown {
+      position: fixed;
+      top: calc(var(--bar-h) + 6px);
+      left: 12px;
+      right: 12px;
+      min-width: 0;
     }
   }
   /* Only in list view — the year view doesn't show what you'd be subscribing to */
@@ -332,7 +367,7 @@ const feedChoices = JSON.stringify([
   .filter-dropdown {
     position: absolute;
     top: calc(100% + 6px);
-    right: 0;
+    left: 0;
     background: var(--surface);
     border: 1px solid var(--border);
     border-radius: 6px;

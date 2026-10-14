@@ -47,8 +47,9 @@ What the site does, for visitors and for editors. For how it's built, see
   description), beside day columns of performance time bars. Clicking a bar
   opens a card: title, company, venue, date/time, price, discounts, and
   ticket/info links.
-- **Filters**: company, genre, time of day. A footer legend maps colors to
-  companies.
+- **Filters** (left of the top bar): company, genre, time of day. They change
+  what the page shows, not what **Add to my calendar** subscribes to. A
+  footer legend maps colors to companies.
 - **Add to my calendar** (top bar, week view only): subscribe to every
   performance, or to one company's. It isn't offered in the year view, which
   doesn't show what you'd be subscribing to. The bar's filters don't change

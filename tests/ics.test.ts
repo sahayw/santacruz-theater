@@ -78,9 +78,11 @@ describe('serializeFeed', () => {
     expect(opening.summary).toBe('Much Ado — Test Theatre')
     expect(opening.location).toBe('Test Hall · 1 Main St, Santa Cruz, CA 95060')
     expect(opening.description).toContain('Shakespeare in the park.\n• Bring a blanket')
-    expect(opening.component.getFirstPropertyValue('url')).toBe(
-      'https://santacruz.theater/runs?id=1700000000000'
+    // The page link appears once, as the description's last line — no URL property
+    expect(opening.description).toMatch(
+      /\n\nDetails & tickets: https:\/\/santacruz\.theater\/runs\?id=1700000000000$/
     )
+    expect(opening.component.hasProperty('url')).toBe(false)
     expect(opening.component.getFirstPropertyValue('dtstamp')?.toString()).toBe(
       '2026-09-01T12:00:00Z'
     )
@@ -118,6 +120,17 @@ describe('serializeFeed', () => {
     const tricky = run({ showAbv: 'Rock, Paper; Scissors\\Lizard', show: 'x' })
     const [e] = parse(serializeFeed(feedFor([tricky], [])))
     expect(e.summary).toBe('Rock, Paper; Scissors\\Lizard — Test Theatre')
+  })
+
+  it('adds refresh hints to subscriptions only', () => {
+    expect(text).toContain('REFRESH-INTERVAL;VALUE=DURATION:PT12H')
+    const single = buildFeeds([run()], [], ctx, '2026-10-14').find(
+      (f) => f.path === 'performances/1700000000001'
+    )!
+    const out = serializeFeed(single)
+    expect(out).not.toContain('REFRESH-INTERVAL')
+    expect(out).not.toContain('X-PUBLISHED-TTL')
+    expect(feedProblems(out)).toEqual([])
   })
 
   it('produces a valid empty calendar', () => {

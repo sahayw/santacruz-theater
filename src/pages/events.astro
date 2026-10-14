@@ -1,7 +1,9 @@
 ---
 import BaseHead from '../components/BaseHead.astro'
 import SiteNav from '../components/SiteNav.astro'
+import AddToCalendar from '../components/AddToCalendar.astro'
 import companiesData from '../../data/sc-theater-companies.json'
+import { FEED_NAMES, bareId } from '../lib/calendar-model.ts'
 import { getActivities } from '../lib/data.ts'
 import type { ActivityEvent } from '../lib/data.ts'
 import {
@@ -30,6 +32,17 @@ function latestDate(act: ActivityEvent): string {
 function displayName(act: ActivityEvent): string {
   if (act.company === 'other' && act.organizerName) return act.organizerName
   return companyNameMap[act.company] ?? act.company
+}
+
+// Calendar feed picker for the subscribe banner
+const feedChoices = JSON.stringify([
+  { label: 'All auditions & events', feed: 'activities', name: FEED_NAMES.activities },
+  { label: 'Auditions only', feed: 'auditions', name: FEED_NAMES.auditions }
+])
+
+/** "Download all dates" — only for an open activity with more than one scheduled session. */
+function hasMultipleSessions(act: ActivityEvent): boolean {
+  return !act.closed && act.dates.filter((d) => d.date && d.startTime).length > 1
 }
 
 function genreClass(genre: string): string {
@@ -77,6 +90,14 @@ function roleTypeLabel(type: string): string {
             />
             <button type="submit" id="subscribe-btn" class="subscribe-btn">Notify me</button>
           </form>
+          <button
+            type="button"
+            class="subscribe-cal-btn"
+            data-ics-choices={feedChoices}
+            data-ics-choice-label="Include"
+          >
+            Add to my calendar
+          </button>
           <div id="subscribe-status" class="subscribe-status" hidden aria-live="polite"></div>
         </div>
       </div>
@@ -208,12 +229,21 @@ function roleTypeLabel(type: string): string {
                                     .slice(0, i)
                                     .some((prev) => prev.location?.name === ad.location?.name)
                                 return (
-                                  <div class="detail-date-row">
+                                  <div class="detail-date-row" data-date={ad.date}>
                                     <span class="detail-date-label">{fmtFullDate(ad.date)}</span>
                                     <span class="detail-time-label">
                                       {fmtTimeRange(ad.startTime, ad.endTime ?? '')}
                                     </span>
                                     {ad.notes && <span class="detail-date-note">{ad.notes}</span>}
+                                    {!act.closed && ad.date && ad.startTime && (
+                                      <button
+                                        type="button"
+                                        class="session-add"
+                                        data-ics-event={`sessions/${bareId(ad.id)}`}
+                                      >
+                                        Add to my calendar
+                                      </button>
+                                    )}
                                     {!_shared && ad.location && (
                                       <div class="detail-date-location">
                                         <span class="detail-location-name">{ad.location.name}</span>
@@ -363,12 +393,21 @@ function roleTypeLabel(type: string): string {
                                     .slice(0, i)
                                     .some((prev) => prev.location?.name === ad.location?.name)
                                 return (
-                                  <div class="detail-date-row">
+                                  <div class="detail-date-row" data-date={ad.date}>
                                     <span class="detail-date-label">{fmtFullDate(ad.date)}</span>
                                     <span class="detail-time-label">
                                       {fmtTimeRange(ad.startTime, ad.endTime ?? '')}
                                     </span>
                                     {ad.notes && <span class="detail-date-note">{ad.notes}</span>}
+                                    {!act.closed && ad.date && ad.startTime && (
+                                      <button
+                                        type="button"
+                                        class="session-add"
+                                        data-ics-event={`sessions/${bareId(ad.id)}`}
+                                      >
+                                        Add to my calendar
+                                      </button>
+                                    )}
                                     {!_shared && ad.location && (
                                       <div class="detail-date-location">
                                         <span class="detail-location-name">{ad.location.name}</span>
@@ -486,43 +525,42 @@ function roleTypeLabel(type: string): string {
 
                     {act.notes && <div class="detail-notes-full" set:html={renderMd(act.notes)} />}
 
-                    {act.type === 'audition'
-                      ? (act.noticeUrl || act.productionUrl) && (
-                          <div class="detail-links-row">
-                            {act.noticeUrl && (
-                              <a
-                                href={act.noticeUrl}
-                                class="detail-action-link"
-                                target="_blank"
-                                rel="noopener"
-                              >
-                                Audition notice →
-                              </a>
-                            )}
-                            {act.productionUrl && (
-                              <a
-                                href={act.productionUrl}
-                                class="detail-action-link"
-                                target="_blank"
-                                rel="noopener"
-                              >
-                                Production info →
-                              </a>
-                            )}
-                          </div>
-                        )
-                      : act.noticeUrl && (
-                          <div class="detail-links-row">
-                            <a
-                              href={act.noticeUrl}
-                              class="detail-action-link"
-                              target="_blank"
-                              rel="noopener"
-                            >
-                              More info →
-                            </a>
-                          </div>
+                    {(act.noticeUrl ||
+                      (act.type === 'audition' && act.productionUrl) ||
+                      hasMultipleSessions(act)) && (
+                      <div class="detail-links-row">
+                        {act.noticeUrl && (
+                          <a
+                            href={act.noticeUrl}
+                            class="detail-action-link"
+                            target="_blank"
+                            rel="noopener"
+                          >
+                            {act.type === 'audition' ? 'Audition notice →' : 'More info →'}
+                          </a>
                         )}
+                        {act.type === 'audition' && act.productionUrl && (
+                          <a
+                            href={act.productionUrl}
+                            class="detail-action-link"
+                            target="_blank"
+                            rel="noopener"
+                          >
+                            Production info →
+                          </a>
+                        )}
+                        {hasMultipleSessions(act) && (
+                          <button
+                            type="button"
+                            class="detail-action-link detail-cal-btn"
+                            data-ics-download={`activities/${bareId(act.id)}`}
+                            data-ics-name={act.title.trim()}
+                          >
+                            Download all dates
+                          </button>
+                        )}
+                      </div>
+                    )}
                   </div>
                 </div>
               )
@@ -537,6 +575,8 @@ function roleTypeLabel(type: string): string {
 
       <div class="aud-not-found" id="aud-not-found" hidden></div>
     </main>
+
+    <AddToCalendar />
   </body>
 </html>
 
@@ -741,6 +781,24 @@ function roleTypeLabel(type: string): string {
   .subscribe-btn:disabled {
     opacity: 0.6;
     cursor: not-allowed;
+  }
+
+  .subscribe-cal-btn {
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 500;
+    background: var(--surface);
+    color: var(--ink);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 6px 12px;
+    cursor: pointer;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  .subscribe-cal-btn:hover {
+    border-color: var(--border-primary);
   }
 
   .subscribe-status {
@@ -1016,6 +1074,26 @@ function roleTypeLabel(type: string): string {
     font-size: 13px;
   }
 
+  .session-add {
+    margin-left: auto;
+    font-family: inherit;
+    font-size: 12px;
+    color: #4f5ce0;
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+  }
+
+  .session-add:hover {
+    text-decoration: underline;
+  }
+
+  .detail-date-row.past .session-add,
+  .aud-card.past .detail-cal-btn {
+    display: none;
+  }
+
   .detail-date-label {
     font-weight: 500;
     color: var(--ink);
@@ -1207,6 +1285,21 @@ function roleTypeLabel(type: string): string {
     margin-top: 0;
   }
 
+  .detail-cal-btn {
+    margin-left: auto;
+    background: none;
+    border: none;
+    padding: 0;
+    font-family: inherit;
+    cursor: pointer;
+  }
+
+  @media (max-width: 600px) {
+    .detail-cal-btn {
+      margin-left: 0;
+    }
+  }
+
   .detail-action-link {
     font-size: 13px;
     font-weight: 500;
@@ -1282,10 +1375,14 @@ function roleTypeLabel(type: string): string {
     return (card.dataset.latestDate ?? '') < TODAY
   }
 
-  // Mark past / closed cards (drives the pips via CSS)
+  // Mark past / closed cards (drives the pips via CSS), and past sessions (hides their
+  // Add to my calendar link)
   cards.forEach((card) => {
     if (card.dataset.closed === 'true') card.classList.add('closed')
     if (notUpcoming(card)) card.classList.add('past')
+    card.querySelectorAll('.detail-date-row[data-date]').forEach((row) => {
+      if (row.dataset.date < TODAY) row.classList.add('past')
+    })
   })
 
   function updateFilters() {

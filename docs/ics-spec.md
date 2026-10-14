@@ -1,7 +1,7 @@
 # ICS Calendar Feeds — Spec
 
-Status: **phases A and B built on `ics-feeds` (not yet released); phase C
-next.** Revised 2026-10-14 from the original August draft. Replaces the Google Calendar sync, which was removed
+Status: **phases A–C built on `ics-feeds` (A and B merged to `dev`; not yet
+released).** Revised 2026-10-14 from the original August draft. Replaces the Google Calendar sync, which was removed
 in `bda183f`. That commit's parent still has the old event-building code for
 reference.
 
@@ -39,19 +39,32 @@ written to.
 
 ## Feeds
 
+**Subscriptions** (live calendars, with refresh hints):
+
 | Path                     | Contents                                                | `X-WR-CALNAME`                                           |
 | ------------------------ | ------------------------------------------------------- | -------------------------------------------------------- |
-| `/runs.ics`              | every run's performances                                | Santa Cruz Theater — Performances                        |
+| `/runs.ics`              | every run's performances                                | Santa Cruz Theater — All Performances                    |
 | `/runs/company/{id}.ics` | one company's performances (only companies with ≥1 run) | Santa Cruz Theater — Performances (&lt;company name&gt;) |
-| `/runs/{id}.ics`         | one run's performances                                  | &lt;show title&gt; — &lt;company abbreviation&gt;        |
-| `/activities.ics`        | sessions of every audition and event                    | Santa Cruz Theater — Auditions & Events                  |
+| `/activities.ics`        | sessions of every audition and event                    | Santa Cruz Theater — All Auditions & Events              |
 | `/auditions.ics`         | sessions of auditions only                              | Santa Cruz Theater — Auditions                           |
-| `/activities/{id}.ics`   | one activity's sessions                                 | &lt;activity title&gt;                                   |
 
-`{id}` is the bare epoch from the record id, with the prefix stripped (`run-`,
-`activity-`). This matches the existing `/events?id=` deep-link convention.
-Company ids are used as-is. There is no `/events.ics`: non-audition events
-alone aren't a useful subscription.
+**Downloads** (one-off copies, no refresh hints):
+
+| Path                     | Contents                                     |
+| ------------------------ | -------------------------------------------- |
+| `/performances/{id}.ics` | one performance                              |
+| `/sessions/{id}.ics`     | one activity session                         |
+| `/activities/{id}.ics`   | all of one activity's sessions ("all dates") |
+
+**Rule**: whole calendars are offered as subscriptions only. Single items are
+offered as one-off copies only. There are no per-production feeds: people
+attend one performance, not a run, and the company feed covers "follow this
+company".
+
+`{id}` is the bare epoch from the record or occurrence id, with the prefix
+stripped (`activity-`, `perf-`, `session-`). This matches the existing
+`/events?id=` deep-link convention. Company ids are used as-is. There is no
+`/events.ics`: non-audition events alone aren't a useful subscription.
 
 **Which events are included**
 
@@ -59,10 +72,10 @@ alone aren't a useful subscription.
   12 months before the build onward, so subscribers can look back at past
   performances. The cap stops these feeds growing without limit. Size is not
   a concern: today's full dataset (~530 events) is ~300 KB, or ~30–50 KB as
-  served compressed. Per-record feeds include all of that record's
-  occurrences, whatever their age.
-- **Closed activities**: their sessions are left out of every feed. A closed
-  activity's own feed is a valid, empty calendar.
+  served compressed. Download files aren't windowed.
+- **Closed activities**: their sessions are left out of everything. A closed
+  activity's `activities/{id}.ics` is a valid, empty calendar, and it has no
+  session files.
 - **Undated activities** (virtual auditions, events by request): these have no
   sessions, so they produce no calendar events.
 - **Deleted records**: the per-record file disappears and returns 404. Clients
@@ -162,23 +175,41 @@ Rules carried over from the old sync:
   in `src/lib/audition-format.ts`, kept beside `renderMd()` so Markdown
   handling stays in one module:
   - bold and italic markers are removed;
-  - `[text](url)` becomes `text (url)`;
+  - `[text](url)` becomes just `text` (calendar apps would show the raw URL in
+    full);
   - `- item` becomes `• item`.
 - **Description contents**
   - Performances, in order:
     1. the perf type (e.g. "Opening performance");
     2. the run description;
-    3. price, discounts, the tickets link and the info link. Per-performance
-       discounts and ticket links override the run's.
-  - Auditions: a summary of the roles, then the session notes.
+    3. price and discounts (per-performance discounts override the run's);
+    4. `Details & tickets: https://santacruz.theater/runs?id={id}`, or just
+       `Details: …` when there's no ticket link.
+  - Auditions: a summary of the roles, the session notes, then
+    `Details: https://santacruz.theater/events?id={id}`.
   - Events, in order:
     1. the description (or brief description);
     2. the session notes;
-    3. cost and the registration link.
-- **URL property**
-  - Performances: `https://santacruz.theater/runs?id={id}`. This page arrives
-    in phase C; see [Phases](#phases).
-  - Sessions: `https://santacruz.theater/events?id={id}`.
+    3. cost;
+    4. `Details & registration: …/events?id={id}`, or `Details: …` when there's
+       no registration link.
+  - **No third-party URLs in descriptions.** Calendar apps show any URL in a
+    plain-text description in full, and ticket-vendor URLs can be very long.
+    The single short link to our page leads to the ticket, info and
+    registration links, and those stay current even when a copy in someone's
+    calendar doesn't.
+  - **Linked text where it's supported.** In Google's add-event link (single
+    events), the dialog turns each `Label: https://…` line into a link
+    reading "Label". Google's add-event page renders HTML; `.ics` files can't
+    rely on that.
+- **Page link**: performances link to
+  `https://santacruz.theater/runs?id={id}` and sessions to
+  `https://santacruz.theater/events?id={id}`. The link appears **once**, as the
+  description's last line.
+  - There's no `URL` property. Apple Calendar shows `URL` as a separate link
+    field, which duplicated the description line.
+  - Google and most other apps ignore `URL` anyway, so the description line
+    is the copy every app shows.
 
 ## ICS output (`src/lib/ics.ts`)
 
@@ -226,31 +257,55 @@ near-identical, so one route does the job with less code.
 
 ## Website UI (phase C)
 
-**Add to Calendar** is one button that opens a small dialog. Every action uses
-the same feed URL:
+**Add to my calendar** opens one dialog, whose content depends on what's
+being added. The dialog's title is followed by the calendar's or event's name
+at a similar size, so it's clear what's being added.
 
-- **Apple / Outlook**: a `webcal://` link.
-- **Google Calendar**: `https://calendar.google.com/calendar/r?cid=<encoded https URL>`.
-- **Copy link**: the plain `https://…ics` URL, for any other client.
-- **Download .ics**: a `download` anchor. This gives a one-off snapshot that
-  won't update.
+- **Subscribe** (whole calendars):
+  - **Apple / Outlook**: a `webcal://` link.
+  - **Google Calendar**: `https://calendar.google.com/calendar/r?cid=<encoded webcal URL>`.
+    The webcal form is the one most widely reported to work with `cid`.
+  - **Copy link**: the plain `https://…ics` URL, for any other client.
+  - A note that the app refreshes on its own schedule, and Google can take up
+    to a day.
+- **One event** (a performance or session):
+  - The dialog fetches the event's own `.ics` file and shows its name, date,
+    time and location.
+  - **Apple / Outlook**: downloads that file.
+  - **Google Calendar**: Google's add-event link
+    (`calendar/render?action=TEMPLATE&text=…&dates=…&ctz=America/Los_Angeles&location=…&details=…`),
+    built from the same file. Importing a file into Google is clumsy on a
+    desktop; this link opens Google Calendar with the event filled in.
+  - A note that it's a copy that won't change if the listing does.
+- **All dates** (an activity with 2+ dated sessions):
+  - The dialog lists the dates and downloads the file.
+  - Google can't add several events from a link, so the note points Google
+    users to Settings → Import & export.
 
-The dialog must make the difference between subscribing (stays updated) and
-downloading (a one-off copy) clear. It should also mention that Google can
-take up to a day to pick up changes.
+Placements:
 
-The button appears in these places:
-
-- **`/calendar`**: next to the filter bar.
+- **`/calendar`**: at the right-hand end of the bar, **week (list) view
+  only**. The year view doesn't show what you'd be subscribing to.
+  - **Filters** sit at the other (left) end, beside the view switch, so they
+    don't look like they shape the subscription.
+  - On phones both are icon buttons, and the filter panel spans the bar.
   - The dialog has its own Company selector. It is _not_ tied to the page's
     live filters, and offers the same companies as `#filterCompany`.
-  - "All" builds `/runs.ics`; a company builds `/runs/company/{id}.ics`.
+  - "All companies" subscribes to `/runs.ics`; a company subscribes to
+    `/runs/company/{id}.ics`.
   - Genre and time-of-day are not offered as feed filters.
-- **The calendar's per-date show card**: uses that run's `/runs/{id}.ics`.
-- **`/runs?id={id}`**: uses `/runs/{id}.ics`.
-- **`/events`**: near the email-subscribe banner, with two choices: All
-  (`/activities.ics`) or Auditions only (`/auditions.ics`).
-- **`/events?id={id}`**: uses `/activities/{id}.ics`.
+- **The calendar's per-date show card**: one event, that performance
+  (`/performances/{id}.ics`). The card also gets an **All dates →** link to
+  `/runs?id={id}`.
+- **`/runs`**: one event, on each upcoming performance row.
+- **`/events`**:
+  - **Banner**: subscribe, with two choices: All auditions & events
+    (`/activities.ics`) or Auditions only (`/auditions.ics`).
+  - **Each upcoming date row of an open activity**: one event
+    (`/sessions/{id}.ics`).
+  - **Open activities with 2+ dated sessions**: **Download all dates**
+    (`/activities/{id}.ics`).
+  - These links are web-only; the editor Preview and emails don't show them.
 
 **New `/runs` page** (`src/pages/runs.astro`):
 
@@ -260,10 +315,12 @@ The button appears in these places:
   per-performance perf type, discounts or ticket link that differs from the
   run's.
 - It is **not** in the nav or on the home page. It exists as the target of
-  feed `URL` properties.
+  the page links in calendar events and of the calendar card's **All dates**
+  link.
 
-**Calendar editor Preview** is extended to show the run's full schedule,
-matching `/runs?id=`.
+**Calendar editor Preview**: no change was needed. It already showed the
+run's full schedule, with per-performance overrides, in the same card layout
+that `/runs` now uses.
 
 ## Testing
 
@@ -319,7 +376,7 @@ break these tests.
 
 Each phase is merged to the `ics-feeds` branch, and then to `dev`, once you've
 tested it. Phases B and C are released to `main` together. Phase B's
-performance `URL`s point at `/runs`, which only exists after phase C.
+performance page links point at `/runs`, which only exists after phase C.
 
 | Phase | Work                                                                                                                                                                                                               |
 | ----- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
@@ -356,3 +413,12 @@ Every phase updates `docs/implementation.md` §3 (schemas) and
    rather than only its creation time.
 3. **History window**: 12 months rather than the old sync's 30 days. See
    [Feeds](#feeds).
+4. **Subscribe vs download** (decided after first testing, 2026-10-14):
+   - Whole calendars are subscription only. A one-off copy of hundreds of
+     events goes stale and caused duplicates in testing (a subscription plus
+     an import of the same events).
+   - Single performances and sessions are one-off events. A production's
+     dates aren't offered at all.
+   - An activity's dates can be downloaded together only when it has two or
+     more sessions.
+   - The subscribe button appears only in the calendar's week view.

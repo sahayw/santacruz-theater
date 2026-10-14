@@ -94,7 +94,8 @@ function eventLines(e: CalendarEvent) {
     `SUMMARY:${escapeText(e.summary)}`,
     e.description && `DESCRIPTION:${escapeText(e.description)}`,
     e.location && `LOCATION:${escapeText(e.location)}`,
-    `URL:${e.url}`,
+    // No URL property: the description's last line already links to our page, and
+    // Apple Calendar would show the same link a second time as its own field
     'END:VEVENT'
   ].filter((l): l is string => Boolean(l))
 }
@@ -112,8 +113,10 @@ export function serializeFeed(feed: Feed) {
     `DESCRIPTION:${escapeText(feed.description)}`,
     `X-WR-CALDESC:${escapeText(feed.description)}`,
     `X-WR-TIMEZONE:${TZID}`,
-    `REFRESH-INTERVAL;VALUE=DURATION:${REFRESH}`,
-    `X-PUBLISHED-TTL:${REFRESH}`,
+    // Refresh hints only mean something to a subscription, not a one-off download
+    ...(feed.subscribable
+      ? [`REFRESH-INTERVAL;VALUE=DURATION:${REFRESH}`, `X-PUBLISHED-TTL:${REFRESH}`]
+      : []),
     ...VTIMEZONE,
     ...feed.events.flatMap(eventLines),
     'END:VCALENDAR'

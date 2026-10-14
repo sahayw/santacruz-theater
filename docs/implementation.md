@@ -37,9 +37,10 @@ How the system is built. For what it does, see
 
 ```
 src/
-  components/     calendar.astro (calendar UI), SiteNav.astro
+  components/     calendar.astro (calendar UI), SiteNav.astro,
+                  AddToCalendar.astro (feed dialog, §6)
   layouts/        page layout wrappers
-  pages/          routes — index, calendar, companies, events, subscribe,
+  pages/          routes — index, calendar, companies, events, runs, subscribe,
                   services, about, admin/audition-format.js.ts,
                   admin/data-rules.js.ts, admin/occurrence-ids.js.ts,
                   [...feed].ics.ts (calendar feeds, §6)
@@ -136,7 +137,8 @@ non-empty `discounts` / `ticketsUrl` override the run's. `id` is a stable
 [occurrence id](#occurrence-ids--srcliboccurrence-idsts).
 
 `getPerformances()` (`src/lib/data.ts`) flattens all runs into a
-`PerformanceEvent[]` with run fields merged and overrides resolved, sorted
+`PerformanceEvent[]` (each carrying its performance `id`) with run fields
+merged and overrides resolved, sorted
 by date then time.
 
 ### Activities — `data/activities/<year>/<company-id>-activities-<year>.json`
@@ -342,8 +344,9 @@ Pure functions, no Astro/DOM dependency: `fmt12`, `fmtTimeRange`,
 **`renderMd`** — HTML-escapes, then renders bold, italic,
 `[text](https://url)` links, and `-` bullet lists. The only Markdown
 renderer; don't add others. **`mdToPlain`** is its plain-text counterpart
-for the calendar feeds: it removes emphasis markers, writes links as
-`text (url)` and bullets as `• item`. Change the two together.
+for the calendar feeds: it removes emphasis markers, keeps only a link's
+text (calendar apps would show raw URLs in full), and writes bullets as
+`• item`. Change the two together.
 
 | Consumer                                                           | How it gets the module                                                         |
 | ------------------------------------------------------------------ | ------------------------------------------------------------------------------ |
@@ -370,6 +373,10 @@ A change to what an activity card shows must be checked in all four:
 3. `buildPreviewHtml()` in `activities.js`
 4. `netlify/functions/lib/email-template.mts`
 
+Exception: the per-session **Add to my calendar** links and **Download all
+dates** exist only on the web paths (1–2). They open a dialog that the
+Preview and emails don't have.
+
 **Layout**: the public `.detail-grid` and Preview `.pv-detail-grid` are
 two-column grids with an optional right column (roles / description). Each
 has a `:not(:has(.detail-right))`-style rule that collapses to one column
@@ -382,30 +389,42 @@ Netlify's CDN, which handles ETag/304. There's no function and no
 calendar-service API. The design and its rationale are in
 [`ics-spec.md`](ics-spec.md).
 
-| Feed                     | Contents                                    |
-| ------------------------ | ------------------------------------------- |
-| `/runs.ics`              | all performances                            |
-| `/runs/company/{id}.ics` | one company's performances                  |
-| `/runs/{id}.ics`         | one run's performances (bare id, no prefix) |
-| `/activities.ics`        | sessions of all auditions and events        |
-| `/auditions.ics`         | audition sessions only                      |
-| `/activities/{id}.ics`   | one activity's sessions                     |
+| File                     | Contents                              | Use          |
+| ------------------------ | ------------------------------------- | ------------ |
+| `/runs.ics`              | all performances                      | subscription |
+| `/runs/company/{id}.ics` | one company's performances            | subscription |
+| `/activities.ics`        | sessions of all auditions and events  | subscription |
+| `/auditions.ics`         | audition sessions only                | subscription |
+| `/activities/{id}.ics`   | one activity's sessions ("all dates") | download     |
+| `/performances/{id}.ics` | one performance                       | download     |
+| `/sessions/{id}.ics`     | one activity session                  | download     |
+
+`{id}` is the bare epoch from the record's or occurrence's id, with the
+prefix stripped.
 
 - **`src/lib/calendar-model.ts`** (pure) turns runs and activities into
   `CalendarEvent`s, and `buildFeeds()` groups them into the feeds above.
-  - **Window**: the composite and company feeds keep events from 12 months
-    before the build onward (`HISTORY_MONTHS`). Per-record feeds keep all of
-    their events.
-  - **Closed and undated activities**: a closed activity publishes no events,
-    though its own feed still exists, empty. Undated sessions are skipped.
+  - **Window**: subscriptions keep events from 12 months before the build
+    onward (`HISTORY_MONTHS`). Download files aren't windowed.
+  - **`Feed.subscribable`**: true only for the four kinds of subscription.
+    `ics.ts` adds the refresh hints (`REFRESH-INTERVAL`, `X-PUBLISHED-TTL`)
+    only to those.
+  - **Closed and undated activities**: a closed activity publishes no events.
+    Its `activities/{id}.ics` exists but is empty, and it has no session
+    files. Undated sessions are skipped.
   - **Event fields**:
     - UID: `{occurrence id}@santacruz.theater`.
     - Times: wall-clock America/Los_Angeles. With no end time, an event
       lasts 2 hours.
     - Location: a venue name or code is looked up in `sc-theater-venues.json`.
       Sessions fall back to the company's `primaryVenue`.
-    - URL: `/runs?id=` or `/events?id=`.
-    - Description: plain text, via `mdToPlain`.
+    - Page link: `/runs?id=` or `/events?id=`. It appears only as the
+      description's last line. There's no `URL` property, which Apple would
+      show as a second, duplicate link.
+    - Description: plain text, via `mdToPlain`. It contains no third-party
+      URLs; it ends with one short `Details & tickets: …/runs?id=` (or
+      `Details: …`) line pointing at our page. The dialog's Google add-event
+      link turns that line into a real link, since Google renders HTML there.
 - **`src/lib/ics.ts`** is a hand-written serializer. It escapes text, folds
   lines at 75 octets (never inside a UTF-8 sequence), uses CRLF and a fixed
   America/Los_Angeles `VTIMEZONE`, and orders events by start, then UID.
@@ -416,6 +435,46 @@ calendar-service API. The design and its rationale are in
 - **`src/pages/[...feed].ics.ts`** is a single catch-all static endpoint that
   writes every feed. `netlify.toml` sets
   `Content-Type: text/calendar; charset=utf-8` for `/*.ics`.
+- **UI — `src/components/AddToCalendar.astro`**: a single native `<dialog>`
+  per page, with three modes chosen by the trigger's attribute.
+  - **Subscribe**: `data-ics-feed` + `data-ics-name`, or `data-ics-choices`
+    (a JSON list of `{label, feed, name}`) + `data-ics-choice-label` for a
+    picker. It shows a `webcal://` link, Google's
+    `calendar.google.com/calendar/r?cid=<webcal URL>` link, and a copyable
+    `https` URL.
+  - **One event**: `data-ics-event="performances/{id}"` or
+    `"sessions/{id}"`.
+    - The dialog fetches that event's own `.ics` file and parses it (a small
+      reader for this exact format) to show the summary, date and location.
+    - It builds Google's add-event link
+      (`calendar/render?action=TEMPLATE&…&ctz=America/Los_Angeles`) from the
+      same file, so the event details are defined in one place: the model.
+    - **Apple / Outlook** downloads the file.
+  - **All dates**: `data-ics-download="activities/{id}"` + `data-ics-name`.
+    It lists the file's dates and offers a download only.
+  - **Shared behaviour**:
+    - Clicks are delegated from `document`, so triggers in client-rendered
+      markup (the calendar's show cards) work.
+    - URLs come from `location.origin`, so branch deploys use their own
+      files.
+    - Subscription names come from `FEED_NAMES` in `calendar-model.ts`.
+- **Placements**:
+  - **`calendar.astro`**:
+    - a bar button with a company picker, hidden unless
+      `body.scroll-mode` (week view);
+    - per-card **All dates** / **Add to my calendar** links. These need
+      `PerformanceEvent.id`.
+  - **`events.astro`**:
+    - the banner picker;
+    - a per-session-row button for open activities, which the client script
+      hides for past dates;
+    - **Download all dates** in the links row for open activities with two
+      or more dated sessions.
+  - **`runs.astro`**: a per-performance-row button, hidden for past rows.
+- **`/runs` (`src/pages/runs.astro`)**: lists runs that have performances
+  (index / filter / `?id=` deep link, like `/events`) with the full schedule.
+  It's deliberately not in `SiteNav`. It is the page link in performance
+  events, and the calendar's **All dates** link.
 - **Checks**:
   - Unit tests (`tests/calendar-model.test.ts`, `tests/ics.test.ts`) run on
     fixtures and parse the output with `ical.js`, including daylight-saving

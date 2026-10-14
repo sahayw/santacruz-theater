@@ -50,6 +50,8 @@ export interface Feed {
   name: string // X-WR-CALNAME
   description: string
   events: CalendarEvent[]
+  /** Offered as a live subscription (gets refresh hints) rather than a one-off download. */
+  subscribable: boolean
 }
 
 /** Activity with its file's company id, as returned by getActivities(). */
@@ -118,15 +120,9 @@ export function runUrl(run: Run) {
   return `${SITE_URL}/runs?id=${bareId(run.id)}`
 }
 
-/** `{show} — {company abbreviation}`; just the title for the "other" company. */
-export function runFeedName(run: Run, ctx: CalendarContext) {
-  const co = company(ctx, run.company)
-  return run.company === 'other' || !co ? run.show : `${run.show} — ${co.abvName}`
-}
-
 export function performanceEvents(run: Run, ctx: CalendarContext): CalendarEvent[] {
   const co = company(ctx, run.company)
-  const title = run.showAbv || run.show
+  const title = (run.showAbv || run.show).trim()
   const summary = run.company === 'other' || !co ? title : `${title} — ${co.name}`
   const location = venueLocation(ctx, run.venue)
   const url = runUrl(run)
@@ -146,12 +142,10 @@ export function performanceEvents(run: Run, ctx: CalendarContext): CalendarEvent
       description: paragraphs(
         p.perfType && `${p.perfType} performance`,
         run.description && mdToPlain(run.description),
-        lines(
-          run.price && `Price: ${run.price}`,
-          discounts && `Discounts: ${discounts}`,
-          ticketsUrl && `Tickets: ${ticketsUrl}`,
-          run.infoUrl && `More info: ${run.infoUrl}`
-        )
+        lines(run.price && `Price: ${run.price}`, discounts && `Discounts: ${discounts}`),
+        // One short link to our page (which has the ticket and info links) rather than
+        // raw third-party URLs, which calendar apps show in full
+        `${ticketsUrl ? 'Details & tickets' : 'Details'}: ${url}`
       ),
       location,
       url,
@@ -197,7 +191,7 @@ export function sessionEvents(activity: CompanyActivity, ctx: CalendarContext): 
   if (activity.closed) return []
   const org = organizer(activity, ctx)
   const label = activity.type === 'audition' ? 'Audition' : 'Event'
-  const summary = `${label}: ${activity.title}${org ? ` — ${org}` : ''}`
+  const summary = `${label}: ${activity.title.trim()}${org ? ` — ${org}` : ''}`
   const url = activityUrl(activity)
   const roles = activity.type === 'audition' && rolesSum(activity.rolesAvailable || [])
   const body =
@@ -216,11 +210,8 @@ export function sessionEvents(activity: CompanyActivity, ctx: CalendarContext): 
         roles && `Roles: ${roles}`,
         body && mdToPlain(body),
         d.notes && mdToPlain(d.notes),
-        activity.type === 'event' &&
-          lines(
-            activity.cost && `Cost: ${activity.cost}`,
-            activity.registerUrl && `Register: ${activity.registerUrl}`
-          )
+        activity.type === 'event' && activity.cost && `Cost: ${activity.cost}`,
+        `${activity.type === 'event' && activity.registerUrl ? 'Details & registration' : 'Details'}: ${url}`
       ),
       location: sessionLocation(d, activity, ctx),
       url,
@@ -234,6 +225,14 @@ export function sessionEvents(activity: CompanyActivity, ctx: CalendarContext): 
 
 const SITE_NAME = 'Santa Cruz Theater'
 
+/** Calendar names (X-WR-CALNAME) — shared with the Add to Calendar UI. */
+export const FEED_NAMES = {
+  runs: `${SITE_NAME} — All Performances`,
+  company: (companyName: string) => `${SITE_NAME} — Performances (${companyName})`,
+  activities: `${SITE_NAME} — All Auditions & Events`,
+  auditions: `${SITE_NAME} — Auditions`
+}
+
 /** Sorted by start, then uid, so unchanged data serializes byte-identically. */
 export function sortEvents(events: CalendarEvent[]) {
   return [...events].sort(
@@ -244,8 +243,10 @@ export function sortEvents(events: CalendarEvent[]) {
 }
 
 /**
- * Every published feed. Composite and company feeds keep occurrences from
- * HISTORY_MONTHS before `today` onward; per-record feeds keep all of theirs.
+ * Every published file. Subscriptions: all performances, one company's, all
+ * auditions & events, auditions only — each keeps occurrences from HISTORY_MONTHS
+ * before `today` onward. Downloads: one file per performance and per session (a
+ * single event to add), and one per activity (all of its dates).
  */
 export function buildFeeds(
   runs: Run[],
@@ -260,52 +261,62 @@ export function buildFeeds(
   const perfsByRun = runs.map((run) => ({ run, events: performanceEvents(run, ctx) }))
   feeds.push({
     path: 'runs',
-    name: `${SITE_NAME} — Performances`,
+    name: FEED_NAMES.runs,
     description: 'Performances listed on santacruz.theater',
-    events: recent(perfsByRun.flatMap((r) => r.events))
+    events: recent(perfsByRun.flatMap((r) => r.events)),
+    subscribable: true
   })
   const companyIds = [...new Set(runs.map((r) => r.company))].sort()
   for (const id of companyIds) {
     const name = company(ctx, id)?.name || id
     feeds.push({
       path: `runs/company/${id}`,
-      name: `${SITE_NAME} — Performances (${name})`,
+      name: FEED_NAMES.company(name),
       description: `${name} performances listed on santacruz.theater`,
-      events: recent(perfsByRun.filter((r) => r.run.company === id).flatMap((r) => r.events))
-    })
-  }
-  for (const { run, events } of perfsByRun) {
-    feeds.push({
-      path: `runs/${bareId(run.id)}`,
-      name: runFeedName(run, ctx),
-      description: `Performances of ${run.show}, from santacruz.theater`,
-      events
+      events: recent(perfsByRun.filter((r) => r.run.company === id).flatMap((r) => r.events)),
+      subscribable: true
     })
   }
 
   const sessionsByActivity = activities.map((a) => ({ a, events: sessionEvents(a, ctx) }))
   feeds.push({
     path: 'activities',
-    name: `${SITE_NAME} — Auditions & Events`,
+    name: FEED_NAMES.activities,
     description: 'Auditions and events listed on santacruz.theater',
-    events: recent(sessionsByActivity.flatMap((s) => s.events))
+    events: recent(sessionsByActivity.flatMap((s) => s.events)),
+    subscribable: true
   })
   feeds.push({
     path: 'auditions',
-    name: `${SITE_NAME} — Auditions`,
+    name: FEED_NAMES.auditions,
     description: 'Auditions listed on santacruz.theater',
     events: recent(
       sessionsByActivity.filter((s) => s.a.type === 'audition').flatMap((s) => s.events)
-    )
+    ),
+    subscribable: true
   })
   for (const { a, events } of sessionsByActivity) {
     feeds.push({
       path: `activities/${bareId(a.id)}`,
-      name: a.title,
-      description: `${a.type === 'audition' ? 'Audition' : 'Event'} sessions from santacruz.theater`,
-      events
+      name: a.title.trim(),
+      description: `${a.type === 'audition' ? 'Audition' : 'Event'} dates from santacruz.theater`,
+      events,
+      subscribable: false
     })
   }
+
+  // One file per occurrence, for "add this one event"
+  const single =
+    (folder: string) =>
+    (e: CalendarEvent): Feed => ({
+      path: `${folder}/${bareId(e.sourceId)}`,
+      name: e.summary,
+      description: 'From santacruz.theater',
+      events: [e],
+      subscribable: false
+    })
+  feeds.push(...perfsByRun.flatMap((r) => r.events).map(single('performances')))
+  feeds.push(...sessionsByActivity.flatMap((s) => s.events).map(single('sessions')))
 
   return feeds.map((f) => ({ ...f, events: sortEvents(f.events) }))
 }

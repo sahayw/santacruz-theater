@@ -15,16 +15,16 @@ written to.
 
 ## Decisions
 
-| Decision             | Choice                                                                                                                                   |
-| -------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
-| Google Calendar copy | Dropped for good. No Google publisher, now or later.                                                                                     |
-| Generation           | **Build time.** Static `.ics` files in `dist/`, written by Astro endpoints. No Netlify Functions.                                        |
-| Caching              | Netlify's CDN: ETag / `If-None-Match` → 304 on static files. No caching code.                                                            |
-| Company filter       | A pre-built file per company (`/runs/company/{id}.ics`), not a query parameter.                                                          |
-| `/events` page       | Keeps its name. The `/events` → `/activities` rename is separate work, not part of this.                                                 |
-| Event identity       | New persisted occurrence ids: `perf-<epoch-ms>` on `Performance` and `session-<epoch-ms>` on `ActivityDate`.                             |
-| Serializer           | Hand-written in `src/lib/ics.ts` (~150 lines) and checked with an independent parser (`ical.js`). See [Open questions](#open-questions). |
-| Tests                | vitest, run inside `npm run check`, on fixture data only.                                                                                |
+| Decision             | Choice                                                                                                                |
+| -------------------- | --------------------------------------------------------------------------------------------------------------------- |
+| Google Calendar copy | Dropped for good. No Google publisher, now or later.                                                                  |
+| Generation           | **Build time.** Static `.ics` files in `dist/`, written by Astro endpoints. No Netlify Functions.                     |
+| Caching              | Netlify's CDN: ETag / `If-None-Match` → 304 on static files. No caching code.                                         |
+| Company filter       | A pre-built file per company (`/runs/company/{id}.ics`), not a query parameter.                                       |
+| `/events` page       | Keeps its name. The `/events` → `/activities` rename is separate work, not part of this.                              |
+| Event identity       | New persisted occurrence ids: `perf-<epoch-ms>` on `Performance` and `session-<epoch-ms>` on `ActivityDate`.          |
+| Serializer           | Hand-written in `src/lib/ics.ts` (~150 lines), checked with an independent parser (`ical.js`). No library dependency. |
+| Tests                | vitest, run inside `npm run check`, on fixture data only.                                                             |
 
 ## Terminology
 
@@ -56,8 +56,11 @@ alone aren't a useful subscription.
 **Which events are included**
 
 - **Window**: the composite and company feeds include occurrences dated from
-  30 days before the build onward, matching the old sync. Per-record feeds
-  include all of that record's occurrences, whatever their age.
+  12 months before the build onward, so subscribers can look back at past
+  performances. The cap stops these feeds growing without limit. Size is not
+  a concern: today's full dataset (~530 events) is ~300 KB, or ~30–50 KB as
+  served compressed. Per-record feeds include all of that record's
+  occurrences, whatever their age.
 - **Closed activities**: their sessions are left out of every feed. A closed
   activity's own feed is a valid, empty calendar.
 - **Undated activities** (virtual auditions, events by request): these have no
@@ -274,7 +277,7 @@ break these tests.
     kind;
   - the UID stays the same after a date or time edit;
   - feed filtering: runs only, activities only, auditions only, single
-    record, single company, the 30-day window, closed activities.
+    record, single company, the 12-month window, closed activities.
 - **ICS**:
   - escaping and multi-line descriptions;
   - folding with multibyte characters;
@@ -323,16 +326,14 @@ performance `URL`s point at `/runs`, which only exists after phase C.
 Every phase updates `docs/implementation.md` §3 (schemas) and
 `docs/feature-guide.md` for whatever it ships, per CLAUDE.md.
 
-## Open questions
+## Resolved questions
 
-1. **Serializer: hand-written or a library?** The recommendation is
-   hand-written.
-   - The parts that need care are escaping, folding, a fixed `VTIMEZONE` and
-     deterministic ordering. These come to about 150 lines, are fully
-     unit-tested and are checked with `ical.js`.
-   - The library option is `ical-generator`. It is maintained, but it needs
-     its timestamp default overridden and a timezone plugin to produce
-     `VTIMEZONE`.
-2. **`Run.updatedAt`.** This adds a field to the run schema, so a run's
-   `LAST-MODIFIED` reflects real edits. The alternative is to use only the
-   creation time from the id, which would not change when a run is edited.
+1. **Serializer**: hand-written, not `ical-generator`. The parts that need care
+   are escaping, folding, a fixed `VTIMEZONE` and deterministic ordering. They
+   come to about 150 lines, are fully unit-tested and are checked with
+   `ical.js`. The library would need its timestamp default overridden and a
+   timezone plugin to produce `VTIMEZONE`.
+2. **`Run.updatedAt`**: added, so a run's `LAST-MODIFIED` reflects real edits
+   rather than only its creation time.
+3. **History window**: 12 months rather than the old sync's 30 days. See
+   [Feeds](#feeds).

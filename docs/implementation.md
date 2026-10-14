@@ -371,7 +371,7 @@ A change to what an activity card shows must be checked in all four:
 3. `buildPreviewHtml()` in `activities.js`
 4. `netlify/functions/lib/email-template.mts`
 
-Exception: the expanded card's **Add dates to calendar** button exists only
+Exception: the expanded card's **Add dates to my calendar** button exists only
 on the web paths (1–2). It opens a dialog the Preview and emails don't have.
 
 **Layout**: the public `.detail-grid` and Preview `.pv-detail-grid` are
@@ -434,7 +434,7 @@ calendar-service API. The design and its rationale are in
     `calendar-model.ts`, so the dialog and the feed agree.
 - **Placements**:
   - `calendar.astro`: a bar button with a company picker, and per-card
-    **All dates** / **Add to calendar** links. The `runFeeds` map is passed
+    **All dates** / **Add to my calendar** links. The `runFeeds` map is passed
     through `define:vars`.
   - `events.astro`: the banner picker, and a per-card button when the
     activity is open and has dated sessions.

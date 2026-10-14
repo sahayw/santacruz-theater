@@ -42,8 +42,8 @@ const runFeeds = Object.fromEntries(
     <button
       class="cal-feed-btn"
       type="button"
-      aria-label="Add to calendar"
-      title="Add to calendar"
+      aria-label="Add to my calendar"
+      title="Add to my calendar"
       data-ics-choices={feedChoices}
       data-ics-choice-label="Company"
     >
@@ -52,7 +52,7 @@ const runFeeds = Object.fromEntries(
         ></rect><path d="M1.5 6h13M5 1v3M11 1v3M8 8v5M5.5 10.5h5" stroke="currentColor" fill="none"
         ></path></svg
       >
-      <span class="cal-feed-label">Add to calendar</span>
+      <span class="cal-feed-label">Add to my calendar</span>
     </button>
     <button class="filter-toggle-btn" id="filterToggleBtn"
       ><span id="filterLabel">Filters</span></button
@@ -1835,7 +1835,7 @@ const runFeeds = Object.fromEntries(
         runFeeds[p.runId]
           ? `<div class="card-run-links">
         <a href="/runs?id=${runFeeds[p.runId].id}">All dates →</a>
-        <button type="button" data-ics-feed="runs/${runFeeds[p.runId].id}" data-ics-name="${runFeeds[p.runId].name.replace(/"/g, '&quot;')}">Add to calendar</button>
+        <button type="button" data-ics-feed="runs/${runFeeds[p.runId].id}" data-ics-name="${runFeeds[p.runId].name.replace(/"/g, '&quot;')}">Add to my calendar</button>
       </div>`
           : ''
       }`

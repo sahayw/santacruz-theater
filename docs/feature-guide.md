@@ -25,7 +25,7 @@ What the site does, for visitors and for editors. For how it's built, see
 - **Calendar feeds**: performances, auditions and events can be added to
   Apple Calendar, Google Calendar, Outlook or any other calendar app, either
   as a subscription that stays up to date or as a one-time download. See
-  [Add to calendar](#add-to-calendar).
+  [Add to my calendar](#add-to-my-calendar).
 - **Editor** (`/admin`): one tile per dataset — Calendar, Activities,
   Companies, Services. Saving publishes; the change is live within a few
   minutes.
@@ -48,10 +48,10 @@ What the site does, for visitors and for editors. For how it's built, see
   ticket/info links.
 - **Filters**: company, genre, time of day. A footer legend maps colors to
   companies.
-- **Add to calendar** (top bar): subscribe to every performance, or to one
+- **Add to my calendar** (top bar): subscribe to every performance, or to one
   company's. The bar's filters don't change what's in the feed.
 - Each performance card also links to **All dates**, the production's page,
-  and to **Add to calendar** for that one production.
+  and to **Add to my calendar** for that one production.
 
 ### Productions — `/runs`
 
@@ -65,9 +65,9 @@ company.
   dates** link, and from the link on every performance in a subscribed
   calendar.
 
-### Add to calendar
+### Add to my calendar
 
-One dialog, used wherever **Add to calendar** appears:
+One dialog, used wherever **Add to my calendar** (or **Add dates to my calendar**) appears:
 
 - **Subscribe** — **Apple Calendar / Outlook** (a `webcal:` link), **Google
   Calendar**, or **Copy link** for any other app. The calendar stays up to
@@ -137,9 +137,9 @@ A filterable list of collapsed cards; click to expand.
   Upcoming Auditions / Upcoming Events / All.
 - **Deep link**: `?id=` shows one record, expanded, alone — used for sharing,
   in email digests, and from subscribed calendars.
-- **Add to calendar**: the banner offers every audition and event, or
+- **Add to my calendar**: the banner offers every audition and event, or
   auditions only. Each open activity with dated sessions has its own **Add
-  dates to calendar** link ([details](#add-to-calendar)).
+  dates to my calendar** link ([details](#add-to-my-calendar)).
 
 **What counts as upcoming**
 

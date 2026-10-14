@@ -96,7 +96,7 @@ function roleTypeLabel(type: string): string {
             data-ics-choices={feedChoices}
             data-ics-choice-label="Include"
           >
-            Add to calendar
+            Add to my calendar
           </button>
           <div id="subscribe-status" class="subscribe-status" hidden aria-live="polite"></div>
         </div>
@@ -539,7 +539,7 @@ function roleTypeLabel(type: string): string {
                             data-ics-name={act.title.trim()}
                           >
                             Add {act.dates.filter((d) => d.date).length === 1 ? 'date' : 'dates'} to
-                            calendar
+                            my calendar
                           </button>
                         )}
                       </div>

@@ -236,6 +236,14 @@ describe('buildFeeds', () => {
     expect(feed('activities/1700000000300').events).toEqual([])
   })
 
+  it('trims stray whitespace from titles', () => {
+    const padded = run({ show: 'Spaced Out ', showAbv: ' Spaced ' })
+    expect(
+      buildFeeds([padded], [], ctx, '2026-10-14').find((f) => f.path === 'runs/1700000000000')!.name
+    ).toBe('Spaced Out — TST')
+    expect(performanceEvents(padded, ctx)[0].summary).toBe('Spaced — Test Theatre')
+  })
+
   it('names feeds', () => {
     expect(feed('runs').name).toBe('Santa Cruz Theater — Performances')
     expect(feed('runs/company/tst').name).toBe('Santa Cruz Theater — Performances (Test Theatre)')

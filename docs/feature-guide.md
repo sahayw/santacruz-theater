@@ -22,6 +22,10 @@ What the site does, for visitors and for editors. For how it's built, see
 - **Public site**: a hub (`/`) linking to **Calendar**, **Companies**,
   **Events**, and **Services**, plus **About**. Every inner page shares a top
   nav.
+- **Calendar feeds**: performances, auditions and events can be added to
+  Apple Calendar, Google Calendar, Outlook or any other calendar app, either
+  as a subscription that stays up to date or as a one-time download. See
+  [Add to calendar](#add-to-calendar).
 - **Editor** (`/admin`): one tile per dataset — Calendar, Activities,
   Companies, Services. Saving publishes; the change is live within a few
   minutes.
@@ -44,6 +48,46 @@ What the site does, for visitors and for editors. For how it's built, see
   ticket/info links.
 - **Filters**: company, genre, time of day. A footer legend maps colors to
   companies.
+- **Add to calendar** (top bar): subscribe to every performance, or to one
+  company's. The bar's filters don't change what's in the feed.
+- Each performance card also links to **All dates**, the production's page,
+  and to **Add to calendar** for that one production.
+
+### Productions — `/runs`
+
+Every production with its complete performance schedule. Each performance
+shows its type, plus any discounts or ticket link that differ from the
+production's. The page lists upcoming productions (or all), filterable by
+company.
+
+- `?id=` shows one production, expanded, on its own.
+- It isn't in the nav. Visitors reach it from a performance card's **All
+  dates** link, and from the link on every performance in a subscribed
+  calendar.
+
+### Add to calendar
+
+One dialog, used wherever **Add to calendar** appears:
+
+- **Subscribe** — **Apple Calendar / Outlook** (a `webcal:` link), **Google
+  Calendar**, or **Copy link** for any other app. The calendar stays up to
+  date: edits, new dates and removals show up when the app next refreshes.
+  Each app chooses how often to refresh; Google can take up to a day.
+- **Download** — a one-time `.ics` copy of the current dates, which won't
+  change afterwards.
+
+| Feed                       | Where it's offered                                    |
+| -------------------------- | ----------------------------------------------------- |
+| All performances           | `/calendar` bar                                       |
+| One company's performances | `/calendar` bar, Company picker                       |
+| One production             | performance card, `/runs` card                        |
+| All auditions & events     | `/events` banner                                      |
+| Auditions only             | `/events` banner, Include picker                      |
+| One audition or event      | its expanded card (only if open, with dated sessions) |
+
+The all-performances, company and all-auditions/events feeds cover the last
+12 months onward. A single production's or activity's feed has all of its
+dates. Closed activities are left out.
 
 ### Editors
 
@@ -60,6 +104,10 @@ A **run** is one production:
 Each run has an ordered list of **performances**: date, time, optional type
 (Preview / Opening / Closing / Talk-back), and optional per-performance
 discounts or ticket link that override the run's defaults.
+
+Editing a performance's date or time **moves** it in subscribers' calendars
+rather than adding a duplicate. Each performance (and each audition or event
+session) has a hidden permanent id that the editor assigns automatically.
 
 Two shortcuts fill in performances:
 
@@ -87,8 +135,11 @@ A filterable list of collapsed cards; click to expand.
 - **Status pills**: "Virtual", "Closed", "Past".
 - **Filters**: company, genre (auditions only), and All Upcoming (default) /
   Upcoming Auditions / Upcoming Events / All.
-- **Deep link**: `?id=` shows one record, expanded, alone — used for sharing
-  and in email digests.
+- **Deep link**: `?id=` shows one record, expanded, alone — used for sharing,
+  in email digests, and from subscribed calendars.
+- **Add to calendar**: the banner offers every audition and event, or
+  auditions only. Each open activity with dated sessions has its own **Add
+  dates to calendar** link ([details](#add-to-calendar)).
 
 **What counts as upcoming**
 
@@ -271,7 +322,8 @@ Visitors subscribe on `/events` or `/subscribe`.
 ## 9. Publishing & access
 
 - **Publishing**: every Save in `/admin` rebuilds the site; live in a few
-  minutes.
+  minutes. That includes the calendar feeds. Subscribers see the change when
+  their calendar app next refreshes, which can take up to a day for Google.
 - **Access**: per email, per dataset, set in the companies file
   ([§4](#4-companies)). Companies and Services are admin-only.
 - **Accounts**: Netlify Identity, by invitation, to an email listed in that

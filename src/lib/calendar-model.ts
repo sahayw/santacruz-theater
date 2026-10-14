@@ -121,12 +121,13 @@ export function runUrl(run: Run) {
 /** `{show} — {company abbreviation}`; just the title for the "other" company. */
 export function runFeedName(run: Run, ctx: CalendarContext) {
   const co = company(ctx, run.company)
-  return run.company === 'other' || !co ? run.show : `${run.show} — ${co.abvName}`
+  const show = run.show.trim()
+  return run.company === 'other' || !co ? show : `${show} — ${co.abvName}`
 }
 
 export function performanceEvents(run: Run, ctx: CalendarContext): CalendarEvent[] {
   const co = company(ctx, run.company)
-  const title = run.showAbv || run.show
+  const title = (run.showAbv || run.show).trim()
   const summary = run.company === 'other' || !co ? title : `${title} — ${co.name}`
   const location = venueLocation(ctx, run.venue)
   const url = runUrl(run)
@@ -197,7 +198,7 @@ export function sessionEvents(activity: CompanyActivity, ctx: CalendarContext): 
   if (activity.closed) return []
   const org = organizer(activity, ctx)
   const label = activity.type === 'audition' ? 'Audition' : 'Event'
-  const summary = `${label}: ${activity.title}${org ? ` — ${org}` : ''}`
+  const summary = `${label}: ${activity.title.trim()}${org ? ` — ${org}` : ''}`
   const url = activityUrl(activity)
   const roles = activity.type === 'audition' && rolesSum(activity.rolesAvailable || [])
   const body =
@@ -234,6 +235,14 @@ export function sessionEvents(activity: CompanyActivity, ctx: CalendarContext): 
 
 const SITE_NAME = 'Santa Cruz Theater'
 
+/** Calendar names (X-WR-CALNAME) — shared with the Add to Calendar UI. */
+export const FEED_NAMES = {
+  runs: `${SITE_NAME} — Performances`,
+  company: (companyName: string) => `${SITE_NAME} — Performances (${companyName})`,
+  activities: `${SITE_NAME} — Auditions & Events`,
+  auditions: `${SITE_NAME} — Auditions`
+}
+
 /** Sorted by start, then uid, so unchanged data serializes byte-identically. */
 export function sortEvents(events: CalendarEvent[]) {
   return [...events].sort(
@@ -260,7 +269,7 @@ export function buildFeeds(
   const perfsByRun = runs.map((run) => ({ run, events: performanceEvents(run, ctx) }))
   feeds.push({
     path: 'runs',
-    name: `${SITE_NAME} — Performances`,
+    name: FEED_NAMES.runs,
     description: 'Performances listed on santacruz.theater',
     events: recent(perfsByRun.flatMap((r) => r.events))
   })
@@ -269,7 +278,7 @@ export function buildFeeds(
     const name = company(ctx, id)?.name || id
     feeds.push({
       path: `runs/company/${id}`,
-      name: `${SITE_NAME} — Performances (${name})`,
+      name: FEED_NAMES.company(name),
       description: `${name} performances listed on santacruz.theater`,
       events: recent(perfsByRun.filter((r) => r.run.company === id).flatMap((r) => r.events))
     })
@@ -278,7 +287,7 @@ export function buildFeeds(
     feeds.push({
       path: `runs/${bareId(run.id)}`,
       name: runFeedName(run, ctx),
-      description: `Performances of ${run.show}, from santacruz.theater`,
+      description: `Performances of ${run.show.trim()}, from santacruz.theater`,
       events
     })
   }
@@ -286,13 +295,13 @@ export function buildFeeds(
   const sessionsByActivity = activities.map((a) => ({ a, events: sessionEvents(a, ctx) }))
   feeds.push({
     path: 'activities',
-    name: `${SITE_NAME} — Auditions & Events`,
+    name: FEED_NAMES.activities,
     description: 'Auditions and events listed on santacruz.theater',
     events: recent(sessionsByActivity.flatMap((s) => s.events))
   })
   feeds.push({
     path: 'auditions',
-    name: `${SITE_NAME} — Auditions`,
+    name: FEED_NAMES.auditions,
     description: 'Auditions listed on santacruz.theater',
     events: recent(
       sessionsByActivity.filter((s) => s.a.type === 'audition').flatMap((s) => s.events)
@@ -301,7 +310,7 @@ export function buildFeeds(
   for (const { a, events } of sessionsByActivity) {
     feeds.push({
       path: `activities/${bareId(a.id)}`,
-      name: a.title,
+      name: a.title.trim(),
       description: `${a.type === 'audition' ? 'Audition' : 'Event'} sessions from santacruz.theater`,
       events
     })

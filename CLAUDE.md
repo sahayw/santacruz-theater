@@ -31,8 +31,8 @@ There is no bare `astro dev` / `astro preview` script — `npm run dev` (netlify
 
 ## Folder conventions
 
-- `src/components/` — `calendar.astro` (calendar UI), `SiteNav.astro` (shared nav)
-- `src/pages/` — file-based routes: `index`, `calendar`, `companies`, `events`, `subscribe`, `services`, `about`, `admin/audition-format.js.ts` / `admin/data-rules.js.ts` / `admin/occurrence-ids.js.ts` (serve the shared modules as browser ES modules), `[...feed].ics.ts` (all calendar feeds, built statically)
+- `src/components/` — `calendar.astro` (calendar UI), `SiteNav.astro` (shared nav), `AddToCalendar.astro` (calendar-feed dialog)
+- `src/pages/` — file-based routes: `index`, `calendar`, `companies`, `events`, `runs` (production pages — not in the nav), `subscribe`, `services`, `about`, `admin/audition-format.js.ts` / `admin/data-rules.js.ts` / `admin/occurrence-ids.js.ts` (serve the shared modules as browser ES modules), `[...feed].ics.ts` (all calendar feeds, built statically)
 - `src/lib/` — `data.ts` (build-time data loading), `audition-format.ts` (shared formatting), `data-rules.ts` (shared validation rules), `occurrence-ids.ts` (stable `perf-`/`session-` ids), `calendar-model.ts` / `ics.ts` (calendar feeds), `browser-module.ts` (serves a `src/lib` module to `/admin`) — see `docs/implementation.md` §6
 - `src/types.ts` — shared data types
 - `data/` — canonical data files; schemas in `docs/implementation.md` §3

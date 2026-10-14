@@ -1,0 +1,296 @@
+---
+// "Add to Calendar" dialog for the static .ics feeds (src/pages/[...feed].ics.ts).
+// Include once per page; it opens from any element carrying either
+//   data-ics-feed="runs/123" data-ics-name="Calendar name"      — a single feed, or
+//   data-ics-choices='[{"label","feed","name"}, …]' data-ics-choice-label="Company"
+//                                                               — a picker of feeds.
+// Clicks are delegated from document, so triggers in client-rendered markup
+// (e.g. the calendar's show cards) work without extra wiring. See docs/ics-spec.md.
+---
+
+<dialog class="ics-dialog" id="icsDialog" aria-labelledby="icsTitle">
+  <form method="dialog">
+    <button class="ics-close" aria-label="Close">×</button>
+  </form>
+  <h2 class="ics-title" id="icsTitle">Add to calendar</h2>
+  <p class="ics-name" id="icsName"></p>
+
+  <label class="ics-choice" id="icsChoiceWrap" hidden>
+    <span id="icsChoiceLabel">Calendar</span>
+    <select id="icsChoice"></select>
+  </label>
+
+  <section class="ics-section">
+    <h3 class="ics-head">Subscribe <span>stays up to date</span></h3>
+    <p class="ics-note">
+      Your calendar app checks for changes on its own schedule — Google Calendar can take up to a
+      day to show updates.
+    </p>
+    <div class="ics-actions">
+      <a class="ics-btn ics-btn--primary" id="icsWebcal">Apple Calendar / Outlook</a>
+      <a class="ics-btn ics-btn--primary" id="icsGoogle" target="_blank" rel="noopener"
+        >Google Calendar</a
+      >
+    </div>
+    <div class="ics-copy">
+      <input
+        class="ics-url"
+        id="icsUrl"
+        type="text"
+        readonly
+        aria-label="Calendar feed URL for other apps"
+      />
+      <button class="ics-btn" id="icsCopy" type="button">Copy link</button>
+    </div>
+    <p class="ics-note ics-note--small">For any other calendar app, subscribe using this link.</p>
+  </section>
+
+  <section class="ics-section">
+    <h3 class="ics-head">Download <span>one-time copy</span></h3>
+    <p class="ics-note">
+      Imports the current dates as a separate copy. It won't change if the schedule does.
+    </p>
+    <div class="ics-actions">
+      <a class="ics-btn" id="icsDownload" download>Download .ics file</a>
+    </div>
+  </section>
+</dialog>
+
+<script>
+  interface Choice {
+    label: string
+    feed: string
+    name: string
+  }
+
+  const dialog = document.getElementById('icsDialog') as HTMLDialogElement
+  const nameEl = document.getElementById('icsName')!
+  const choiceWrap = document.getElementById('icsChoiceWrap')!
+  const choiceLabel = document.getElementById('icsChoiceLabel')!
+  const choiceSelect = document.getElementById('icsChoice') as HTMLSelectElement
+  const webcalLink = document.getElementById('icsWebcal') as HTMLAnchorElement
+  const googleLink = document.getElementById('icsGoogle') as HTMLAnchorElement
+  const urlInput = document.getElementById('icsUrl') as HTMLInputElement
+  const copyBtn = document.getElementById('icsCopy') as HTMLButtonElement
+  const downloadLink = document.getElementById('icsDownload') as HTMLAnchorElement
+
+  let choices: Choice[] = []
+
+  function show(feed: string, name: string) {
+    const path = `/${feed}.ics`
+    const https = `${location.origin}${path}`
+    const webcal = `webcal://${location.host}${path}`
+    nameEl.textContent = name
+    webcalLink.href = webcal
+    // Google can't subscribe from a webcal: link on another site; its cid parameter can.
+    googleLink.href = `https://calendar.google.com/calendar/r?cid=${encodeURIComponent(webcal)}`
+    urlInput.value = https
+    downloadLink.href = path
+    downloadLink.download = `${feed.replace(/\//g, '-')}.ics`
+    copyBtn.textContent = 'Copy link'
+  }
+
+  function open(trigger: HTMLElement) {
+    const raw = trigger.dataset.icsChoices
+    choices = raw ? (JSON.parse(raw) as Choice[]) : []
+    choiceWrap.hidden = choices.length === 0
+    if (choices.length) {
+      choiceLabel.textContent = trigger.dataset.icsChoiceLabel || 'Calendar'
+      choiceSelect.innerHTML = ''
+      choices.forEach((c, i) => choiceSelect.add(new Option(c.label, String(i))))
+      show(choices[0].feed, choices[0].name)
+    } else {
+      show(trigger.dataset.icsFeed!, trigger.dataset.icsName || 'Santa Cruz Theater')
+    }
+    dialog.showModal()
+  }
+
+  choiceSelect.addEventListener('change', () => {
+    const c = choices[Number(choiceSelect.value)]
+    if (c) show(c.feed, c.name)
+  })
+
+  copyBtn.addEventListener('click', async () => {
+    try {
+      await navigator.clipboard.writeText(urlInput.value)
+      copyBtn.textContent = 'Copied ✓'
+    } catch {
+      // Clipboard API unavailable — select the text so it can be copied by hand
+      urlInput.select()
+      copyBtn.textContent = 'Press ⌘C / Ctrl+C'
+    }
+  })
+
+  // Click on the backdrop (outside the dialog box) closes it
+  dialog.addEventListener('click', (e) => {
+    if (e.target === dialog) dialog.close()
+  })
+
+  document.addEventListener('click', (e) => {
+    const trigger = (e.target as Element | null)?.closest<HTMLElement>(
+      '[data-ics-feed], [data-ics-choices]'
+    )
+    if (!trigger) return
+    e.preventDefault()
+    e.stopPropagation()
+    open(trigger)
+  })
+</script>
+
+<style is:global>
+  .ics-dialog {
+    --ics-ink: #1a1612;
+    --ics-muted: #6b6259;
+    --ics-subtle: #9c9189;
+    --ics-border: #e0d9d0;
+    --ics-bg: #f7f4ef;
+    --ics-accent: #4f5ce0;
+    width: min(440px, calc(100vw - 32px));
+    max-height: calc(100dvh - 32px);
+    margin: auto;
+    padding: 20px 20px 18px;
+    border: 1px solid #c8a96e;
+    border-radius: 8px;
+    background: #fff;
+    color: var(--ics-ink);
+    font-family: 'DM Sans', system-ui, sans-serif;
+    font-size: 14px;
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.2);
+  }
+  .ics-dialog::backdrop {
+    background: rgba(26, 22, 18, 0.45);
+  }
+  .ics-close {
+    position: absolute;
+    top: 10px;
+    right: 12px;
+    width: 30px;
+    height: 30px;
+    border: none;
+    background: none;
+    font-size: 22px;
+    line-height: 1;
+    color: var(--ics-muted);
+    cursor: pointer;
+    border-radius: 4px;
+  }
+  .ics-close:hover {
+    background: var(--ics-bg);
+    color: var(--ics-ink);
+  }
+  .ics-title {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: 20px;
+    font-weight: 600;
+    margin: 0 36px 2px 0;
+  }
+  .ics-name {
+    font-size: 13px;
+    color: var(--ics-muted);
+    margin: 0 0 14px;
+  }
+  .ics-choice {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 14px;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--ics-muted);
+  }
+  .ics-choice[hidden] {
+    display: none;
+  }
+  .ics-choice select {
+    flex: 1;
+    min-width: 0;
+    font: inherit;
+    font-size: 13px;
+    color: var(--ics-ink);
+    padding: 5px 8px;
+    border: 1px solid var(--ics-border);
+    border-radius: 4px;
+    background: var(--ics-bg);
+  }
+  .ics-section {
+    border-top: 1px solid var(--ics-border);
+    padding-top: 12px;
+    margin-top: 12px;
+  }
+  .ics-head {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--ics-muted);
+    margin: 0 0 4px;
+  }
+  .ics-head span {
+    font-weight: 400;
+    text-transform: none;
+    letter-spacing: 0;
+    color: var(--ics-subtle);
+    margin-left: 4px;
+  }
+  .ics-note {
+    font-size: 12px;
+    line-height: 1.45;
+    color: var(--ics-muted);
+    margin: 0 0 10px;
+  }
+  .ics-note--small {
+    font-size: 11px;
+    color: var(--ics-subtle);
+    margin: 6px 0 0;
+  }
+  .ics-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .ics-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font: inherit;
+    font-size: 13px;
+    font-weight: 500;
+    padding: 7px 12px;
+    border-radius: 4px;
+    border: 1px solid var(--ics-border);
+    background: #fff;
+    color: var(--ics-ink);
+    text-decoration: none;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .ics-btn:hover {
+    border-color: #c8a96e;
+  }
+  .ics-btn--primary {
+    flex: 1 1 160px;
+    background: var(--ics-ink);
+    border-color: var(--ics-ink);
+    color: #fff;
+  }
+  .ics-btn--primary:hover {
+    background: #333;
+    border-color: #333;
+  }
+  .ics-copy {
+    display: flex;
+    gap: 6px;
+    margin-top: 10px;
+  }
+  .ics-url {
+    flex: 1;
+    min-width: 0;
+    font: inherit;
+    font-size: 12px;
+    color: var(--ics-muted);
+    padding: 6px 8px;
+    border: 1px solid var(--ics-border);
+    border-radius: 4px;
+    background: var(--ics-bg);
+  }
+</style>

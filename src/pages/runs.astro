@@ -1,0 +1,654 @@
+---
+// Production (run) directory and detail page — /runs lists every run, /runs?id=<bare id>
+// shows one with its complete performance schedule. Deliberately not in the nav or on the
+// home page: /calendar is the browsing surface; this is the stable destination for calendar
+// feed URL properties and the calendar's "All dates" links. See docs/ics-spec.md.
+import BaseHead from '../components/BaseHead.astro'
+import SiteNav from '../components/SiteNav.astro'
+import AddToCalendar from '../components/AddToCalendar.astro'
+import companiesData from '../../data/sc-theater-companies.json'
+import venuesData from '../../data/sc-theater-venues.json'
+import { getShows } from '../lib/data.ts'
+import { fmt12, fmtAudDateRange, fmtFullDate, renderMd } from '../lib/audition-format.ts'
+import { bareId, runFeedName } from '../lib/calendar-model.ts'
+import type { CompanyEntry, Performance, Run } from '../types.ts'
+
+const companies = companiesData.companies as CompanyEntry[]
+const ctx = { companies, venues: venuesData.venues }
+const companyName = (id: string) => companies.find((c) => c.id === id)?.name ?? id
+const venueName = (v: string) =>
+  venuesData.venues.find((x) => x.code === v || x.name === v)?.name ?? v
+
+const byDateTime = (a: Performance, b: Performance) =>
+  (a.date + a.time).localeCompare(b.date + b.time)
+
+const runs = (await getShows())
+  .filter((r) => r.performances.length)
+  .map((r) => ({ ...r, performances: [...r.performances].sort(byDateTime) }))
+  .sort((a, b) => byDateTime(a.performances[0], b.performances[0]))
+
+const filterCompanies = companies.filter(
+  (c) => !c.adminOnly && runs.some((r) => r.company === c.id)
+)
+
+function fmtPerfTime(t: string) {
+  return `${fmt12(t)}${Number(t.split(':')[0]) < 12 ? 'am' : 'pm'}`
+}
+
+function genreClass(genre: string) {
+  return `genre-${genre.toLowerCase()}`
+}
+
+function summaryMeta(r: Run) {
+  const name = r.company === 'other' ? '' : companyName(r.company)
+  return [name, venueName(r.venue), r.price].filter(Boolean).join(' · ')
+}
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <BaseHead
+      title="Productions — Santa Cruz Theater"
+      description="Every production on the Santa Cruz Theater calendar, with its full performance schedule."
+      canonicalPath="/runs"
+    />
+  </head>
+  <body>
+    <SiteNav />
+
+    <main class="runs-page">
+      <header class="page-header">
+        <h1 class="page-title">Productions</h1>
+        <p class="page-subtitle">
+          Every production on the <a href="/calendar">calendar</a>, with its full schedule
+        </p>
+      </header>
+
+      <div class="filter-bar">
+        <div class="filter-controls">
+          <div class="filter-group">
+            <label for="filter-show">Show</label>
+            <select id="filter-show">
+              <option value="upcoming">Upcoming</option>
+              <option value="all">All</option>
+            </select>
+          </div>
+          <div class="filter-group">
+            <label for="filter-company">Company</label>
+            <select id="filter-company">
+              <option value="">All</option>
+              {filterCompanies.map((c) => <option value={c.id}>{c.name}</option>)}
+            </select>
+          </div>
+        </div>
+        <div class="filter-count" id="filter-count" aria-live="polite"></div>
+      </div>
+
+      <div class="run-list" id="run-list">
+        {
+          runs.map((r) => {
+            const lastDate = r.performances.at(-1)!.date
+            const hasOverrides = r.performances.some((p) => p.discounts || p.ticketsUrl)
+            return (
+              <div
+                class="run-card"
+                data-id={bareId(r.id)}
+                data-company={r.company}
+                data-latest-date={lastDate}
+              >
+                <button class="run-summary" aria-expanded="false">
+                  <div class="run-main">
+                    <div class="run-title-row">
+                      <span class="run-title">{r.show}</span>
+                      {r.genre.map((g) => (
+                        <span class={`genre-badge ${genreClass(g)}`}>{g}</span>
+                      ))}
+                    </div>
+                    <div class="run-meta-row">{summaryMeta(r)}</div>
+                  </div>
+                  <div class="run-aside">
+                    <span class="run-past-pip" aria-hidden="true">
+                      Past
+                    </span>
+                    <span class="run-date-range">{fmtAudDateRange(r.performances)}</span>
+                    <span class="run-chevron" aria-hidden="true" />
+                  </div>
+                </button>
+
+                <div class="run-detail" hidden>
+                  {r.description && (
+                    <section class="detail-section">
+                      <h4 class="detail-section-head">About</h4>
+                      <div class="detail-description" set:html={renderMd(r.description)} />
+                    </section>
+                  )}
+                  <section class="detail-section">
+                    <h4 class="detail-section-head">
+                      {r.performances.length === 1
+                        ? 'Performance'
+                        : `${r.performances.length} performances`}
+                    </h4>
+                    {r.performances.map((p) => (
+                      <div class="perf-row" data-date={p.date}>
+                        <span class="perf-date">{fmtFullDate(p.date)}</span>
+                        <span class="perf-time">{fmtPerfTime(p.time)}</span>
+                        {p.perfType && (
+                          <span class={`perf-type perf-type--${p.perfType.toLowerCase()}`}>
+                            {p.perfType}
+                          </span>
+                        )}
+                        {p.discounts && <span class="perf-discounts">Discounts: {p.discounts}</span>}
+                        {p.ticketsUrl && (
+                          <a href={p.ticketsUrl} class="detail-link-inline" target="_blank" rel="noopener">
+                            Tickets →
+                          </a>
+                        )}
+                      </div>
+                    ))}
+                  </section>
+                  {r.discounts && (
+                    <div class="detail-default">
+                      {hasOverrides ? 'Default discounts' : 'Discounts'}: {r.discounts}
+                    </div>
+                  )}
+                  <div class="detail-links-row">
+                    {r.infoUrl && (
+                      <a href={r.infoUrl} class="detail-action-link" target="_blank" rel="noopener">
+                        More info →
+                      </a>
+                    )}
+                    {r.ticketsUrl && (
+                      <a href={r.ticketsUrl} class="detail-action-link" target="_blank" rel="noopener">
+                        Get tickets →
+                      </a>
+                    )}
+                    <button
+                      type="button"
+                      class="detail-action-link detail-cal-btn"
+                      data-ics-feed={`runs/${bareId(r.id)}`}
+                      data-ics-name={runFeedName(r, ctx)}
+                    >
+                      Add to calendar
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )
+          })
+        }
+        <div class="run-empty" id="run-empty" hidden>No productions match the current filters.</div>
+      </div>
+
+      <div class="run-not-found" id="run-not-found" hidden>
+        That production isn't listed. <a href="/runs">See all productions</a> or the
+        <a href="/calendar">calendar</a>.
+      </div>
+    </main>
+
+    <AddToCalendar />
+  </body>
+</html>
+
+<script is:inline>
+  const TODAY = new Date().toISOString().slice(0, 10)
+  const cards = Array.from(document.querySelectorAll('.run-card'))
+  const filterShow = document.getElementById('filter-show')
+  const filterCompany = document.getElementById('filter-company')
+  const countEl = document.getElementById('filter-count')
+  const emptyEl = document.getElementById('run-empty')
+
+  const isPast = (card) => card.dataset.latestDate < TODAY
+  cards.forEach((card) => {
+    if (isPast(card)) card.classList.add('past')
+    // Dim individual past performances in the schedule
+    card.querySelectorAll('.perf-row').forEach((row) => {
+      if (row.dataset.date < TODAY) row.classList.add('perf-row--past')
+    })
+  })
+
+  function setOpen(card, open) {
+    card.classList.toggle('open', open)
+    card.querySelector('.run-detail').hidden = !open
+    card.querySelector('.run-summary').setAttribute('aria-expanded', String(open))
+  }
+
+  function updateFilters() {
+    const co = filterCompany.value
+    const upcomingOnly = filterShow.value === 'upcoming'
+    let visible = 0
+    cards.forEach((card) => {
+      setOpen(card, false)
+      const show = (!co || card.dataset.company === co) && (!upcomingOnly || !isPast(card))
+      card.style.display = show ? '' : 'none'
+      if (show) visible++
+    })
+    countEl.textContent = `${visible} ${visible === 1 ? 'production' : 'productions'}`
+    emptyEl.hidden = visible > 0
+  }
+
+  // Deep-link: ?id=<timestamp> ("run-" prefix stripped, as on /events)
+  const deepId = new URLSearchParams(location.search).get('id')
+  if (deepId) {
+    document.querySelector('.filter-bar').style.display = 'none'
+    document.querySelector('.page-subtitle').style.display = 'none'
+    const title = document.querySelector('.page-title')
+    title.textContent = 'Production'
+    title.style.fontSize = '18px'
+    const deepCard = cards.find((c) => c.dataset.id === deepId)
+    cards.forEach((c) => {
+      if (c !== deepCard) c.style.display = 'none'
+    })
+    if (deepCard) setOpen(deepCard, true)
+    else document.getElementById('run-not-found').hidden = false
+  } else {
+    updateFilters()
+    filterShow.addEventListener('change', updateFilters)
+    filterCompany.addEventListener('change', updateFilters)
+  }
+
+  document.querySelectorAll('.run-summary').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const card = btn.closest('.run-card')
+      setOpen(card, !card.classList.contains('open'))
+    })
+  })
+</script>
+
+<style>
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+
+  :root {
+    --nav-h: 44px;
+    --page-bg: #f0ede8;
+    --bg: #f7f4ef;
+    --surface: #ffffff;
+    --ink: #1a1612;
+    --ink-muted: #6b6259;
+    --ink-subtle: #9c9189;
+    --border: #e0d9d0;
+    --border-primary: #c8a96e;
+    --link: #4f5ce0;
+    --radius: 6px;
+  }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--page-bg);
+    color: var(--ink);
+    min-height: 100vh;
+    font-size: 14px;
+  }
+
+  .runs-page {
+    margin: var(--nav-h) auto 0;
+    padding: 32px 32px 80px;
+    max-width: 960px;
+  }
+
+  .page-header {
+    margin-bottom: 16px;
+  }
+  .page-title {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(22px, 3vw, 32px);
+    font-weight: 600;
+    line-height: 1.15;
+    margin-bottom: 6px;
+  }
+  .page-subtitle {
+    font-size: 14px;
+    font-weight: 300;
+    color: var(--ink-muted);
+  }
+  .page-subtitle a,
+  .run-not-found a {
+    color: var(--link);
+  }
+
+  /* ── FILTER BAR (matches /events) ── */
+  .filter-bar {
+    position: sticky;
+    top: var(--nav-h);
+    z-index: 50;
+    background: var(--page-bg);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin: 0 -32px 20px;
+    padding: 10px 32px;
+  }
+  .filter-controls {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .filter-group {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .filter-group label {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--ink-muted);
+  }
+  .filter-group select {
+    font-family: inherit;
+    font-size: 12px;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 4px 24px 4px 8px;
+    background: var(--surface)
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%236b6259'/%3E%3C/svg%3E")
+      no-repeat right 8px center;
+    color: var(--ink);
+    cursor: pointer;
+    -webkit-appearance: none;
+    appearance: none;
+  }
+  .filter-count {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--ink-muted);
+    white-space: nowrap;
+  }
+
+  /* ── CARDS (matches /events) ── */
+  .run-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .run-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    transition:
+      border-color 0.15s,
+      box-shadow 0.15s;
+  }
+  .run-card.open {
+    border-color: var(--border-primary);
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.07);
+  }
+  .run-summary {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    width: 100%;
+    padding: 14px 16px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    text-align: left;
+    font: inherit;
+    color: inherit;
+    -webkit-tap-highlight-color: transparent;
+  }
+  @media (hover: hover) {
+    .run-summary:hover {
+      background: rgba(0, 0, 0, 0.02);
+    }
+  }
+  .run-main {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .run-title-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .run-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 16px;
+    font-weight: 600;
+    line-height: 1.25;
+  }
+  .genre-badge {
+    font-size: 11px;
+    font-weight: 500;
+    padding: 2px 8px;
+    border-radius: 10px;
+    letter-spacing: 0.02em;
+  }
+  .genre-musical {
+    background: #dce4fb;
+    color: #2c3e9a;
+  }
+  .genre-drama {
+    background: #fbe5e1;
+    color: #8c3a2e;
+  }
+  .genre-comedy {
+    background: #dff4d6;
+    color: #2d6020;
+  }
+  .genre-other {
+    background: #f0ece6;
+    color: var(--ink-muted);
+  }
+  .run-meta-row {
+    font-size: 12px;
+    color: var(--ink-muted);
+  }
+  .run-aside {
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 3px;
+    min-width: 80px;
+  }
+  .run-past-pip {
+    display: none;
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    padding: 2px 7px;
+    border-radius: 8px;
+    color: var(--ink-subtle);
+    background: rgba(0, 0, 0, 0.06);
+  }
+  .run-card.past .run-past-pip {
+    display: inline-block;
+  }
+  .run-date-range {
+    font-size: 13px;
+    font-weight: 500;
+    white-space: nowrap;
+  }
+  .run-chevron {
+    width: 8px;
+    height: 8px;
+    border-right: 2px solid var(--ink-subtle);
+    border-bottom: 2px solid var(--ink-subtle);
+    transform: rotate(45deg);
+    transition: transform 0.2s ease;
+    margin-top: 4px;
+  }
+  .run-card.open .run-chevron {
+    transform: rotate(-135deg);
+  }
+
+  /* ── DETAIL ── */
+  .run-detail {
+    background: var(--bg);
+    border-top: 1px solid var(--border);
+    padding: 20px 16px 16px;
+  }
+  .detail-section {
+    margin-bottom: 16px;
+  }
+  .detail-section-head {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--ink-muted);
+    margin-bottom: 8px;
+  }
+  .detail-description {
+    font-size: 13px;
+    line-height: 1.55;
+    white-space: pre-wrap;
+    max-width: 68ch;
+  }
+  .detail-description :global(a) {
+    color: var(--link);
+  }
+  .perf-row {
+    display: flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 4px 8px;
+    font-size: 13px;
+    padding: 6px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .perf-row:first-of-type {
+    padding-top: 0;
+  }
+  .perf-row:last-child {
+    border-bottom: none;
+  }
+  .perf-row--past {
+    opacity: 0.5;
+  }
+  .perf-date {
+    font-weight: 500;
+    white-space: nowrap;
+    min-width: 92px;
+  }
+  .perf-time {
+    color: var(--ink-muted);
+    white-space: nowrap;
+    min-width: 56px;
+  }
+  .perf-type {
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    padding: 2px 7px;
+    border-radius: 8px;
+  }
+  .perf-type--preview {
+    background: #fff0cc;
+    color: #7a5200;
+  }
+  .perf-type--opening {
+    background: #c8f0da;
+    color: #1a5c35;
+  }
+  .perf-type--closing {
+    background: #ffd4d4;
+    color: #8c1e1e;
+  }
+  .perf-type--talk-back {
+    background: #d4ddff;
+    color: #2035a0;
+  }
+  .perf-discounts {
+    font-size: 11px;
+    color: var(--ink-subtle);
+    font-style: italic;
+  }
+  .detail-link-inline {
+    font-size: 12px;
+    color: var(--link);
+    text-decoration: none;
+  }
+  .detail-link-inline:hover {
+    text-decoration: underline;
+  }
+  .detail-default {
+    font-size: 12px;
+    color: var(--ink-muted);
+    padding-top: 8px;
+    border-top: 1px solid var(--border);
+    margin-bottom: 4px;
+  }
+  .detail-links-row {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+    align-items: baseline;
+    padding-top: 12px;
+    border-top: 1px solid var(--border);
+    margin-top: 4px;
+  }
+  .detail-action-link {
+    font: inherit;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--link);
+    text-decoration: none;
+    background: none;
+    border: none;
+    cursor: pointer;
+  }
+  .detail-action-link:hover {
+    color: #2c3e9a;
+    text-decoration: underline;
+  }
+  .detail-cal-btn {
+    margin-left: auto;
+  }
+
+  .run-empty,
+  .run-not-found {
+    padding: 48px 24px;
+    text-align: center;
+    font-size: 14px;
+    color: var(--ink-muted);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+  }
+
+  @media (max-width: 860px) {
+    .runs-page {
+      padding: 28px 24px 64px;
+    }
+    .filter-bar {
+      margin: 0 -24px 20px;
+      padding: 10px 24px;
+    }
+  }
+  @media (max-width: 600px) {
+    .runs-page {
+      padding: 20px 16px 56px;
+    }
+    .filter-bar {
+      margin: 0 -16px 16px;
+      padding: 10px 16px;
+    }
+    .run-title {
+      font-size: 15px;
+    }
+    .run-aside {
+      min-width: 72px;
+    }
+    .detail-cal-btn {
+      margin-left: 0;
+    }
+  }
+</style>

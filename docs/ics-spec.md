@@ -1,7 +1,7 @@
 # ICS Calendar Feeds — Spec
 
-Status: **phases A and B built on `ics-feeds` (not yet released); phase C
-next.** Revised 2026-10-14 from the original August draft. Replaces the Google Calendar sync, which was removed
+Status: **phases A–C built on `ics-feeds` (A and B merged to `dev`; not yet
+released).** Revised 2026-10-14 from the original August draft. Replaces the Google Calendar sync, which was removed
 in `bda183f`. That commit's parent still has the old event-building code for
 reference.
 
@@ -230,7 +230,8 @@ near-identical, so one route does the job with less code.
 the same feed URL:
 
 - **Apple / Outlook**: a `webcal://` link.
-- **Google Calendar**: `https://calendar.google.com/calendar/r?cid=<encoded https URL>`.
+- **Google Calendar**: `https://calendar.google.com/calendar/r?cid=<encoded webcal URL>`.
+  The webcal form is the one most widely reported to work with `cid`.
 - **Copy link**: the plain `https://…ics` URL, for any other client.
 - **Download .ics**: a `download` anchor. This gives a one-off snapshot that
   won't update.
@@ -246,11 +247,19 @@ The button appears in these places:
     live filters, and offers the same companies as `#filterCompany`.
   - "All" builds `/runs.ics`; a company builds `/runs/company/{id}.ics`.
   - Genre and time-of-day are not offered as feed filters.
-- **The calendar's per-date show card**: uses that run's `/runs/{id}.ics`.
-- **`/runs?id={id}`**: uses `/runs/{id}.ics`.
-- **`/events`**: near the email-subscribe banner, with two choices: All
+- **The calendar's per-date show card**: uses that run's `/runs/{id}.ics`. The
+  card also gets an **All dates →** link to `/runs?id={id}`.
+- **Every `/runs` card** (index and `?id=`): uses `/runs/{id}.ics`.
+- **`/events`**: in the email-subscribe banner, with two choices: All
   (`/activities.ics`) or Auditions only (`/auditions.ics`).
-- **`/events?id={id}`**: uses `/activities/{id}.ics`.
+- **Every expanded `/events` card** (list and `?id=`): uses
+  `/activities/{id}.ics`, but only for open activities with dated sessions.
+  The button is web-only; the editor Preview and emails don't show it.
+
+Two placements go beyond the original plan: the button is on every card, not
+only on deep-link views, and the calendar card links to `/runs`. A deep-link
+view is the same card, so showing the button everywhere keeps it
+consistent.
 
 **New `/runs` page** (`src/pages/runs.astro`):
 
@@ -260,10 +269,11 @@ The button appears in these places:
   per-performance perf type, discounts or ticket link that differs from the
   run's.
 - It is **not** in the nav or on the home page. It exists as the target of
-  feed `URL` properties.
+  feed `URL` properties and of the calendar card's **All dates** link.
 
-**Calendar editor Preview** is extended to show the run's full schedule,
-matching `/runs?id=`.
+**Calendar editor Preview**: no change was needed. It already showed the
+run's full schedule, with per-performance overrides, in the same card layout
+that `/runs` now uses.
 
 ## Testing
 

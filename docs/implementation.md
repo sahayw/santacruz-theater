@@ -37,9 +37,10 @@ How the system is built. For what it does, see
 
 ```
 src/
-  components/     calendar.astro (calendar UI), SiteNav.astro
+  components/     calendar.astro (calendar UI), SiteNav.astro,
+                  AddToCalendar.astro (feed dialog, §6)
   layouts/        page layout wrappers
-  pages/          routes — index, calendar, companies, events, subscribe,
+  pages/          routes — index, calendar, companies, events, runs, subscribe,
                   services, about, admin/audition-format.js.ts,
                   admin/data-rules.js.ts, admin/occurrence-ids.js.ts,
                   [...feed].ics.ts (calendar feeds, §6)
@@ -370,6 +371,9 @@ A change to what an activity card shows must be checked in all four:
 3. `buildPreviewHtml()` in `activities.js`
 4. `netlify/functions/lib/email-template.mts`
 
+Exception: the expanded card's **Add dates to calendar** button exists only
+on the web paths (1–2). It opens a dialog the Preview and emails don't have.
+
 **Layout**: the public `.detail-grid` and Preview `.pv-detail-grid` are
 two-column grids with an optional right column (roles / description). Each
 has a `:not(:has(.detail-right))`-style rule that collapses to one column
@@ -416,6 +420,29 @@ calendar-service API. The design and its rationale are in
 - **`src/pages/[...feed].ics.ts`** is a single catch-all static endpoint that
   writes every feed. `netlify.toml` sets
   `Content-Type: text/calendar; charset=utf-8` for `/*.ics`.
+- **UI — `src/components/AddToCalendar.astro`**: a single native `<dialog>`
+  per page. It opens from any element with `data-ics-feed` + `data-ics-name`,
+  or `data-ics-choices` (a JSON list of `{label, feed, name}`) +
+  `data-ics-choice-label` for a picker.
+  - Clicks are delegated from `document`, so it also works on the calendar's
+    client-rendered show cards.
+  - It builds the `webcal://` link, the Google
+    `calendar.google.com/calendar/r?cid=<webcal URL>` link, the copyable
+    `https` URL and the download link from `location.origin`, so branch
+    deploys point at their own feeds.
+  - Calendar names come from `FEED_NAMES` / `runFeedName()` in
+    `calendar-model.ts`, so the dialog and the feed agree.
+- **Placements**:
+  - `calendar.astro`: a bar button with a company picker, and per-card
+    **All dates** / **Add to calendar** links. The `runFeeds` map is passed
+    through `define:vars`.
+  - `events.astro`: the banner picker, and a per-card button when the
+    activity is open and has dated sessions.
+  - `runs.astro`: a per-card button.
+- **`/runs` (`src/pages/runs.astro`)**: lists runs that have performances
+  (index / filter / `?id=` deep link, like `/events`) with the full schedule.
+  It's deliberately not in `SiteNav`. It is the `URL` target for performance
+  events, and the calendar's **All dates** link.
 - **Checks**:
   - Unit tests (`tests/calendar-model.test.ts`, `tests/ics.test.ts`) run on
     fixtures and parse the output with `ical.js`, including daylight-saving

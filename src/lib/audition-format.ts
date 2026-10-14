@@ -36,7 +36,8 @@ export function fmtShortDate(dateStr: string) {
   return `${MONTHS[m - 1]} ${d}`
 }
 
-export function fmtAudDateRange(dates: ActivityDate[]) {
+/** Date range across any dated rows — activity sessions or performances. */
+export function fmtAudDateRange(dates: Pick<ActivityDate, 'date'>[]) {
   const ds = dates.filter((d) => d.date)
   if (!ds.length) return ''
   if (ds.length === 1) {

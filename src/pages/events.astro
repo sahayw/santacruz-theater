@@ -1,7 +1,9 @@
 ---
 import BaseHead from '../components/BaseHead.astro'
 import SiteNav from '../components/SiteNav.astro'
+import AddToCalendar from '../components/AddToCalendar.astro'
 import companiesData from '../../data/sc-theater-companies.json'
+import { FEED_NAMES, bareId } from '../lib/calendar-model.ts'
 import { getActivities } from '../lib/data.ts'
 import type { ActivityEvent } from '../lib/data.ts'
 import {
@@ -30,6 +32,17 @@ function latestDate(act: ActivityEvent): string {
 function displayName(act: ActivityEvent): string {
   if (act.company === 'other' && act.organizerName) return act.organizerName
   return companyNameMap[act.company] ?? act.company
+}
+
+// Calendar feed picker for the subscribe banner
+const feedChoices = JSON.stringify([
+  { label: 'Auditions & events', feed: 'activities', name: FEED_NAMES.activities },
+  { label: 'Auditions only', feed: 'auditions', name: FEED_NAMES.auditions }
+])
+
+/** Only an open activity with scheduled sessions has anything to put in a calendar. */
+function hasCalendarSessions(act: ActivityEvent): boolean {
+  return !act.closed && act.dates.some((d) => d.date && d.startTime)
 }
 
 function genreClass(genre: string): string {
@@ -77,6 +90,14 @@ function roleTypeLabel(type: string): string {
             />
             <button type="submit" id="subscribe-btn" class="subscribe-btn">Notify me</button>
           </form>
+          <button
+            type="button"
+            class="subscribe-cal-btn"
+            data-ics-choices={feedChoices}
+            data-ics-choice-label="Include"
+          >
+            Add to calendar
+          </button>
           <div id="subscribe-status" class="subscribe-status" hidden aria-live="polite"></div>
         </div>
       </div>
@@ -486,43 +507,43 @@ function roleTypeLabel(type: string): string {
 
                     {act.notes && <div class="detail-notes-full" set:html={renderMd(act.notes)} />}
 
-                    {act.type === 'audition'
-                      ? (act.noticeUrl || act.productionUrl) && (
-                          <div class="detail-links-row">
-                            {act.noticeUrl && (
-                              <a
-                                href={act.noticeUrl}
-                                class="detail-action-link"
-                                target="_blank"
-                                rel="noopener"
-                              >
-                                Audition notice →
-                              </a>
-                            )}
-                            {act.productionUrl && (
-                              <a
-                                href={act.productionUrl}
-                                class="detail-action-link"
-                                target="_blank"
-                                rel="noopener"
-                              >
-                                Production info →
-                              </a>
-                            )}
-                          </div>
-                        )
-                      : act.noticeUrl && (
-                          <div class="detail-links-row">
-                            <a
-                              href={act.noticeUrl}
-                              class="detail-action-link"
-                              target="_blank"
-                              rel="noopener"
-                            >
-                              More info →
-                            </a>
-                          </div>
+                    {(act.noticeUrl ||
+                      (act.type === 'audition' && act.productionUrl) ||
+                      hasCalendarSessions(act)) && (
+                      <div class="detail-links-row">
+                        {act.noticeUrl && (
+                          <a
+                            href={act.noticeUrl}
+                            class="detail-action-link"
+                            target="_blank"
+                            rel="noopener"
+                          >
+                            {act.type === 'audition' ? 'Audition notice →' : 'More info →'}
+                          </a>
                         )}
+                        {act.type === 'audition' && act.productionUrl && (
+                          <a
+                            href={act.productionUrl}
+                            class="detail-action-link"
+                            target="_blank"
+                            rel="noopener"
+                          >
+                            Production info →
+                          </a>
+                        )}
+                        {hasCalendarSessions(act) && (
+                          <button
+                            type="button"
+                            class="detail-action-link detail-cal-btn"
+                            data-ics-feed={`activities/${bareId(act.id)}`}
+                            data-ics-name={act.title.trim()}
+                          >
+                            Add {act.dates.filter((d) => d.date).length === 1 ? 'date' : 'dates'} to
+                            calendar
+                          </button>
+                        )}
+                      </div>
+                    )}
                   </div>
                 </div>
               )
@@ -537,6 +558,8 @@ function roleTypeLabel(type: string): string {
 
       <div class="aud-not-found" id="aud-not-found" hidden></div>
     </main>
+
+    <AddToCalendar />
   </body>
 </html>
 
@@ -741,6 +764,24 @@ function roleTypeLabel(type: string): string {
   .subscribe-btn:disabled {
     opacity: 0.6;
     cursor: not-allowed;
+  }
+
+  .subscribe-cal-btn {
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 500;
+    background: var(--surface);
+    color: var(--ink);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 6px 12px;
+    cursor: pointer;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  .subscribe-cal-btn:hover {
+    border-color: var(--border-primary);
   }
 
   .subscribe-status {
@@ -1205,6 +1246,21 @@ function roleTypeLabel(type: string): string {
   .aud-detail .detail-notes-full + .detail-links-row,
   .aud-detail .detail-grid + .detail-links-row {
     margin-top: 0;
+  }
+
+  .detail-cal-btn {
+    margin-left: auto;
+    background: none;
+    border: none;
+    padding: 0;
+    font-family: inherit;
+    cursor: pointer;
+  }
+
+  @media (max-width: 600px) {
+    .detail-cal-btn {
+      margin-left: 0;
+    }
   }
 
   .detail-action-link {

@@ -18,6 +18,7 @@
       "ticketsUrl": "https://www.onthestage.tickets/show/scotts-valley-performing-arts/6a1b286467d38677bc7e7c41/tickets#/productions-view",
       "performances": [
         {
+          "id": "perf-1791991838309",
           "date": "2026-09-18",
           "time": "19:00",
           "perfType": "",
@@ -25,6 +26,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838310",
           "date": "2026-09-19",
           "time": "14:00",
           "perfType": "",
@@ -32,6 +34,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838311",
           "date": "2026-09-19",
           "time": "19:00",
           "perfType": "",
@@ -39,6 +42,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838312",
           "date": "2026-09-20",
           "time": "14:00",
           "perfType": "",
@@ -46,6 +50,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838313",
           "date": "2026-09-25",
           "time": "19:00",
           "perfType": "",
@@ -53,6 +58,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838314",
           "date": "2026-09-26",
           "time": "14:00",
           "perfType": "",
@@ -60,6 +66,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838315",
           "date": "2026-09-26",
           "time": "19:00",
           "perfType": "",
@@ -67,6 +74,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838316",
           "date": "2026-09-27",
           "time": "14:00",
           "perfType": "",
@@ -74,6 +82,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838317",
           "date": "2026-10-02",
           "time": "19:00",
           "perfType": "",
@@ -81,6 +90,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838318",
           "date": "2026-10-03",
           "time": "14:00",
           "perfType": "",
@@ -88,6 +98,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838319",
           "date": "2026-10-03",
           "time": "19:00",
           "perfType": "",
@@ -95,6 +106,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838320",
           "date": "2026-10-04",
           "time": "14:00",
           "perfType": "",

@@ -18,6 +18,7 @@
       "ticketsUrl": "",
       "performances": [
         {
+          "id": "perf-1791991838013",
           "date": "2026-03-13",
           "time": "19:30",
           "perfType": "",
@@ -25,6 +26,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838014",
           "date": "2026-03-14",
           "time": "19:30",
           "perfType": "",
@@ -32,6 +34,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838015",
           "date": "2026-03-15",
           "time": "14:00",
           "perfType": "",
@@ -39,6 +42,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838016",
           "date": "2026-03-20",
           "time": "19:30",
           "perfType": "",
@@ -46,6 +50,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838017",
           "date": "2026-03-21",
           "time": "19:30",
           "perfType": "",
@@ -53,6 +58,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838018",
           "date": "2026-03-22",
           "time": "14:00",
           "perfType": "",

@@ -101,18 +101,21 @@
       "title": "The Rocky Horror Show",
       "dates": [
         {
+          "id": "session-1791991837961",
           "date": "2026-05-03",
           "startTime": "00:00",
           "endTime": "23:59",
           "notes": "Individual Auditions"
         },
         {
+          "id": "session-1791991837962",
           "date": "2026-05-06",
           "startTime": "00:00",
           "endTime": "23:59",
           "notes": "Dance Auditions"
         },
         {
+          "id": "session-1791991837963",
           "date": "2026-05-13",
           "startTime": "00:00",
           "endTime": "23:59",
@@ -130,6 +133,7 @@
       ],
       "dates": [
         {
+          "id": "session-1791991837964",
           "date": "2026-09-07",
           "startTime": "17:00",
           "endTime": "21:00",
@@ -140,6 +144,7 @@
           "notes": "Initial auditions"
         },
         {
+          "id": "session-1791991837965",
           "date": "2026-09-09",
           "startTime": "17:00",
           "endTime": "21:00",

@@ -15,6 +15,7 @@
       "ticketsUrl": "https://onthestage.tickets/show/renegade-theater-co/6948bb661ae3c42f3d8b0f2d/tickets#/productions-view",
       "performances": [
         {
+          "id": "perf-1791991838136",
           "date": "2026-07-31",
           "time": "20:00",
           "perfType": "",
@@ -22,6 +23,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838137",
           "date": "2026-08-01",
           "time": "20:00",
           "perfType": "",
@@ -29,6 +31,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838138",
           "date": "2026-08-02",
           "time": "18:00",
           "perfType": "",
@@ -36,6 +39,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838139",
           "date": "2026-08-06",
           "time": "20:00",
           "perfType": "",
@@ -43,6 +47,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838140",
           "date": "2026-08-07",
           "time": "20:00",
           "perfType": "",
@@ -50,6 +55,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838141",
           "date": "2026-08-08",
           "time": "20:00",
           "perfType": "",
@@ -57,6 +63,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838142",
           "date": "2026-08-09",
           "time": "18:00",
           "perfType": "",
@@ -64,6 +71,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838143",
           "date": "2026-08-13",
           "time": "20:00",
           "perfType": "",
@@ -71,6 +79,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838144",
           "date": "2026-08-14",
           "time": "20:00",
           "perfType": "",
@@ -78,6 +87,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838145",
           "date": "2026-08-15",
           "time": "20:00",
           "perfType": "",
@@ -85,6 +95,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838146",
           "date": "2026-08-16",
           "time": "18:00",
           "perfType": "",
@@ -92,6 +103,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838147",
           "date": "2026-08-20",
           "time": "20:00",
           "perfType": "",
@@ -99,6 +111,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838148",
           "date": "2026-08-21",
           "time": "20:00",
           "perfType": "",
@@ -106,6 +119,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838149",
           "date": "2026-08-22",
           "time": "20:00",
           "perfType": "",
@@ -130,6 +144,7 @@
       "ticketsUrl": "",
       "performances": [
         {
+          "id": "perf-1791991838150",
           "date": "2026-07-16",
           "time": "19:00",
           "perfType": "",
@@ -137,6 +152,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838151",
           "date": "2026-07-17",
           "time": "19:00",
           "perfType": "",
@@ -144,6 +160,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838152",
           "date": "2026-07-18",
           "time": "14:00",
           "perfType": "",
@@ -151,6 +168,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838153",
           "date": "2026-07-18",
           "time": "19:00",
           "perfType": "",
@@ -158,6 +176,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838154",
           "date": "2026-07-19",
           "time": "14:00",
           "perfType": "",
@@ -180,6 +199,7 @@
       "ticketsUrl": "",
       "performances": [
         {
+          "id": "perf-1791991838155",
           "date": "2026-01-23",
           "time": "19:00",
           "perfType": "",
@@ -187,6 +207,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838156",
           "date": "2026-01-24",
           "time": "19:00",
           "perfType": "",
@@ -194,6 +215,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838157",
           "date": "2026-01-25",
           "time": "14:00",
           "perfType": "",
@@ -201,6 +223,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838158",
           "date": "2026-01-30",
           "time": "19:00",
           "perfType": "",
@@ -208,6 +231,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838159",
           "date": "2026-01-31",
           "time": "19:00",
           "perfType": "",
@@ -215,6 +239,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838160",
           "date": "2026-05-22",
           "time": "19:00",
           "perfType": "",
@@ -222,6 +247,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838161",
           "date": "2026-05-23",
           "time": "19:00",
           "perfType": "",
@@ -229,6 +255,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838162",
           "date": "2026-05-29",
           "time": "19:00",
           "perfType": "",
@@ -236,6 +263,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838163",
           "date": "2026-05-30",
           "time": "19:00",
           "perfType": "",
@@ -258,6 +286,7 @@
       "ticketsUrl": "",
       "performances": [
         {
+          "id": "perf-1791991838164",
           "date": "2026-04-03",
           "time": "19:30",
           "perfType": "",
@@ -265,6 +294,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838165",
           "date": "2026-04-04",
           "time": "19:30",
           "perfType": "",
@@ -272,6 +302,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838166",
           "date": "2026-04-05",
           "time": "14:00",
           "perfType": "",
@@ -279,6 +310,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838167",
           "date": "2026-04-10",
           "time": "19:30",
           "perfType": "",
@@ -286,6 +318,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838168",
           "date": "2026-04-11",
           "time": "19:30",
           "perfType": "",
@@ -293,6 +326,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838169",
           "date": "2026-04-12",
           "time": "14:00",
           "perfType": "",
@@ -300,6 +334,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838170",
           "date": "2026-04-17",
           "time": "19:30",
           "perfType": "",
@@ -307,6 +342,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838171",
           "date": "2026-04-18",
           "time": "19:30",
           "perfType": "",
@@ -314,6 +350,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838172",
           "date": "2026-04-19",
           "time": "14:00",
           "perfType": "",
@@ -336,6 +373,7 @@
       "ticketsUrl": "",
       "performances": [
         {
+          "id": "perf-1791991838173",
           "date": "2026-05-01",
           "time": "19:00",
           "perfType": "",
@@ -343,6 +381,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838174",
           "date": "2026-05-02",
           "time": "19:00",
           "perfType": "",
@@ -350,6 +389,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838175",
           "date": "2026-05-03",
           "time": "14:00",
           "perfType": "",
@@ -357,6 +397,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838176",
           "date": "2026-05-08",
           "time": "19:00",
           "perfType": "",
@@ -364,6 +405,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838177",
           "date": "2026-05-09",
           "time": "19:00",
           "perfType": "",
@@ -389,6 +431,7 @@
       "ticketsUrl": "https://onthestage.tickets/show/renegade-theater-co/6a87a2a9fc8b65fe7683ec1f/tickets#/productions-view",
       "performances": [
         {
+          "id": "perf-1791991838178",
           "date": "2026-12-04",
           "time": "19:00",
           "perfType": "Opening",
@@ -396,6 +439,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838179",
           "date": "2026-12-05",
           "time": "19:00",
           "perfType": "",
@@ -403,6 +447,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838180",
           "date": "2026-12-10",
           "time": "19:00",
           "perfType": "",
@@ -410,6 +455,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838181",
           "date": "2026-12-11",
           "time": "19:00",
           "perfType": "",
@@ -417,6 +463,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838182",
           "date": "2026-12-12",
           "time": "19:00",
           "perfType": "",
@@ -424,6 +471,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838183",
           "date": "2026-12-13",
           "time": "14:00",
           "perfType": "",
@@ -431,6 +479,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838184",
           "date": "2026-12-18",
           "time": "19:00",
           "perfType": "",
@@ -438,6 +487,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838185",
           "date": "2026-12-19",
           "time": "19:00",
           "perfType": "",

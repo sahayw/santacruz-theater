@@ -18,6 +18,7 @@
       "ticketsUrl": "https://www.ticketor.com/henrymania/tickets",
       "performances": [
         {
+          "id": "perf-1791991838009",
           "date": "2026-09-24",
           "time": "19:30",
           "perfType": "",
@@ -25,6 +26,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838010",
           "date": "2026-09-25",
           "time": "19:30",
           "perfType": "",
@@ -32,6 +34,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838011",
           "date": "2026-09-26",
           "time": "19:30",
           "perfType": "",
@@ -39,6 +42,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838012",
           "date": "2026-09-27",
           "time": "14:00",
           "perfType": "",

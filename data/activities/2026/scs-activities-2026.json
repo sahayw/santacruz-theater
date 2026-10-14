@@ -48,6 +48,7 @@
       "title": "2026 Festival Season (Much Ado About Nothing, Macbeth, Private Lives, The Last Five Years, Fences)",
       "dates": [
         {
+          "id": "session-1791991837987",
           "date": "2026-01-25",
           "startTime": "11:00",
           "endTime": "18:00",
@@ -58,6 +59,7 @@
           }
         },
         {
+          "id": "session-1791991837988",
           "date": "2026-02-06",
           "startTime": "09:00",
           "endTime": "17:00",

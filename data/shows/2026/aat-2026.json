@@ -18,6 +18,7 @@
       "ticketsUrl": "https://allabouttheatre.org/productions/2026-dear-evan-hansen#tickets",
       "performances": [
         {
+          "id": "perf-1791991837927",
           "date": "2026-08-13",
           "time": "19:30",
           "perfType": "",
@@ -25,6 +26,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991837928",
           "date": "2026-08-14",
           "time": "19:30",
           "perfType": "",
@@ -32,6 +34,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991837929",
           "date": "2026-08-15",
           "time": "14:00",
           "perfType": "",
@@ -39,6 +42,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991837930",
           "date": "2026-08-15",
           "time": "19:30",
           "perfType": "",
@@ -46,6 +50,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991837931",
           "date": "2026-08-20",
           "time": "19:30",
           "perfType": "",
@@ -53,6 +58,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991837932",
           "date": "2026-08-21",
           "time": "19:30",
           "perfType": "",
@@ -60,6 +66,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991837933",
           "date": "2026-08-22",
           "time": "14:00",
           "perfType": "",
@@ -67,6 +74,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991837934",
           "date": "2026-08-22",
           "time": "19:30",
           "perfType": "",
@@ -74,6 +82,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991837935",
           "date": "2026-08-27",
           "time": "19:30",
           "perfType": "",
@@ -81,6 +90,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991837936",
           "date": "2026-08-28",
           "time": "19:30",
           "perfType": "",
@@ -88,6 +98,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991837937",
           "date": "2026-08-29",
           "time": "14:00",
           "perfType": "",
@@ -95,6 +106,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991837938",
           "date": "2026-08-29",
           "time": "19:30",
           "perfType": "",

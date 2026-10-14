@@ -15,6 +15,7 @@
       "ticketsUrl": "https://mctshows.org/buy-tickets/",
       "performances": [
         {
+          "id": "perf-1791991838019",
           "date": "2026-05-15",
           "time": "19:00",
           "perfType": "",
@@ -22,6 +23,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838020",
           "date": "2026-05-16",
           "time": "19:00",
           "perfType": "",
@@ -29,6 +31,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838021",
           "date": "2026-05-17",
           "time": "14:00",
           "perfType": "",
@@ -36,6 +39,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838022",
           "date": "2026-05-22",
           "time": "19:00",
           "perfType": "",
@@ -43,6 +47,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838023",
           "date": "2026-05-23",
           "time": "19:00",
           "perfType": "",
@@ -50,6 +55,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838024",
           "date": "2026-05-24",
           "time": "14:00",
           "perfType": "",
@@ -57,6 +63,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838025",
           "date": "2026-05-29",
           "time": "19:00",
           "perfType": "",
@@ -64,6 +71,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838026",
           "date": "2026-05-30",
           "time": "19:00",
           "perfType": "",
@@ -71,6 +79,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838027",
           "date": "2026-05-31",
           "time": "14:00",
           "perfType": "Talk-back",
@@ -78,6 +87,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838028",
           "date": "2026-06-05",
           "time": "19:00",
           "perfType": "",
@@ -85,6 +95,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838029",
           "date": "2026-06-06",
           "time": "19:00",
           "perfType": "",
@@ -92,6 +103,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838030",
           "date": "2026-06-07",
           "time": "14:00",
           "perfType": "",
@@ -114,6 +126,7 @@
       "ticketsUrl": "https://mctshows.org/buy-tickets/",
       "performances": [
         {
+          "id": "perf-1791991838031",
           "date": "2026-09-18",
           "time": "20:00",
           "perfType": "",
@@ -121,6 +134,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838032",
           "date": "2026-09-19",
           "time": "20:00",
           "perfType": "",
@@ -128,6 +142,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838033",
           "date": "2026-09-20",
           "time": "14:00",
           "perfType": "",
@@ -135,6 +150,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838034",
           "date": "2026-09-25",
           "time": "20:00",
           "perfType": "",
@@ -142,6 +158,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838035",
           "date": "2026-09-26",
           "time": "20:00",
           "perfType": "",
@@ -149,6 +166,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838036",
           "date": "2026-09-27",
           "time": "14:00",
           "perfType": "",
@@ -156,6 +174,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838037",
           "date": "2026-10-02",
           "time": "20:00",
           "perfType": "",
@@ -163,6 +182,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838038",
           "date": "2026-10-03",
           "time": "20:00",
           "perfType": "",
@@ -170,6 +190,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838039",
           "date": "2026-10-04",
           "time": "14:00",
           "perfType": "",
@@ -177,6 +198,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838040",
           "date": "2026-10-09",
           "time": "20:00",
           "perfType": "",
@@ -184,6 +206,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838041",
           "date": "2026-10-10",
           "time": "20:00",
           "perfType": "",
@@ -191,6 +214,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838042",
           "date": "2026-10-11",
           "time": "14:00",
           "perfType": "",
@@ -213,6 +237,7 @@
       "ticketsUrl": "",
       "performances": [
         {
+          "id": "perf-1791991838043",
           "date": "2026-03-06",
           "time": "20:00",
           "perfType": "",
@@ -220,6 +245,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838044",
           "date": "2026-03-07",
           "time": "20:00",
           "perfType": "",
@@ -227,6 +253,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838045",
           "date": "2026-03-08",
           "time": "14:00",
           "perfType": "",
@@ -234,6 +261,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838046",
           "date": "2026-03-13",
           "time": "20:00",
           "perfType": "",
@@ -241,6 +269,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838047",
           "date": "2026-03-14",
           "time": "20:00",
           "perfType": "",
@@ -248,6 +277,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838048",
           "date": "2026-03-15",
           "time": "14:00",
           "perfType": "",
@@ -255,6 +285,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838049",
           "date": "2026-03-20",
           "time": "20:00",
           "perfType": "",
@@ -262,6 +293,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838050",
           "date": "2026-03-21",
           "time": "20:00",
           "perfType": "",
@@ -269,6 +301,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838051",
           "date": "2026-03-22",
           "time": "14:00",
           "perfType": "",
@@ -276,6 +309,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838052",
           "date": "2026-03-27",
           "time": "20:00",
           "perfType": "",
@@ -283,6 +317,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838053",
           "date": "2026-03-28",
           "time": "20:00",
           "perfType": "",
@@ -290,6 +325,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838054",
           "date": "2026-03-29",
           "time": "14:00",
           "perfType": "",
@@ -297,6 +333,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838055",
           "date": "2026-04-03",
           "time": "20:00",
           "perfType": "",
@@ -304,6 +341,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838056",
           "date": "2026-04-04",
           "time": "20:00",
           "perfType": "",
@@ -311,6 +349,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838057",
           "date": "2026-04-05",
           "time": "14:00",
           "perfType": "",
@@ -335,6 +374,7 @@
       "ticketsUrl": "https://mctshows.org/buy-tickets/",
       "performances": [
         {
+          "id": "perf-1791991838058",
           "date": "2026-08-14",
           "time": "20:00",
           "perfType": "",
@@ -342,6 +382,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838059",
           "date": "2026-08-15",
           "time": "20:00",
           "perfType": "",
@@ -349,6 +390,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838060",
           "date": "2026-08-16",
           "time": "14:00",
           "perfType": "",
@@ -371,6 +413,7 @@
       "ticketsUrl": "",
       "performances": [
         {
+          "id": "perf-1791991838061",
           "date": "2026-11-20",
           "time": "20:00",
           "perfType": "",
@@ -378,6 +421,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838062",
           "date": "2026-11-21",
           "time": "20:00",
           "perfType": "",
@@ -385,6 +429,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838063",
           "date": "2026-11-22",
           "time": "14:00",
           "perfType": "",
@@ -392,6 +437,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838064",
           "date": "2026-11-27",
           "time": "20:00",
           "perfType": "",
@@ -399,6 +445,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838065",
           "date": "2026-11-28",
           "time": "20:00",
           "perfType": "",
@@ -406,6 +453,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838066",
           "date": "2026-11-29",
           "time": "14:00",
           "perfType": "",
@@ -413,6 +461,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838067",
           "date": "2026-12-04",
           "time": "20:00",
           "perfType": "",
@@ -420,6 +469,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838068",
           "date": "2026-12-05",
           "time": "20:00",
           "perfType": "",
@@ -427,6 +477,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838069",
           "date": "2026-12-06",
           "time": "14:00",
           "perfType": "",
@@ -434,6 +485,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838070",
           "date": "2026-12-11",
           "time": "20:00",
           "perfType": "",
@@ -441,6 +493,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838071",
           "date": "2026-12-12",
           "time": "20:00",
           "perfType": "",
@@ -448,6 +501,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838072",
           "date": "2026-12-13",
           "time": "14:00",
           "perfType": "",

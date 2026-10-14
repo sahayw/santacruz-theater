@@ -1,0 +1,44 @@
+{
+  "company": "tst",
+  "year": 2026,
+  "runs": [
+    {
+      "id": "run-1700000000000",
+      "company": "tst",
+      "showAbv": "Fixture",
+      "show": "Fixture Show",
+      "genre": [
+        "Drama"
+      ],
+      "venue": "Test Hall",
+      "price": "$20",
+      "discounts": "",
+      "infoUrl": "",
+      "ticketsUrl": "",
+      "performances": [
+        {
+          "id": "perf-1600000000000",
+          "date": "2026-03-06",
+          "time": "19:30",
+          "perfType": "Opening",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-03-07",
+          "time": "19:30",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2026-03-08",
+          "time": "14:00",
+          "perfType": "Closing",
+          "discounts": "",
+          "ticketsUrl": ""
+        }
+      ]
+    }
+  ]
+}

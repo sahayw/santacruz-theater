@@ -15,6 +15,7 @@
       "ticketsUrl": "https://santacruzshakespeare.my.salesforce-sites.com/ticket/#/events/a0Scx000000eXQHEA2",
       "performances": [
         {
+          "id": "perf-1791991838186",
           "date": "2026-07-11",
           "time": "14:00",
           "perfType": "Preview",
@@ -22,6 +23,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838187",
           "date": "2026-07-14",
           "time": "20:00",
           "perfType": "Preview",
@@ -29,6 +31,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838188",
           "date": "2026-07-16",
           "time": "20:00",
           "perfType": "Opening",
@@ -36,6 +39,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838189",
           "date": "2026-07-18",
           "time": "20:00",
           "perfType": "",
@@ -43,6 +47,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838190",
           "date": "2026-07-19",
           "time": "14:00",
           "perfType": "",
@@ -50,6 +55,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838191",
           "date": "2026-07-24",
           "time": "20:00",
           "perfType": "",
@@ -57,6 +63,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838192",
           "date": "2026-07-25",
           "time": "14:00",
           "perfType": "",
@@ -64,6 +71,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838193",
           "date": "2026-07-29",
           "time": "12:00",
           "perfType": "",
@@ -71,6 +79,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838194",
           "date": "2026-07-31",
           "time": "20:00",
           "perfType": "",
@@ -78,6 +87,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838195",
           "date": "2026-08-01",
           "time": "14:00",
           "perfType": "",
@@ -85,6 +95,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838196",
           "date": "2026-08-05",
           "time": "12:00",
           "perfType": "",
@@ -92,6 +103,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838197",
           "date": "2026-08-05",
           "time": "19:00",
           "perfType": "",
@@ -99,6 +111,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838198",
           "date": "2026-08-08",
           "time": "20:00",
           "perfType": "",
@@ -106,6 +119,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838199",
           "date": "2026-08-09",
           "time": "14:00",
           "perfType": "",
@@ -113,6 +127,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838200",
           "date": "2026-08-13",
           "time": "19:00",
           "perfType": "",
@@ -120,6 +135,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838201",
           "date": "2026-08-16",
           "time": "19:00",
           "perfType": "",
@@ -127,6 +143,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838202",
           "date": "2026-08-18",
           "time": "19:00",
           "perfType": "",
@@ -134,6 +151,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838203",
           "date": "2026-08-21",
           "time": "20:00",
           "perfType": "",
@@ -141,6 +159,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838204",
           "date": "2026-08-22",
           "time": "14:00",
           "perfType": "",
@@ -148,6 +167,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838205",
           "date": "2026-08-26",
           "time": "19:00",
           "perfType": "",
@@ -155,6 +175,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838206",
           "date": "2026-08-29",
           "time": "20:00",
           "perfType": "",
@@ -162,6 +183,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838207",
           "date": "2026-08-30",
           "time": "14:00",
           "perfType": "Closing",
@@ -184,6 +206,7 @@
       "ticketsUrl": "https://santacruzshakespeare.my.salesforce-sites.com/ticket/#/events/a0Scx000000gMXBEA2",
       "performances": [
         {
+          "id": "perf-1791991838208",
           "date": "2026-07-12",
           "time": "14:00",
           "perfType": "Preview",
@@ -191,6 +214,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838209",
           "date": "2026-07-15",
           "time": "20:00",
           "perfType": "Preview",
@@ -198,6 +222,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838210",
           "date": "2026-07-17",
           "time": "20:00",
           "perfType": "Opening",
@@ -205,6 +230,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838211",
           "date": "2026-07-18",
           "time": "14:00",
           "perfType": "",
@@ -212,6 +238,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838212",
           "date": "2026-07-25",
           "time": "20:00",
           "perfType": "",
@@ -219,6 +246,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838213",
           "date": "2026-07-26",
           "time": "14:00",
           "perfType": "",
@@ -226,6 +254,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838214",
           "date": "2026-08-01",
           "time": "20:00",
           "perfType": "",
@@ -233,6 +262,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838215",
           "date": "2026-08-02",
           "time": "14:00",
           "perfType": "",
@@ -240,6 +270,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838216",
           "date": "2026-08-06",
           "time": "19:00",
           "perfType": "",
@@ -247,6 +278,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838217",
           "date": "2026-08-09",
           "time": "19:00",
           "perfType": "",
@@ -254,6 +286,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838218",
           "date": "2026-08-11",
           "time": "19:00",
           "perfType": "",
@@ -261,6 +294,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838219",
           "date": "2026-08-14",
           "time": "20:00",
           "perfType": "",
@@ -268,6 +302,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838220",
           "date": "2026-08-15",
           "time": "14:00",
           "perfType": "Talk-back",
@@ -275,6 +310,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838221",
           "date": "2026-08-19",
           "time": "19:00",
           "perfType": "",
@@ -282,6 +318,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838222",
           "date": "2026-08-22",
           "time": "20:00",
           "perfType": "",
@@ -289,6 +326,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838223",
           "date": "2026-08-23",
           "time": "14:00",
           "perfType": "",
@@ -296,6 +334,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838224",
           "date": "2026-08-27",
           "time": "19:00",
           "perfType": "",
@@ -303,6 +342,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838225",
           "date": "2026-08-29",
           "time": "14:00",
           "perfType": "",
@@ -310,6 +350,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838226",
           "date": "2026-08-30",
           "time": "19:00",
           "perfType": "Closing",
@@ -332,6 +373,7 @@
       "ticketsUrl": "https://santacruzshakespeare.my.salesforce-sites.com/ticket/#/events/a0Scx000000gMlhEAE",
       "performances": [
         {
+          "id": "perf-1791991838227",
           "date": "2026-07-28",
           "time": "14:00",
           "perfType": "Preview",
@@ -339,6 +381,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838228",
           "date": "2026-07-29",
           "time": "20:00",
           "perfType": "Preview",
@@ -346,6 +389,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838229",
           "date": "2026-07-30",
           "time": "20:00",
           "perfType": "Opening",
@@ -353,6 +397,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838230",
           "date": "2026-08-02",
           "time": "19:00",
           "perfType": "",
@@ -360,6 +405,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838231",
           "date": "2026-08-04",
           "time": "19:00",
           "perfType": "",
@@ -367,6 +413,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838232",
           "date": "2026-08-07",
           "time": "20:00",
           "perfType": "",
@@ -374,6 +421,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838233",
           "date": "2026-08-08",
           "time": "14:00",
           "perfType": "Talk-back",
@@ -381,6 +429,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838234",
           "date": "2026-08-12",
           "time": "19:00",
           "perfType": "",
@@ -388,6 +437,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838235",
           "date": "2026-08-15",
           "time": "20:00",
           "perfType": "",
@@ -395,6 +445,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838236",
           "date": "2026-08-16",
           "time": "14:00",
           "perfType": "",
@@ -402,6 +453,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838237",
           "date": "2026-08-20",
           "time": "19:00",
           "perfType": "",
@@ -409,6 +461,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838238",
           "date": "2026-08-23",
           "time": "19:00",
           "perfType": "",
@@ -416,6 +469,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838239",
           "date": "2026-08-25",
           "time": "19:00",
           "perfType": "",
@@ -423,6 +477,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838240",
           "date": "2026-08-28",
           "time": "20:00",
           "perfType": "Closing",
@@ -445,6 +500,7 @@
       "ticketsUrl": "",
       "performances": [
         {
+          "id": "perf-1791991838241",
           "date": "2026-02-27",
           "time": "20:00",
           "perfType": "",
@@ -452,6 +508,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838242",
           "date": "2026-02-28",
           "time": "20:00",
           "perfType": "",
@@ -459,6 +516,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838243",
           "date": "2026-03-01",
           "time": "14:00",
           "perfType": "",
@@ -466,6 +524,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838244",
           "date": "2026-03-06",
           "time": "20:00",
           "perfType": "",
@@ -473,6 +532,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838245",
           "date": "2026-03-07",
           "time": "20:00",
           "perfType": "",
@@ -480,6 +540,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838246",
           "date": "2026-03-08",
           "time": "14:00",
           "perfType": "",
@@ -487,6 +548,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838247",
           "date": "2026-03-13",
           "time": "20:00",
           "perfType": "",
@@ -494,6 +556,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838248",
           "date": "2026-03-14",
           "time": "20:00",
           "perfType": "",
@@ -501,6 +564,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838249",
           "date": "2026-03-15",
           "time": "14:00",
           "perfType": "",
@@ -508,6 +572,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838250",
           "date": "2026-03-20",
           "time": "20:00",
           "perfType": "",
@@ -515,6 +580,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838251",
           "date": "2026-03-21",
           "time": "20:00",
           "perfType": "",
@@ -522,6 +588,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838252",
           "date": "2026-03-22",
           "time": "14:00",
           "perfType": "",
@@ -529,6 +596,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838253",
           "date": "2026-03-27",
           "time": "20:00",
           "perfType": "",
@@ -536,6 +604,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838254",
           "date": "2026-03-28",
           "time": "20:00",
           "perfType": "",
@@ -543,6 +612,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838255",
           "date": "2026-03-29",
           "time": "14:00",
           "perfType": "",
@@ -550,6 +620,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838256",
           "date": "2026-04-03",
           "time": "20:00",
           "perfType": "",
@@ -557,6 +628,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838257",
           "date": "2026-04-04",
           "time": "20:00",
           "perfType": "",
@@ -564,6 +636,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838258",
           "date": "2026-04-05",
           "time": "14:00",
           "perfType": "",
@@ -571,6 +644,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838259",
           "date": "2026-04-10",
           "time": "20:00",
           "perfType": "",
@@ -593,6 +667,7 @@
       "ticketsUrl": "https://santacruzshakespeare.my.salesforce-sites.com/ticket/#/events/a0Scx000000gNEjEAM",
       "performances": [
         {
+          "id": "perf-1791991838260",
           "date": "2026-09-04",
           "time": "14:00",
           "perfType": "Preview",
@@ -600,6 +675,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838261",
           "date": "2026-09-05",
           "time": "19:00",
           "perfType": "Opening",
@@ -607,6 +683,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838262",
           "date": "2026-09-06",
           "time": "14:00",
           "perfType": "",
@@ -614,6 +691,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838263",
           "date": "2026-09-12",
           "time": "14:00",
           "perfType": "",
@@ -621,6 +699,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838264",
           "date": "2026-09-13",
           "time": "19:00",
           "perfType": "",
@@ -628,6 +707,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838265",
           "date": "2026-09-17",
           "time": "19:00",
           "perfType": "",
@@ -635,6 +715,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838266",
           "date": "2026-09-19",
           "time": "19:00",
           "perfType": "",
@@ -642,6 +723,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838267",
           "date": "2026-09-20",
           "time": "14:00",
           "perfType": "",
@@ -649,6 +731,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838268",
           "date": "2026-09-23",
           "time": "19:00",
           "perfType": "",
@@ -656,6 +739,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838269",
           "date": "2026-09-25",
           "time": "19:00",
           "perfType": "",
@@ -663,6 +747,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838270",
           "date": "2026-09-26",
           "time": "14:00",
           "perfType": "Talk-back",
@@ -670,6 +755,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838271",
           "date": "2026-09-27",
           "time": "19:00",
           "perfType": "",
@@ -677,6 +763,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838272",
           "date": "2026-09-30",
           "time": "19:00",
           "perfType": "",
@@ -684,6 +771,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838273",
           "date": "2026-10-02",
           "time": "19:00",
           "perfType": "",
@@ -691,6 +779,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838274",
           "date": "2026-10-03",
           "time": "14:00",
           "perfType": "",
@@ -698,6 +787,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838275",
           "date": "2026-10-04",
           "time": "14:00",
           "perfType": "Closing",
@@ -720,6 +810,7 @@
       "ticketsUrl": "https://santacruzshakespeare.my.salesforce-sites.com/ticket/#/events/a0Scx000000hE2vEAE",
       "performances": [
         {
+          "id": "perf-1791991838276",
           "date": "2026-09-11",
           "time": "14:00",
           "perfType": "Preview",
@@ -727,6 +818,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838277",
           "date": "2026-09-12",
           "time": "19:00",
           "perfType": "Opening",
@@ -734,6 +826,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838278",
           "date": "2026-09-13",
           "time": "14:00",
           "perfType": "",
@@ -741,6 +834,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838279",
           "date": "2026-09-18",
           "time": "19:00",
           "perfType": "",
@@ -748,6 +842,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838280",
           "date": "2026-09-19",
           "time": "14:00",
           "perfType": "Talk-back",
@@ -755,6 +850,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838281",
           "date": "2026-09-24",
           "time": "19:00",
           "perfType": "",
@@ -762,6 +858,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838282",
           "date": "2026-09-26",
           "time": "19:00",
           "perfType": "",
@@ -769,6 +866,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838283",
           "date": "2026-09-27",
           "time": "14:00",
           "perfType": "",
@@ -776,6 +874,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838284",
           "date": "2026-10-01",
           "time": "19:00",
           "perfType": "",
@@ -783,6 +882,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838285",
           "date": "2026-10-03",
           "time": "19:00",
           "perfType": "Closing",
@@ -805,6 +905,7 @@
       "ticketsUrl": "https://santacruzshakespeare.my.salesforce-sites.com/ticket/#/events/a0Scx000000iUqPEAU",
       "performances": [
         {
+          "id": "perf-1791991838286",
           "date": "2026-12-03",
           "time": "14:00",
           "perfType": "Preview",
@@ -812,6 +913,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838287",
           "date": "2026-12-04",
           "time": "19:00",
           "perfType": "Opening",
@@ -819,6 +921,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838288",
           "date": "2026-12-05",
           "time": "14:00",
           "perfType": "",
@@ -826,6 +929,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838289",
           "date": "2026-12-05",
           "time": "19:00",
           "perfType": "",
@@ -833,6 +937,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838290",
           "date": "2026-12-06",
           "time": "14:00",
           "perfType": "",
@@ -840,6 +945,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838291",
           "date": "2026-12-10",
           "time": "19:00",
           "perfType": "",
@@ -847,6 +953,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838292",
           "date": "2026-12-11",
           "time": "19:00",
           "perfType": "",
@@ -854,6 +961,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838293",
           "date": "2026-12-12",
           "time": "14:00",
           "perfType": "",
@@ -861,6 +969,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838294",
           "date": "2026-12-12",
           "time": "19:00",
           "perfType": "",
@@ -868,6 +977,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838295",
           "date": "2026-12-13",
           "time": "14:00",
           "perfType": "",
@@ -875,6 +985,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838296",
           "date": "2026-12-17",
           "time": "19:00",
           "perfType": "",
@@ -882,6 +993,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838297",
           "date": "2026-12-18",
           "time": "19:00",
           "perfType": "",
@@ -889,6 +1001,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838298",
           "date": "2026-12-19",
           "time": "14:00",
           "perfType": "",
@@ -896,6 +1009,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838299",
           "date": "2026-12-19",
           "time": "19:00",
           "perfType": "",
@@ -903,6 +1017,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838300",
           "date": "2026-12-20",
           "time": "14:00",
           "perfType": "",
@@ -910,6 +1025,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838301",
           "date": "2026-12-20",
           "time": "19:00",
           "perfType": "",
@@ -917,6 +1033,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838302",
           "date": "2026-12-22",
           "time": "14:00",
           "perfType": "",
@@ -924,6 +1041,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838303",
           "date": "2026-12-22",
           "time": "19:00",
           "perfType": "",
@@ -931,6 +1049,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838304",
           "date": "2026-12-23",
           "time": "14:00",
           "perfType": "",
@@ -938,6 +1057,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838305",
           "date": "2026-12-23",
           "time": "19:00",
           "perfType": "",
@@ -945,6 +1065,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838306",
           "date": "2026-12-24",
           "time": "11:00",
           "perfType": "",
@@ -952,6 +1073,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838307",
           "date": "2026-12-24",
           "time": "14:00",
           "perfType": "",
@@ -959,6 +1081,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1791991838308",
           "date": "2026-12-24",
           "time": "18:00",
           "perfType": "Closing",

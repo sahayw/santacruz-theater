@@ -33,6 +33,7 @@
       "title": "Sister Act, The Musical",
       "dates": [
         {
+          "id": "session-1791991837945",
           "date": "2026-03-07",
           "startTime": "10:00",
           "endTime": "18:00",
@@ -43,6 +44,7 @@
           }
         },
         {
+          "id": "session-1791991837946",
           "date": "2026-03-08",
           "startTime": "10:00",
           "endTime": "18:00",
@@ -53,6 +55,7 @@
           }
         },
         {
+          "id": "session-1791991837947",
           "date": "2026-03-14",
           "startTime": "10:00",
           "endTime": "18:00",
@@ -63,6 +66,7 @@
           }
         },
         {
+          "id": "session-1791991837948",
           "date": "2026-03-15",
           "startTime": "10:00",
           "endTime": "18:00",

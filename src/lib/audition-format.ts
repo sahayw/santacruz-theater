@@ -108,6 +108,27 @@ export function renderMd(raw: string) {
   return blocks.join('\n')
 }
 
+/**
+ * Plain-text counterpart to renderMd() for non-HTML outputs (calendar feeds): drops
+ * bold/italic markers, writes links as `text (url)`, and bullets as `• item`. Same
+ * Markdown subset as renderMd(); no escaping — callers escape for their own format.
+ */
+export function mdToPlain(raw: string) {
+  return raw
+    .replace(/\r\n?/g, '\n')
+    .split('\n')
+    .map((line) => {
+      const bullet = line.match(/^\s*[-*+]\s+(.+)$/)
+      const text = (bullet ? bullet[1] : line)
+        .replace(/\[([^\]]+)\]\((https?:\/\/[^)]+)\)/g, '$1 ($2)')
+        .replace(/\*\*(.+?)\*\*/g, '$1')
+        .replace(/\*([^*\n]+?)\*/g, '$1')
+      return bullet ? `• ${text}` : text
+    })
+    .join('\n')
+    .trim()
+}
+
 export function rolesSum(roles: AuditionRole[]) {
   let female = 0,
     male = 0,

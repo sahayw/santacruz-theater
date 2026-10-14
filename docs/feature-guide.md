@@ -100,6 +100,12 @@ What the dialog offers depends on what's being added:
 several events from a link, so Google users import that file under Settings
 → Import & export.
 
+Each subscribe, add-event or download click is recorded in the site's
+Plausible analytics as a custom event, with the calendar or event name and
+the app chosen. This shows interest. It can't show how many people remain
+subscribed, because Google and Outlook.com fetch each feed once for all
+their users.
+
 Subscriptions cover the last 12 months onward. Closed activities are left
 out of everything.
 

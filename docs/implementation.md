@@ -458,6 +458,19 @@ prefix stripped.
     - URLs come from `location.origin`, so branch deploys use their own
       files.
     - Subscription names come from `FEED_NAMES` in `calendar-model.ts`.
+  - **Usage tracking**: each action sends a Plausible custom event. Plausible
+    loads only in production builds (`BaseHead.astro`), and the call is a
+    no-op where it isn't loaded.
+    - `Calendar subscribe` — props `calendar` (feed name) and `app` (`Apple /
+Outlook`, `Google`, `Copy link`);
+    - `Calendar add event` — props `event` (summary) and `app`;
+    - `Calendar download all dates` — props `activity` and `app`.
+
+    These measure interest, not subscribers. The feeds are static files, and
+    Google and Outlook.com fetch them once on behalf of all their users, so
+    subscribers can't be counted reliably. To see the events in Plausible,
+    each event name must be added as a custom-event goal in the dashboard.
+
 - **Placements**:
   - **`calendar.astro`**:
     - a bar button with a company picker, hidden unless

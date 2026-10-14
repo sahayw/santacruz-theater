@@ -112,8 +112,10 @@ export function serializeFeed(feed: Feed) {
     `DESCRIPTION:${escapeText(feed.description)}`,
     `X-WR-CALDESC:${escapeText(feed.description)}`,
     `X-WR-TIMEZONE:${TZID}`,
-    `REFRESH-INTERVAL;VALUE=DURATION:${REFRESH}`,
-    `X-PUBLISHED-TTL:${REFRESH}`,
+    // Refresh hints only mean something to a subscription, not a one-off download
+    ...(feed.subscribable
+      ? [`REFRESH-INTERVAL;VALUE=DURATION:${REFRESH}`, `X-PUBLISHED-TTL:${REFRESH}`]
+      : []),
     ...VTIMEZONE,
     ...feed.events.flatMap(eventLines),
     'END:VCALENDAR'

@@ -1,10 +1,8 @@
 ---
-import type { CompanyEntry, PerformanceEvent } from '../types.ts'
+import type { PerformanceEvent } from '../types.ts'
 import companiesData from '../../data/sc-theater-companies.json'
-import venuesData from '../../data/sc-theater-venues.json'
 import AddToCalendar from './AddToCalendar.astro'
-import { getShows } from '../lib/data.ts'
-import { FEED_NAMES, bareId, runFeedName } from '../lib/calendar-model.ts'
+import { FEED_NAMES } from '../lib/calendar-model.ts'
 
 interface Props {
   performances: PerformanceEvent[]
@@ -15,8 +13,7 @@ const { performances } = Astro.props
 const activeCompanyCodes = new Set<string>(performances.map((p) => p.company).filter(Boolean))
 const filterCompanies = companiesData.companies.filter((c) => activeCompanyCodes.has(c.id))
 
-// Calendar feeds: the bar's "Add to calendar" picker, and each show card's per-run feed
-const feedCtx = { companies: companiesData.companies as CompanyEntry[], venues: venuesData.venues }
+// Calendar subscriptions offered from the bar (list view only): everything, or one company
 const feedChoices = JSON.stringify([
   { label: 'All companies', feed: 'runs', name: FEED_NAMES.runs },
   ...filterCompanies.map((c) => ({
@@ -25,9 +22,6 @@ const feedChoices = JSON.stringify([
     name: FEED_NAMES.company(c.name)
   }))
 ])
-const runFeeds = Object.fromEntries(
-  (await getShows()).map((r) => [r.id, { id: bareId(r.id), name: runFeedName(r, feedCtx) }])
-)
 ---
 
 <div class="cal-bar">
@@ -299,6 +293,10 @@ const runFeeds = Object.fromEntries(
     .cal-feed-label {
       display: none;
     }
+  }
+  /* Only in list view — the year view doesn't show what you'd be subscribing to */
+  body:not(.scroll-mode) .cal-feed-btn {
+    display: none;
   }
   .filter-toggle-btn {
     background: rgba(255, 255, 255, 0.1);
@@ -1188,7 +1186,7 @@ const runFeeds = Object.fromEntries(
   }
 </style>
 
-<script define:vars={{ performances, companies: companiesData.companies, runFeeds }} is:inline>
+<script define:vars={{ performances, companies: companiesData.companies }} is:inline>
   const PERFORMANCES = performances
   const renderMdPromise = import('/admin/audition-format.js').then((module) => module.renderMd)
   const CARD_DESCRIPTION_LINES = 4
@@ -1831,14 +1829,10 @@ const runFeeds = Object.fromEntries(
             : `<a class="btn-tickets" aria-disabled="true">Get tickets</a>`
         }
       </div>
-      ${
-        runFeeds[p.runId]
-          ? `<div class="card-run-links">
-        <a href="/runs?id=${runFeeds[p.runId].id}">All dates →</a>
-        <button type="button" data-ics-feed="runs/${runFeeds[p.runId].id}" data-ics-name="${runFeeds[p.runId].name.replace(/"/g, '&quot;')}">Add to my calendar</button>
+      <div class="card-run-links">
+        <a href="/runs?id=${p.runId.replace(/^run-/, '')}">All dates →</a>
+        <button type="button" data-ics-event="performances/${p.id.replace(/^perf-/, '')}">Add to my calendar</button>
       </div>`
-          : ''
-      }`
       cards.appendChild(card)
       const descEl = card.querySelector('.card-description')
       const moreBtn = card.querySelector('.card-description-more')

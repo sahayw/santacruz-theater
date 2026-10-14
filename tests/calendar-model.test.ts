@@ -196,7 +196,7 @@ describe('buildFeeds', () => {
   const feed = (path: string) => feeds.find((f) => f.path === path)!
   const uids = (path: string) => feed(path).events.map((e) => e.uid.split('@')[0])
 
-  it('publishes every expected feed path', () => {
+  it('publishes the subscriptions, per-activity downloads, and one file per occurrence', () => {
     expect(feeds.map((f) => f.path).sort()).toEqual(
       [
         'activities',
@@ -205,12 +205,37 @@ describe('buildFeeds', () => {
         'activities/1700000000300',
         'auditions',
         'runs',
-        'runs/1600000000000',
-        'runs/1700000000000',
         'runs/company/oth',
-        'runs/company/tst'
+        'runs/company/tst',
+        'performances/1600000000001',
+        'performances/1600000000002',
+        'performances/1700000000001',
+        'performances/1700000000002',
+        'sessions/1700000000101',
+        'sessions/1700000000102',
+        'sessions/1700000000201'
       ].sort()
     )
+  })
+
+  it('marks only the big feeds as subscriptions', () => {
+    const subs = feeds.filter((f) => f.subscribable).map((f) => f.path)
+    expect(subs.sort()).toEqual([
+      'activities',
+      'auditions',
+      'runs',
+      'runs/company/oth',
+      'runs/company/tst'
+    ])
+  })
+
+  it('puts exactly one event, named after it, in each single-occurrence file', () => {
+    const f = feed('performances/1700000000001')
+    expect(uids('performances/1700000000001')).toEqual(['perf-1700000000001'])
+    expect(f.name).toBe('Much Ado — Test Theatre')
+    expect(uids('sessions/1700000000102')).toEqual(['session-1700000000102'])
+    // Single files aren't windowed: an old performance can still be added
+    expect(uids('performances/1600000000001')).toEqual(['perf-1600000000001'])
   })
 
   it('keeps record types apart and orders events by start', () => {
@@ -220,10 +245,9 @@ describe('buildFeeds', () => {
     expect(uids('runs')).toEqual(['perf-1600000000002', 'perf-1700000000001', 'perf-1700000000002'])
   })
 
-  it('applies the 12-month window to composite and company feeds only', () => {
+  it('applies the 12-month window to subscriptions only', () => {
     expect(uids('runs')).not.toContain('perf-1600000000001')
     expect(uids('runs/company/oth')).toEqual(['perf-1600000000002'])
-    expect(uids('runs/1600000000000')).toEqual(['perf-1600000000001', 'perf-1600000000002'])
   })
 
   it('filters per company and per record', () => {
@@ -231,24 +255,27 @@ describe('buildFeeds', () => {
     expect(uids('activities/1700000000200')).toEqual(['session-1700000000201'])
   })
 
-  it('leaves closed activities out, but keeps their feed as an empty calendar', () => {
+  it('leaves closed activities out, with no single-session files', () => {
     expect(feed('activities').events.map((e) => e.parentId)).not.toContain('activity-1700000000300')
     expect(feed('activities/1700000000300').events).toEqual([])
+    expect(feeds.some((f) => f.events.some((e) => e.parentId === 'activity-1700000000300'))).toBe(
+      false
+    )
   })
 
   it('trims stray whitespace from titles', () => {
     const padded = run({ show: 'Spaced Out ', showAbv: ' Spaced ' })
-    expect(
-      buildFeeds([padded], [], ctx, '2026-10-14').find((f) => f.path === 'runs/1700000000000')!.name
-    ).toBe('Spaced Out — TST')
     expect(performanceEvents(padded, ctx)[0].summary).toBe('Spaced — Test Theatre')
+    const single = buildFeeds([padded], [], ctx, '2026-10-14').find(
+      (f) => f.path === 'performances/1700000000001'
+    )!
+    expect(single.name).toBe('Spaced — Test Theatre')
   })
 
   it('names feeds', () => {
-    expect(feed('runs').name).toBe('Santa Cruz Theater — Performances')
+    expect(feed('runs').name).toBe('Santa Cruz Theater — All Performances')
     expect(feed('runs/company/tst').name).toBe('Santa Cruz Theater — Performances (Test Theatre)')
-    expect(feed('runs/1700000000000').name).toBe('Much Ado About Nothing — TST')
-    expect(feed('activities').name).toBe('Santa Cruz Theater — Auditions & Events')
+    expect(feed('activities').name).toBe('Santa Cruz Theater — All Auditions & Events')
     expect(feed('auditions').name).toBe('Santa Cruz Theater — Auditions')
     expect(feed('activities/1700000000100').name).toBe('Hamlet Auditions')
   })

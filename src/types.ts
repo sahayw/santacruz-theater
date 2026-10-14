@@ -178,6 +178,7 @@ export interface ServicesFile {
  * discounts and ticketsUrl are already resolved (performance override wins).
  */
 export interface PerformanceEvent {
+  id: string // Performance.id
   runId: string
   company: string
   showAbv: string

@@ -145,6 +145,7 @@ function flattenAndSort(runs: Run[]): PerformanceEvent[] {
   for (const run of runs) {
     for (const perf of run.performances) {
       events.push({
+        id: perf.id,
         runId: run.id,
         company: run.company,
         showAbv: run.showAbv,

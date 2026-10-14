@@ -22,10 +22,11 @@ What the site does, for visitors and for editors. For how it's built, see
 - **Public site**: a hub (`/`) linking to **Calendar**, **Companies**,
   **Events**, and **Services**, plus **About**. Every inner page shares a top
   nav.
-- **Calendar feeds**: performances, auditions and events can be added to
-  Apple Calendar, Google Calendar, Outlook or any other calendar app, either
-  as a subscription that stays up to date or as a one-time download. See
-  [Add to my calendar](#add-to-my-calendar).
+- **Calendar feeds**: visitors can subscribe to all performances (or one
+  company's), or to all auditions and events, in Apple Calendar, Google
+  Calendar, Outlook or any other calendar app. A subscription stays up to
+  date. They can also add a single performance or session as a one-off
+  event. See [Add to my calendar](#add-to-my-calendar).
 - **Editor** (`/admin`): one tile per dataset — Calendar, Activities,
   Companies, Services. Saving publishes; the change is live within a few
   minutes.
@@ -48,10 +49,12 @@ What the site does, for visitors and for editors. For how it's built, see
   ticket/info links.
 - **Filters**: company, genre, time of day. A footer legend maps colors to
   companies.
-- **Add to my calendar** (top bar): subscribe to every performance, or to one
-  company's. The bar's filters don't change what's in the feed.
-- Each performance card also links to **All dates**, the production's page,
-  and to **Add to my calendar** for that one production.
+- **Add to my calendar** (top bar, week view only): subscribe to every
+  performance, or to one company's. It isn't offered in the year view, which
+  doesn't show what you'd be subscribing to. The bar's filters don't change
+  what's in the feed.
+- Each performance card links to **All dates**, the production's page, and
+  to **Add to my calendar** for that one performance.
 
 ### Productions — `/runs`
 
@@ -60,6 +63,7 @@ shows its type, plus any discounts or ticket link that differ from the
 production's. The page lists upcoming productions (or all), filterable by
 company.
 
+- Each upcoming performance has its own **Add to my calendar** link.
 - `?id=` shows one production, expanded, on its own.
 - It isn't in the nav. Visitors reach it from a performance card's **All
   dates** link, and from the link on every performance in a subscribed
@@ -67,27 +71,36 @@ company.
 
 ### Add to my calendar
 
-One dialog, used wherever **Add to my calendar** (or **Add dates to my calendar**) appears:
+What the dialog offers depends on what's being added:
 
-- **Subscribe** — **Apple Calendar / Outlook** (a `webcal:` link), **Google
-  Calendar**, or **Copy link** for any other app. The calendar stays up to
-  date: edits, new dates and removals show up when the app next refreshes.
-  Each app chooses how often to refresh; Google can take up to a day.
-- **Download** — a one-time `.ics` copy of the current dates, which won't
-  change afterwards.
+- **Whole calendars** are offered only as a **subscription**: **Apple
+  Calendar / Outlook** (a `webcal:` link), **Google Calendar**, or **Copy
+  link** for any other app. Edits, new dates and removals show up when the
+  app next refreshes. Each app chooses how often to refresh; Google can take
+  up to a day.
+- **Single items** are added as a **one-off copy**, which won't change if the
+  listing does. The dialog shows the event's name, date, time and place
+  first, then offers:
+  - **Apple Calendar / Outlook**: downloads an `.ics` file for that one
+    event;
+  - **Google Calendar**: opens Google's add-event page, already filled in.
 
-| Feed                       | Where it's offered                                    |
-| -------------------------- | ----------------------------------------------------- |
-| All performances           | `/calendar` bar                                       |
-| One company's performances | `/calendar` bar, Company picker                       |
-| One production             | performance card, `/runs` card                        |
-| All auditions & events     | `/events` banner                                      |
-| Auditions only             | `/events` banner, Include picker                      |
-| One audition or event      | its expanded card (only if open, with dated sessions) |
+| What                                                       | Offered as                       | Where                                                    |
+| ---------------------------------------------------------- | -------------------------------- | -------------------------------------------------------- |
+| All performances ("Santa Cruz Theater — All Performances") | Subscription                     | `/calendar` bar (week view)                              |
+| One company's performances                                 | Subscription                     | `/calendar` bar, Company picker                          |
+| All auditions & events                                     | Subscription                     | `/events` banner                                         |
+| Auditions only                                             | Subscription                     | `/events` banner, Include picker                         |
+| One performance                                            | One-off event                    | performance card; each upcoming row on `/runs`           |
+| One audition or event session                              | One-off event                    | each upcoming date row of an open activity on `/events`  |
+| All of an activity's dates                                 | One-off download (Apple/Outlook) | **Download all dates**, on open activities with 2+ dates |
 
-The all-performances, company and all-auditions/events feeds cover the last
-12 months onward. A single production's or activity's feed has all of its
-dates. Closed activities are left out.
+**Download all dates** saves every date in one file. Google can't add
+several events from a link, so Google users import that file under Settings
+→ Import & export.
+
+Subscriptions cover the last 12 months onward. Closed activities are left
+out of everything.
 
 ### Editors
 
@@ -137,9 +150,10 @@ A filterable list of collapsed cards; click to expand.
   Upcoming Auditions / Upcoming Events / All.
 - **Deep link**: `?id=` shows one record, expanded, alone — used for sharing,
   in email digests, and from subscribed calendars.
-- **Add to my calendar**: the banner offers every audition and event, or
-  auditions only. Each open activity with dated sessions has its own **Add
-  dates to my calendar** link ([details](#add-to-my-calendar)).
+- **Add to my calendar**: the banner subscribes to every audition and
+  event, or to auditions only. Each upcoming date of an open activity has its
+  own **Add to my calendar** link. An activity with two or more dates also
+  has **Download all dates** ([details](#add-to-my-calendar)).
 
 **What counts as upcoming**
 

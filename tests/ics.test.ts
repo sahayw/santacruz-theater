@@ -120,6 +120,17 @@ describe('serializeFeed', () => {
     expect(e.summary).toBe('Rock, Paper; Scissors\\Lizard — Test Theatre')
   })
 
+  it('adds refresh hints to subscriptions only', () => {
+    expect(text).toContain('REFRESH-INTERVAL;VALUE=DURATION:PT12H')
+    const single = buildFeeds([run()], [], ctx, '2026-10-14').find(
+      (f) => f.path === 'performances/1700000000001'
+    )!
+    const out = serializeFeed(single)
+    expect(out).not.toContain('REFRESH-INTERVAL')
+    expect(out).not.toContain('X-PUBLISHED-TTL')
+    expect(feedProblems(out)).toEqual([])
+  })
+
   it('produces a valid empty calendar', () => {
     const empty = buildFeeds([], [], ctx, '2026-10-14').find((f) => f.path === 'activities')!
     const out = serializeFeed(empty)

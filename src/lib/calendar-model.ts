@@ -50,6 +50,8 @@ export interface Feed {
   name: string // X-WR-CALNAME
   description: string
   events: CalendarEvent[]
+  /** Offered as a live subscription (gets refresh hints) rather than a one-off download. */
+  subscribable: boolean
 }
 
 /** Activity with its file's company id, as returned by getActivities(). */
@@ -116,13 +118,6 @@ function lines(...items: (string | false | undefined)[]) {
 
 export function runUrl(run: Run) {
   return `${SITE_URL}/runs?id=${bareId(run.id)}`
-}
-
-/** `{show} — {company abbreviation}`; just the title for the "other" company. */
-export function runFeedName(run: Run, ctx: CalendarContext) {
-  const co = company(ctx, run.company)
-  const show = run.show.trim()
-  return run.company === 'other' || !co ? show : `${show} — ${co.abvName}`
 }
 
 export function performanceEvents(run: Run, ctx: CalendarContext): CalendarEvent[] {
@@ -237,9 +232,9 @@ const SITE_NAME = 'Santa Cruz Theater'
 
 /** Calendar names (X-WR-CALNAME) — shared with the Add to Calendar UI. */
 export const FEED_NAMES = {
-  runs: `${SITE_NAME} — Performances`,
+  runs: `${SITE_NAME} — All Performances`,
   company: (companyName: string) => `${SITE_NAME} — Performances (${companyName})`,
-  activities: `${SITE_NAME} — Auditions & Events`,
+  activities: `${SITE_NAME} — All Auditions & Events`,
   auditions: `${SITE_NAME} — Auditions`
 }
 
@@ -253,8 +248,10 @@ export function sortEvents(events: CalendarEvent[]) {
 }
 
 /**
- * Every published feed. Composite and company feeds keep occurrences from
- * HISTORY_MONTHS before `today` onward; per-record feeds keep all of theirs.
+ * Every published file. Subscriptions: all performances, one company's, all
+ * auditions & events, auditions only — each keeps occurrences from HISTORY_MONTHS
+ * before `today` onward. Downloads: one file per performance and per session (a
+ * single event to add), and one per activity (all of its dates).
  */
 export function buildFeeds(
   runs: Run[],
@@ -271,7 +268,8 @@ export function buildFeeds(
     path: 'runs',
     name: FEED_NAMES.runs,
     description: 'Performances listed on santacruz.theater',
-    events: recent(perfsByRun.flatMap((r) => r.events))
+    events: recent(perfsByRun.flatMap((r) => r.events)),
+    subscribable: true
   })
   const companyIds = [...new Set(runs.map((r) => r.company))].sort()
   for (const id of companyIds) {
@@ -280,15 +278,8 @@ export function buildFeeds(
       path: `runs/company/${id}`,
       name: FEED_NAMES.company(name),
       description: `${name} performances listed on santacruz.theater`,
-      events: recent(perfsByRun.filter((r) => r.run.company === id).flatMap((r) => r.events))
-    })
-  }
-  for (const { run, events } of perfsByRun) {
-    feeds.push({
-      path: `runs/${bareId(run.id)}`,
-      name: runFeedName(run, ctx),
-      description: `Performances of ${run.show.trim()}, from santacruz.theater`,
-      events
+      events: recent(perfsByRun.filter((r) => r.run.company === id).flatMap((r) => r.events)),
+      subscribable: true
     })
   }
 
@@ -297,7 +288,8 @@ export function buildFeeds(
     path: 'activities',
     name: FEED_NAMES.activities,
     description: 'Auditions and events listed on santacruz.theater',
-    events: recent(sessionsByActivity.flatMap((s) => s.events))
+    events: recent(sessionsByActivity.flatMap((s) => s.events)),
+    subscribable: true
   })
   feeds.push({
     path: 'auditions',
@@ -305,16 +297,31 @@ export function buildFeeds(
     description: 'Auditions listed on santacruz.theater',
     events: recent(
       sessionsByActivity.filter((s) => s.a.type === 'audition').flatMap((s) => s.events)
-    )
+    ),
+    subscribable: true
   })
   for (const { a, events } of sessionsByActivity) {
     feeds.push({
       path: `activities/${bareId(a.id)}`,
       name: a.title.trim(),
-      description: `${a.type === 'audition' ? 'Audition' : 'Event'} sessions from santacruz.theater`,
-      events
+      description: `${a.type === 'audition' ? 'Audition' : 'Event'} dates from santacruz.theater`,
+      events,
+      subscribable: false
     })
   }
+
+  // One file per occurrence, for "add this one event"
+  const single =
+    (folder: string) =>
+    (e: CalendarEvent): Feed => ({
+      path: `${folder}/${bareId(e.sourceId)}`,
+      name: e.summary,
+      description: 'From santacruz.theater',
+      events: [e],
+      subscribable: false
+    })
+  feeds.push(...perfsByRun.flatMap((r) => r.events).map(single('performances')))
+  feeds.push(...sessionsByActivity.flatMap((s) => s.events).map(single('sessions')))
 
   return feeds.map((f) => ({ ...f, events: sortEvents(f.events) }))
 }

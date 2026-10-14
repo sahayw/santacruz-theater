@@ -271,8 +271,7 @@ Visitors subscribe on `/events` or `/subscribe`.
 ## 9. Publishing & access
 
 - **Publishing**: every Save in `/admin` rebuilds the site; live in a few
-  minutes. The Google Calendar mirrors
-  ([`google-calendar-sync.md`](google-calendar-sync.md)) update once a day.
+  minutes.
 - **Access**: per email, per dataset, set in the companies file
   ([§4](#4-companies)). Companies and Services are admin-only.
 - **Accounts**: Netlify Identity, by invitation, to an email listed in that

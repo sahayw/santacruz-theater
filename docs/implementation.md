@@ -1,8 +1,7 @@
 # Implementation Reference
 
 How the system is built. For what it does, see
-[`feature-guide.md`](feature-guide.md); for the Google Calendar mirror, see
-[`google-calendar-sync.md`](google-calendar-sync.md).
+[`feature-guide.md`](feature-guide.md).
 
 ## Contents
 
@@ -58,7 +57,7 @@ netlify/functions/  serverless functions (§7)
 scripts/          check-json.ts, check-shows.ts, check-activities.ts,
                   check-services.ts, check-markdown.ts,
                   sync-branches.sh, release.sh
-docs/             feature-guide.md, implementation.md, google-calendar-sync.md
+docs/             feature-guide.md, implementation.md
 astro.config.mjs  one dev-server redirect (§10)
 netlify.toml      build command, included_files, headers
 ```
@@ -237,10 +236,9 @@ Local PUT bodies are byte-identical to what production would commit, so an
 unwanted local save is undone with `git checkout`. See
 [§10](#10-local-development).
 
-**Function reads**: `lib/activities-data.mts` (email) and `lib/shows-data.mts`
-/ `venues-data.mts` / `company-data.mts` (calendar sync) read `data/` with
-Node `fs` — `import.meta.glob` is Vite-only and doesn't work in
-esbuild-bundled functions. The files reach the bundle via
+**Function reads**: `lib/activities-data.mts` and `lib/company-data.mts`
+(email) read `data/` with Node `fs` — `import.meta.glob` is Vite-only and
+doesn't work in esbuild-bundled functions. The files reach the bundle via
 `[functions].included_files` in `netlify.toml`, so function reads reflect the
 last deploy, not live edits.
 
@@ -312,7 +310,6 @@ renderer; don't add others.
 | ------------------------------------------------------------------ | ------------------------------------------------------------------------------ |
 | `events.astro`, `services.astro`, `calendar.astro` (client script) | direct import                                                                  |
 | `send-digest.mts`                                                  | esbuild bundle                                                                 |
-| `sync-calendar-background.mts`                                     | esbuild bundle; wraps it in `mdToHtml()`, which also turns `\n` into `<br>`    |
 | `activities.js`, `calendar.js`, `services.js` (Preview)            | `/admin/audition-format.js`, served by `src/pages/admin/audition-format.js.ts` |
 
 ### The "upcoming" rule
@@ -345,18 +342,16 @@ New functions use the **v2 interface** (`export default async (req: Request)
 => …` + `export const config`). `data.mjs` and `send-digest.mts` are legacy
 style and aren't being migrated proactively.
 
-| Function                                                     | Purpose                                                             |
-| ------------------------------------------------------------ | ------------------------------------------------------------------- |
-| `data.mjs`                                                   | data read/write — two modes ([§4](#4-data-flow))                    |
-| `upload-image.mjs`                                           | service photo upload — same two modes                               |
-| `fetch-page.mjs`                                             | page-fetch proxy (unused by current editors)                        |
-| `subscribe.mts`                                              | Buttondown subscribe + welcome email ([§8](#8-email-notifications)) |
-| `send-digest.mts`                                            | daily digest ([§8](#8-email-notifications))                         |
-| `sync-calendar-trigger.mts` / `sync-calendar-background.mts` | Google Calendar sync ([doc](google-calendar-sync.md))               |
-| `lib/email-template.mts`                                     | inline-styled welcome + digest HTML                                 |
-| `lib/activities-data.mts`                                    | fs-based activity loading and classification                        |
-| `lib/shows-data.mts`, `venues-data.mts`, `company-data.mts`  | fs-based loaders for the calendar sync                              |
-| `lib/google-calendar.mts`                                    | Google Calendar API client                                          |
+| Function                  | Purpose                                                             |
+| ------------------------- | ------------------------------------------------------------------- |
+| `data.mjs`                | data read/write — two modes ([§4](#4-data-flow))                    |
+| `upload-image.mjs`        | service photo upload — same two modes                               |
+| `fetch-page.mjs`          | page-fetch proxy (unused by current editors)                        |
+| `subscribe.mts`           | Buttondown subscribe + welcome email ([§8](#8-email-notifications)) |
+| `send-digest.mts`         | daily digest ([§8](#8-email-notifications))                         |
+| `lib/email-template.mts`  | inline-styled welcome + digest HTML                                 |
+| `lib/activities-data.mts` | fs-based activity loading and classification                        |
+| `lib/company-data.mts`    | fs-based company name lookup                                        |
 
 ## 8. Email notifications
 
@@ -531,24 +526,18 @@ construction):
 
 Set in Netlify → Site configuration → Environment variables.
 
-| Variable                             | Req.  | Used by                            | Purpose                                                           |
-| ------------------------------------ | ----- | ---------------------------------- | ----------------------------------------------------------------- |
-| `GITHUB_TOKEN`                       | yes   | `data.mjs`, `upload-image.mjs`     | fine-grained PAT, Contents read/write                             |
-| `GITHUB_OWNER`                       | yes   | same                               | repo owner                                                        |
-| `GITHUB_REPO`                        | yes   | same                               | repo name                                                         |
-| `GITHUB_BRANCH`                      | no    | same                               | commit branch (default `main`)                                    |
-| `BUTTONDOWN_API_KEY`                 | yes   | `subscribe.mts`, `send-digest.mts` | Buttondown API key                                                |
-| `NETLIFY_SITE_ID`                    | yes   | `send-digest.mts`                  | Blobs access (not injected for scheduled functions)               |
-| `NETLIFY_TOKEN`                      | yes   | `send-digest.mts`                  | Blobs access                                                      |
-| `EMAIL_DIGEST_DRY_RUN`               | no    | `send-digest.mts`                  | `true` → log only; don't send or advance timestamp                |
-| `DIGEST_HEALTHCHECK_URL`             | no    | `send-digest.mts`                  | pinged on every successful run                                    |
-| `SUBSCRIBE_HEALTHCHECK_URL`          | no    | `subscribe.mts`                    | welcome email: base URL on success, `/fail` on failure            |
-| `GOOGLE_SERVICE_ACCOUNT_EMAIL`       | yes\* | `sync-calendar-background.mts`     | \*required for the calendar sync                                  |
-| `GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY` | yes\* | same                               | stored with literal `\n`                                          |
-| `GOOGLE_SHOWS_CALENDAR_ID`           | yes\* | same                               |                                                                   |
-| `GOOGLE_ACTIVITIES_CALENDAR_ID`      | yes\* | same                               |                                                                   |
-| `CALENDAR_SYNC_DRY_RUN`              | no    | same                               | log planned changes only                                          |
-| `CALENDAR_SYNC_HEALTHCHECK_URL`      | no    | same                               | pinged only on changes or failures — silence doesn't mean healthy |
+| Variable                    | Req. | Used by                            | Purpose                                                |
+| --------------------------- | ---- | ---------------------------------- | ------------------------------------------------------ |
+| `GITHUB_TOKEN`              | yes  | `data.mjs`, `upload-image.mjs`     | fine-grained PAT, Contents read/write                  |
+| `GITHUB_OWNER`              | yes  | same                               | repo owner                                             |
+| `GITHUB_REPO`               | yes  | same                               | repo name                                              |
+| `GITHUB_BRANCH`             | no   | same                               | commit branch (default `main`)                         |
+| `BUTTONDOWN_API_KEY`        | yes  | `subscribe.mts`, `send-digest.mts` | Buttondown API key                                     |
+| `NETLIFY_SITE_ID`           | yes  | `send-digest.mts`                  | Blobs access (not injected for scheduled functions)    |
+| `NETLIFY_TOKEN`             | yes  | `send-digest.mts`                  | Blobs access                                           |
+| `EMAIL_DIGEST_DRY_RUN`      | no   | `send-digest.mts`                  | `true` → log only; don't send or advance timestamp     |
+| `DIGEST_HEALTHCHECK_URL`    | no   | `send-digest.mts`                  | pinged on every successful run                         |
+| `SUBSCRIBE_HEALTHCHECK_URL` | no   | `subscribe.mts`                    | welcome email: base URL on success, `/fail` on failure |
 
 ## 12. Build, deploy & branch workflow
 

@@ -1,6 +1,5 @@
 /**
- * Local-file company lookups, shared by activities-data.mts, shows-data.mts, and
- * sync-calendar.mts.
+ * Local-file company lookups, used by activities-data.mts.
  *
  * Reads data/sc-theater-companies.json via fs from the function bundle (see
  * [functions].included_files in netlify.toml) rather than the GitHub Contents API.
@@ -12,7 +11,6 @@ import { join } from 'node:path'
 interface CompanyRecord {
   id: string
   name: string
-  primaryVenue?: string
 }
 
 const DATA_ROOT = join(process.cwd(), 'data')
@@ -32,10 +30,3 @@ export function loadCompanyNames(): Record<string, string> {
   return Object.fromEntries(loadCompanies().map(c => [c.id, c.name]))
 }
 
-/** company id -> primaryVenue (venue name or code), for companies that have one set. */
-export function loadCompanyPrimaryVenues(): Record<string, string> {
-  const entries = loadCompanies()
-    .filter((c): c is CompanyRecord & { primaryVenue: string } => Boolean(c.primaryVenue))
-    .map(c => [c.id, c.primaryVenue] as const)
-  return Object.fromEntries(entries)
-}

@@ -382,9 +382,10 @@ break these tests.
 
 ## Phases
 
-Each phase is merged to the `ics-feeds` branch, and then to `dev`, once you've
-tested it. Phases B and C are released to `main` together. Phase B's
-performance page links point at `/runs`, which only exists after phase C.
+Each phase was built on the `ics-feeds` branch (since deleted) and merged to
+`dev` for testing. Phases B and C were released to `main` together, because
+phase B's performance page links point at `/runs`, which only exists after
+phase C.
 
 | Phase | Work                                                                                                                                                                                                               |
 | ----- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |

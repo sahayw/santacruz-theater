@@ -7,8 +7,9 @@
 #   3. Merge dev into main and push — Netlify deploys from main.
 #   4. Back-merge main into dev and push, so the branches stay consistent.
 #
-# Leaves the ics branch untouched. Run `npm run sync` on its own at the start of
-# a feature branch; `npm run release` when the work on dev is ready to ship.
+# Only main and dev are touched; other branches are left alone. Run `npm run sync` on
+# its own at the start of a feature branch; `npm run release` when the work on dev is
+# ready to ship.
 #
 # Usage: npm run release [-- -y]
 #   -y / --yes   skip the confirmation prompt

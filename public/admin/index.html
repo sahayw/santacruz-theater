@@ -301,9 +301,12 @@ function renderTiles() {
   }).join('');
 }
 
-window.openEditor = function(key) {
+// `intent` lets one editor hand off to another, e.g. the Activities editor's "Add
+// production" opens the Calendar editor with { addRun: { company, year, show, organizers } }.
+window.openEditor = function(key, intent) {
   const ed = EDITORS[key];
   if (!ed) return;
+  if (currentEditor) EDITORS[currentEditor]?.unmount();
   document.getElementById('hubView').style.display = 'none';
   document.getElementById('topbarSubtitle').textContent = ed.headerTitle || ed.label;
   document.getElementById('topbarBrandLink').href = ed.displayUrl || '/';
@@ -311,7 +314,7 @@ window.openEditor = function(key) {
   container.style.display = '';
   document.getElementById('hubBtn').style.display = '';
   currentEditor = key;
-  ed.mount(container, { ...userAccess, allCompanies });
+  ed.mount(container, { ...userAccess, allCompanies, intent });
 };
 
 window.goHub    = function() { showHub(); };

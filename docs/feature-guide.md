@@ -135,7 +135,8 @@ add co-producers). Editors can't create organizers — ask an admin to add one
 to the companies file.
 
 A run can be saved before its dates are known (with a warning); it stays off
-the calendar until it has performances. That lets an audition link to it
+the calendar until it has performances, and its title shows in red in the
+**Shows** list and the editor until then. That lets an audition link to it
 early. The warnings also flag a missing tickets link.
 
 Each run has an ordered list of **performances**: date, time, optional type
@@ -210,14 +211,19 @@ A new record is an **Audition** or an **Event**; this can't change later.
   expanded card shows it under **Organizer**, with its website spelled out in
   full. Auditions and events have no co-producers.
 - Header buttons: Preview / Restore / Delete, plus **Close** / **Reopen**.
+- A new audition or event that you leave before entering anything is
+  discarded, so it doesn't linger as "Untitled" (the same goes for a new
+  show in the Calendar editor).
 
 **Audition only**
 
 - **Production**: the run this audition casts, picked from the company's
   runs (or, under Other, the organizer's), each labelled with its date range
   or "no dates yet". Picking one sets the title. If the production isn't on
-  file yet, choose "Not on file" and type the title — better still, create
-  the run first (it can be saved without dates).
+  file yet, choose **Add production…**: it opens the Calendar editor with a
+  new show titled as typed (save the audition first). Once that show is
+  saved, come back and pick it. "Not on file" with a typed title remains for
+  the rare case where no show record is wanted.
 - Genre (up to two); rehearsal-start and opening dates; notice URL;
   production-info URL.
 - **Roles table**: name, type, gender, age range, casting note, and voice

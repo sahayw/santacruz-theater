@@ -292,11 +292,19 @@ last deploy, not live edits.
 
 ## 5. The `/admin` SPA
 
+Editors can hand off to each other: `window.openEditor(key, intent)` (in
+`index.html`) unmounts the current editor and mounts `key` with `intent` in
+its context. The Activities editor's **Add production…** passes
+`{ addRun: { company, year, show, organizers } }`; the Calendar editor's
+`startAddRun()` opens (or creates) that file and starts a new show.
+
 | File                                          | Role                                                                                       |
 | --------------------------------------------- | ------------------------------------------------------------------------------------------ |
 | `index.html`                                  | login overlay, dataset hub, routing. On `localhost`, auth is skipped: full admin access.   |
 | `api.js`                                      | `apiFetch` / `apiPut` / `apiUploadImage` / `resolveUserAccess()` / `buildCompanyOptions()` |
 | `calendar.js`, `activities.js`, `services.js` | one ES module per editor, exporting `mount(container, context)` / `unmount()`              |
+| `organizer-picker.js`                         | organizer select (records filed under Other) and co-producer chips (shows only)            |
+| `genre-boxes.js`                              | the genre checkbox row (at most `MAX_GENRES`)                                              |
 | `markdown-editor.js`                          | shared rich-text toolbar and shortcuts                                                     |
 
 **Auth**

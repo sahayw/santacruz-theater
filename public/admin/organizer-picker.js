@@ -1,6 +1,6 @@
 // Organizer fields shared by the Calendar and Activities editors. A record filed under
 // Other picks its organizer from the organizers filed under Other (`mainEl`). Productions
-// may also add co-producers (`coEl`, shown as "None" until one is added); auditions and
+// may also add co-producers (`coEl`, a dropdown reading "None" until one is added); auditions and
 // events have no co-producers. New organizers are added by hand-editing
 // data/sc-theater-companies.json — editors can't create them. Rules:
 // src/lib/organizers.ts (served as /admin/organizers.js).
@@ -19,7 +19,6 @@ function injectStyles() {
 .org-chip { display: inline-flex; align-items: center; gap: 4px; padding: 2px 4px 2px 8px; border: 1px solid var(--border); border-radius: 10px; background: var(--surface); font-size: 12px; }
 .org-chip button { border: none; background: none; cursor: pointer; font-size: 13px; line-height: 1; color: var(--ink-faint); padding: 0 2px; }
 .org-chip button:hover { color: var(--accent); }
-.org-none { font-size: 12px; color: var(--ink-faint); }
 `
   document.head.appendChild(s)
 }
@@ -91,18 +90,14 @@ export function renderOrganizerFields({
       (c) => c.id !== main && !coProducers.includes(c.id)
     )
     coEl.innerHTML = `<div class="org-picker">
-        ${
-          coProducers.length
-            ? coProducers
-                .map(
-                  (id) =>
-                    `<span class="org-chip">${esc(name(id))}<button type="button" data-org-remove="${esc(id)}" title="Remove co-producer">×</button></span>`
-                )
-                .join('')
-            : '<span class="org-none">None</span>'
-        }
+        ${coProducers
+          .map(
+            (id) =>
+              `<span class="org-chip">${esc(name(id))}<button type="button" data-org-remove="${esc(id)}" title="Remove co-producer">×</button></span>`
+          )
+          .join('')}
         <select class="${selectClass}" data-org="add">
-          <option value="">+ Add…</option>
+          <option value="">${coProducers.length ? '+ Add another…' : 'None'}</option>
           ${addable.map((c) => `<option value="${c.id}">${esc(c.name)}</option>`).join('')}
         </select>
       </div>`

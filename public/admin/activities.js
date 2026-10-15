@@ -44,6 +44,7 @@ let currentYear = CURRENT_YEAR
 let currentCompanyAbv = ''
 let isAdminContext = false
 let venuesList = []
+let canEditShows = false // the user may also edit the calendar, so "Add production" can hand off
 let companyRuns = [] // this company's productions, every year, for the audition's Production picker
 let companyRunIds = undefined // Set of their ids for validation; undefined if they couldn't load
 let actSnapshots = new Map()
@@ -836,7 +837,8 @@ function renderProductionOptions(a) {
       .join('') +
     (a.productionId && !known.has(a.productionId)
       ? `<option value="${esc(a.productionId)}">${esc(a.productionId)} (not found)</option>`
-      : '')
+      : '') +
+    (canEditShows ? '<option value="__add__">Add production…</option>' : '')
   sel.value = a.productionId || ''
   syncTitleField(a)
 }
@@ -852,11 +854,41 @@ function syncTitleField(a) {
 function productionChanged() {
   if (activeActIdx < 0) return
   const a = activities[activeActIdx]
-  const id = document.getElementById('af-production').value
+  const sel = document.getElementById('af-production')
+  if (sel.value === '__add__') {
+    sel.value = a.productionId || ''
+    addProduction(a)
+    return
+  }
+  const id = sel.value
   const run = companyRuns.find((r) => r.id === id)
   if (run) document.getElementById('af-title').value = run.show || run.showAbv || ''
   fieldChanged()
   syncTitleField(a)
+}
+
+/**
+ * "Add production…": opens the Calendar editor on this company's file for the same year,
+ * with a new show titled as typed here. The audition links to it once the show is saved
+ * (reopen the audition and pick it).
+ */
+function addProduction(a) {
+  if (computeIsDirty()) {
+    alert('Save your changes first, then add the production.')
+    return
+  }
+  if (currentCompanyId === 'other' && !a.organizers?.length) {
+    alert('Choose the organizer first, so the production is filed under them.')
+    return
+  }
+  window.openEditor('calendar', {
+    addRun: {
+      company: currentCompanyId,
+      year: currentYear,
+      show: document.getElementById('af-title').value.trim(),
+      organizers: currentCompanyId === 'other' ? [a.organizers[0]] : undefined
+    }
+  })
 }
 
 /** Records filed under Other pick their organizer; auditions and events have no co-producers. */
@@ -897,6 +929,7 @@ function updateEmptyState() {
 async function initFromContext(context) {
   isAdminContext = context.isAdmin
   allCompanies = context.allCompanies || []
+  canEditShows = (context.datasets || []).includes('calendar')
   updateEmptyState()
   try {
     allActFiles = await loadActivitiesDir()
@@ -1057,6 +1090,11 @@ async function saveFile() {
     alert('Please log in to save.')
     return
   }
+  if (dropUntouchedNew()) {
+    renderSidebar()
+    loadActEditor()
+    updateSaveBtn()
+  }
   const { errors, warnings } = collectIssues()
   if (errors.length) {
     alert('Cannot save — fix these issues:\n\n' + errors.join('\n'))
@@ -1135,7 +1173,7 @@ function renderSidebar() {
     .map(
       ({ a, i }) => `
     <div class="act-list-item ${i === activeActIdx ? 'active' : ''}" onclick="act.selectAct(${i})">
-      <div class="act-item-meta">${currentCompanyId === 'other' ? `${esc(organizerLabel(a.organizers || [], allCompanies)) || 'No organizer'} · ` : ''}${a.type === 'event' ? 'Event' : 'Audition'}${(Array.isArray(a.genre) ? a.genre : []).length ? ' · ' + (Array.isArray(a.genre) ? a.genre : []).join('/') : ''}${a.virtualSubmission ? ' · virtual' : ''}${a.closed ? ' · closed' : ''}</div>
+      <div class="act-item-meta">${currentCompanyId === 'other' ? `${esc(organizerLabel(a.organizers || [], allCompanies)) || 'No organizer'} · ` : ''}${a.type === 'event' ? 'Event' : 'Audition'}${a.virtualSubmission ? ' · virtual' : ''}${a.closed ? ' · closed' : ''}</div>
       <div class="act-item-title">${a.title || 'Untitled'}</div>
     </div>`
     )
@@ -1145,9 +1183,39 @@ function renderSidebar() {
 
 // ── ACTIVITY SELECTION ──
 function selectAct(idx) {
-  activeActIdx = idx
+  const target = activities[idx]
+  if (dropUntouchedNew()) updateSaveBtn()
+  activeActIdx = activities.indexOf(target)
   renderSidebar()
   loadActEditor()
+}
+
+/** A new audition/event nothing has been entered in yet (never saved, all blank). */
+function isUntouchedNew(a) {
+  return (
+    !actSnapshots.has(a.id) &&
+    !a.title?.trim() &&
+    (a.dates || []).every(isEmptyDateRow) &&
+    !(a.rolesAvailable || []).length &&
+    !a.productionId &&
+    !a.organizers &&
+    !a.contact &&
+    !a.prep &&
+    ![a.description, a.notes, a.noticeUrl, a.registerUrl, a.briefDescription, a.cost].some(
+      (v) => v?.trim()
+    )
+  )
+}
+
+/**
+ * Leaving a new record before anything is entered discards it, so clicking away doesn't
+ * leave an empty "Untitled" entry. Returns true if one was dropped.
+ */
+function dropUntouchedNew() {
+  if (activeActIdx < 0 || !isUntouchedNew(activities[activeActIdx])) return false
+  activities.splice(activeActIdx, 1)
+  activeActIdx = -1
+  return true
 }
 
 function loadActEditor() {
@@ -1437,6 +1505,7 @@ function autoResizeTextarea(el) {
 
 // ── ACTIVITY CRUD ──
 function newAudition() {
+  dropUntouchedNew()
   const now = new Date().toISOString()
   activities.push({
     id: `activity-${Date.now()}`,
@@ -1456,6 +1525,7 @@ function newAudition() {
 }
 
 function newEvent() {
+  dropUntouchedNew()
   const now = new Date().toISOString()
   activities.push({
     id: `activity-${Date.now()}`,
@@ -2314,4 +2384,7 @@ export function unmount() {
   currentCompanyAbv = ''
   isAdminContext = false
   venuesList = []
+  companyRuns = []
+  companyRunIds = undefined
+  canEditShows = false
 }

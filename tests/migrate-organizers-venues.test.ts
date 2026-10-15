@@ -2,7 +2,7 @@ import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'nod
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
-import { migrateOrganizersVenues } from '../scripts/migrate-organizers-venues.ts'
+import { migrateOrganizersVenues, titleKey } from '../scripts/migrate-organizers-venues.ts'
 
 // A miniature data/ tree using real record ids from the mapping tables
 let dir: string
@@ -50,6 +50,51 @@ beforeEach(() => {
 })
 
 afterEach(() => rmSync(dir, { recursive: true, force: true }))
+
+describe('titleKey', () => {
+  it('ignores case, "&", a trailing parenthetical and ", The Musical"', () => {
+    expect(titleKey('Sister Act, The Musical')).toBe(titleKey('Sister Act'))
+    expect(titleKey('Rumors')).toBe(titleKey('Rumors (Neil Simon)'))
+    expect(titleKey('Feathers & Teeth')).toBe(titleKey('Feathers and Teeth'))
+    expect(titleKey('8 Tens @ 8 (2027)')).toBe(titleKey('8 Tens @ 8'))
+    expect(titleKey('Macbeth')).not.toBe(titleKey('Much Ado'))
+  })
+})
+
+describe('linking auditions to productions', () => {
+  beforeEach(() => {
+    write('shows/2026/tst-2026.json', {
+      company: 'tst',
+      year: 2026,
+      runs: [
+        { id: 'run-1', company: 'tst', show: 'Rumors (Neil Simon)', showAbv: 'Rumors', venue: 'AT' },
+        { id: 'run-2', company: 'tst', show: 'Annie', showAbv: 'Annie', venue: 'AT' },
+        { id: 'run-3', company: 'tst', show: 'Annie', showAbv: 'Annie Jr', venue: 'AT' }
+      ]
+    })
+    write('activities/2026/tst-activities-2026.json', {
+      company: 'tst',
+      year: 2026,
+      activities: [
+        { id: 'activity-1', type: 'audition', title: 'Rumors', dates: [] },
+        { id: 'activity-2', type: 'audition', title: 'Annie', dates: [] },
+        { id: 'activity-3', type: 'audition', title: 'Season auditions', dates: [] },
+        { id: 'activity-4', type: 'event', title: 'Rumors', dates: [] }
+      ]
+    })
+  })
+
+  it('links a unique match, takes its title, and lists the rest', () => {
+    const r = migrateOrganizersVenues(dir)
+    const [rumors, annie, season, event] = read('activities/2026/tst-activities-2026.json').activities
+    expect(rumors).toMatchObject({ title: 'Rumors (Neil Simon)', productionId: 'run-1' })
+    expect(annie.productionId).toBeUndefined()
+    expect(season.productionId).toBeUndefined()
+    expect(event.productionId).toBeUndefined()
+    expect(r.unmapped).toContain('activity-2 (Annie): several productions match')
+    expect(r.unmapped).toContain('activity-3 (Season auditions): no matching production')
+  })
+})
 
 describe('migrateOrganizersVenues', () => {
   it('codes venues, assigns organizers and fixes the Dracula title', () => {

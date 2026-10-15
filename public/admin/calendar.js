@@ -145,6 +145,8 @@ const CAL_CSS = `
   margin-bottom: 1px;
 }
 .run-item-show { font-size: 12px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+/* A show with no performances yet is flagged in red, in the list and the editor title */
+.run-item.no-perfs .run-item-show, .run-header-title.no-perfs #editorTitleText { color: #b3261e; }
 .run-item-count { font-size: 10px; color: var(--ink-faint); font-family: 'IBM Plex Mono', monospace; }
 .sidebar-empty { padding: 20px 12px; font-size: 12px; color: var(--ink-faint); text-align: center; line-height: 1.6; }
 .cal-main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
@@ -894,6 +896,10 @@ async function saveFile() {
     alert('Please log in to save.')
     return
   }
+  if (dropUntouchedNewRun()) {
+    renderSidebar()
+    loadRunEditor()
+  }
   const { errors, warnings } = collectIssues()
   if (errors.length) {
     alert('Cannot save — fix these issues:\n\n' + errors.join('\n'))
@@ -972,7 +978,7 @@ function renderSidebar() {
   list.innerHTML = sorted
     .map(
       ({ r, i }) => `
-    <div class="run-item ${i === activeRunIdx ? 'active' : ''}" onclick="cal.selectRun(${i})">
+    <div class="run-item ${i === activeRunIdx ? 'active' : ''} ${r.performances.length ? '' : 'no-perfs'}" onclick="cal.selectRun(${i})" ${r.performances.length ? '' : 'title="No performances yet"'}>
       ${r.company === 'other' ? `<div class="run-item-company">${esc(organizerLabel(recordOrganizerIds(r.company, r.organizers), allCompanies)) || 'No organizer'}</div>` : ''}
       <div class="run-item-show">${r.showAbv || r.show || 'Untitled'}</div>
       <div class="run-item-count">${r.performances.length} perf${r.performances.length !== 1 ? 's' : ''}</div>
@@ -984,9 +990,41 @@ function renderSidebar() {
 
 // ── RUN SELECTION ──
 function selectRun(idx) {
-  activeRunIdx = idx
+  const target = runs[idx]
+  dropUntouchedNewRun()
+  activeRunIdx = runs.indexOf(target)
   renderSidebar()
   loadRunEditor()
+}
+
+/** A new show nothing has been entered in yet (never saved, all blank). */
+function isUntouchedNewRun(r) {
+  return (
+    !runSnapshots.has(r.id) &&
+    !r.performances.length &&
+    !r.organizers &&
+    !r.room &&
+    !(r.genre || []).length &&
+    ![r.show, r.showAbv, r.venue, r.price, r.discounts, r.infoUrl, r.ticketsUrl, r.description].some(
+      (v) => v?.trim()
+    )
+  )
+}
+
+/**
+ * Leaving a new show before anything is entered discards it, so clicking away doesn't
+ * leave an empty "Untitled" entry. Recomputes the unsaved-changes flag.
+ */
+function dropUntouchedNewRun() {
+  if (activeRunIdx < 0 || !isUntouchedNewRun(runs[activeRunIdx])) return false
+  runs.splice(activeRunIdx, 1)
+  activeRunIdx = -1
+  isDirty =
+    runs.length !== runSnapshots.size ||
+    runs.some((r) => runSnapshots.get(r.id) !== makeRunSnapshot(r))
+  updateStatus()
+  updateSaveBtn()
+  return true
 }
 
 function loadRunEditor() {
@@ -1094,6 +1132,7 @@ function toggleDescExpand() {
 
 // ── RUN CRUD ──
 function newRun() {
+  dropUntouchedNewRun()
   const run = {
     id: `run-${Date.now()}`,
     company: currentCompanyId,
@@ -1232,6 +1271,8 @@ function renderPerfTable() {
   if (activeRunIdx < 0) return
   const perfs = runs[activeRunIdx].performances
   document.getElementById('perfCount').textContent = `(${perfs.length})`
+  document.querySelector('.run-header-title')?.classList.toggle('no-perfs', !perfs.length)
+  renderSidebar() // keeps the list's performance count and no-performances flag current
   document.getElementById('perfBody').innerHTML = perfs
     .map(
       (p, i) => `
@@ -1858,9 +1899,40 @@ export function mount(container, context) {
     document.addEventListener('mouseup', _resizeMouseUp)
   })
 
-  initFromContext(context)
+  initFromContext(context).then(() => {
+    if (context.intent?.addRun) startAddRun(context.intent.addRun)
+  })
   updateStatus()
   updateSaveBtn()
+}
+
+/**
+ * Handed off from the Activities editor's "Add production": opens the company's file
+ * for that year (creating it if needed) with a new show, titled as typed there.
+ */
+async function startAddRun({ company, year, show, organizers }) {
+  if (isAdminContext) document.getElementById('companySelect').value = company
+  pendingCompanyId = company
+  if (!allShowFiles.some((f) => f.companyId === company && f.year === year)) {
+    try {
+      await apiPut(`shows/${year}/${company}-${year}.json`, { company, year, runs: [] })
+    } catch (e) {
+      alert('Could not create the show file: ' + e.message)
+      return
+    }
+    allShowFiles.push({ companyId: company, year })
+  }
+  populateYearSelect(allShowFiles.filter((f) => f.companyId === company).map((f) => f.year))
+  document.getElementById('yearSelect').value = String(year)
+  await loadCompanyFile(company, year)
+  newRun()
+  const r = runs[activeRunIdx]
+  r.show = show || ''
+  if (organizers?.length) r.organizers = organizers
+  loadRunEditor()
+  renderSidebar()
+  markDirty()
+  document.getElementById(show ? 'f-showAbv' : 'f-show')?.focus()
 }
 
 export function unmount() {

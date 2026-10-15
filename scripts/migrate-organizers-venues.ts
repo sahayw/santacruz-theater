@@ -9,6 +9,9 @@
  * - Records in other-<year> files get `organizers`; activities lose the free-text
  *   `organizerName` / `organizerUrl` (now on the organizer's entry).
  * - "(Midsummer Ensemble)" comes out of the Dracula title.
+ * - Auditions without a productionId are linked to the production whose title matches
+ *   (same company — under Other, same organizer) and take its title. Ones that match
+ *   nothing, or more than one production, are listed for linking by hand.
  *
  * `updatedAt` is never touched. Files keep the editor's 2-space JSON and their existing
  * trailing-newline style. A second run changes nothing. Anything it can't map is listed,
@@ -68,11 +71,28 @@ const TITLE_FIX: Record<string, [string, string]> = {
   'run-1782741993666': ['Dracula (Midsummer Ensemble)', 'Dracula']
 }
 
+/**
+ * A title reduced for matching an audition to its production: lower case, "&" as
+ * "and", without a trailing "(author)" / "(2027)" or ", The Musical", punctuation
+ * collapsed. "Sister Act, The Musical" and "Sister Act" match; so do "Rumors" and
+ * "Rumors (Neil Simon)".
+ */
+export function titleKey(title: string) {
+  return title
+    .toLowerCase()
+    .replace(/&/g, ' and ')
+    .replace(/\s*\([^)]*\)\s*$/, '')
+    .replace(/,\s*the musical$/, '')
+    .replace(/[^a-z0-9@]+/g, ' ')
+    .trim()
+}
+
 export interface MigrationResult {
   venues: number
   sessions: number
   organizers: number
   titles: number
+  productions: number
   filesChanged: string[]
   unmapped: string[]
 }
@@ -136,6 +156,7 @@ export function migrateOrganizersVenues(dataRoot: string): MigrationResult {
     sessions: 0,
     organizers: 0,
     titles: 0,
+    productions: 0,
     filesChanged: [],
     unmapped: []
   }
@@ -178,6 +199,16 @@ export function migrateOrganizersVenues(dataRoot: string): MigrationResult {
     )
   }
 
+  // Every run, by data-file company, for linking auditions to their productions
+  const runsByCompany = new Map<string, { id: string; show: string; showAbv: string; organizers?: string[] }[]>()
+  for (const file of jsonFiles(join(dataRoot, 'shows'))) {
+    const d = JSON.parse(readFileSync(file, 'utf8'))
+    for (const r of d.runs ?? []) {
+      if (!runsByCompany.has(d.company)) runsByCompany.set(d.company, [])
+      runsByCompany.get(d.company)!.push(r)
+    }
+  }
+
   for (const file of jsonFiles(join(dataRoot, 'activities'))) {
     rewrite(
       file,
@@ -205,6 +236,25 @@ export function migrateOrganizersVenues(dataRoot: string): MigrationResult {
               n++
             } else result.unmapped.push(`${a.id} (${a.title}): no organizer`)
           }
+          if (a.type === 'audition' && !a.productionId) {
+            const org = a.organizers?.[0]
+            const key = titleKey(a.title ?? '')
+            const matches = (runsByCompany.get(d.company) ?? []).filter(
+              (r) =>
+                (d.company !== 'other' || (org && r.organizers?.includes(org))) &&
+                (titleKey(r.show) === key || titleKey(r.showAbv ?? '') === key)
+            )
+            if (matches.length === 1) {
+              // An audition's title is its production's
+              a.title = matches[0].show
+              setAfter(a, 'title', { productionId: matches[0].id })
+              result.productions++
+              n++
+            } else
+              result.unmapped.push(
+                `${a.id} (${a.title}): ${matches.length ? 'several productions match' : 'no matching production'}`
+              )
+          }
           if ('organizerName' in a || 'organizerUrl' in a) {
             delete a.organizerName
             delete a.organizerUrl
@@ -226,6 +276,7 @@ if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.ur
   console.log(`Session venues coded    : ${r.sessions}`)
   console.log(`Organizers assigned     : ${r.organizers}`)
   console.log(`Titles corrected        : ${r.titles}`)
+  console.log(`Auditions linked        : ${r.productions}`)
   console.log(`Files changed           : ${r.filesChanged.length}`)
   r.filesChanged.forEach((f) => console.log(`  - ${f.slice(root.length + 1)}`))
   if (r.unmapped.length) {

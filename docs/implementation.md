@@ -295,8 +295,14 @@ last deploy, not live edits.
 Editors can hand off to each other: `window.openEditor(key, intent)` (in
 `index.html`) unmounts the current editor and mounts `key` with `intent` in
 its context. The Activities editor's **Add production…** passes
-`{ addRun: { company, year, show, organizers } }`; the Calendar editor's
-`startAddRun()` opens (or creates) that file and starts a new show.
+`{ addRun: { company, year, show, organizers, returnTo } }`; the Calendar
+editor's `startAddRun()` opens (or creates) that file and starts a new show.
+`returnTo` carries the audition as entered so far. After the show is saved,
+the Calendar editor offers to go back, passing `{ resumeActivity }`; the
+Activities editor's `resumeActivity()` restores the draft, linked and titled.
+
+Both editors ignore a new record nothing has been entered in when deciding
+whether there are unsaved changes, and discard it when you move away.
 
 | File                                          | Role                                                                                       |
 | --------------------------------------------- | ------------------------------------------------------------------------------------------ |
@@ -737,6 +743,7 @@ records only) / printed.
 | Activity | earliest date in the file's year                                                                                                                                                                        | error   |
 | Audition | `rehearsalStart` / `openingDate` real `YYYY-MM-DD` if present                                                                                                                                           | error   |
 | Audition | `productionId`, if set, is an existing run id                                                                                                                                                           | error   |
+| Audition | has a `productionId` (a season-wide audition may not)                                                                                                                                                   | warning |
 | Event    | one of `contact.email`, `contact.phone`, `noticeUrl`, `registerUrl`, or a named organizer's `website`                                                                                                   | error   |
 | Listing  | `name` non-blank                                                                                                                                                                                        | error   |
 | Listing  | at least one category                                                                                                                                                                                   | error   |

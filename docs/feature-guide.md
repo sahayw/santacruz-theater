@@ -219,8 +219,8 @@ A new record is an **Audition** or an **Event**; this can't change later.
 **Audition only**
 
 - **Production**: the run this audition casts, picked from the company's
-  runs (or, under Other, the organizer's), each labelled with its date range
-  or "no dates yet". Picking one sets the title. If the production isn't on
+  runs (or, under Other, the organizer's), listed by title. Picking one sets
+  the title. If the production isn't on
   file yet, choose **Add production…**: it opens the Calendar editor with a
   new show titled as typed. Save the show (dates can come later) and you're
   offered a way back to the audition, now linked to it, with everything you'd

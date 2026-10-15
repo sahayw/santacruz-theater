@@ -82,8 +82,8 @@ current fields and gains:
 - **Editor**: a picker of existing organizers for `other` records, and a
   co-producer picker (default "None", last in the header) on productions. New
   organizers are added by hand edit only. An audition's title is its
-  production: the editor picks the run (labelled with its date range), or
-  takes a typed title when the production isn't on file yet.
+  production: the editor picks the run by title, or adds one ("Add
+  production…"); a typed title remains for season-wide auditions.
 - **Planned, not in this work**: a company card on `/companies` that lists
   that company's upcoming productions on the site. The infrastructure here
   supports it: `/productions?company=<organizer id>` works for any organizer.

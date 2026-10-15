@@ -811,7 +811,7 @@ async function loadCompanyRuns(coId) {
 
 /**
  * The productions an audition can be for: this company's, or under Other, its
- * organizer's. Labelled with the run's date range (or "no dates yet").
+ * organizer's. Listed by title, most recent first.
  */
 function productionChoices(a) {
   const org = a.organizers?.[0]
@@ -830,10 +830,7 @@ function renderProductionOptions(a) {
   sel.innerHTML =
     '<option value="">Not on file — type the title</option>' +
     runs
-      .map((r) => {
-        const when = r.performances.length ? fmtAudDateRange(r.performances) : 'no dates yet'
-        return `<option value="${esc(r.id)}">${esc(r.show || r.showAbv || r.id)} (${esc(when)})</option>`
-      })
+      .map((r) => `<option value="${esc(r.id)}">${esc(r.show || r.showAbv || r.id)}</option>`)
       .join('') +
     (a.productionId && !known.has(a.productionId)
       ? `<option value="${esc(a.productionId)}">${esc(a.productionId)} (not found)</option>`

@@ -55,6 +55,13 @@ describe('organizers', () => {
     expect(organizerErrors('other', ['fight', 'tst'], companies)).toEqual([]) // co-producer
   })
 
+  it('allows co-producers only on productions', () => {
+    const rule = 'auditions and events have one organizer — co-producers are for productions only'
+    expect(organizerErrors('other', ['fight', 'oth'], companies, { coProducers: false })).toEqual([rule])
+    expect(organizerErrors('tst', ['oth'], companies, { coProducers: false })).toEqual([rule])
+    expect(organizerErrors('other', ['fight'], companies, { coProducers: false })).toEqual([])
+  })
+
   it('rejects a main organizer under Other that has its own files', () => {
     expect(organizerErrors('other', ['tst'], companies)[0]).toMatch(/has its own data files/)
   })

@@ -57,11 +57,12 @@ current fields and gains:
   list, the `/companies` logo placeholder, and the editor.
 - **Records name their organizers** in an `organizers: string[]` field, main
   organizer first:
-  - In a company's own file, the file's company is the main organizer and
-    `organizers` is optional, listing co-producers only.
+  - In a company's own file, the file's company is the main organizer. A
+    production may list co-producers in `organizers`.
   - In an `other` file, `organizers` is required. On activities it replaces
     the free-text `organizerName` / `organizerUrl`.
-- **Co-productions** count for every organizer on them:
+  - Auditions and events have exactly one organizer: no co-producers.
+- **Co-productions** (productions only) count for every organizer on them:
   - Emails and filtered feeds include them if any organizer is included.
   - In the year view, each major involved gets its square.
   - Month and week entries use the main organizer's colour edge and show both
@@ -69,7 +70,8 @@ current fields and gains:
   - `?company=` matches any organizer.
 - **Validation** in `src/lib/data-rules.ts` (editor and `check-*.ts`): every
   organizer named exists in the list; `other` records name at least one; a
-  company's own records don't repeat their own company.
+  company's own records don't repeat their own company; auditions and events
+  name at most one (and only under Other).
 - **One shared helper** resolves a record's organizer ids, display names and
   short labels, main organizer first. The calendar, `/productions`, `/events`,
   feeds and emails all use it. Grouping (major vs Other) is derived from the
@@ -77,9 +79,11 @@ current fields and gains:
 - **Organizer ids are permanent.** Moving an organizer from the `other` file
   to its own files (as with Good Egg) keeps its id. Links and saved
   subscription choices depend on it.
-- **Editor**: a picker of existing organizers for `other` records, and an
-  optional co-producer picker on all records. New organizers are added by hand
-  edit only.
+- **Editor**: a picker of existing organizers for `other` records, and a
+  co-producer picker (default "None", last in the header) on productions. New
+  organizers are added by hand edit only. An audition's title is its
+  production: the editor picks the run (labelled with its date range), or
+  takes a typed title when the production isn't on file yet.
 - **Planned, not in this work**: a company card on `/companies` that lists
   that company's upcoming productions on the site. The infrastructure here
   supports it: `/productions?company=<organizer id>` works for any organizer.
@@ -112,7 +116,8 @@ The venue list (`sc-theater-venues.json`: `code`, `name`, `address`,
   one-off location (name and address) for ad-hoc places such as a church hall.
   `npm run check` flags one-offs, so regulars can be added to the list.
 - **Optional `room`** on productions and sessions ("Mainstage", "Studio B"),
-  so one building stays one venue.
+  so one building stays one venue. The editors label it **Location**; the
+  venue field is **Venue**.
 - **Change detection** compares venue codes (or the one-off text), so
   spelling fixes in the venue list never send email.
 - **Migration** maps today's text onto listed venues. Known variants include

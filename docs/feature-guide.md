@@ -121,16 +121,18 @@ A **run** is one production:
 | ---------------------------- | ----------------------------------------------------- |
 | Title, abbreviation          | Required. Abbreviation (≤ 20 chars) labels chips.     |
 | Venue                        | Required. Pick from the venue list (type to search).  |
-| Room                         | Optional space within the venue, e.g. "Second Stage". |
+| Location                     | Optional space within the venue, e.g. "Second Stage". |
 | Organizer / Co-producers     | See below.                                            |
 | Genre                        | Up to two.                                            |
 | Price, info URL, description | Recommended. Description is [rich text](#rich-text).  |
 | Discounts, tickets URL       | Defaults for every performance.                       |
 
-**Organizers**: a run in a company's file is that company's; add
-**co-producers** if others share it. A run filed under **Other** must pick
-its **Organizer** from the list (and may add co-producers). Editors can't
-create organizers — ask an admin to add one to the companies file.
+**Organizers**: a run in a company's file is that company's, so the list of
+**Shows** doesn't repeat the company name (except under Other). Add
+**co-producers** (last field; "None" by default) if others share the run. A
+run filed under **Other** must pick its **Organizer** from the list (and may
+add co-producers). Editors can't create organizers — ask an admin to add one
+to the companies file.
 
 A run can be saved before its dates are known (with a warning); it stays off
 the calendar until it has performances. That lets an audition link to it
@@ -195,25 +197,29 @@ A new record is an **Audition** or an **Event**; this can't change later.
 
 **Both types**
 
-- Title (required).
-- **Dates table**: date, start time, optional end time, location, address,
-  room, session notes. Typing a listed venue's name (or picking it from the
-  suggestions) links the session to that venue, and its address comes from
-  the venue list. Any other name is a one-off location with its own address.
-  A new row copies the previous row's time, location and room.
+- Title (required). For an audition this is its **Production** — see below.
+- **Dates table**: date, start time, optional end time, venue, address,
+  location (a space within the venue), session notes. Typing a listed
+  venue's name (or picking it from the suggestions) links the session to
+  that venue, and its address comes from the venue list. Any other name is a
+  one-off venue with its own address. A new row copies the previous row's
+  time, venue and location.
 - Contact: name, email, phone.
-- **Organizer / Co-producers**, as for runs. Records filed under **Other**
-  must pick an organizer; its name replaces the company on the card and in
-  the email digest. An expanded card lists named organizers under
-  **Organizer**, with their websites spelled out in full.
+- **Organizer** (records filed under **Other** only): picked from the list;
+  its name replaces the company on the card and in the email digest. An
+  expanded card shows it under **Organizer**, with its website spelled out in
+  full. Auditions and events have no co-producers.
 - Header buttons: Preview / Restore / Delete, plus **Close** / **Reopen**.
 
 **Audition only**
 
+- **Production**: the run this audition casts, picked from the company's
+  runs (or, under Other, the organizer's), each labelled with its date range
+  or "no dates yet". Picking one sets the title. If the production isn't on
+  file yet, choose "Not on file" and type the title — better still, create
+  the run first (it can be saved without dates).
 - Genre (up to two); rehearsal-start and opening dates; notice URL;
   production-info URL.
-- **Production**: the run this audition casts, picked from the company's
-  runs (including ones without dates yet).
 - **Roles table**: name, type, gender, age range, casting note, and voice
   part (Musical only). Omitted from the public card if empty.
 - **Prepare**: acting and what to bring (multi-line — each line displays

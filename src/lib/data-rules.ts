@@ -157,7 +157,9 @@ export function activityIssues(
   const warnings: string[] = []
 
   if (isBlank(a.title)) errors.push('Title is required')
-  errors.push(...organizerErrors(fileCompany, a.organizers, refs.companies))
+  errors.push(
+    ...organizerErrors(fileCompany, a.organizers, refs.companies, { coProducers: false })
+  )
 
   const dates = a.dates || []
   const noDatesAllowed =

@@ -5,7 +5,8 @@ import { createIdGenerator, ensurePerformanceIds } from '/admin/occurrence-ids.j
 import { organizerLabel, organizerName, recordOrganizerIds } from '/admin/organizers.js'
 import { runPlace, venueByCode } from '/admin/venues.js'
 import { markdownToolbar } from './markdown-editor.js'
-import { renderOrganizerPicker } from './organizer-picker.js'
+import { genreBoxesHtml, getGenres, limitGenres, setGenres } from './genre-boxes.js'
+import { renderOrganizerFields } from './organizer-picker.js'
 
 const PERF_TYPES = ['', 'Preview', 'Opening', 'Closing', 'Talk-back']
 const MONTH_MAP = {
@@ -175,11 +176,13 @@ const CAL_CSS = `
   padding: 10px 16px;
   background: var(--bg);
   border-bottom: 2px solid var(--border);
-  display: grid;
-  grid-template-columns: repeat(4, 1fr) 2fr 2fr;
+  display: flex;
+  flex-direction: column;
   gap: 8px;
   flex-shrink: 0;
 }
+.hdr-row { display: flex; flex-wrap: wrap; gap: 8px; align-items: flex-end; }
+.hdr-row > .field-group { min-width: 0; }
 .field-group { display: flex; flex-direction: column; gap: 3px; }
 .field-label { font-size: 9px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.07em; color: var(--ink-mid); }
 .field-input, .field-select {
@@ -250,13 +253,13 @@ const CAL_CSS = `
   color: var(--ink);
   width: 100%;
   resize: none;
-  overflow: hidden;
+  overflow-y: auto;
   line-height: 1.5;
-  height: 26px;
+  height: 82px; /* about four lines */
   transition: height 0.15s;
 }
 .desc-textarea:focus { outline: none; border-color: var(--accent2); }
-.desc-textarea.expanded { height: 90px; overflow-y: auto; resize: vertical; }
+.desc-textarea.expanded { height: 220px; resize: vertical; }
 .perf-section { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
 .perf-toolbar {
   padding: 7px 16px;
@@ -506,7 +509,7 @@ const CAL_HTML = `
 <div class="cal-wrap">
   <div class="sidebar" id="calSidebar">
     <div class="sidebar-header">
-      <span class="sidebar-label">Runs</span>
+      <span class="sidebar-label">Shows</span>
       <button class="btn btn-green btn-sm" id="newRunBtn" onclick="cal.newRun()" style="display:none">+ New</button>
     </div>
     <div class="run-list" id="runList"></div>
@@ -534,54 +537,60 @@ const CAL_HTML = `
       </div>
 
       <div class="run-fields">
-        <div class="field-group">
-          <label class="field-label">Company</label>
-          <input class="field-input field-readonly" id="f-company" readonly tabindex="-1">
+        <div class="hdr-row">
+          <div class="field-group" id="f-organizer-group" style="flex:0 0 220px">
+            <label class="field-label">Organizer</label>
+            <div id="f-organizer"></div>
+          </div>
+          <div class="field-group" style="flex:1 1 280px">
+            <label class="field-label">Full Show Title</label>
+            <input class="field-input" id="f-show" placeholder="Full title" oninput="cal.runFieldChanged()">
+          </div>
+          <div class="field-group" style="flex:0 0 170px">
+            <label class="field-label">Abbrev</label>
+            <input class="field-input" id="f-showAbv" placeholder="Brief title" maxlength="20" oninput="cal.runFieldChanged()">
+          </div>
         </div>
-        <div class="field-group" style="grid-column:span 2">
-          <label class="field-label" id="f-organizers-label">Co-producers</label>
-          <div id="f-organizers"></div>
+        <div class="hdr-row">
+          <div class="field-group" style="flex:1 1 220px">
+            <label class="field-label">Venue</label>
+            <input class="field-input" id="f-venue" placeholder="Venue name" autocomplete="off"
+              oninput="cal.onVenueInput(this); cal.runFieldChanged()" onfocus="cal.onVenueInput(this)"
+              onblur="setTimeout(()=>cal.hideCalVenueDropdown(),150)"
+              onkeydown="cal.venueKeyDown(event,this)">
+          </div>
+          <div class="field-group" style="flex:0 1 170px">
+            <label class="field-label">Location</label>
+            <input class="field-input" id="f-room" placeholder="e.g. Second Stage" oninput="cal.runFieldChanged()">
+          </div>
+          <div class="field-group" style="flex:0 0 120px">
+            <label class="field-label">Price</label>
+            <input class="field-input" id="f-price" placeholder="e.g. $xx-$yy" oninput="cal.runFieldChanged()">
+          </div>
+          <div class="field-group" style="flex:1 1 220px">
+            <label class="field-label">Discounts</label>
+            <input class="field-input" id="f-discounts" placeholder="e.g. Senior $aa, Student $bb" oninput="cal.runFieldChanged()">
+          </div>
         </div>
-        <div class="field-group">
-          <label class="field-label">Abbrev</label>
-          <input class="field-input" id="f-showAbv" placeholder="Brief title" maxlength="20" oninput="cal.runFieldChanged()">
+        <div class="hdr-row">
+          <div class="field-group" style="flex:1 1 240px">
+            <label class="field-label">Info URL</label>
+            <input class="field-input mono" id="f-infoUrl" placeholder="https://..." oninput="cal.runFieldChanged()">
+          </div>
+          <div class="field-group" style="flex:1 1 240px">
+            <label class="field-label">Default Tickets URL</label>
+            <input class="field-input mono" id="f-ticketsUrl" placeholder="https://..." oninput="cal.runFieldChanged()">
+          </div>
+          <div class="field-group" style="flex:0 0 auto">
+            <label class="field-label">Genre (up to ${MAX_GENRES})</label>
+            ${genreBoxesHtml('f-genre', 'cal.genreChanged(this)')}
+          </div>
         </div>
-        <div class="field-group">
-          <label class="field-label">Genre</label>
-          <select class="field-select field-select-multi" id="f-genre" multiple size="4" onchange="cal.genreChanged()">
-            <option>Drama</option><option>Musical</option><option>Comedy</option><option>Other</option>
-          </select>
-        </div>
-        <div class="field-group">
-          <label class="field-label">Venue</label>
-          <input class="field-input" id="f-venue" placeholder="Venue name" autocomplete="off"
-            oninput="cal.onVenueInput(this); cal.runFieldChanged()" onfocus="cal.onVenueInput(this)"
-            onblur="setTimeout(()=>cal.hideCalVenueDropdown(),150)"
-            onkeydown="cal.venueKeyDown(event,this)">
-        </div>
-        <div class="field-group">
-          <label class="field-label">Room</label>
-          <input class="field-input" id="f-room" placeholder="Optional, e.g. Second Stage" oninput="cal.runFieldChanged()">
-        </div>
-        <div class="field-group" style="grid-column:span 1">
-          <label class="field-label">Full Show Title</label>
-          <input class="field-input" id="f-show" placeholder="Full title" oninput="cal.runFieldChanged()">
-        </div>
-        <div class="field-group" style="grid-column:span 1">
-          <label class="field-label">Price</label>
-          <input class="field-input" id="f-price" placeholder="e.g. $xx-$yy" oninput="cal.runFieldChanged()">
-        </div>
-        <div class="field-group" style="grid-column:span 2">
-          <label class="field-label">Discounts</label>
-          <input class="field-input" id="f-discounts" placeholder="e.g. Senior $aa, Student $bb" oninput="cal.runFieldChanged()">
-        </div>
-        <div class="field-group" style="grid-column:span 2">
-          <label class="field-label">Info URL</label>
-          <input class="field-input mono" id="f-infoUrl" placeholder="https://..." oninput="cal.runFieldChanged()">
-        </div>
-        <div class="field-group" style="grid-column:span 2">
-          <label class="field-label">Default Tickets URL</label>
-          <input class="field-input mono" id="f-ticketsUrl" placeholder="https://..." oninput="cal.runFieldChanged()">
+        <div class="hdr-row">
+          <div class="field-group" style="flex:1 1 100%">
+            <label class="field-label">Co-producers</label>
+            <div id="f-coproducers"></div>
+          </div>
         </div>
       </div>
 
@@ -591,7 +600,7 @@ const CAL_HTML = `
           ${markdownToolbar('f-description')}
           <button class="desc-expand-btn" id="descExpandBtn" onclick="cal.toggleDescExpand()" title="Expand / collapse">↕</button>
         </div>
-        <textarea class="field-input desc-textarea" id="f-description" rows="1"
+        <textarea class="field-input desc-textarea" id="f-description" rows="4"
           data-markdown-editor placeholder="Brief narrative"
           oninput="cal.runFieldChanged()"></textarea>
       </div>
@@ -659,7 +668,7 @@ const CAL_HTML = `
 </div>
 
 <div class="cal-statusbar">
-  <span class="status-item"><span class="status-key">Runs</span><span id="st-runs">0</span></span>
+  <span class="status-item"><span class="status-key">Shows</span><span id="st-runs">0</span></span>
   <span class="status-item"><span class="status-key">Total perfs</span><span id="st-perfs">0</span></span>
   <span class="status-item"><span class="status-key">Status</span><span id="st-saved" style="color:rgba(255,255,255,0.35)">no file loaded</span></span>
 </div>
@@ -964,7 +973,7 @@ function renderSidebar() {
     .map(
       ({ r, i }) => `
     <div class="run-item ${i === activeRunIdx ? 'active' : ''}" onclick="cal.selectRun(${i})">
-      <div class="run-item-company">${esc(organizerLabel(recordOrganizerIds(r.company, r.organizers), allCompanies)) || '—'}</div>
+      ${r.company === 'other' ? `<div class="run-item-company">${esc(organizerLabel(recordOrganizerIds(r.company, r.organizers), allCompanies)) || 'No organizer'}</div>` : ''}
       <div class="run-item-show">${r.showAbv || r.show || 'Untitled'}</div>
       <div class="run-item-count">${r.performances.length} perf${r.performances.length !== 1 ? 's' : ''}</div>
     </div>`
@@ -990,14 +999,10 @@ function loadRunEditor() {
   document.getElementById('emptyState').style.display = 'none'
   document.getElementById('runEditor').style.display = ''
   const r = runs[activeRunIdx]
-  document.getElementById('f-company').value = r.company || ''
   document.getElementById('f-showAbv').value = r.showAbv || ''
   document.getElementById('f-show').value = r.show || ''
-  const genreSel = document.getElementById('f-genre')
   const genreArr = Array.isArray(r.genre) ? r.genre : r.genre ? [r.genre] : []
-  Array.from(genreSel.options).forEach((o) => {
-    o.selected = genreArr.includes(o.value)
-  })
+  setGenres('f-genre', genreArr)
   prevCalGenreVals = genreArr
   // The venue is stored as a code; the field shows its name (or unmatched text as typed)
   document.getElementById('f-venue').value = venueByCode(r.venue, venuesList)?.name || r.venue || ''
@@ -1019,18 +1024,24 @@ function loadRunEditor() {
 function updateEditorTitle() {
   const r = runs[activeRunIdx]
   document.getElementById('editorTitleText').textContent = r.showAbv || r.show || 'Untitled'
-  const label = organizerLabel(recordOrganizerIds(r.company, r.organizers), allCompanies)
+  // Every show in a company's file is that company's; only Other's need their organizer named
+  const label =
+    r.company === 'other'
+      ? organizerLabel(recordOrganizerIds(r.company, r.organizers), allCompanies)
+      : ''
   document.getElementById('editorSubtitle').textContent = label ? ` · ${label}` : ''
 }
 
 function renderRunOrganizers() {
   const r = runs[activeRunIdx]
-  document.getElementById('f-organizers-label').textContent =
-    r.company === 'other' ? 'Organizer' : 'Co-producers'
-  renderOrganizerPicker(document.getElementById('f-organizers'), {
+  document.getElementById('f-organizer-group').style.display = r.company === 'other' ? '' : 'none'
+  renderOrganizerFields({
+    mainEl: document.getElementById('f-organizer'),
+    coEl: document.getElementById('f-coproducers'),
     fileCompany: r.company,
     organizers: r.organizers,
     companies: allCompanies,
+    selectClass: 'field-select',
     onChange: (value) => {
       if (value) r.organizers = value
       else delete r.organizers
@@ -1048,22 +1059,8 @@ function venueCodeFor(text) {
   return match ? match.code : text.trim()
 }
 
-function genreChanged() {
-  const sel = document.getElementById('f-genre')
-  const current = Array.from(sel.selectedOptions).map((o) => o.value)
-  if (current.length > MAX_GENRES) {
-    const added = current.filter((v) => !prevCalGenreVals.includes(v))
-    const keptPrev = prevCalGenreVals
-      .filter((v) => current.includes(v))
-      .slice(-(MAX_GENRES - added.length))
-    const kept = [...keptPrev, ...added].slice(0, MAX_GENRES)
-    Array.from(sel.options).forEach((o) => {
-      o.selected = kept.includes(o.value)
-    })
-    prevCalGenreVals = kept
-  } else {
-    prevCalGenreVals = current
-  }
+function genreChanged(box) {
+  prevCalGenreVals = limitGenres('f-genre', box, prevCalGenreVals, MAX_GENRES)
   runFieldChanged()
 }
 
@@ -1072,7 +1069,7 @@ function runFieldChanged() {
   const r = runs[activeRunIdx]
   r.showAbv = document.getElementById('f-showAbv').value
   r.show = document.getElementById('f-show').value
-  r.genre = Array.from(document.getElementById('f-genre').selectedOptions).map((o) => o.value)
+  r.genre = getGenres('f-genre')
   r.venue = venueCodeFor(document.getElementById('f-venue').value)
   const room = document.getElementById('f-room').value.trim()
   if (room) r.room = room

@@ -8,12 +8,24 @@ import {
   rolesSum,
   renderMd
 } from '/admin/audition-format.js'
-import { activityIssues, isDateNearYear, isRealDate, isValidTime } from '/admin/data-rules.js'
+import {
+  MAX_GENRES,
+  activityIssues,
+  isDateNearYear,
+  isRealDate,
+  isValidTime
+} from '/admin/data-rules.js'
 import { createIdGenerator, ensureSessionIds } from '/admin/occurrence-ids.js'
-import { organizerEntries, organizerName, recordOrganizerIds } from '/admin/organizers.js'
+import {
+  organizerEntries,
+  organizerLabel,
+  organizerName,
+  recordOrganizerIds
+} from '/admin/organizers.js'
 import { sessionPlace, venueByCode } from '/admin/venues.js'
 import { markdownToolbar } from './markdown-editor.js'
-import { renderOrganizerPicker } from './organizer-picker.js'
+import { genreBoxesHtml, getGenres, limitGenres, setGenres } from './genre-boxes.js'
+import { renderOrganizerFields } from './organizer-picker.js'
 
 const ROLE_TYPES = ['lead', 'supporting', 'ensemble']
 const ROLE_GENDERS = ['any', 'female', 'male']
@@ -147,11 +159,16 @@ const ACT_CSS = `
   padding: 10px 16px;
   background: var(--bg);
   border-bottom: 2px solid var(--border);
-  display: grid;
-  grid-template-columns: repeat(6, 1fr);
+  display: flex;
+  flex-direction: column;
   gap: 8px;
   flex-shrink: 0;
 }
+.act-hdr-row { display: flex; flex-wrap: wrap; gap: 8px; align-items: flex-end; }
+.act-hdr-row > .act-field-group { min-width: 0; }
+.act-title-row { display: flex; gap: 6px; }
+.act-title-row select { flex: 0 1 auto; width: auto; max-width: 60%; }
+.act-title-row input { flex: 1 1 auto; min-width: 0; }
 .act-field-group { display: flex; flex-direction: column; gap: 3px; }
 .act-field-label {
   font-size: 9px; font-weight: 500; text-transform: uppercase;
@@ -508,71 +525,71 @@ const ACT_HTML = `
       </div>
 
       <div class="act-fields">
-        <!-- Row 1: always visible -->
-        <div class="act-field-group">
-          <label class="act-field-label">Company</label>
-          <input class="act-field-input act-field-readonly" id="af-company" readonly tabindex="-1">
-        </div>
-        <div class="act-field-group" id="afTitleGroup" style="grid-column:span 4">
-          <label class="act-field-label">Title</label>
-          <input class="act-field-input" id="af-title" placeholder="Production or event title" oninput="act.fieldChanged()">
-        </div>
-        <div class="act-field-group" id="afGenreGroup" style="grid-column:6;grid-row:span 3">
-          <label class="act-field-label">Genre</label>
-          <select class="act-field-select act-field-select-multi" id="af-genre" multiple size="4" onchange="act.genreChanged()">
-            <option>Drama</option><option>Musical</option><option>Comedy</option><option>Other</option>
-          </select>
+        <!-- Row 1: who and what. Organizer only for records filed under Other. An audition's
+             title is its production: pick the run, or type a title if it isn't on file yet. -->
+        <div class="act-hdr-row">
+          <div class="act-field-group" id="afOrganizerGroup" style="flex:0 0 220px">
+            <label class="act-field-label">Organizer</label>
+            <div id="af-organizer"></div>
+          </div>
+          <div class="act-field-group" style="flex:1 1 320px">
+            <label class="act-field-label" id="afTitleLabel">Production</label>
+            <div class="act-title-row">
+              <select class="act-field-select" id="af-production" onchange="act.productionChanged()"></select>
+              <input class="act-field-input" id="af-title" placeholder="Production or event title" oninput="act.fieldChanged()">
+            </div>
+          </div>
         </div>
 
-        <!-- Audition-only fields (rows 2-3, cols 1-5; col 6 is Genre spanning all rows) -->
+        <!-- Audition-only fields -->
         <div class="act-fields-conditional" id="actAuditionFields">
-          <div class="act-field-group" style="grid-column:span 2">
-            <label class="act-field-label">Rehearsal Start</label>
-            <input class="act-field-input mono" id="af-rehearsal" placeholder="YYYY-MM-DD" oninput="act.fieldChanged()" onblur="act.normalizeHeaderDate('af-rehearsal')">
+          <div class="act-hdr-row">
+            <div class="act-field-group" style="flex:0 0 auto">
+              <label class="act-field-label">Genre (up to ${MAX_GENRES})</label>
+              ${genreBoxesHtml('af-genre', 'act.genreChanged(this)')}
+            </div>
+            <div class="act-field-group" style="flex:0 0 120px">
+              <label class="act-field-label">Rehearsal Start</label>
+              <input class="act-field-input mono" id="af-rehearsal" placeholder="YYYY-MM-DD" oninput="act.fieldChanged()" onblur="act.normalizeHeaderDate('af-rehearsal')">
+            </div>
+            <div class="act-field-group" style="flex:0 0 120px">
+              <label class="act-field-label">Opening Date</label>
+              <input class="act-field-input mono" id="af-opening" placeholder="YYYY-MM-DD" oninput="act.fieldChanged()" onblur="act.normalizeHeaderDate('af-opening')">
+            </div>
           </div>
-          <div class="act-field-group" style="grid-column:span 3">
-            <label class="act-field-label">Notice URL</label>
-            <input class="act-field-input mono" id="af-notice-url" placeholder="https://…" oninput="act.fieldChanged()">
-          </div>
-          <div class="act-field-group" style="grid-column:span 2">
-            <label class="act-field-label">Opening Date</label>
-            <input class="act-field-input mono" id="af-opening" placeholder="YYYY-MM-DD" oninput="act.fieldChanged()" onblur="act.normalizeHeaderDate('af-opening')">
-          </div>
-          <div class="act-field-group" style="grid-column:span 3">
-            <label class="act-field-label">Production URL</label>
-            <input class="act-field-input mono" id="af-prod-url" placeholder="https://…" oninput="act.fieldChanged()">
-          </div>
-          <div class="act-field-group" style="grid-column:span 5">
-            <label class="act-field-label">Production</label>
-            <select class="act-field-select" id="af-production" onchange="act.fieldChanged()"></select>
+          <div class="act-hdr-row">
+            <div class="act-field-group" style="flex:1 1 260px">
+              <label class="act-field-label">Notice URL</label>
+              <input class="act-field-input mono" id="af-notice-url" placeholder="https://…" oninput="act.fieldChanged()">
+            </div>
+            <div class="act-field-group" style="flex:1 1 260px">
+              <label class="act-field-label">Production URL</label>
+              <input class="act-field-input mono" id="af-prod-url" placeholder="https://…" oninput="act.fieldChanged()">
+            </div>
           </div>
         </div>
 
-        <!-- Event-only fields (no genre col, so span full 6 cols) -->
+        <!-- Event-only fields -->
         <div class="act-fields-conditional hidden" id="actEventFields">
-          <div class="act-field-group" style="grid-column:span 4">
-            <label class="act-field-label">Brief Description</label>
-            <input class="act-field-input" id="af-brief-desc" placeholder="One-line summary for card header" oninput="act.fieldChanged()">
+          <div class="act-hdr-row">
+            <div class="act-field-group" style="flex:1 1 320px">
+              <label class="act-field-label">Brief Description</label>
+              <input class="act-field-input" id="af-brief-desc" placeholder="One-line summary for card header" oninput="act.fieldChanged()">
+            </div>
+            <div class="act-field-group" style="flex:0 0 130px">
+              <label class="act-field-label">Cost</label>
+              <input class="act-field-input" id="af-cost" placeholder="Free, $20…" oninput="act.fieldChanged()">
+            </div>
           </div>
-          <div class="act-field-group" style="grid-column:span 2">
-            <label class="act-field-label">Cost</label>
-            <input class="act-field-input" id="af-cost" placeholder="Free, $20…" oninput="act.fieldChanged()">
-          </div>
-          <div class="act-field-group" style="grid-column:span 3">
-            <label class="act-field-label">Notice URL</label>
-            <input class="act-field-input mono" id="af-event-notice-url" placeholder="https://…" oninput="act.fieldChanged()">
-          </div>
-          <div class="act-field-group" style="grid-column:span 3">
-            <label class="act-field-label">Register URL</label>
-            <input class="act-field-input mono" id="af-register-url" placeholder="https://…" oninput="act.fieldChanged()">
-          </div>
-        </div>
-
-        <!-- Organizer (filed under Other) or co-producers (any company) -->
-        <div class="act-fields-conditional" id="actOrganizerFields">
-          <div class="act-field-group" style="grid-column:span 6">
-            <label class="act-field-label" id="af-organizers-label">Co-producers</label>
-            <div id="af-organizers"></div>
+          <div class="act-hdr-row">
+            <div class="act-field-group" style="flex:1 1 260px">
+              <label class="act-field-label">Notice URL</label>
+              <input class="act-field-input mono" id="af-event-notice-url" placeholder="https://…" oninput="act.fieldChanged()">
+            </div>
+            <div class="act-field-group" style="flex:1 1 260px">
+              <label class="act-field-label">Register URL</label>
+              <input class="act-field-input mono" id="af-register-url" placeholder="https://…" oninput="act.fieldChanged()">
+            </div>
           </div>
         </div>
       </div>
@@ -605,9 +622,9 @@ const ACT_HTML = `
                   <th class="col-date">Date</th>
                   <th class="col-stime">Start</th>
                   <th class="col-etime">End</th>
-                  <th class="col-locn">Location</th>
+                  <th class="col-locn">Venue</th>
                   <th class="col-loca">Address</th>
-                  <th class="col-room">Room</th>
+                  <th class="col-room">Location</th>
                   <th>Notes</th>
                 </tr>
               </thead>
@@ -724,8 +741,7 @@ function esc(v) {
   return (v || '').replace(/&/g, '&amp;').replace(/"/g, '&quot;')
 }
 function isMusical() {
-  const sel = document.getElementById('af-genre')
-  return sel ? Array.from(sel.selectedOptions).some((o) => o.value === 'Musical') : false
+  return getGenres('af-genre').includes('Musical')
 }
 function currentType() {
   return activeActIdx >= 0 ? activities[activeActIdx].type || 'audition' : 'audition'
@@ -792,18 +808,29 @@ async function loadCompanyRuns(coId) {
   }
 }
 
+/**
+ * The productions an audition can be for: this company's, or under Other, its
+ * organizer's. Labelled with the run's date range (or "no dates yet").
+ */
+function productionChoices(a) {
+  const org = a.organizers?.[0]
+  return companyRuns
+    .filter((r) => currentCompanyId !== 'other' || (org && r.organizers?.includes(org)))
+    .sort((x, y) => (firstRunDate(y) || '9999').localeCompare(firstRunDate(x) || '9999'))
+}
+function firstRunDate(r) {
+  return r.performances.map((p) => p.date).sort()[0]
+}
+
 function renderProductionOptions(a) {
   const sel = document.getElementById('af-production')
-  const firstDate = (r) => r.performances.map((p) => p.date).sort()[0]
-  const runs = [...companyRuns].sort((x, y) =>
-    (firstDate(y) || '9999').localeCompare(firstDate(x) || '9999')
-  )
+  const runs = productionChoices(a)
   const known = new Set(runs.map((r) => r.id))
   sel.innerHTML =
-    '<option value="">— None —</option>' +
+    '<option value="">Not on file — type the title</option>' +
     runs
       .map((r) => {
-        const when = firstDate(r) ? fmtFullDate(firstDate(r)) : 'no dates yet'
+        const when = r.performances.length ? fmtAudDateRange(r.performances) : 'no dates yet'
         return `<option value="${esc(r.id)}">${esc(r.show || r.showAbv || r.id)} (${esc(when)})</option>`
       })
       .join('') +
@@ -811,18 +838,42 @@ function renderProductionOptions(a) {
       ? `<option value="${esc(a.productionId)}">${esc(a.productionId)} (not found)</option>`
       : '')
   sel.value = a.productionId || ''
+  syncTitleField(a)
 }
 
+/** A linked audition's title is its production's; the title box shows only when unlinked. */
+function syncTitleField(a) {
+  const titleEl = document.getElementById('af-title')
+  const linked = a.type !== 'event' && !!a.productionId
+  titleEl.style.display = linked ? 'none' : ''
+  titleEl.placeholder = a.type === 'event' ? 'Event title' : 'Production title'
+}
+
+function productionChanged() {
+  if (activeActIdx < 0) return
+  const a = activities[activeActIdx]
+  const id = document.getElementById('af-production').value
+  const run = companyRuns.find((r) => r.id === id)
+  if (run) document.getElementById('af-title').value = run.show || run.showAbv || ''
+  fieldChanged()
+  syncTitleField(a)
+}
+
+/** Records filed under Other pick their organizer; auditions and events have no co-producers. */
 function renderActOrganizers(a) {
-  document.getElementById('af-organizers-label').textContent =
-    currentCompanyId === 'other' ? 'Organizer' : 'Co-producers'
-  renderOrganizerPicker(document.getElementById('af-organizers'), {
+  document.getElementById('afOrganizerGroup').style.display =
+    currentCompanyId === 'other' ? '' : 'none'
+  renderOrganizerFields({
+    mainEl: document.getElementById('af-organizer'),
+    coEl: null,
     fileCompany: currentCompanyId,
     organizers: a.organizers,
     companies: allCompanies,
+    selectClass: 'act-field-select',
     onChange: (value) => {
       if (value) a.organizers = value
       else delete a.organizers
+      renderProductionOptions(a) // Other's productions depend on the organizer
       renderSidebar()
       markDirty()
     }
@@ -1084,7 +1135,7 @@ function renderSidebar() {
     .map(
       ({ a, i }) => `
     <div class="act-list-item ${i === activeActIdx ? 'active' : ''}" onclick="act.selectAct(${i})">
-      <div class="act-item-meta">${a.type === 'event' ? 'Event' : 'Audition'}${(Array.isArray(a.genre) ? a.genre : []).length ? ' · ' + (Array.isArray(a.genre) ? a.genre : []).join('/') : ''}${a.virtualSubmission ? ' · virtual' : ''}${a.closed ? ' · closed' : ''}</div>
+      <div class="act-item-meta">${currentCompanyId === 'other' ? `${esc(organizerLabel(a.organizers || [], allCompanies)) || 'No organizer'} · ` : ''}${a.type === 'event' ? 'Event' : 'Audition'}${(Array.isArray(a.genre) ? a.genre : []).length ? ' · ' + (Array.isArray(a.genre) ? a.genre : []).join('/') : ''}${a.virtualSubmission ? ' · virtual' : ''}${a.closed ? ' · closed' : ''}</div>
       <div class="act-item-title">${a.title || 'Untitled'}</div>
     </div>`
     )
@@ -1112,13 +1163,8 @@ function loadActEditor() {
   formEl.style.display = ''
   const a = activities[activeActIdx]
 
-  document.getElementById('af-company').value = currentCompanyAbv || ''
-
-  const genreSel = document.getElementById('af-genre')
   const genreArr = Array.isArray(a.genre) ? a.genre : a.genre ? [a.genre] : []
-  Array.from(genreSel.options).forEach((o) => {
-    o.selected = genreArr.includes(o.value)
-  })
+  setGenres('af-genre', genreArr)
   prevActGenreVals = genreArr
 
   document.getElementById('af-title').value = a.title || ''
@@ -1218,8 +1264,8 @@ function updateTypeLayout() {
   const datesLabel = document.getElementById('actDatesLabel')
   const virtualToggle = document.getElementById('actVirtualToggle')
   const datesByRequestToggle = document.getElementById('actDatesByRequestToggle')
-  const genreGroup = document.getElementById('afGenreGroup')
-  const titleGroup = document.getElementById('afTitleGroup')
+  const productionSel = document.getElementById('af-production')
+  const titleLabel = document.getElementById('afTitleLabel')
   const descSection = document.getElementById('actDescSection')
   const notesSection = document.getElementById('actNotesSection')
 
@@ -1232,8 +1278,8 @@ function updateTypeLayout() {
     if (virtualToggle) virtualToggle.style.display = 'none'
     if (datesByRequestToggle) datesByRequestToggle.style.display = ''
     if (datesLabel) datesLabel.textContent = 'Dates'
-    if (genreGroup) genreGroup.style.display = 'none'
-    if (titleGroup) titleGroup.style.gridColumn = 'span 5'
+    if (productionSel) productionSel.style.display = 'none'
+    if (titleLabel) titleLabel.textContent = 'Title'
     if (descSection) descSection.style.display = ''
     if (notesSection) notesSection.style.display = 'none'
   } else {
@@ -1245,8 +1291,8 @@ function updateTypeLayout() {
     if (virtualToggle) virtualToggle.style.display = ''
     if (datesByRequestToggle) datesByRequestToggle.style.display = 'none'
     if (datesLabel) datesLabel.textContent = 'Audition Dates'
-    if (genreGroup) genreGroup.style.display = ''
-    if (titleGroup) titleGroup.style.gridColumn = 'span 4'
+    if (productionSel) productionSel.style.display = ''
+    if (titleLabel) titleLabel.textContent = 'Production'
     if (descSection) descSection.style.display = 'none'
     if (notesSection) notesSection.style.display = ''
   }
@@ -1271,24 +1317,9 @@ function updateMusicLayout() {
 }
 
 // ── FIELD SYNC ──
-const MAX_GENRES = 2
 
-function genreChanged() {
-  const sel = document.getElementById('af-genre')
-  const current = Array.from(sel.selectedOptions).map((o) => o.value)
-  if (current.length > MAX_GENRES) {
-    const added = current.filter((v) => !prevActGenreVals.includes(v))
-    const keptPrev = prevActGenreVals
-      .filter((v) => current.includes(v))
-      .slice(-(MAX_GENRES - added.length))
-    const kept = [...keptPrev, ...added].slice(0, MAX_GENRES)
-    Array.from(sel.options).forEach((o) => {
-      o.selected = kept.includes(o.value)
-    })
-    prevActGenreVals = kept
-  } else {
-    prevActGenreVals = current
-  }
+function genreChanged(box) {
+  prevActGenreVals = limitGenres('af-genre', box, prevActGenreVals, MAX_GENRES)
   fieldChanged()
 }
 
@@ -1305,7 +1336,7 @@ function fieldChanged() {
     a.notes = undefined
     a.datesByRequest = document.getElementById('af-dates-by-request').checked || undefined
   } else {
-    a.genre = Array.from(document.getElementById('af-genre').selectedOptions).map((o) => o.value)
+    a.genre = getGenres('af-genre')
     a.notes = document.getElementById('af-notes').value || undefined
     a.description = undefined
     a.datesByRequest = undefined
@@ -1663,7 +1694,7 @@ function renderDatesTable() {
           ${d.venue ? 'readonly title="Listed venue — address comes from the venue list"' : ''}
           onchange="act.dateCellChanged(${i},'locAddr',this.value)"
           onkeydown="act.dateCellKey(event,${i},'locAddr')" id="dc-${i}-locAddr"></td>
-      <td><input class="act-cell-input" value="${esc(d.room)}" placeholder="Optional"
+      <td><input class="act-cell-input" value="${esc(d.room)}" placeholder="e.g. Studio B"
           onchange="act.dateCellChanged(${i},'room',this.value)"
           onkeydown="act.dateCellKey(event,${i},'room')" id="dc-${i}-room"></td>
       <td><input class="act-cell-input" value="${esc(d.notes)}" placeholder="e.g. Open call"
@@ -2216,6 +2247,7 @@ export function mount(container, context) {
     deleteActivity,
     toggleClosed,
     genreChanged,
+    productionChanged,
     fieldChanged,
     toggleDescExpand,
     toggleNotesExpand,

@@ -1,11 +1,13 @@
 import type { CompanyEntry } from '../types.ts'
 
 // Who puts on a production or activity. Every record has one or more organizers, main
-// organizer first. A record in a company's own data file is organized by that company,
-// plus any co-producers in its `organizers` field. A record in an `other-<year>` file
-// names all of its organizers in `organizers`. "Other" is only a group name (organizers
-// that aren't majors) — never an organizer itself. Shared by pages, feeds, emails and
-// the /admin editors (served as /admin/organizers.js). See docs/notifications-spec.md.
+// organizer first. A record in a company's own data file is organized by that company;
+// a production may add co-producers in its `organizers` field. A record in an
+// `other-<year>` file names its organizer(s) in `organizers`. Auditions and events have
+// exactly one organizer — co-producers are for productions only. "Other" is only a
+// group name (organizers that aren't majors) — never an organizer itself. Shared by
+// pages, feeds, emails and the /admin editors (served as /admin/organizers.js).
+// See docs/notifications-spec.md.
 
 /** The data-file bucket for organizers without their own files. Not an organizer. */
 export const OTHER_FILE = 'other'
@@ -57,11 +59,15 @@ export function allOrganizers(companies: CompanyEntry[]) {
     .sort((a, b) => a.name.localeCompare(b.name))
 }
 
-/** Problems with a record's `organizers` field, given the file it's in. */
+/**
+ * Problems with a record's `organizers` field, given the file it's in. Productions may
+ * have co-producers; auditions and events (`coProducers: false`) may not.
+ */
 export function organizerErrors(
   fileCompany: string,
   organizers: string[] | undefined,
-  companies: CompanyEntry[]
+  companies: CompanyEntry[],
+  { coProducers = true } = {}
 ): string[] {
   const errors: string[] = []
   const listed = organizers || []
@@ -72,6 +78,9 @@ export function organizerErrors(
     if (seen.has(id)) errors.push(`organizer "${id}" is listed twice`)
     seen.add(id)
   }
+  const maxListed = fileCompany === OTHER_FILE ? 1 : 0
+  if (!coProducers && listed.length > maxListed)
+    errors.push('auditions and events have one organizer — co-producers are for productions only')
   if (fileCompany === OTHER_FILE) {
     if (!listed.length) errors.push('Organizer is required')
     else {

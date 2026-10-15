@@ -122,7 +122,7 @@ export interface Activity {
   description?: string // full description; supports bold, italic, links, and bullet lists
   genre: Genre[]
   dates: ActivityDate[]
-  organizers?: string[] // organizer ids, main first; see recordOrganizerIds() in src/lib/organizers.ts
+  organizers?: string[] // filed under Other only: its one organizer's id (no co-producers)
   rolesAvailable?: AuditionRole[] // audition only; suppressed when empty
   prep?: AuditionPrep // audition only
   virtualSubmission?: boolean // audition only; no scheduled dates — always "upcoming" until closed

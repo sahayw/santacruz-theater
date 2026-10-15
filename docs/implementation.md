@@ -164,10 +164,11 @@ merged and overrides resolved, sorted by date then time. Each carries its
 `organizers`, `organizerName`, `organizerLabel`, the venue's display name in
 `venue` and its code in `venueCode`.
 
-**Organizers** (runs and activities alike): a record in a company's own file
-is organized by that company, and `organizers` lists co-producers only. A
-record in an `other-<year>` file must list its organizers, main first, and
-the main one must be `filedUnderOther`. `recordOrganizerIds()`
+**Organizers**: a record in a company's own file is organized by that
+company; a run may list co-producers in `organizers`. A record in an
+`other-<year>` file must list its organizers, main first, and the main one
+must be `filedUnderOther`. Auditions and events have exactly one organizer —
+`organizers` only under Other, with one id. `recordOrganizerIds()`
 ([§6](#organizers-and-venues--srcliborganizersts-srclibvenuests)) turns
 either into the full list.
 
@@ -711,27 +712,27 @@ Errors fail the build; warnings print.
 _Error_: blocks Save / fails build. _Warning_: "Save anyway?" (changed
 records only) / printed.
 
-| Record   | Rule                                                                                                                                               | Level   |
-| -------- | -------------------------------------------------------------------------------------------------------------------------------------------------- | ------- |
-| Run      | `show` non-blank                                                                                                                                   | error   |
-| Run      | `showAbv` non-blank, ≤ 20 chars (`SHOW_ABV_MAX`)                                                                                                   | error   |
-| Run      | `venue` non-blank and a listed venue code                                                                                                          | error   |
-| Both     | organizers listed exist (not sentinels), no repeats; `other` records name ≥ 1, main `filedUnderOther`; own-file records don't repeat their company | error   |
-| Run      | each performance: real `YYYY-MM-DD` within file year ± 1; `time` `HH:MM` 00:00–23:59                                                               | error   |
-| Run      | earliest performance in the file's year                                                                                                            | error   |
-| Run      | `price`, `infoUrl`, `description` non-blank; a tickets link (run or performance)                                                                   | warning |
-| Run      | at least one performance                                                                                                                           | warning |
-| Activity | `title` non-blank                                                                                                                                  | error   |
-| Activity | at least one date, unless audition + `virtualSubmission` or event + `datesByRequest`                                                               | error   |
-| Activity | each date row: `date` as above; `startTime` valid; `endTime` valid if present                                                                      | error   |
-| Activity | each date row's `venue`, if set, is a listed venue code                                                                                            | error   |
-| Activity | earliest date in the file's year                                                                                                                   | error   |
-| Audition | `rehearsalStart` / `openingDate` real `YYYY-MM-DD` if present                                                                                      | error   |
-| Audition | `productionId`, if set, is an existing run id                                                                                                      | error   |
-| Event    | one of `contact.email`, `contact.phone`, `noticeUrl`, `registerUrl`, or a named organizer's `website`                                              | error   |
-| Listing  | `name` non-blank                                                                                                                                   | error   |
-| Listing  | at least one category                                                                                                                              | error   |
-| Listing  | `contact.tel` or `contact.email`                                                                                                                   | error   |
+| Record   | Rule                                                                                                                                                                                                    | Level   |
+| -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------- |
+| Run      | `show` non-blank                                                                                                                                                                                        | error   |
+| Run      | `showAbv` non-blank, ≤ 20 chars (`SHOW_ABV_MAX`)                                                                                                                                                        | error   |
+| Run      | `venue` non-blank and a listed venue code                                                                                                                                                               | error   |
+| Both     | organizers listed exist (not sentinels), no repeats; `other` records name ≥ 1, main `filedUnderOther`; own-file records don't repeat their company; auditions/events name at most one, only under Other | error   |
+| Run      | each performance: real `YYYY-MM-DD` within file year ± 1; `time` `HH:MM` 00:00–23:59                                                                                                                    | error   |
+| Run      | earliest performance in the file's year                                                                                                                                                                 | error   |
+| Run      | `price`, `infoUrl`, `description` non-blank; a tickets link (run or performance)                                                                                                                        | warning |
+| Run      | at least one performance                                                                                                                                                                                | warning |
+| Activity | `title` non-blank                                                                                                                                                                                       | error   |
+| Activity | at least one date, unless audition + `virtualSubmission` or event + `datesByRequest`                                                                                                                    | error   |
+| Activity | each date row: `date` as above; `startTime` valid; `endTime` valid if present                                                                                                                           | error   |
+| Activity | each date row's `venue`, if set, is a listed venue code                                                                                                                                                 | error   |
+| Activity | earliest date in the file's year                                                                                                                                                                        | error   |
+| Audition | `rehearsalStart` / `openingDate` real `YYYY-MM-DD` if present                                                                                                                                           | error   |
+| Audition | `productionId`, if set, is an existing run id                                                                                                                                                           | error   |
+| Event    | one of `contact.email`, `contact.phone`, `noticeUrl`, `registerUrl`, or a named organizer's `website`                                                                                                   | error   |
+| Listing  | `name` non-blank                                                                                                                                                                                        | error   |
+| Listing  | at least one category                                                                                                                                                                                   | error   |
+| Listing  | `contact.tel` or `contact.email`                                                                                                                                                                        | error   |
 
 - The editor drops blank activity date rows (no date, no start time) before
   checking, matching what it saves.

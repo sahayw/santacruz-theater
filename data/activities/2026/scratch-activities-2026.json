@@ -13,10 +13,7 @@
           "date": "2026-07-05",
           "startTime": "10:00",
           "endTime": "14:30",
-          "location": {
-            "name": "Scratch Studios",
-            "address": "02B 303 Potrero St, Santa Cruz, CA 95060"
-          },
+          "venue": "Scratch",
           "notes": "half hour lunch break"
         }
       ],
@@ -38,10 +35,7 @@
           "date": "2026-06-14",
           "startTime": "18:00",
           "endTime": "20:00",
-          "location": {
-            "name": "Scratch Studios",
-            "address": "02B 303 Potrero St, Santa Cruz, CA 95060"
-          },
+          "venue": "Scratch",
           "notes": "Reviewing BASICS"
         },
         {
@@ -49,10 +43,7 @@
           "date": "2026-06-21",
           "startTime": "18:00",
           "endTime": "20:00",
-          "location": {
-            "name": "Scratch Studios",
-            "address": "02B 303 Potrero St, Santa Cruz, CA 95060"
-          },
+          "venue": "Scratch",
           "notes": "Pirate Battle"
         },
         {
@@ -60,10 +51,7 @@
           "date": "2026-06-28",
           "startTime": "18:00",
           "endTime": "20:00",
-          "location": {
-            "name": "Scratch Studios",
-            "address": "02B 303 Potrero St, Santa Cruz, CA 95060"
-          },
+          "venue": "Scratch",
           "notes": "Rapier & Cloak"
         },
         {
@@ -71,10 +59,7 @@
           "date": "2026-07-05",
           "startTime": "18:00",
           "endTime": "20:00",
-          "location": {
-            "name": "Scratch Studios",
-            "address": "02B 303 Potrero St, Santa Cruz, CA 95060"
-          },
+          "venue": "Scratch",
           "notes": "YOUTH Session"
         },
         {
@@ -82,10 +67,7 @@
           "date": "2026-07-12",
           "startTime": "18:00",
           "endTime": "20:00",
-          "location": {
-            "name": "Scratch Studios",
-            "address": "02B 303 Potrero St, Santa Cruz, CA 95060"
-          },
+          "venue": "Scratch",
           "notes": "Reviewing BASICS II"
         },
         {
@@ -93,10 +75,7 @@
           "date": "2026-07-19",
           "startTime": "18:00",
           "endTime": "20:00",
-          "location": {
-            "name": "Scratch Studios",
-            "address": "02B 303 Potrero St, Santa Cruz, CA 95060"
-          },
+          "venue": "Scratch",
           "notes": "Staging Videogame Fights"
         },
         {
@@ -105,20 +84,14 @@
           "startTime": "18:00",
           "notes": "Classic Swashbuckling",
           "endTime": "20:00",
-          "location": {
-            "name": "Scratch Studios",
-            "address": "02B 303 Potrero St, Santa Cruz, CA 95060"
-          }
+          "venue": "Scratch"
         },
         {
           "id": "session-1791991837974",
           "date": "2026-08-02",
           "startTime": "18:00",
           "endTime": "20:00",
-          "location": {
-            "name": "Scratch Studios",
-            "address": "02B 303 Potrero St, Santa Cruz, CA 95060"
-          },
+          "venue": "Scratch",
           "notes": "Unarmed Bar Brawl"
         },
         {
@@ -126,10 +99,7 @@
           "date": "2026-08-09",
           "startTime": "18:00",
           "endTime": "20:00",
-          "location": {
-            "name": "Scratch Studios",
-            "address": "02B 303 Potrero St, Santa Cruz, CA 95060"
-          },
+          "venue": "Scratch",
           "notes": "Fencing for Stage Combatants"
         },
         {
@@ -137,10 +107,7 @@
           "date": "2026-08-16",
           "startTime": "18:00",
           "endTime": "20:00",
-          "location": {
-            "name": "Scratch Studios",
-            "address": "02B 303 Potrero St, Santa Cruz, CA 95060"
-          },
+          "venue": "Scratch",
           "notes": "Lightsaber"
         }
       ],
@@ -162,10 +129,7 @@
           "date": "2026-10-11",
           "startTime": "18:00",
           "endTime": "20:00",
-          "location": {
-            "name": "Scratch Studios",
-            "address": "02B 303 Potrero St, Santa Cruz, CA 95060"
-          },
+          "venue": "Scratch",
           "notes": "Pirate Battle"
         },
         {
@@ -173,10 +137,7 @@
           "date": "2026-10-19",
           "startTime": "18:00",
           "endTime": "20:00",
-          "location": {
-            "name": "Scratch Studios",
-            "address": "02B 303 Potrero St, Santa Cruz, CA 95060"
-          },
+          "venue": "Scratch",
           "notes": "Basic Scrap"
         },
         {
@@ -184,10 +145,7 @@
           "date": "2026-10-25",
           "startTime": "18:00",
           "endTime": "20:00",
-          "location": {
-            "name": "Scratch Studios",
-            "address": "02B 303 Potrero St, Santa Cruz, CA 95060"
-          },
+          "venue": "Scratch",
           "notes": "Halloween Horror"
         },
         {
@@ -195,10 +153,7 @@
           "date": "2026-11-01",
           "startTime": "18:00",
           "endTime": "20:00",
-          "location": {
-            "name": "Scratch Studios",
-            "address": "02B 303 Potrero St, Santa Cruz, CA 95060"
-          },
+          "venue": "Scratch",
           "notes": "Back Alley Knife"
         },
         {
@@ -206,10 +161,7 @@
           "date": "2026-11-08",
           "startTime": "18:00",
           "endTime": "20:00",
-          "location": {
-            "name": "Scratch Studios",
-            "address": "02B 303 Potrero St, Santa Cruz, CA 95060"
-          },
+          "venue": "Scratch",
           "notes": "Fight Knight"
         },
         {
@@ -217,10 +169,7 @@
           "date": "2026-11-15",
           "startTime": "18:00",
           "endTime": "20:00",
-          "location": {
-            "name": "Scratch Studios",
-            "address": "02B 303 Potrero St, Santa Cruz, CA 95060"
-          },
+          "venue": "Scratch",
           "notes": "Hong Kong Action"
         }
       ],
@@ -246,40 +195,28 @@
           "date": "2026-09-12",
           "startTime": "10:00",
           "endTime": "12:00",
-          "location": {
-            "name": "Scratch Studios",
-            "address": "02B 303 Potrero St, Santa Cruz, CA 95060"
-          }
+          "venue": "Scratch"
         },
         {
           "id": "session-1791991837984",
           "date": "2026-09-19",
           "startTime": "10:00",
           "endTime": "12:00",
-          "location": {
-            "name": "Scratch Studios",
-            "address": "02B 303 Potrero St, Santa Cruz, CA 95060"
-          }
+          "venue": "Scratch"
         },
         {
           "id": "session-1791991837985",
           "date": "2026-09-26",
           "startTime": "10:00",
           "endTime": "12:00",
-          "location": {
-            "name": "Scratch Studios",
-            "address": "02B 303 Potrero St, Santa Cruz, CA 95060"
-          }
+          "venue": "Scratch"
         },
         {
           "id": "session-1791991837986",
           "date": "2026-10-03",
           "startTime": "10:00",
           "endTime": "12:00",
-          "location": {
-            "name": "Scratch Studios",
-            "address": "02B 303 Potrero St, Santa Cruz, CA 95060"
-          }
+          "venue": "Scratch"
         }
       ],
       "createdAt": "2026-08-29T00:08:06.508Z",

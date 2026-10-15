@@ -37,44 +37,32 @@
           "date": "2026-03-07",
           "startTime": "10:00",
           "endTime": "18:00",
-          "notes": "By appointment — book online via Cabrillo Stage website",
-          "location": {
-            "name": "Cabrillo Crocker Theater",
-            "address": "6500 Soquel Dr, Aptos, CA"
-          }
+          "venue": "CCT",
+          "notes": "By appointment — book online via Cabrillo Stage website"
         },
         {
           "id": "session-1791991837946",
           "date": "2026-03-08",
           "startTime": "10:00",
           "endTime": "18:00",
-          "notes": "By appointment — book online via Cabrillo Stage website",
-          "location": {
-            "name": "Cabrillo Crocker Theater",
-            "address": "6500 Soquel Dr, Aptos, CA"
-          }
+          "venue": "CCT",
+          "notes": "By appointment — book online via Cabrillo Stage website"
         },
         {
           "id": "session-1791991837947",
           "date": "2026-03-14",
           "startTime": "10:00",
           "endTime": "18:00",
-          "notes": "By appointment — book online via Cabrillo Stage website",
-          "location": {
-            "name": "Cabrillo Crocker Theater",
-            "address": "6500 Soquel Dr, Aptos, CA"
-          }
+          "venue": "CCT",
+          "notes": "By appointment — book online via Cabrillo Stage website"
         },
         {
           "id": "session-1791991837948",
           "date": "2026-03-15",
           "startTime": "10:00",
           "endTime": "18:00",
-          "notes": "By appointment — book online via Cabrillo Stage website",
-          "location": {
-            "name": "Cabrillo Crocker Theater",
-            "address": "6500 Soquel Dr, Aptos, CA"
-          }
+          "venue": "CCT",
+          "notes": "By appointment — book online via Cabrillo Stage website"
         }
       ],
       "noticeUrl": "https://www.cabrillostage.com/jobs"

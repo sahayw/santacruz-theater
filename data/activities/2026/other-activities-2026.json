@@ -45,32 +45,26 @@
           "date": "2026-08-25",
           "startTime": "18:30",
           "endTime": "20:30",
-          "location": {
-            "name": "Crocker Mainstage, Cabrillo College",
-            "address": "6500 Soquel Dr, Aptos, CA 95003"
-          }
+          "venue": "CCT"
         },
         {
           "id": "session-1791991837956",
           "date": "2026-08-26",
           "startTime": "18:30",
           "endTime": "20:30",
-          "location": {
-            "name": "Crocker Mainstage, Cabrillo College",
-            "address": "6500 Soquel Dr, Aptos, CA 95003"
-          }
+          "venue": "CCT"
         },
         {
           "id": "session-1791991837957",
           "date": "2026-08-27",
           "startTime": "18:30",
           "endTime": "21:00",
-          "notes": "Callbacks (notification same night as audition)",
-          "location": {
-            "name": "Crocker Mainstage, Cabrillo College",
-            "address": "6500 Soquel Dr, Aptos, CA 95003"
-          }
+          "venue": "CCT",
+          "notes": "Callbacks (notification same night as audition)"
         }
+      ],
+      "organizers": [
+        "cabrillo-ta"
       ],
       "noticeUrl": "https://www.cabrillo.edu/theatre-arts/upcoming-auditions/"
     },
@@ -143,10 +137,7 @@
           "date": "2026-07-10",
           "startTime": "19:00",
           "endTime": "21:00",
-          "location": {
-            "name": "Scratch Studios",
-            "address": "02B 303 Potrero St, Santa Cruz, CA 95060"
-          },
+          "venue": "Scratch",
           "notes": "Open Call"
         },
         {
@@ -154,10 +145,7 @@
           "date": "2026-07-11",
           "startTime": "12:00",
           "endTime": "14:00",
-          "location": {
-            "name": "Scratch Studios",
-            "address": "02B 303 Potrero St, Santa Cruz, CA 95060"
-          },
+          "venue": "Scratch",
           "notes": "Open Call"
         },
         {
@@ -165,12 +153,12 @@
           "date": "2026-07-12",
           "startTime": "12:00",
           "endTime": "15:00",
-          "location": {
-            "name": "Scratch Studios",
-            "address": "02B 303 Potrero St, Santa Cruz, CA 95060"
-          },
+          "venue": "Scratch",
           "notes": "Callbacks"
         }
+      ],
+      "organizers": [
+        "sh-theatrical"
       ],
       "noticeUrl": "https://three-trials.live/#auditions",
       "productionUrl": "https://three-trials.live/"
@@ -181,17 +169,18 @@
       "title": "Audition Clinic",
       "genre": [],
       "dates": [],
+      "organizers": [
+        "dor-atkinson"
+      ],
       "createdAt": "2026-10-13T16:03:32.501Z",
       "updatedAt": "2026-10-14T23:59:00.021Z",
       "description": "**Does your monologue or song need a tune-up?**\nThis clinic can be used for whatever you need, for example, another eye on a monologue, scene, or song, further physical or vocal development of your pieces, or research into new audition material you haven't tried before.\nPractice in a private, comfortable space.",
       "datesByRequest": true,
       "briefDescription": "Individual audition coaching, on request",
       "cost": "30 min $20, 55 minutes $35",
-      "organizerName": "Dor Atkinson",
       "contact": {
         "email": "dorcosbyatkinson@gmail.com"
-      },
-      "organizerUrl": "https://dorcosbyatkinson.wordpress.com/"
+      }
     }
   ]
 }

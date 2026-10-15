@@ -21,10 +21,7 @@
           "date": "2026-06-29",
           "startTime": "17:30",
           "endTime": "22:00",
-          "location": {
-            "name": "Colligan Theater",
-            "address": "1050 River St, Santa Cruz, CA 95060"
-          },
+          "venue": "Colligan",
           "notes": "Vocal"
         },
         {
@@ -32,10 +29,7 @@
           "date": "2026-06-30",
           "startTime": "17:30",
           "endTime": "22:00",
-          "location": {
-            "name": "Colligan Theater",
-            "address": "1050 River St, Santa Cruz, CA 95060"
-          },
+          "venue": "Colligan",
           "notes": "Vocal"
         },
         {
@@ -43,10 +37,7 @@
           "date": "2026-07-01",
           "startTime": "17:30",
           "endTime": "22:00",
-          "location": {
-            "name": "Colligan Theater",
-            "address": "1050 River St, Santa Cruz, CA 95060"
-          },
+          "venue": "Colligan",
           "notes": "Acting & Dancing"
         },
         {
@@ -54,10 +45,7 @@
           "date": "2026-07-02",
           "startTime": "17:30",
           "endTime": "22:00",
-          "location": {
-            "name": "Colligan Theater",
-            "address": "1050 River St, Santa Cruz, CA 95060"
-          },
+          "venue": "Colligan",
           "notes": "Call-backs"
         }
       ],

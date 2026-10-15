@@ -94,31 +94,22 @@
           "date": "2026-04-27",
           "startTime": "18:30",
           "endTime": "20:30",
-          "location": {
-            "name": "St. Andrew's Episcopal Church",
-            "address": "101 Riverside Ave, Ben Lomond, CA"
-          }
+          "venue": "StA"
         },
         {
           "id": "session-1791991837950",
           "date": "2026-04-28",
           "startTime": "18:30",
           "endTime": "20:30",
-          "location": {
-            "name": "Actors' Theatre",
-            "address": "1001 Center St, Santa Cruz, CA"
-          }
+          "venue": "AT"
         },
         {
           "id": "session-1791991837951",
           "date": "2026-04-30",
           "startTime": "18:30",
           "endTime": "21:00",
-          "notes": "Callbacks (invitation only)",
-          "location": {
-            "name": "St. Andrew's Episcopal Church",
-            "address": "101 Riverside Ave, Ben Lomond, CA"
-          }
+          "venue": "StA",
+          "notes": "Callbacks (invitation only)"
         }
       ],
       "noticeUrl": "https://mctshows.org/auditions/"
@@ -136,30 +127,21 @@
           "date": "2026-08-16",
           "startTime": "16:30",
           "endTime": "18:30",
-          "location": {
-            "name": "St Andrews Hall",
-            "address": "101 Riverside Ave, Ben Lomond, CA 95005"
-          }
+          "venue": "StA"
         },
         {
           "id": "session-1791991837953",
           "date": "2026-08-17",
           "startTime": "18:30",
           "endTime": "20:30",
-          "location": {
-            "name": "St Andrews Hall",
-            "address": "101 Riverside Ave, Ben Lomond, CA 95005"
-          }
+          "venue": "StA"
         },
         {
           "id": "session-1791991837954",
           "date": "2026-08-19",
           "startTime": "18:30",
           "endTime": "21:00",
-          "location": {
-            "name": "St Andrews Hall",
-            "address": "101 Riverside Ave, Ben Lomond, CA 95005"
-          },
+          "venue": "StA",
           "notes": "Callbacks (by invitation)"
         }
       ],

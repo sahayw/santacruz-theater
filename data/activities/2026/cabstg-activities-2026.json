@@ -30,7 +30,8 @@
       "createdAt": "2026-06-02T00:00:00Z",
       "updatedAt": "2026-06-02T00:00:00Z",
       "type": "audition",
-      "title": "Sister Act, The Musical",
+      "title": "Sister Act",
+      "productionId": "run-1779528195974",
       "dates": [
         {
           "id": "session-1791991837945",

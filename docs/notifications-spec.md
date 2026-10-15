@@ -51,8 +51,19 @@ current fields and gains:
 - Validation in `src/lib/data-rules.ts` (editor and `check-*.ts`): every record
   in an `other` file names an organizer that exists in the list. Records in a
   company's own file must not set one.
-- One shared helper resolves a record's display name and short label. The
-  calendar, `/runs`, `/events`, feeds and emails all use it.
+- One shared helper resolves a record's **organizer id**, display name and
+  short label. The id is the file's company id for a company's own records,
+  or the `organizer` field for `other` records. The calendar, `/runs`,
+  `/events`, feeds and emails all use it. Grouping (major vs Other) is
+  derived from the organizer, never stored on records.
+- **Organizer ids are permanent.** Moving an organizer from the `other` file
+  to its own files (as with Good Egg) keeps its id. Links and saved
+  subscription choices depend on it.
+- **Planned, not in this work**: a company card on `/companies` that lists
+  that company's upcoming productions on the site. The infrastructure here
+  supports it: `/runs?company=<organizer id>` works for any organizer (see
+  [`/events` and `/runs`](#events-and-runs)). How the card offers "website"
+  vs "productions here" is still open.
 - The editor offers a picker of existing organizers for `other` records. New
   organizers are added by hand edit only.
 
@@ -188,6 +199,11 @@ Terminology: the **year view** and the **month view** (larger screens) or
   - `/events`: Upcoming/All and Auditions/Events.
   - `/runs`: Upcoming/All, and Company (the four majors plus Other).
 - Every card names its organizer.
+- Cards carry the organizer id (`data-organizer`), not the data file's
+  company (today every catch-all production is tagged `"other"`).
+- `/runs?company=<organizer id>` filters to any one organizer, including ones
+  not in the dropdown. The dropdown (four majors plus Other) is just the
+  visible control. `/events` accepts the same parameter.
 
 ## Stages
 
@@ -195,12 +211,12 @@ Each stage is built on `email-updates` and tested before the next. UI is
 tested locally (`npm run dev`). The prototype runs on Netlify's `dev` deploy,
 with `EMAIL_DIGEST_DRY_RUN=true`.
 
-| Stage | Work                                                                                                                                                                                                          |
-| ----- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1     | Organizer list: new fields, new entries, `organizer` on `other` records, validation rule, shared display helper, editor picker, migration script, organizer names shown where "Other" or a blank shows today. |
-| 2     | Calendar: year-view squares, month view and phone week view, entry format, descriptions in the performance card, major colours from data, the 16 static feeds and the checkbox dialog.                        |
-| 3     | Notifications: `notice-rules.ts`, snapshots, the two digests, individual sends, `/subscribe` and the `preferences` function, emails and welcome email, subscriber migration.                                  |
-| 4     | Nav link, `/events` and `/runs` bars, hub link removal.                                                                                                                                                       |
+| Stage | Work                                                                                                                                                                                                                                                                               |
+| ----- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1     | Organizer list: new fields, new entries, `organizer` on `other` records, validation rule, shared organizer helper (id, name, label), editor picker, migration script, organizer names shown where "Other" or a blank shows today, `data-organizer` on `/runs` and `/events` cards. |
+| 2     | Calendar: year-view squares, month view and phone week view, entry format, descriptions in the performance card, major colours from data, the 16 static feeds and the checkbox dialog.                                                                                             |
+| 3     | Notifications: `notice-rules.ts`, snapshots, the two digests, individual sends, `/subscribe` and the `preferences` function, emails and welcome email, subscriber migration.                                                                                                       |
+| 4     | Nav link, `/events` and `/runs` bars (including `?company=<organizer id>`), hub link removal.                                                                                                                                                                                      |
 
 **Releasing the migration**: as in `ics-spec.md`, live editor saves land on
 `main`. So the data migration is regenerated at release time rather than

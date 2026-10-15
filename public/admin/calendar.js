@@ -49,6 +49,8 @@ let currentYear = CURRENT_YEAR
 let currentCompanyAbv = ''
 let venuesList = []
 let isDirty = false
+let pendingReturn = null // set by "Add production": the audition to go back to once the show is saved
+let addedRunId = null
 let runSnapshots = new Map()
 let prevCalGenreVals = []
 let isAdminContext = false
@@ -540,7 +542,7 @@ const CAL_HTML = `
 
       <div class="run-fields">
         <div class="hdr-row">
-          <div class="field-group" id="f-organizer-group" style="flex:0 0 220px">
+          <div class="field-group" id="f-organizer-group" style="flex:0 0 150px">
             <label class="field-label">Organizer</label>
             <div id="f-organizer"></div>
           </div>
@@ -587,9 +589,7 @@ const CAL_HTML = `
             <label class="field-label">Genre (up to ${MAX_GENRES})</label>
             ${genreBoxesHtml('f-genre', 'cal.genreChanged(this)')}
           </div>
-        </div>
-        <div class="hdr-row">
-          <div class="field-group" style="flex:1 1 100%">
+          <div class="field-group" style="flex:0 1 auto">
             <label class="field-label">Co-producers</label>
             <div id="f-coproducers"></div>
           </div>
@@ -874,7 +874,7 @@ async function onYearSelect() {
 // ── PERSISTENCE ──
 function markDirty() {
   if (!currentCompanyId) return
-  isDirty = true
+  isDirty = computeRunsDirty()
   updateStatus()
   updateSaveBtn()
   updateRestoreBtn()
@@ -900,6 +900,7 @@ async function saveFile() {
     renderSidebar()
     loadRunEditor()
   }
+  if (!computeRunsDirty()) return // nothing entered — nothing to save
   const { errors, warnings } = collectIssues()
   if (errors.length) {
     alert('Cannot save — fix these issues:\n\n' + errors.join('\n'))
@@ -931,6 +932,13 @@ async function saveFile() {
     btn.style.color = '#fff'
     btn.style.borderColor = 'var(--green)'
     updateStatus()
+    const added = pendingReturn && runs.find((r) => r.id === addedRunId)
+    if (added && confirm(`"${added.show || added.showAbv}" is saved. Go back to the audition?`)) {
+      const resume = { ...pendingReturn, productionId: added.id, title: added.show }
+      pendingReturn = null
+      window.openEditor('activities', { resumeActivity: resume })
+      return
+    }
     setTimeout(() => {
       btn.textContent = 'Save'
       updateSaveBtn()
@@ -997,6 +1005,15 @@ function selectRun(idx) {
   loadRunEditor()
 }
 
+/** Unsaved changes, ignoring a new show nothing has been entered in yet. */
+function computeRunsDirty() {
+  const kept = runs.filter((r) => !isUntouchedNewRun(r))
+  return (
+    kept.length !== runSnapshots.size ||
+    kept.some((r) => runSnapshots.get(r.id) !== makeRunSnapshot(r))
+  )
+}
+
 /** A new show nothing has been entered in yet (never saved, all blank). */
 function isUntouchedNewRun(r) {
   return (
@@ -1019,9 +1036,7 @@ function dropUntouchedNewRun() {
   if (activeRunIdx < 0 || !isUntouchedNewRun(runs[activeRunIdx])) return false
   runs.splice(activeRunIdx, 1)
   activeRunIdx = -1
-  isDirty =
-    runs.length !== runSnapshots.size ||
-    runs.some((r) => runSnapshots.get(r.id) !== makeRunSnapshot(r))
+  isDirty = computeRunsDirty()
   updateStatus()
   updateSaveBtn()
   return true
@@ -1910,7 +1925,7 @@ export function mount(container, context) {
  * Handed off from the Activities editor's "Add production": opens the company's file
  * for that year (creating it if needed) with a new show, titled as typed there.
  */
-async function startAddRun({ company, year, show, organizers }) {
+async function startAddRun({ company, year, show, organizers, returnTo }) {
   if (isAdminContext) document.getElementById('companySelect').value = company
   pendingCompanyId = company
   if (!allShowFiles.some((f) => f.companyId === company && f.year === year)) {
@@ -1929,6 +1944,8 @@ async function startAddRun({ company, year, show, organizers }) {
   const r = runs[activeRunIdx]
   r.show = show || ''
   if (organizers?.length) r.organizers = organizers
+  pendingReturn = returnTo || null
+  addedRunId = r.id
   loadRunEditor()
   renderSidebar()
   markDirty()
@@ -1955,4 +1972,6 @@ export function unmount() {
   isDirty = false
   runSnapshots = new Map()
   isAdminContext = false
+  pendingReturn = null
+  addedRunId = null
 }

@@ -529,7 +529,7 @@ const ACT_HTML = `
         <!-- Row 1: who and what. Organizer only for records filed under Other. An audition's
              title is its production: pick the run, or type a title if it isn't on file yet. -->
         <div class="act-hdr-row">
-          <div class="act-field-group" id="afOrganizerGroup" style="flex:0 0 220px">
+          <div class="act-field-group" id="afOrganizerGroup" style="flex:0 0 150px">
             <label class="act-field-label">Organizer</label>
             <div id="af-organizer"></div>
           </div>
@@ -873,22 +873,50 @@ function productionChanged() {
  * (reopen the audition and pick it).
  */
 function addProduction(a) {
-  if (computeIsDirty()) {
-    alert('Save your changes first, then add the production.')
-    return
-  }
   if (currentCompanyId === 'other' && !a.organizers?.length) {
     alert('Choose the organizer first, so the production is filed under them.')
     return
   }
+  if (
+    othersDirty(a) &&
+    !confirm('Other activities have unsaved changes, which will be lost. Continue?')
+  )
+    return
+  a.title = document.getElementById('af-title').value
   window.openEditor('calendar', {
     addRun: {
       company: currentCompanyId,
       year: currentYear,
-      show: document.getElementById('af-title').value.trim(),
-      organizers: currentCompanyId === 'other' ? [a.organizers[0]] : undefined
+      show: a.title.trim(),
+      organizers: currentCompanyId === 'other' ? [a.organizers[0]] : undefined,
+      // This audition as entered so far; it comes back, linked, once the show is saved
+      returnTo: {
+        company: currentCompanyId,
+        year: currentYear,
+        draft: JSON.parse(JSON.stringify(a))
+      }
     }
   })
+}
+
+/**
+ * Back from "Add production": reloads the file and restores the audition as it was,
+ * now linked to the new show and titled after it.
+ */
+async function resumeActivity({ company, year, draft, productionId, title }) {
+  if (isAdminContext) document.getElementById('actCompanySelect').value = company
+  pendingCompanyId = company
+  populateYearSelect(allActFiles.filter((f) => f.companyId === company).map((f) => f.year))
+  document.getElementById('actYearSelect').value = String(year)
+  await loadCompanyFile(company, year)
+  const rec = { ...draft, productionId, title }
+  const i = activities.findIndex((x) => x.id === draft.id)
+  if (i >= 0) activities[i] = rec
+  else activities.push(rec)
+  activeActIdx = activities.indexOf(rec)
+  renderSidebar()
+  loadActEditor()
+  markDirty()
 }
 
 /** Records filed under Other pick their organizer; auditions and events have no co-producers. */
@@ -1055,16 +1083,21 @@ async function onYearSelect() {
 }
 
 // ── PERSISTENCE ──
+/** Unsaved changes, ignoring a new record nothing has been entered in yet. */
 function computeIsDirty() {
-  if (activities.length !== actSnapshots.size) return true
-  for (const a of activities) {
-    const snap = actSnapshots.get(a.id)
-    if (!snap) return true
-    const clean = { ...a, dates: (a.dates || []).filter((d) => !isEmptyDateRow(d)) }
-    const { updatedAt, ...rest } = clean
-    if (snap !== JSON.stringify(rest)) return true
-  }
-  return false
+  const kept = activities.filter((a) => !isUntouchedNew(a))
+  if (kept.length !== actSnapshots.size) return true
+  return kept.some((a) => actSnapshots.get(a.id) !== makeActivitySnapshot(a))
+}
+
+/** Unsaved changes in any record other than `a`. */
+function othersDirty(a) {
+  const others = activities.filter((x) => x !== a && !isUntouchedNew(x))
+  const savedOthers = [...actSnapshots.keys()].filter((id) => id !== a.id)
+  return (
+    others.length !== savedOthers.length ||
+    others.some((x) => actSnapshots.get(x.id) !== makeActivitySnapshot(x))
+  )
 }
 
 function markDirty() {
@@ -1095,6 +1128,7 @@ async function saveFile() {
     loadActEditor()
     updateSaveBtn()
   }
+  if (!computeIsDirty()) return // nothing entered — nothing to save
   const { errors, warnings } = collectIssues()
   if (errors.length) {
     alert('Cannot save — fix these issues:\n\n' + errors.join('\n'))
@@ -2362,7 +2396,9 @@ export function mount(container, context) {
     document.addEventListener('mouseup', _resizeMouseUp)
   })
 
-  initFromContext(context)
+  initFromContext(context).then(() => {
+    if (context.intent?.resumeActivity) resumeActivity(context.intent.resumeActivity)
+  })
   updateStatus()
   updateSaveBtn()
 }

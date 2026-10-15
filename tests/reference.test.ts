@@ -127,6 +127,13 @@ describe('record rules', () => {
     expect(activityIssues(missing, 2026, 'tst', { ...refs, runIds: undefined }).errors).toEqual([])
   })
 
+  it('warns when an audition isn’t linked to a production', () => {
+    const warn = 'not linked to a production — fine only for an audition covering several shows'
+    expect(activityIssues(activity(), 2026, 'tst', refs).warnings).toEqual([warn])
+    expect(activityIssues(activity({ productionId: 'run-1700000000000' }), 2026, 'tst', refs).warnings).toEqual([])
+    expect(activityIssues(activity({ type: 'event' }), 2026, 'tst', refs).warnings).toEqual([])
+  })
+
   it('accepts a named organizer’s website as an event’s contact', () => {
     const bare = activity({ type: 'event', rolesAvailable: undefined, contact: undefined })
     expect(activityIssues(bare, 2026, 'tst', refs).errors[0]).toMatch(/an event needs a contact/)

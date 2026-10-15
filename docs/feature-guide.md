@@ -213,7 +213,8 @@ A new record is an **Audition** or an **Event**; this can't change later.
 - Header buttons: Preview / Restore / Delete, plus **Close** / **Reopen**.
 - A new audition or event that you leave before entering anything is
   discarded, so it doesn't linger as "Untitled" (the same goes for a new
-  show in the Calendar editor).
+  show in the Calendar editor). Save does nothing when nothing has been
+  entered.
 
 **Audition only**
 
@@ -221,9 +222,13 @@ A new record is an **Audition** or an **Event**; this can't change later.
   runs (or, under Other, the organizer's), each labelled with its date range
   or "no dates yet". Picking one sets the title. If the production isn't on
   file yet, choose **Add production…**: it opens the Calendar editor with a
-  new show titled as typed (save the audition first). Once that show is
-  saved, come back and pick it. "Not on file" with a typed title remains for
-  the rare case where no show record is wanted.
+  new show titled as typed. Save the show (dates can come later) and you're
+  offered a way back to the audition, now linked to it, with everything you'd
+  entered. Only unsaved changes to _other_ activities would be lost, and
+  you're asked first.
+- An audition is expected to be for one production. One covering several
+  shows (e.g. a season audition) can choose "Not on file" and type a title;
+  saving then warns, and you can save anyway.
 - Genre (up to two); rehearsal-start and opening dates; notice URL;
   production-info URL.
 - **Roles table**: name, type, gender, age range, casting note, and voice

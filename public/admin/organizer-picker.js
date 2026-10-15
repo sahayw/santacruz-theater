@@ -50,7 +50,9 @@ export function renderOrganizerFields({
   const list = [...(organizers || [])]
   const main = isOther ? list[0] || '' : fileCompany
   const coProducers = isOther ? list.slice(1) : list
-  const name = (id) => companies.find((c) => c.id === id)?.name || id
+  // Short labels keep the fields narrow; the full name is the tooltip
+  const label = (c) => c.abvName || c.name
+  const entry = (id) => companies.find((c) => c.id === id) || { id, abvName: id, name: id }
   const rerender = (value) =>
     renderOrganizerFields({
       mainEl,
@@ -71,9 +73,10 @@ export function renderOrganizerFields({
     mainEl.innerHTML = `<select class="${selectClass}" data-org="main">
         <option value="">— Choose —</option>
         ${otherOrganizers(companies)
+          .sort((a, b) => label(a).localeCompare(label(b)))
           .map(
             (c) =>
-              `<option value="${c.id}" ${c.id === main ? 'selected' : ''}>${esc(c.name)}</option>`
+              `<option value="${c.id}" title="${esc(c.name)}" ${c.id === main ? 'selected' : ''}>${esc(label(c))}</option>`
           )
           .join('')}
       </select>`
@@ -86,19 +89,19 @@ export function renderOrganizerFields({
   }
 
   if (coEl) {
-    const addable = allOrganizers(companies).filter(
-      (c) => c.id !== main && !coProducers.includes(c.id)
-    )
+    const addable = allOrganizers(companies)
+      .filter((c) => c.id !== main && !coProducers.includes(c.id))
+      .sort((a, b) => label(a).localeCompare(label(b)))
     coEl.innerHTML = `<div class="org-picker">
         ${coProducers
           .map(
             (id) =>
-              `<span class="org-chip">${esc(name(id))}<button type="button" data-org-remove="${esc(id)}" title="Remove co-producer">×</button></span>`
+              `<span class="org-chip" title="${esc(entry(id).name)}">${esc(label(entry(id)))}<button type="button" data-org-remove="${esc(id)}" title="Remove co-producer">×</button></span>`
           )
           .join('')}
         <select class="${selectClass}" data-org="add">
           <option value="">${coProducers.length ? '+ Add another…' : 'None'}</option>
-          ${addable.map((c) => `<option value="${c.id}">${esc(c.name)}</option>`).join('')}
+          ${addable.map((c) => `<option value="${c.id}" title="${esc(c.name)}">${esc(label(c))}</option>`).join('')}
         </select>
       </div>`
     coEl.querySelector('[data-org="add"]').addEventListener('change', (e) => {

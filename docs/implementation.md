@@ -156,7 +156,7 @@ Auditions and events share one schema.
 | `dates`                          | `ActivityDate[]`        | both       | ordered sessions                                           |
 | `contact`                        | `ActivityContact?`      | both       | `{ name?, email?, phone? }`                                |
 | `noticeUrl`                      | `string?`               | both       | primary info link                                          |
-| `organizerName` / `organizerUrl` | `string?`               | both       | used when `company` is `"other"`                           |
+| `organizerName` / `organizerUrl` | `string?`               | both       | `"other"` only; the name stands in for the company         |
 | `closed`                         | `boolean?`              | both       | excluded from upcoming; reversible                         |
 | `createdAt` / `updatedAt`        | `string`                | both       | ISO 8601 — drive the digest ([§8](#8-email-notifications)) |
 | `genre`                          | `Genre[]`               | audition   |                                                            |

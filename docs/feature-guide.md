@@ -146,10 +146,10 @@ if there's only one).
 
 A filterable list of collapsed cards; click to expand.
 
-| Card     | Collapsed                                                      | Expanded adds                                                   |
-| -------- | -------------------------------------------------------------- | --------------------------------------------------------------- |
-| Audition | title, genre, company, opening date, roles summary, date range | every session, locations, what to prepare, roles table, contact |
-| Event    | title, blurb, company, date range (or "On request")            | sessions, description, cost, register link, contact             |
+| Card     | Collapsed                                                      | Expanded adds                                                              |
+| -------- | -------------------------------------------------------------- | -------------------------------------------------------------------------- |
+| Audition | title, genre, company, opening date, roles summary, date range | every session, locations, what to prepare, roles table, organizer, contact |
+| Event    | title, blurb, company, date range (or "On request")            | sessions, description, cost, register link, contact, organizer             |
 
 - A location shared by every session is shown once.
 - **Status pills**: "Virtual", "Closed", "Past".
@@ -185,7 +185,9 @@ A new record is an **Audition** or an **Event**; this can't change later.
   name/address, session notes. A new row copies the previous row's time and
   location.
 - Contact: name, email, phone.
-- For records under "Other" (no listed company): organizer name and URL.
+- For records under "Other" (no listed company): organizer name and URL. The
+  name replaces the company on the card and in the email digest; an expanded
+  card shows both under **Organizer**, the URL spelled out in full.
 - Header buttons: Preview / Restore / Delete, plus **Close** / **Reopen**.
 
 **Audition only**

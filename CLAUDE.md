@@ -14,6 +14,7 @@ The site is a hub (`/`) linking to four sections: **Calendar** (`/calendar`), **
 | [`docs/feature-guide.md`](docs/feature-guide.md)               | **Canonical description of what the system does** — every public-facing and editorial capability, written for anyone (not just editors) who wants the full picture without exploring the site. Read this to understand a feature before changing it. |
 | [`docs/implementation.md`](docs/implementation.md)             | **Canonical technical reference** — data schemas, data flow, the `/admin` SPA, shared modules, functions, email, env vars, build/deploy. Read this before touching code.                                                                             |
 | [`docs/ics-spec.md`](docs/ics-spec.md)                         | Calendar feeds design record — why feeds are static, subscribe-vs-single-event rules, occurrence ids, history window. Read before changing feed content or the Add to my calendar dialog.                                                           |
+| [`docs/notifications-spec.md`](docs/notifications-spec.md)     | Email updates, organizers & calendar redesign design record (agreed 2026-10-15, being built in stages on `email-updates`) — two email lists, majors vs Other, change detection, `/subscribe`, year/month/week views. Read before working on any of these. |
 | `README.md`                                                    | GitHub-facing intro + quick start; points here for depth                                                                                                                                                                                             |
 
 **When you change a feature or its data shape, update `docs/implementation.md` (schema/mechanics) and `docs/feature-guide.md` (user-visible behavior) in the same change — don't let them drift from the code or each other.**
@@ -41,7 +42,7 @@ There is no bare `astro dev` / `astro preview` script — `npm run dev` (netlify
 - `public/images/companies/`, `public/images/services/` — locally stored images
 - `scripts/` — `check-*.ts` (`npm run check`; `check-feeds.ts` runs after the build), `sync-branches.sh` / `release.sh` (`npm run sync` / `release`), `migrate-occurrence-ids.ts` (one-off, `npx tsx`)
 - `tests/` — vitest unit tests (run by `npm run check`); fixture data in `tests/fixtures/`, never live `data/`
-- `docs/` — `feature-guide.md`, `implementation.md`, `ics-spec.md` (calendar feeds design record)
+- `docs/` — `feature-guide.md`, `implementation.md`, `ics-spec.md` (calendar feeds design record), `notifications-spec.md` (email updates, organizers & calendar redesign design record)
 - `netlify/functions/` — serverless functions; full list and purpose in `docs/implementation.md` §7. **New functions use the Netlify Functions v2 interface** (`export default async (req: Request) => ...` + `export const config`) rather than the legacy `export const handler = schedule(...)` style — existing legacy functions (`data.mjs`, `send-digest.mts`) aren't being migrated proactively.
 
 ## Cross-cutting rules — easy to miss, don't skip

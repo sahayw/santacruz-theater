@@ -28,6 +28,9 @@
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
+/* Hint text: light and italic so it can't be mistaken for an entered value */
+input::placeholder, textarea::placeholder { color: #cbc4b8; font-style: italic; opacity: 1; }
+
 body {
   font-family: 'IBM Plex Sans', sans-serif;
   background: var(--bg);

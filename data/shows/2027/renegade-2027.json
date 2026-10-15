@@ -81,6 +81,79 @@
           "ticketsUrl": ""
         }
       ]
+    },
+    {
+      "id": "run-1792107167079",
+      "company": "renegade",
+      "showAbv": "R+J",
+      "show": "Romeo + Juliet",
+      "description": "",
+      "genre": [
+        "Drama"
+      ],
+      "venue": "London Nelson Community Center",
+      "price": "$33.42",
+      "discounts": "Student: $28.22",
+      "infoUrl": "",
+      "ticketsUrl": "https://onthestage.tickets/show/renegade-theater-co/6ab80d030bee17532f888ac4/tickets#/productions-view",
+      "performances": [
+        {
+          "date": "2027-04-02",
+          "time": "19:00",
+          "perfType": "Opening",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2027-04-03",
+          "time": "19:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2027-04-04",
+          "time": "14:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2027-04-09",
+          "time": "19:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2027-04-10",
+          "time": "19:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2027-04-11",
+          "time": "14:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2027-04-16",
+          "time": "19:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "date": "2027-04-17",
+          "time": "19:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        }
+      ]
     }
   ]
 }

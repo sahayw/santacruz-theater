@@ -304,6 +304,29 @@ function roleTypeLabel(type: string): string {
                             </section>
                           )}
 
+                          {(act.organizerName || act.organizerUrl) && (
+                            <section class="detail-section">
+                              <h4 class="detail-section-head">Organizer</h4>
+                              {act.organizerName && (
+                                <div class="detail-sub" style="font-size:13px;color:var(--ink)">
+                                  {act.organizerName}
+                                </div>
+                              )}
+                              {act.organizerUrl && (
+                                <div class="detail-sub" style="overflow-wrap:anywhere">
+                                  <a
+                                    href={act.organizerUrl}
+                                    class="detail-link-inline"
+                                    target="_blank"
+                                    rel="noopener"
+                                  >
+                                    {act.organizerUrl}
+                                  </a>
+                                </div>
+                              )}
+                            </section>
+                          )}
+
                           {act.contact &&
                             (act.contact.name || act.contact.email || act.contact.phone) && (
                               <section class="detail-section contact-section">
@@ -487,23 +510,26 @@ function roleTypeLabel(type: string): string {
                             )}
                         </div>
 
-                        {(act.description || act.organizerName) && (
+                        {(act.description || act.organizerName || act.organizerUrl) && (
                           <div class="detail-right">
-                            {act.organizerName && (
+                            {(act.organizerName || act.organizerUrl) && (
                               <section class="detail-section">
                                 <h4 class="detail-section-head">Organizer</h4>
-                                {act.organizerUrl ? (
-                                  <a
-                                    href={act.organizerUrl}
-                                    class="detail-link-inline"
-                                    target="_blank"
-                                    rel="noopener"
-                                  >
-                                    {act.organizerName}
-                                  </a>
-                                ) : (
+                                {act.organizerName && (
                                   <div class="detail-sub" style="font-size:13px;color:var(--ink)">
                                     {act.organizerName}
+                                  </div>
+                                )}
+                                {act.organizerUrl && (
+                                  <div class="detail-sub" style="overflow-wrap:anywhere">
+                                    <a
+                                      href={act.organizerUrl}
+                                      class="detail-link-inline"
+                                      target="_blank"
+                                      rel="noopener"
+                                    >
+                                      {act.organizerUrl}
+                                    </a>
                                   </div>
                                 )}
                               </section>

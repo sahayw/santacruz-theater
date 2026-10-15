@@ -2000,6 +2000,16 @@ function openPreview() {
     leftColHtml += `<section class="pv-section"><h4 class="pv-section-head">Register</h4><div><a href="${esc(a.registerUrl)}" class="pv-link-inline" target="_blank" rel="noopener">Register here →</a></div></section>`
   }
 
+  // Events show the organizer in the right column; auditions keep it here, above Contact
+  const organizerHtml =
+    a.organizerName || a.organizerUrl
+      ? `<section class="pv-section"><h4 class="pv-section-head">Organizer</h4>
+      ${a.organizerName ? `<div class="pv-sub" style="font-size:13px">${esc(a.organizerName)}</div>` : ''}
+      ${a.organizerUrl ? `<div class="pv-sub" style="overflow-wrap:anywhere"><a href="${esc(a.organizerUrl)}" class="pv-link-inline" target="_blank" rel="noopener">${esc(a.organizerUrl)}</a></div>` : ''}
+    </section>`
+      : ''
+  if (!isEvent) leftColHtml += organizerHtml
+
   if (a.contact && (a.contact.name || a.contact.email || a.contact.phone)) {
     leftColHtml += `<section class="pv-section pv-contact-section"><h4 class="pv-section-head">Contact</h4>
       ${a.contact.name ? `<div class="pv-contact-name">${esc(a.contact.name)}</div>` : ''}
@@ -2029,8 +2039,10 @@ function openPreview() {
       </tr></thead><tbody>${rows}</tbody></table></section>`
   }
 
+  if (isEvent && organizerHtml) rightColHtml = organizerHtml
+
   if (isEvent && a.description) {
-    rightColHtml = `<section class="pv-section"><h4 class="pv-section-head">About</h4><div class="pv-sub" style="font-size:13px;line-height:1.55;white-space:pre-wrap">${renderMd(a.description)}</div></section>`
+    rightColHtml += `<section class="pv-section"><h4 class="pv-section-head">About</h4><div class="pv-sub" style="font-size:13px;line-height:1.55;white-space:pre-wrap">${renderMd(a.description)}</div></section>`
   }
 
   const metaRow = `${esc(displayName)}${!isEvent && a.openingDate ? ` · Opens ${fmtShortDate(a.openingDate)}` : ''}${!isEvent && a.rehearsalStart ? ` · Rehearsals start ${fmtShortDate(a.rehearsalStart)}` : ''}`

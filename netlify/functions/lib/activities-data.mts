@@ -53,7 +53,9 @@ export function loadAllActivities(): DigestActivity[] {
           activities.push({
             ...a,
             company: parsed.company,
-            companyName: nameMap[parsed.company] ?? parsed.company,
+            companyName:
+              (parsed.company === 'other' && a.organizerName) ||
+              (nameMap[parsed.company] ?? parsed.company),
             year: parsed.year
           })
         }

@@ -1,11 +1,10 @@
 # Email Updates, Organizers & Calendar Redesign — Spec
 
-Status: **agreed 2026-10-15, not yet built.** Work happens on the
-`email-updates` branch (from `dev`). This is the design record. Once each stage
-ships, `implementation.md` and `feature-guide.md` describe how the system
-works. Clickable mockups of the agreed UI:
-<https://claude.ai/artifact/RZBHrgQFbHg8ehSkXVjuyH>. They are a guide, not
-pixel-exact. They predate the `/runs` → `/productions` rename.
+Status: **agreed 2026-10-15; stage 1 built on `email-updates`, stages 2–4 to
+come.** This is the design record. Once each stage ships, `implementation.md`
+and `feature-guide.md` describe how the system works. Clickable mockups of the
+agreed UI: <https://claude.ai/artifact/RZBHrgQFbHg8ehSkXVjuyH>. They are a
+guide, not pixel-exact, and predate the `/runs` → `/productions` rename.
 
 ## Goal
 
@@ -45,12 +44,13 @@ later.
 The companies file becomes the single list of organizers. Each entry keeps its
 current fields and gains:
 
-| Field             | Type       | Notes                                                                                  |
-| ----------------- | ---------- | -------------------------------------------------------------------------------------- |
-| `major`           | `boolean?` | Offered as a checkbox in subscriptions; has its own calendar colour.                   |
-| `majorCode`       | `number?`  | Majors only: 1, 2, 4, 8… Permanent. Used to number the filtered feeds (see Addresses). |
-| `colour`          | `string?`  | Majors only. Moves the hard-coded colours out of `calendar.astro`.                     |
-| `onCompaniesPage` | `boolean?` | Replaces "show everything not `adminOnly`" on `/companies`. Set by hand.               |
+| Field             | Type       | Notes                                                                                                       |
+| ----------------- | ---------- | ----------------------------------------------------------------------------------------------------------- |
+| `filedUnderOther` | `boolean?` | No data files of its own; its records live in `other-<year>` files. Keeps it out of editors' company lists. |
+| `major`           | `boolean?` | Offered as a checkbox in subscriptions; has its own calendar colour.                                        |
+| `majorCode`       | `number?`  | Majors only: 1, 2, 4, 8… Permanent. Used to number the filtered feeds (see Addresses).                      |
+| `colour`          | `string?`  | Majors only. Moves the hard-coded colours out of `calendar.astro`.                                          |
+| `onCompaniesPage` | `boolean?` | Replaces "show everything not `adminOnly`" on `/companies`. Set by hand.                                    |
 
 - `abvName` is the **short label** (about 12 characters or fewer). It is shown
   in calendar entries ("7:30pm · Much Ado · SCS"), the desktop year-view hover

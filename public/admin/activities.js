@@ -10,7 +10,10 @@ import {
 } from '/admin/audition-format.js'
 import { activityIssues, isDateNearYear, isRealDate, isValidTime } from '/admin/data-rules.js'
 import { createIdGenerator, ensureSessionIds } from '/admin/occurrence-ids.js'
+import { organizerEntries, organizerName, recordOrganizerIds } from '/admin/organizers.js'
+import { sessionPlace, venueByCode } from '/admin/venues.js'
 import { markdownToolbar } from './markdown-editor.js'
+import { renderOrganizerPicker } from './organizer-picker.js'
 
 const ROLE_TYPES = ['lead', 'supporting', 'ensemble']
 const ROLE_GENDERS = ['any', 'female', 'male']
@@ -29,6 +32,8 @@ let currentYear = CURRENT_YEAR
 let currentCompanyAbv = ''
 let isAdminContext = false
 let venuesList = []
+let companyRuns = [] // this company's productions, every year, for the audition's Production picker
+let companyRunIds = undefined // Set of their ids for validation; undefined if they couldn't load
 let actSnapshots = new Map()
 let prevActGenreVals = []
 let _resizeMouseMove = null
@@ -208,6 +213,8 @@ const ACT_CSS = `
 .act-table thead th.col-etime { width: 60px; }
 .act-table thead th.col-locn  { width: 150px; }
 .act-table thead th.col-loca  { width: 160px; }
+.act-table thead th.col-room  { width: 110px; }
+.act-cell-input[readonly] { color: var(--ink-faint); }
 .act-table thead th.col-type  { width: 100px; }
 .act-table thead th.col-gend  { width: 80px; }
 .act-table thead th.col-age   { width: 90px; }
@@ -535,6 +542,10 @@ const ACT_HTML = `
             <label class="act-field-label">Production URL</label>
             <input class="act-field-input mono" id="af-prod-url" placeholder="https://…" oninput="act.fieldChanged()">
           </div>
+          <div class="act-field-group" style="grid-column:span 5">
+            <label class="act-field-label">Production</label>
+            <select class="act-field-select" id="af-production" onchange="act.fieldChanged()"></select>
+          </div>
         </div>
 
         <!-- Event-only fields (no genre col, so span full 6 cols) -->
@@ -557,15 +568,11 @@ const ACT_HTML = `
           </div>
         </div>
 
-        <!-- Other-company fields (visible when company = other) -->
-        <div class="act-fields-conditional hidden" id="actOtherFields">
-          <div class="act-field-group" style="grid-column:span 3">
-            <label class="act-field-label">Organizer Name</label>
-            <input class="act-field-input" id="af-org-name" placeholder="Organization or individual" oninput="act.fieldChanged()">
-          </div>
-          <div class="act-field-group" style="grid-column:span 3">
-            <label class="act-field-label">Organizer URL</label>
-            <input class="act-field-input mono" id="af-org-url" placeholder="https://…" oninput="act.fieldChanged()">
+        <!-- Organizer (filed under Other) or co-producers (any company) -->
+        <div class="act-fields-conditional" id="actOrganizerFields">
+          <div class="act-field-group" style="grid-column:span 6">
+            <label class="act-field-label" id="af-organizers-label">Co-producers</label>
+            <div id="af-organizers"></div>
           </div>
         </div>
       </div>
@@ -600,6 +607,7 @@ const ACT_HTML = `
                   <th class="col-etime">End</th>
                   <th class="col-locn">Location</th>
                   <th class="col-loca">Address</th>
+                  <th class="col-room">Room</th>
                   <th>Notes</th>
                 </tr>
               </thead>
@@ -753,6 +761,7 @@ async function loadCompanyFile(coId, year) {
     currentCompanyId = coId
     currentYear = data.year || year
     currentCompanyAbv = allCompanies.find((c) => c.id === coId)?.abvName || coId
+    await loadCompanyRuns(coId)
     activeActIdx = activities.length > 0 ? 0 : -1
     refreshSnapshots()
     document.getElementById('actNewBtns')?.setAttribute('style', '')
@@ -763,6 +772,61 @@ async function loadCompanyFile(coId, year) {
   } catch (e) {
     alert('Could not load activities file: ' + e.message)
   }
+}
+
+/** This company's productions across every year (including ones without dates yet). */
+async function loadCompanyRuns(coId) {
+  try {
+    const resp = await fetch('/.netlify/functions/data?dir=shows')
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}`)
+    const files = (await resp.json()).filter((f) => f.companyId === coId)
+    const loaded = await Promise.all(
+      files.map((f) => apiFetch(`shows/${f.year}/${coId}-${f.year}.json`).then((d) => d.runs || []))
+    )
+    companyRuns = loaded.flat()
+    companyRunIds = new Set(companyRuns.map((r) => r.id))
+  } catch (e) {
+    console.warn('Could not load productions for the Production picker:', e)
+    companyRuns = []
+    companyRunIds = undefined
+  }
+}
+
+function renderProductionOptions(a) {
+  const sel = document.getElementById('af-production')
+  const firstDate = (r) => r.performances.map((p) => p.date).sort()[0]
+  const runs = [...companyRuns].sort((x, y) =>
+    (firstDate(y) || '9999').localeCompare(firstDate(x) || '9999')
+  )
+  const known = new Set(runs.map((r) => r.id))
+  sel.innerHTML =
+    '<option value="">— None —</option>' +
+    runs
+      .map((r) => {
+        const when = firstDate(r) ? fmtFullDate(firstDate(r)) : 'no dates yet'
+        return `<option value="${esc(r.id)}">${esc(r.show || r.showAbv || r.id)} (${esc(when)})</option>`
+      })
+      .join('') +
+    (a.productionId && !known.has(a.productionId)
+      ? `<option value="${esc(a.productionId)}">${esc(a.productionId)} (not found)</option>`
+      : '')
+  sel.value = a.productionId || ''
+}
+
+function renderActOrganizers(a) {
+  document.getElementById('af-organizers-label').textContent =
+    currentCompanyId === 'other' ? 'Organizer' : 'Co-producers'
+  renderOrganizerPicker(document.getElementById('af-organizers'), {
+    fileCompany: currentCompanyId,
+    organizers: a.organizers,
+    companies: allCompanies,
+    onChange: (value) => {
+      if (value) a.organizers = value
+      else delete a.organizers
+      renderSidebar()
+      markDirty()
+    }
+  })
 }
 
 // ── EMPTY STATE ──
@@ -1066,8 +1130,8 @@ function loadActEditor() {
   document.getElementById('af-cost').value = a.cost || ''
   document.getElementById('af-event-notice-url').value = a.type === 'event' ? a.noticeUrl || '' : ''
   document.getElementById('af-register-url').value = a.registerUrl || ''
-  document.getElementById('af-org-name').value = a.organizerName || ''
-  document.getElementById('af-org-url').value = a.organizerUrl || ''
+  renderActOrganizers(a)
+  renderProductionOptions(a)
 
   document.getElementById('af-virtual').checked = !!a.virtualSubmission
   document.getElementById('af-dates-by-request').checked = !!a.datesByRequest
@@ -1187,11 +1251,6 @@ function updateTypeLayout() {
     if (notesSection) notesSection.style.display = ''
   }
 
-  const otherFields = document.getElementById('actOtherFields')
-  if (otherFields) {
-    otherFields.classList.toggle('hidden', currentCompanyId !== 'other')
-  }
-
   // Re-measure now that the correct textarea is visible
   const descTa = document.getElementById('af-description')
   const notesTa = document.getElementById('af-notes')
@@ -1257,6 +1316,7 @@ function fieldChanged() {
     a.openingDate = document.getElementById('af-opening').value || undefined
     a.noticeUrl = document.getElementById('af-notice-url').value || undefined
     a.productionUrl = document.getElementById('af-prod-url').value || undefined
+    a.productionId = document.getElementById('af-production').value || undefined
     a.virtualSubmission = document.getElementById('af-virtual').checked || undefined
     a.briefDescription = undefined
     a.cost = undefined
@@ -1283,14 +1343,10 @@ function fieldChanged() {
     a.rehearsalStart = undefined
     a.openingDate = undefined
     a.productionUrl = undefined
+    a.productionId = undefined
     a.virtualSubmission = undefined
     a.prep = undefined
     a.rolesAvailable = undefined
-  }
-
-  if (currentCompanyId === 'other') {
-    a.organizerName = document.getElementById('af-org-name').value || undefined
-    a.organizerUrl = document.getElementById('af-org-url').value || undefined
   }
 
   const contact = {
@@ -1529,7 +1585,9 @@ function collectIssues() {
     const label = a.title || `Activity ${ai + 1}`
     const issues = activityIssues(
       { ...a, dates: (a.dates || []).filter((d) => !isEmptyDateRow(d)) },
-      currentYear
+      currentYear,
+      currentCompanyId,
+      { companies: allCompanies, venues: venuesList, runIds: companyRunIds }
     )
     issues.errors.forEach((m) => errors.push(`"${label}": ${m}`))
     if (actSnapshots.get(a.id) !== makeActivitySnapshot(a))
@@ -1595,15 +1653,19 @@ function renderDatesTable() {
       <td><input class="act-cell-input" value="${esc(d.endTime || '')}" placeholder="9pm"
           onchange="act.dateCellChanged(${i},'endTime',this.value)"
           onkeydown="act.dateCellKey(event,${i},'endTime')" id="dc-${i}-endTime"></td>
-      <td><input class="act-cell-input" value="${esc(d.location?.name)}" placeholder="Venue name"
+      <td><input class="act-cell-input" value="${esc(locNameOf(d))}" placeholder="Venue name"
           onchange="act.dateCellChanged(${i},'locName',this.value)"
           oninput="act.onLocNameInput(${i},this)"
           onfocus="act.onLocNameInput(${i},this)"
           onblur="setTimeout(()=>act.hideVenueDropdown(),150)"
           onkeydown="act.dateCellKey(event,${i},'locName')" id="dc-${i}-locName"></td>
-      <td><input class="act-cell-input" value="${esc(d.location?.address)}" placeholder="123 Main St, City"
+      <td><input class="act-cell-input" value="${esc(locAddrOf(d))}" placeholder="${d.venue ? '' : '123 Main St, City'}"
+          ${d.venue ? 'readonly title="Listed venue — address comes from the venue list"' : ''}
           onchange="act.dateCellChanged(${i},'locAddr',this.value)"
           onkeydown="act.dateCellKey(event,${i},'locAddr')" id="dc-${i}-locAddr"></td>
+      <td><input class="act-cell-input" value="${esc(d.room)}" placeholder="Optional"
+          onchange="act.dateCellChanged(${i},'room',this.value)"
+          onkeydown="act.dateCellKey(event,${i},'room')" id="dc-${i}-room"></td>
       <td><input class="act-cell-input" value="${esc(d.notes)}" placeholder="e.g. Open call"
           onchange="act.dateCellChanged(${i},'notes',this.value)"
           onkeydown="act.dateCellKey(event,${i},'notes')" id="dc-${i}-notes"></td>
@@ -1643,18 +1705,24 @@ function normalizeTime(v) {
 function dateCellChanged(idx, field, value) {
   const d = activities[activeActIdx].dates[idx]
   if (field === 'locName') {
-    if (!d.location) d.location = { name: '' }
-    d.location.name = value
-    const knownVenue = venuesList.find((v) => v.name === value)
-    if (!knownVenue) {
-      d.location.address = undefined
-      const addrEl = document.getElementById(`dc-${idx}-locAddr`)
-      if (addrEl) addrEl.value = ''
+    // A listed venue's name stores its code; anything else is a one-off location
+    const name = value.trim()
+    const listed = venuesList.find((v) => v.name.toLowerCase() === name.toLowerCase())
+    if (listed) setSessionVenue(idx, listed.code)
+    else {
+      const wasListed = !!d.venue
+      delete d.venue
+      if (name) d.location = { name, address: wasListed ? undefined : d.location?.address }
+      else delete d.location
+      refreshLocationCells(idx)
     }
-    if (!value && !d.location.address) d.location = undefined
   } else if (field === 'locAddr') {
+    if (d.venue) return // the listed venue's address isn't editable here
     if (!d.location) d.location = { name: '' }
     d.location.address = value || undefined
+  } else if (field === 'room') {
+    if (value.trim()) d.room = value.trim()
+    else delete d.room
   } else if (field === 'startTime' || field === 'endTime') {
     value = normalizeTime(value)
     const tel = document.getElementById(`dc-${idx}-${field}`)
@@ -1674,7 +1742,34 @@ function dateCellChanged(idx, field, value) {
   markDirty()
 }
 
-const DATE_COLS = ['date', 'startTime', 'endTime', 'locName', 'locAddr', 'notes']
+const DATE_COLS = ['date', 'startTime', 'endTime', 'locName', 'locAddr', 'room', 'notes']
+
+/** What the Location and Address cells show: the listed venue's, else the one-off's. */
+function locNameOf(d) {
+  return venueByCode(d.venue, venuesList)?.name ?? d.venue ?? d.location?.name ?? ''
+}
+function locAddrOf(d) {
+  return d.venue ? venueByCode(d.venue, venuesList)?.address ?? '' : d.location?.address ?? ''
+}
+
+function refreshLocationCells(idx) {
+  const d = activities[activeActIdx].dates[idx]
+  const nameEl = document.getElementById(`dc-${idx}-locName`)
+  const addrEl = document.getElementById(`dc-${idx}-locAddr`)
+  if (nameEl) nameEl.value = locNameOf(d)
+  if (addrEl) {
+    addrEl.value = locAddrOf(d)
+    addrEl.readOnly = !!d.venue
+    addrEl.placeholder = d.venue ? '' : '123 Main St, City'
+  }
+}
+
+function setSessionVenue(idx, code) {
+  const d = activities[activeActIdx].dates[idx]
+  d.venue = code
+  delete d.location
+  refreshLocationCells(idx)
+}
 function dateCellKey(event, rowIdx, field) {
   if (field === 'locName' && event.key === 'Escape') {
     hideVenueDropdown()
@@ -1728,7 +1823,9 @@ function addDateRow() {
   const newRow = { id: nextSessionId(), date: '', startTime: '' }
   if (prev?.startTime) newRow.startTime = prev.startTime
   if (prev?.endTime) newRow.endTime = prev.endTime
+  if (prev?.venue) newRow.venue = prev.venue
   if (prev?.location) newRow.location = { ...prev.location }
+  if (prev?.room) newRow.room = prev.room
   dates.push(newRow)
   renderDatesTable()
   markDirty()
@@ -1888,17 +1985,10 @@ function selectVenueItem(rowIdx, code) {
     hideVenueDropdown()
     return
   }
-  const d = activities[activeActIdx].dates[rowIdx]
-  if (!d.location) d.location = {}
-  d.location.name = venue.name
-  d.location.address = venue.address || undefined
-  const nameEl = document.getElementById(`dc-${rowIdx}-locName`)
-  const addrEl = document.getElementById(`dc-${rowIdx}-locAddr`)
-  if (nameEl) nameEl.value = venue.name
-  if (addrEl) addrEl.value = venue.address || ''
+  setSessionVenue(rowIdx, venue.code)
   hideVenueDropdown()
   markDirty()
-  document.getElementById(`dc-${rowIdx}-notes`)?.focus()
+  document.getElementById(`dc-${rowIdx}-room`)?.focus()
 }
 
 // ── PREVIEW ──
@@ -1931,10 +2021,13 @@ function openPreview() {
   const showDatesByRequest = isEvent && a.datesByRequest && !hasDates
   const isPast = !a.closed && !isVirtual && latestD && latestD < TODAY
   const showVoice = genreArr.includes('Musical')
-  const displayName =
-    currentCompanyId === 'other' && a.organizerName ? a.organizerName : companyName
+  const organizerIds = recordOrganizerIds(currentCompanyId, a.organizers)
+  const displayName = organizerName(organizerIds, allCompanies) || companyName
 
-  const _filteredDates = (a.dates || []).filter((d) => d.date)
+  // Each session with its venue or one-off location resolved, as the public card shows it
+  const _filteredDates = (a.dates || [])
+    .filter((d) => d.date)
+    .map((d) => ({ ...d, location: sessionPlace(d, venuesList) }))
   const _pvLocs = _filteredDates.map((d) => d.location?.name).filter(Boolean)
   const _pvShared =
     _pvLocs.length > 0 && _pvLocs.every((n) => n === _pvLocs[0])
@@ -2001,13 +2094,18 @@ function openPreview() {
   }
 
   // Events show the organizer in the right column; auditions keep it here, above Contact
-  const organizerHtml =
-    a.organizerName || a.organizerUrl
-      ? `<section class="pv-section"><h4 class="pv-section-head">Organizer</h4>
-      ${a.organizerName ? `<div class="pv-sub" style="font-size:13px">${esc(a.organizerName)}</div>` : ''}
-      ${a.organizerUrl ? `<div class="pv-sub" style="overflow-wrap:anywhere"><a href="${esc(a.organizerUrl)}" class="pv-link-inline" target="_blank" rel="noopener">${esc(a.organizerUrl)}</a></div>` : ''}
+  // Listed when the record names organizers (filed under Other, or co-producers)
+  const named = a.organizers?.length ? organizerEntries(organizerIds, allCompanies) : []
+  const organizerHtml = named.length
+    ? `<section class="pv-section"><h4 class="pv-section-head">Organizer</h4>
+      ${named
+        .map(
+          (o) => `<div class="pv-sub" style="font-size:13px">${esc(o.name)}</div>
+      ${o.website ? `<div class="pv-sub" style="overflow-wrap:anywhere"><a href="${esc(o.website)}" class="pv-link-inline" target="_blank" rel="noopener">${esc(o.website)}</a></div>` : ''}`
+        )
+        .join('')}
     </section>`
-      : ''
+    : ''
   if (!isEvent) leftColHtml += organizerHtml
 
   if (a.contact && (a.contact.name || a.contact.email || a.contact.phone)) {

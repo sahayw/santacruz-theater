@@ -81,14 +81,20 @@ describe('performanceEvents', () => {
     expect(moved.start).toEqual({ date: '2026-10-31', time: '20:00' })
   })
 
-  it('omits the company for "other" and falls back for unknown venues and missing updatedAt', () => {
+  it('names the organizer of a production filed under Other, never "Other"', () => {
     const [e] = performanceEvents(
-      run({ company: 'other', venue: 'Somebody’s Barn', updatedAt: undefined }),
+      run({ company: 'other', organizers: ['fight'], venue: 'Somebody’s Barn', updatedAt: undefined }),
       ctx
     )
-    expect(e.summary).toBe('Much Ado')
-    expect(e.location).toBe('Somebody’s Barn')
+    expect(e.summary).toBe('Much Ado — Fight Club SC')
+    expect(e.location).toBe('Somebody’s Barn') // an unknown venue code shows as-is
     expect(e.lastModified).toBe(new Date(1700000000000).toISOString())
+  })
+
+  it('names co-producers and adds the room to the venue', () => {
+    const [e] = performanceEvents(run({ organizers: ['oth'], venue: 'BB', room: 'Studio 2' }), ctx)
+    expect(e.summary).toBe('Much Ado — Test Theatre & Other Players')
+    expect(e.location).toBe('Black Box, Studio 2')
   })
 })
 
@@ -115,7 +121,7 @@ describe('sessionEvents', () => {
         type: 'event',
         title: 'Stage Combat Workshop',
         company: 'other',
-        organizerName: 'Fight Club SC',
+        organizers: ['fight'],
         rolesAvailable: undefined,
         description: 'Learn *safe* falls',
         cost: '$15',
@@ -126,7 +132,7 @@ describe('sessionEvents', () => {
             date: '2026-11-07',
             startTime: '22:00',
             endTime: '00:30',
-            location: { name: 'BB' }
+            venue: 'BB'
           }
         ]
       }),
@@ -142,7 +148,7 @@ describe('sessionEvents', () => {
     expect(e.end).toEqual({ date: '2026-11-08', time: '00:30' }) // past midnight
   })
 
-  it('uses a session’s own address over any venue lookup', () => {
+  it('uses a one-off location as given', () => {
     const [e] = sessionEvents(
       activity({
         dates: [

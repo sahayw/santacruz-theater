@@ -52,11 +52,12 @@ export async function loadCompanies() {
   return data.companies || []
 }
 
-// Returns sorted <option> HTML for a company <select>, excluding the admin sentinel.
-// 'Other' is always last. Used by both calendar and auditions editors.
+// Returns sorted <option> HTML for a company <select>: the companies with data files of
+// their own, then 'Other' (the shared file for organizers without their own). Excludes
+// the admin sentinel and the organizers filed under Other. Used by both editors.
 export function buildCompanyOptions(allCompanies) {
   const sorted = (allCompanies || [])
-    .filter((c) => c.id !== 'admin')
+    .filter((c) => c.id !== 'admin' && !c.filedUnderOther)
     .sort((a, b) => {
       if (a.id === 'other') return 1
       if (b.id === 'other') return -1

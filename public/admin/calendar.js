@@ -2,7 +2,10 @@ import { IS_DEV, apiFetch, apiPut, buildCompanyOptions } from './api.js'
 import { fmt12, fmtFullDate, renderMd } from '/admin/audition-format.js'
 import { MAX_GENRES, isDateNearYear, isValidTime, runIssues } from '/admin/data-rules.js'
 import { createIdGenerator, ensurePerformanceIds } from '/admin/occurrence-ids.js'
+import { organizerLabel, organizerName, recordOrganizerIds } from '/admin/organizers.js'
+import { runPlace, venueByCode } from '/admin/venues.js'
 import { markdownToolbar } from './markdown-editor.js'
+import { renderOrganizerPicker } from './organizer-picker.js'
 
 const PERF_TYPES = ['', 'Preview', 'Opening', 'Closing', 'Talk-back']
 const MONTH_MAP = {
@@ -535,6 +538,10 @@ const CAL_HTML = `
           <label class="field-label">Company</label>
           <input class="field-input field-readonly" id="f-company" readonly tabindex="-1">
         </div>
+        <div class="field-group" style="grid-column:span 2">
+          <label class="field-label" id="f-organizers-label">Co-producers</label>
+          <div id="f-organizers"></div>
+        </div>
         <div class="field-group">
           <label class="field-label">Abbrev</label>
           <input class="field-input" id="f-showAbv" placeholder="Brief title" maxlength="20" oninput="cal.runFieldChanged()">
@@ -551,6 +558,10 @@ const CAL_HTML = `
             oninput="cal.onVenueInput(this); cal.runFieldChanged()" onfocus="cal.onVenueInput(this)"
             onblur="setTimeout(()=>cal.hideCalVenueDropdown(),150)"
             onkeydown="cal.venueKeyDown(event,this)">
+        </div>
+        <div class="field-group">
+          <label class="field-label">Room</label>
+          <input class="field-input" id="f-room" placeholder="Optional, e.g. Second Stage" oninput="cal.runFieldChanged()">
         </div>
         <div class="field-group" style="grid-column:span 1">
           <label class="field-label">Full Show Title</label>
@@ -953,7 +964,7 @@ function renderSidebar() {
     .map(
       ({ r, i }) => `
     <div class="run-item ${i === activeRunIdx ? 'active' : ''}" onclick="cal.selectRun(${i})">
-      <div class="run-item-company">${allCompanies.find((c) => c.id === r.company)?.abvName || r.company || '—'}</div>
+      <div class="run-item-company">${esc(organizerLabel(recordOrganizerIds(r.company, r.organizers), allCompanies)) || '—'}</div>
       <div class="run-item-show">${r.showAbv || r.show || 'Untitled'}</div>
       <div class="run-item-count">${r.performances.length} perf${r.performances.length !== 1 ? 's' : ''}</div>
     </div>`
@@ -988,7 +999,10 @@ function loadRunEditor() {
     o.selected = genreArr.includes(o.value)
   })
   prevCalGenreVals = genreArr
-  document.getElementById('f-venue').value = r.venue || ''
+  // The venue is stored as a code; the field shows its name (or unmatched text as typed)
+  document.getElementById('f-venue').value = venueByCode(r.venue, venuesList)?.name || r.venue || ''
+  document.getElementById('f-room').value = r.room || ''
+  renderRunOrganizers()
   document.getElementById('f-price').value = r.price || ''
   document.getElementById('f-discounts').value = r.discounts || ''
   document.getElementById('f-infoUrl').value = r.infoUrl || ''
@@ -1005,9 +1019,33 @@ function loadRunEditor() {
 function updateEditorTitle() {
   const r = runs[activeRunIdx]
   document.getElementById('editorTitleText').textContent = r.showAbv || r.show || 'Untitled'
-  document.getElementById('editorSubtitle').textContent = r.company
-    ? ` · ${allCompanies.find((c) => c.id === r.company)?.abvName || r.company}`
-    : ''
+  const label = organizerLabel(recordOrganizerIds(r.company, r.organizers), allCompanies)
+  document.getElementById('editorSubtitle').textContent = label ? ` · ${label}` : ''
+}
+
+function renderRunOrganizers() {
+  const r = runs[activeRunIdx]
+  document.getElementById('f-organizers-label').textContent =
+    r.company === 'other' ? 'Organizer' : 'Co-producers'
+  renderOrganizerPicker(document.getElementById('f-organizers'), {
+    fileCompany: r.company,
+    organizers: r.organizers,
+    companies: allCompanies,
+    onChange: (value) => {
+      if (value) r.organizers = value
+      else delete r.organizers
+      updateEditorTitle()
+      renderSidebar()
+      markDirty()
+    }
+  })
+}
+
+/** The venue code for what's typed in the Venue field: a listed name or code, else the text. */
+function venueCodeFor(text) {
+  const t = text.trim().toLowerCase()
+  const match = venuesList.find((v) => v.name.toLowerCase() === t || v.code.toLowerCase() === t)
+  return match ? match.code : text.trim()
 }
 
 function genreChanged() {
@@ -1035,7 +1073,10 @@ function runFieldChanged() {
   r.showAbv = document.getElementById('f-showAbv').value
   r.show = document.getElementById('f-show').value
   r.genre = Array.from(document.getElementById('f-genre').selectedOptions).map((o) => o.value)
-  r.venue = document.getElementById('f-venue').value
+  r.venue = venueCodeFor(document.getElementById('f-venue').value)
+  const room = document.getElementById('f-room').value.trim()
+  if (room) r.room = room
+  else delete r.room
   r.price = document.getElementById('f-price').value
   r.discounts = document.getElementById('f-discounts').value
   r.infoUrl = document.getElementById('f-infoUrl').value
@@ -1181,7 +1222,7 @@ function collectIssues() {
   const warnings = []
   runs.forEach((run, ri) => {
     const label = run.showAbv || run.show || `Run ${ri + 1}`
-    const issues = runIssues(run, currentYear)
+    const issues = runIssues(run, currentYear, { companies: allCompanies, venues: venuesList })
     issues.errors.forEach((m) => errors.push(`"${label}": ${m}`))
     if (runSnapshots.get(run.id) !== makeRunSnapshot(run))
       issues.warnings.forEach((m) => warnings.push(`"${label}": ${m}`))
@@ -1681,7 +1722,8 @@ function fmtPerfTime(t) {
 function openPreview() {
   if (activeRunIdx < 0) return
   const r = runs[activeRunIdx]
-  const companyName = allCompanies.find((c) => c.id === r.company)?.name || r.company
+  const companyName = organizerName(recordOrganizerIds(r.company, r.organizers), allCompanies)
+  const venueName = runPlace(r, venuesList)?.name || r.venue
   const dotColor = CAL_DOT_COLORS[r.company] || '#dadada'
   const genreArr = Array.isArray(r.genre) ? r.genre : r.genre ? [r.genre] : []
 
@@ -1716,7 +1758,7 @@ function openPreview() {
             <span class="cp-title">${esc(r.showAbv || r.show || 'Untitled')}</span>
             ${genreArr.map((g) => `<span class="cp-genre-badge" style="${CAL_GENRE_STYLES[g] || ''}">${esc(g)}</span>`).join('')}
           </div>
-          <div class="cp-meta-row">${esc(companyName)}${r.venue ? ` · ${esc(r.venue)}` : ''}${r.price ? ` · ${esc(r.price)}` : ''}</div>
+          <div class="cp-meta-row">${esc(companyName)}${venueName ? ` · ${esc(venueName)}` : ''}${r.price ? ` · ${esc(r.price)}` : ''}</div>
         </div>
       </div>
       <div class="cp-detail">

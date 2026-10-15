@@ -3,8 +3,10 @@
 // can be unit-tested directly; serialized by src/lib/ics.ts and published by
 // src/pages/[...feed].ics.ts. See docs/ics-spec.md.
 
-import type { Activity, ActivityDate, CompanyEntry, Run } from '../types.ts'
+import type { Activity, ActivityDate, CompanyEntry, Run, Venue } from '../types.ts'
 import { mdToPlain, rolesSum } from './audition-format.ts'
+import { organizerName, recordOrganizerIds } from './organizers.ts'
+import { runPlace, sessionPlace, venueByCode } from './venues.ts'
 
 export const SITE_URL = 'https://santacruz.theater'
 export const UID_DOMAIN = 'santacruz.theater'
@@ -12,12 +14,6 @@ export const UID_DOMAIN = 'santacruz.theater'
 export const DEFAULT_DURATION_HOURS = 2
 /** Composite and company feeds include occurrences from this many months back. */
 export const HISTORY_MONTHS = 12
-
-export interface Venue {
-  code: string
-  name: string
-  address?: string
-}
 
 export interface CalendarContext {
   companies: CompanyEntry[]
@@ -82,18 +78,8 @@ export function monthsBefore(today: string, months: number) {
   return new Date(Date.UTC(y, m - 1 - months, d)).toISOString().slice(0, 10)
 }
 
-function resolveVenue(ctx: CalendarContext, nameOrCode: string): Venue | undefined {
-  return ctx.venues.find((v) => v.name === nameOrCode || v.code === nameOrCode)
-}
-
-function formatLocation(name: string, address?: string) {
-  return address ? `${name} · ${address}` : name
-}
-
-/** A venue name or code → `Name · Address`, or the raw text when unknown. */
-function venueLocation(ctx: CalendarContext, nameOrCode: string) {
-  const venue = resolveVenue(ctx, nameOrCode)
-  return venue ? formatLocation(venue.name, venue.address) : nameOrCode
+function formatLocation(place: { name: string; address?: string }) {
+  return place.address ? `${place.name} · ${place.address}` : place.name
 }
 
 function company(ctx: CalendarContext, id: string) {
@@ -121,10 +107,11 @@ export function runUrl(run: Run) {
 }
 
 export function performanceEvents(run: Run, ctx: CalendarContext): CalendarEvent[] {
-  const co = company(ctx, run.company)
+  const org = organizerName(recordOrganizerIds(run.company, run.organizers), ctx.companies)
   const title = (run.showAbv || run.show).trim()
-  const summary = run.company === 'other' || !co ? title : `${title} — ${co.name}`
-  const location = venueLocation(ctx, run.venue)
+  const summary = org ? `${title} — ${org}` : title
+  const place = runPlace(run, ctx.venues)
+  const location = place ? formatLocation(place) : run.venue
   const url = runUrl(run)
   const lastModified = run.updatedAt || idTimestamp(run.id)
 
@@ -162,19 +149,12 @@ export function activityUrl(activity: Activity) {
   return `${SITE_URL}/events?id=${bareId(activity.id)}`
 }
 
-function organizer(activity: CompanyActivity, ctx: CalendarContext) {
-  if (activity.company === 'other') return activity.organizerName || ''
-  return company(ctx, activity.company)?.name || ''
-}
-
-function sessionLocation(d: ActivityDate, activity: CompanyActivity, ctx: CalendarContext) {
-  if (d.location?.name) {
-    return d.location.address
-      ? formatLocation(d.location.name, d.location.address)
-      : venueLocation(ctx, d.location.name)
-  }
-  const primary = company(ctx, activity.company)?.primaryVenue
-  return primary ? venueLocation(ctx, primary) : ''
+/** The session's venue or one-off place, else the main organizer's primary venue. */
+function sessionLocation(d: ActivityDate, organizers: string[], ctx: CalendarContext) {
+  const place = sessionPlace(d, ctx.venues)
+  if (place) return formatLocation(place)
+  const primary = venueByCode(company(ctx, organizers[0] ?? '')?.primaryVenue, ctx.venues)
+  return primary ? formatLocation(primary) : ''
 }
 
 function sessionEnd(d: ActivityDate): LocalDateTime {
@@ -189,7 +169,8 @@ function sessionEnd(d: ActivityDate): LocalDateTime {
 /** One event per dated session; a closed activity publishes none. */
 export function sessionEvents(activity: CompanyActivity, ctx: CalendarContext): CalendarEvent[] {
   if (activity.closed) return []
-  const org = organizer(activity, ctx)
+  const organizers = recordOrganizerIds(activity.company, activity.organizers)
+  const org = organizerName(organizers, ctx.companies)
   const label = activity.type === 'audition' ? 'Audition' : 'Event'
   const summary = `${label}: ${activity.title.trim()}${org ? ` — ${org}` : ''}`
   const url = activityUrl(activity)
@@ -213,7 +194,7 @@ export function sessionEvents(activity: CompanyActivity, ctx: CalendarContext): 
         activity.type === 'event' && activity.cost && `Cost: ${activity.cost}`,
         `${activity.type === 'event' && activity.registerUrl ? 'Details & registration' : 'Details'}: ${url}`
       ),
-      location: sessionLocation(d, activity, ctx),
+      location: sessionLocation(d, organizers, ctx),
       url,
       start: { date: d.date, time: d.startTime },
       end: sessionEnd(d),

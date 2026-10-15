@@ -1233,7 +1233,6 @@ const feedChoices = JSON.stringify([
     renegade: 'var(--col-renegade)'
   }
   const COMPANY_NAMES = Object.fromEntries(companies.map((c) => [c.id, c.name]))
-  const COMPANY_ABV = Object.fromEntries(companies.map((c) => [c.id, c.abvName]))
   const MONTHS = [
     'January',
     'February',
@@ -1348,7 +1347,7 @@ const feedChoices = JSON.stringify([
       html += `<div class="hover-panel-row">
         <div class="hover-panel-show">
           <div class="hover-panel-dot" style="background:${dotColor(p.company)}"></div>
-          <span>${COMPANY_ABV[p.company] || p.company} · ${p.showAbv}</span>
+          <span>${p.organizerLabel} · ${p.showAbv}</span>
         </div>
         <div class="hover-panel-meta">${fmtTime(p.time)} · ${venue}</div>
       </div>`
@@ -1390,7 +1389,7 @@ const feedChoices = JSON.stringify([
     const panel = document.getElementById('showDescPanel')
     const description = (s.description || '').trimEnd()
     let html = `<div class="desc-panel-header">
-      <div class="desc-panel-company">${COMPANY_NAMES[s.company] || s.company}</div>
+      <div class="desc-panel-company">${s.organizerName}</div>
       <div class="desc-panel-title">${s.show}</div>
     </div>
     <div class="desc-panel-body">${renderMd(description)}</div>`
@@ -1459,6 +1458,7 @@ const feedChoices = JSON.stringify([
             runId: p.runId,
             showAbv: p.showAbv,
             company: p.company,
+            organizerName: p.organizerName,
             show: p.show,
             description: p.description || ''
           })
@@ -1840,7 +1840,7 @@ const feedChoices = JSON.stringify([
       card.innerHTML = `
       <div class="perf-card-company">
         <div class="company-badge" style="background:${accentColor(p.company)}"></div>
-        <span class="company-name">${COMPANY_NAMES[p.company] || p.company}</span>
+        <span class="company-name">${p.organizerName}</span>
         ${p.perfType ? `<span class="perf-type-tag" data-type="${p.perfType}">${p.perfType}</span>` : ''}
       </div>
       <div class="card-show-title">${p.show}</div>

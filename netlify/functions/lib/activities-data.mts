@@ -9,13 +9,16 @@
 
 import { readFileSync, readdirSync } from 'node:fs'
 import { join } from 'node:path'
-import type { Activity, ActivitiesFile } from '../../../src/types.ts'
-import { loadCompanyNames } from './company-data.mts'
+import type { Activity, ActivitiesFile, ActivityDate } from '../../../src/types.ts'
+import { organizerName, recordOrganizerIds } from '../../../src/lib/organizers.ts'
+import { sessionPlace, type Place } from '../../../src/lib/venues.ts'
+import { loadCompanies, loadVenues } from './company-data.mts'
 
 export interface DigestActivity extends Activity {
-  company: string
-  companyName: string
+  company: string // the data file's company id ("other" for the catch-all file)
+  companyName: string // organizer display name(s)
   year: number
+  dates: (ActivityDate & { place?: Place })[]
 }
 
 const DATA_ROOT = join(process.cwd(), 'data')
@@ -23,7 +26,8 @@ const ACTIVITIES_ROOT = join(DATA_ROOT, 'activities')
 const FILE_RE = /^.+-activities-\d{4}\.json$/
 
 export function loadAllActivities(): DigestActivity[] {
-  const nameMap = loadCompanyNames()
+  const companies = loadCompanies()
+  const venues = loadVenues()
   const activities: DigestActivity[] = []
 
   let yearDirs: string[] = []
@@ -53,10 +57,12 @@ export function loadAllActivities(): DigestActivity[] {
           activities.push({
             ...a,
             company: parsed.company,
-            companyName:
-              (parsed.company === 'other' && a.organizerName) ||
-              (nameMap[parsed.company] ?? parsed.company),
-            year: parsed.year
+            companyName: organizerName(
+              recordOrganizerIds(parsed.company, a.organizers),
+              companies
+            ),
+            year: parsed.year,
+            dates: a.dates.map((d) => ({ ...d, place: sessionPlace(d, venues) }))
           })
         }
       } catch (e) {

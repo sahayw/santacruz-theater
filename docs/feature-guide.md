@@ -28,8 +28,12 @@ What the site does, for visitors and for editors. For how it's built, see
   date. They can also add a single performance or session as a one-off
   event. See [Add to my calendar](#add-to-my-calendar).
 - **Editor** (`/admin`): one tile per dataset — Calendar, Activities,
-  Companies, Services. Saving publishes; the change is live within a few
-  minutes.
+  Services. Saving publishes; the change is live within a few minutes. The
+  companies/organizers and venue lists are edited by hand
+  ([§4](#4-companies)).
+- **Organizers**: every production, audition and event names who puts it on.
+  Smaller organizers are grouped as "Other" for data management, but their
+  own names appear everywhere a company name would.
 - **Access**: editors sign in with Netlify Identity and see only the datasets
   they're granted — usually their own company's calendar and/or activities.
   Admins can edit everything. See [§9](#9-publishing--access).
@@ -113,13 +117,24 @@ out of everything.
 
 A **run** is one production:
 
-| Field                        | Notes                                                      |
-| ---------------------------- | ---------------------------------------------------------- |
-| Title, abbreviation          | Required. Abbreviation (≤ 20 chars) labels chips.          |
-| Venue                        | Required. Suggests from the venue list; free text allowed. |
-| Genre                        | Up to two.                                                 |
-| Price, info URL, description | Recommended. Description is [rich text](#rich-text).       |
-| Discounts, tickets URL       | Defaults for every performance.                            |
+| Field                        | Notes                                                 |
+| ---------------------------- | ----------------------------------------------------- |
+| Title, abbreviation          | Required. Abbreviation (≤ 20 chars) labels chips.     |
+| Venue                        | Required. Pick from the venue list (type to search).  |
+| Room                         | Optional space within the venue, e.g. "Second Stage". |
+| Organizer / Co-producers     | See below.                                            |
+| Genre                        | Up to two.                                            |
+| Price, info URL, description | Recommended. Description is [rich text](#rich-text).  |
+| Discounts, tickets URL       | Defaults for every performance.                       |
+
+**Organizers**: a run in a company's file is that company's; add
+**co-producers** if others share it. A run filed under **Other** must pick
+its **Organizer** from the list (and may add co-producers). Editors can't
+create organizers — ask an admin to add one to the companies file.
+
+A run can be saved before its dates are known (with a warning); it stays off
+the calendar until it has performances. That lets an audition link to it
+early. The warnings also flag a missing tickets link.
 
 Each run has an ordered list of **performances**: date, time, optional type
 (Preview / Opening / Closing / Talk-back), and optional per-performance
@@ -181,19 +196,24 @@ A new record is an **Audition** or an **Event**; this can't change later.
 **Both types**
 
 - Title (required).
-- **Dates table**: date, start time, optional end time, location
-  name/address, session notes. A new row copies the previous row's time and
-  location.
+- **Dates table**: date, start time, optional end time, location, address,
+  room, session notes. Typing a listed venue's name (or picking it from the
+  suggestions) links the session to that venue, and its address comes from
+  the venue list. Any other name is a one-off location with its own address.
+  A new row copies the previous row's time, location and room.
 - Contact: name, email, phone.
-- For records under "Other" (no listed company): organizer name and URL. The
-  name replaces the company on the card and in the email digest; an expanded
-  card shows both under **Organizer**, the URL spelled out in full.
+- **Organizer / Co-producers**, as for runs. Records filed under **Other**
+  must pick an organizer; its name replaces the company on the card and in
+  the email digest. An expanded card lists named organizers under
+  **Organizer**, with their websites spelled out in full.
 - Header buttons: Preview / Restore / Delete, plus **Close** / **Reopen**.
 
 **Audition only**
 
 - Genre (up to two); rehearsal-start and opening dates; notice URL;
   production-info URL.
+- **Production**: the run this audition casts, picked from the company's
+  runs (including ones without dates yet).
 - **Roles table**: name, type, gender, age range, casting note, and voice
   part (Musical only). Omitted from the public card if empty.
 - **Prepare**: acting and what to bring (multi-line — each line displays
@@ -217,15 +237,34 @@ A new record is an **Audition** or an **Event**; this can't change later.
 **Visitors** — `/companies`: a card grid of county theater companies with
 logos and website links.
 
-**Admins** edit the companies file by hand (not through a form):
+**Admins** edit the companies file by hand (not through a form). It lists
+every organizer — companies with their own data, and smaller organizers
+whose records are filed under Other:
 
-- Name, abbreviation, primary venue, website.
+- Name, short label (≤ 12 characters; shown in calendar entries), primary
+  venue, website.
 - Logo, stored locally (light logos get a dark card).
 - **Access grants**: each company lists editor emails and the datasets each
   may edit.
+- **Majors** — the companies with the most productions (SCS, AT, MCT,
+  Renegade) — each with a calendar colour. Subscribers will be able to
+  untick majors; everyone else is always included.
+- **On /companies**: set case by case.
+- **Filed under Other**: an organizer without its own data files. To add a
+  new small organizer, add an entry marked this way; editors then see it in
+  their Organizer list.
 - Two special entries, not shown publicly: **admin** (emails with full
-  access) and **other** (runs and activities for unlisted companies; admins
-  only).
+  access) and **other** (the data files for organizers filed under Other;
+  admins only).
+
+The **venue list** is also hand-edited: name, address and website per venue.
+Sessions at places not in the list are allowed; the build lists them so
+regulars can be added.
+
+A build also publishes `/missing-details.json`: every upcoming production or
+open audition/event that lacks dates, a tickets link, a price, an info link,
+a description or a location. An external alerting agent reads it to chase
+the missing details.
 
 ---
 
@@ -302,12 +341,12 @@ lists, via toolbar buttons or Ctrl/Cmd+B / Ctrl/Cmd+I.
 - **Recommended** — Save asks "Save anyway?" (only for records you changed,
   and never for a run whose last performance has passed).
 
-| Record            | Required                                                                                                                                                                         | Recommended                                                                         |
-| ----------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------- |
-| Calendar run      | title; abbreviation (≤ 20 chars); venue; valid date and time on every performance                                                                                                | price; info URL; description; at least one performance (otherwise it never appears) |
-| Audition or event | title; at least one date with a valid date and start time (except virtual auditions and "Dates by request" events); valid end time, rehearsal-start and opening dates if entered | —                                                                                   |
-| Event (also)      | one of: contact email, contact phone, info link, registration link, organizer URL                                                                                                | —                                                                                   |
-| Service listing   | name; at least one category; phone or email                                                                                                                                      | —                                                                                   |
+| Record            | Required                                                                                                                                                                                                                                                 | Recommended                                                                                       |
+| ----------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
+| Calendar run      | title; abbreviation (≤ 20 chars); a venue from the list; an organizer if filed under Other; valid date and time on every performance                                                                                                                     | price; info URL; tickets link; description; at least one performance (otherwise it never appears) |
+| Audition or event | title; an organizer if filed under Other; at least one date with a valid date and start time (except virtual auditions and "Dates by request" events); valid end time, rehearsal-start and opening dates if entered; a production that exists, if picked | —                                                                                                 |
+| Event (also)      | one of: contact email, contact phone, info link, registration link, a named organizer's website                                                                                                                                                          | —                                                                                                 |
+| Service listing   | name; at least one category; phone or email                                                                                                                                                                                                              | —                                                                                                 |
 
 Completely blank date rows are ignored.
 

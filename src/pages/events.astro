@@ -17,10 +17,6 @@ import {
 
 const activities = getActivities()
 
-const companyNameMap: Record<string, string> = Object.fromEntries(
-  companiesData.companies.map((c) => [c.id, c.name])
-)
-
 const actCompanyCodes = new Set<string>(activities.map((a) => a.company))
 const filterCompanies = companiesData.companies.filter(
   (c) => !c.adminOnly && actCompanyCodes.has(c.id)
@@ -30,8 +26,15 @@ function latestDate(act: ActivityEvent): string {
 }
 
 function displayName(act: ActivityEvent): string {
-  if (act.company === 'other' && act.organizerName) return act.organizerName
-  return companyNameMap[act.company] ?? act.company
+  return act.organizerName
+}
+
+/**
+ * Organizers to list in an expanded card: shown when the record names them (filed under
+ * Other, or with co-producers). A company's own record is already headed by its name.
+ */
+function namedOrganizers(act: ActivityEvent) {
+  return act.organizers?.length ? act.organizerEntries : []
 }
 
 // Calendar feed picker for the subscribe banner
@@ -216,10 +219,10 @@ function roleTypeLabel(type: string): string {
                               </p>
                             )}
                             {(() => {
-                              const _locs = act.dates.map((d) => d.location?.name).filter(Boolean)
+                              const _locs = act.dates.map((d) => d.place?.name).filter(Boolean)
                               const _shared =
                                 _locs.length > 0 && _locs.every((n) => n === _locs[0])
-                                  ? act.dates.find((d) => d.location)?.location
+                                  ? act.dates.find((d) => d.place)?.place
                                   : null
                               return act.dates.map((ad, i) => {
                                 const locationSeenBefore =
@@ -227,7 +230,7 @@ function roleTypeLabel(type: string): string {
                                   i > 0 &&
                                   act.dates
                                     .slice(0, i)
-                                    .some((prev) => prev.location?.name === ad.location?.name)
+                                    .some((prev) => prev.place?.name === ad.place?.name)
                                 return (
                                   <div class="detail-date-row" data-date={ad.date}>
                                     <span class="detail-date-label">{fmtFullDate(ad.date)}</span>
@@ -244,11 +247,11 @@ function roleTypeLabel(type: string): string {
                                         Add to my calendar
                                       </button>
                                     )}
-                                    {!_shared && ad.location && (
+                                    {!_shared && ad.place && (
                                       <div class="detail-date-location">
-                                        <span class="detail-location-name">{ad.location.name}</span>
-                                        {!locationSeenBefore && ad.location.address && (
-                                          <span class="detail-sub"> · {ad.location.address}</span>
+                                        <span class="detail-location-name">{ad.place.name}</span>
+                                        {!locationSeenBefore && ad.place.address && (
+                                          <span class="detail-sub"> · {ad.place.address}</span>
                                         )}
                                       </div>
                                     )}
@@ -257,9 +260,9 @@ function roleTypeLabel(type: string): string {
                               })
                             })()}
                             {(() => {
-                              const _locs = act.dates.map((d) => d.location?.name).filter(Boolean)
+                              const _locs = act.dates.map((d) => d.place?.name).filter(Boolean)
                               if (_locs.length > 0 && _locs.every((n) => n === _locs[0])) {
-                                const _loc = act.dates.find((d) => d.location)?.location
+                                const _loc = act.dates.find((d) => d.place)?.place
                                 if (_loc)
                                   return (
                                     <div class="detail-date-location" style="margin-top:4px">
@@ -304,26 +307,28 @@ function roleTypeLabel(type: string): string {
                             </section>
                           )}
 
-                          {(act.organizerName || act.organizerUrl) && (
+                          {namedOrganizers(act).length > 0 && (
                             <section class="detail-section">
                               <h4 class="detail-section-head">Organizer</h4>
-                              {act.organizerName && (
-                                <div class="detail-sub" style="font-size:13px;color:var(--ink)">
-                                  {act.organizerName}
-                                </div>
-                              )}
-                              {act.organizerUrl && (
-                                <div class="detail-sub" style="overflow-wrap:anywhere">
-                                  <a
-                                    href={act.organizerUrl}
-                                    class="detail-link-inline"
-                                    target="_blank"
-                                    rel="noopener"
-                                  >
-                                    {act.organizerUrl}
-                                  </a>
-                                </div>
-                              )}
+                              {namedOrganizers(act).map((o) => (
+                                <>
+                                  <div class="detail-sub" style="font-size:13px;color:var(--ink)">
+                                    {o.name}
+                                  </div>
+                                  {o.website && (
+                                    <div class="detail-sub" style="overflow-wrap:anywhere">
+                                      <a
+                                        href={o.website}
+                                        class="detail-link-inline"
+                                        target="_blank"
+                                        rel="noopener"
+                                      >
+                                        {o.website}
+                                      </a>
+                                    </div>
+                                  )}
+                                </>
+                              ))}
                             </section>
                           )}
 
@@ -403,10 +408,10 @@ function roleTypeLabel(type: string): string {
                               <p class="detail-virtual-note">On request</p>
                             )}
                             {(() => {
-                              const _locs = act.dates.map((d) => d.location?.name).filter(Boolean)
+                              const _locs = act.dates.map((d) => d.place?.name).filter(Boolean)
                               const _shared =
                                 _locs.length > 0 && _locs.every((n) => n === _locs[0])
-                                  ? act.dates.find((d) => d.location)?.location
+                                  ? act.dates.find((d) => d.place)?.place
                                   : null
                               return act.dates.map((ad, i) => {
                                 const locationSeenBefore =
@@ -414,7 +419,7 @@ function roleTypeLabel(type: string): string {
                                   i > 0 &&
                                   act.dates
                                     .slice(0, i)
-                                    .some((prev) => prev.location?.name === ad.location?.name)
+                                    .some((prev) => prev.place?.name === ad.place?.name)
                                 return (
                                   <div class="detail-date-row" data-date={ad.date}>
                                     <span class="detail-date-label">{fmtFullDate(ad.date)}</span>
@@ -431,11 +436,11 @@ function roleTypeLabel(type: string): string {
                                         Add to my calendar
                                       </button>
                                     )}
-                                    {!_shared && ad.location && (
+                                    {!_shared && ad.place && (
                                       <div class="detail-date-location">
-                                        <span class="detail-location-name">{ad.location.name}</span>
-                                        {!locationSeenBefore && ad.location.address && (
-                                          <span class="detail-sub"> · {ad.location.address}</span>
+                                        <span class="detail-location-name">{ad.place.name}</span>
+                                        {!locationSeenBefore && ad.place.address && (
+                                          <span class="detail-sub"> · {ad.place.address}</span>
                                         )}
                                       </div>
                                     )}
@@ -444,9 +449,9 @@ function roleTypeLabel(type: string): string {
                               })
                             })()}
                             {(() => {
-                              const _locs = act.dates.map((d) => d.location?.name).filter(Boolean)
+                              const _locs = act.dates.map((d) => d.place?.name).filter(Boolean)
                               if (_locs.length > 0 && _locs.every((n) => n === _locs[0])) {
-                                const _loc = act.dates.find((d) => d.location)?.location
+                                const _loc = act.dates.find((d) => d.place)?.place
                                 if (_loc)
                                   return (
                                     <div class="detail-date-location" style="margin-top:4px">
@@ -510,28 +515,30 @@ function roleTypeLabel(type: string): string {
                             )}
                         </div>
 
-                        {(act.description || act.organizerName || act.organizerUrl) && (
+                        {(act.description || namedOrganizers(act).length > 0) && (
                           <div class="detail-right">
-                            {(act.organizerName || act.organizerUrl) && (
+                            {namedOrganizers(act).length > 0 && (
                               <section class="detail-section">
                                 <h4 class="detail-section-head">Organizer</h4>
-                                {act.organizerName && (
-                                  <div class="detail-sub" style="font-size:13px;color:var(--ink)">
-                                    {act.organizerName}
-                                  </div>
-                                )}
-                                {act.organizerUrl && (
-                                  <div class="detail-sub" style="overflow-wrap:anywhere">
-                                    <a
-                                      href={act.organizerUrl}
-                                      class="detail-link-inline"
-                                      target="_blank"
-                                      rel="noopener"
-                                    >
-                                      {act.organizerUrl}
-                                    </a>
-                                  </div>
-                                )}
+                                {namedOrganizers(act).map((o) => (
+                                  <>
+                                    <div class="detail-sub" style="font-size:13px;color:var(--ink)">
+                                      {o.name}
+                                    </div>
+                                    {o.website && (
+                                      <div class="detail-sub" style="overflow-wrap:anywhere">
+                                        <a
+                                          href={o.website}
+                                          class="detail-link-inline"
+                                          target="_blank"
+                                          rel="noopener"
+                                        >
+                                          {o.website}
+                                        </a>
+                                      </div>
+                                    )}
+                                  </>
+                                ))}
                               </section>
                             )}
                             {act.description && (

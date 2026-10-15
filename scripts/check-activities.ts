@@ -5,14 +5,34 @@
 import { readFileSync, readdirSync } from 'node:fs'
 import { join, dirname } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import type { Activity } from '../src/types.ts'
-import { activityIssues } from '../src/lib/data-rules.ts'
+import type { Activity, CompanyEntry, Venue } from '../src/types.ts'
+import { activityIssues, type RuleRefs } from '../src/lib/data-rules.ts'
 import { SESSION_ID_RE } from '../src/lib/occurrence-ids.ts'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const ROOT = join(__dirname, '..')
 const ACTIVITIES_ROOT = join(ROOT, 'data', 'activities')
 const FILE_RE = /^(.+)-activities-(\d{4})\.json$/
+
+/** Every Run id across data/shows, for checking an audition's productionId. */
+function allRunIds() {
+  const ids = new Set<string>()
+  const showsRoot = join(ROOT, 'data', 'shows')
+  for (const year of readdirSync(showsRoot))
+    for (const f of readdirSync(join(showsRoot, year)).filter((n) => n.endsWith('.json')))
+      for (const r of JSON.parse(readFileSync(join(showsRoot, year, f), 'utf-8')).runs ?? [])
+        ids.add(r.id)
+  return ids
+}
+
+const readData = (f: string) => JSON.parse(readFileSync(join(ROOT, 'data', f), 'utf-8'))
+const refs: RuleRefs = {
+  companies: readData('sc-theater-companies.json').companies as CompanyEntry[],
+  venues: readData('sc-theater-venues.json').venues as Venue[],
+  runIds: allRunIds()
+}
+/** Sessions at places not in the venue list — fine, but regulars belong in the list. */
+const oneOffs = new Map<string, number>()
 
 const VALID_GENRES = new Set(['Drama', 'Musical', 'Comedy', 'Other'])
 const VALID_TYPES = new Set(['audition', 'event'])
@@ -86,7 +106,27 @@ for (const year of yearDirs) {
             err(al, `dates[${di}].id must be "session-<timestamp>", got: ${d.id ?? '(missing)'}`)
           else if (seenSessionIds.has(d.id)) err(al, `dates[${di}].id is a duplicate: ${d.id}`)
           else seenSessionIds.add(d.id)
+          if (d.venue !== undefined && typeof d.venue !== 'string')
+            err(al, `dates[${di}].venue must be a venue code`)
+          if (d.room !== undefined && typeof d.room !== 'string')
+            err(al, `dates[${di}].room must be a string`)
+          const loc = d.location as Record<string, unknown> | undefined
+          if (loc !== undefined) {
+            if (typeof loc !== 'object' || typeof loc.name !== 'string')
+              err(al, `dates[${di}].location must be { name, address? }`)
+            else if (d.venue !== undefined)
+              err(al, `dates[${di}] has both a venue and a one-off location`)
+            else oneOffs.set(loc.name, (oneOffs.get(loc.name) ?? 0) + 1)
+          }
         })
+
+      if (
+        a.organizers !== undefined &&
+        !(Array.isArray(a.organizers) && a.organizers.every((o) => typeof o === 'string'))
+      )
+        err(al, 'organizers must be an array of organizer ids')
+      if (a.organizerName !== undefined || a.organizerUrl !== undefined)
+        err(al, 'organizerName / organizerUrl are no longer used — set organizers instead')
 
       if (a.closed !== undefined && typeof a.closed !== 'boolean')
         err(al, 'closed must be a boolean if present')
@@ -129,11 +169,12 @@ for (const year of yearDirs) {
         if (a.rehearsalStart !== undefined) err(al, 'rehearsalStart is audition-only')
         if (a.openingDate !== undefined) err(al, 'openingDate is audition-only')
         if (a.productionUrl !== undefined) err(al, 'productionUrl is audition-only')
+        if (a.productionId !== undefined) err(al, 'productionId is audition-only')
       }
 
       // Content rules shared with the /admin editor
       if (typeof a.title === 'string' && Array.isArray(a.dates)) {
-        const issues = activityIssues(a as unknown as Activity, Number(year))
+        const issues = activityIssues(a as unknown as Activity, Number(year), String(f.company), refs)
         issues.errors.forEach((m) => err(al, m))
         issues.warnings.forEach((m) => warnings.push(`${al}: ${m}`))
       }
@@ -151,4 +192,8 @@ if (errors.length) {
 if (warnings.length) {
   console.log(`Missing details (${warnings.length}):`)
   warnings.forEach((w) => console.log('  -', w))
+}
+if (oneOffs.size) {
+  console.log(`One-off locations, not in the venue list (${oneOffs.size}):`)
+  for (const [name, n] of oneOffs) console.log(`  - ${name} (${n} session${n > 1 ? 's' : ''})`)
 }

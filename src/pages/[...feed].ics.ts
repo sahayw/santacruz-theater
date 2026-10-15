@@ -3,19 +3,13 @@
 // /activities/{id}.ics. Content-Type comes from the /*.ics header in netlify.toml.
 // See docs/ics-spec.md.
 import type { APIRoute, GetStaticPaths } from 'astro'
-import companiesData from '../../data/sc-theater-companies.json'
-import venuesData from '../../data/sc-theater-venues.json'
 import { buildFeeds } from '../lib/calendar-model.ts'
-import { getActivities, getShows } from '../lib/data.ts'
+import { companies, getActivities, getShows, venues } from '../lib/data.ts'
 import { todayIso } from '../lib/data-rules.ts'
 import { serializeFeed } from '../lib/ics.ts'
-import type { CompanyEntry } from '../types.ts'
 
 export const getStaticPaths = (async () => {
-  const ctx = {
-    companies: companiesData.companies as CompanyEntry[],
-    venues: venuesData.venues
-  }
+  const ctx = { companies, venues }
   const feeds = buildFeeds(await getShows(), getActivities(), ctx, todayIso())
   return feeds.map((feed) => ({
     params: { feed: feed.path },

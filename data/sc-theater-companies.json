@@ -36,6 +36,10 @@
       "id": "scs",
       "abvName": "SCS",
       "name": "Santa Cruz Shakespeare",
+      "major": true,
+      "majorCode": 1,
+      "colour": "#ce8481",
+      "onCompaniesPage": true,
       "primaryVenue": "G",
       "website": "https://santacruzshakespeare.org/",
       "logo": "/images/companies/scs-logo.png"
@@ -44,6 +48,10 @@
       "id": "at",
       "abvName": "AT",
       "name": "Actors' Theatre",
+      "major": true,
+      "majorCode": 2,
+      "colour": "#7b8bc4",
+      "onCompaniesPage": true,
       "website": "https://www.santacruzactorstheatre.org/",
       "logo": "/images/companies/at-logo.jpg"
     },
@@ -51,6 +59,10 @@
       "id": "mct",
       "abvName": "MCT",
       "name": "Mountain Community Theater",
+      "major": true,
+      "majorCode": 4,
+      "colour": "#71c75f",
+      "onCompaniesPage": true,
       "primaryVenue": "PH",
       "website": "https://mctshows.org/",
       "logo": "/images/companies/mct-logo.png",
@@ -67,6 +79,10 @@
       "id": "renegade",
       "abvName": "Renegade",
       "name": "Renegade Theater",
+      "major": true,
+      "majorCode": 8,
+      "colour": "#5dadbe",
+      "onCompaniesPage": true,
       "website": "https://renegadetheaterco.org/index.html",
       "logo": "/images/companies/renegade-logo.png"
     },
@@ -74,6 +90,7 @@
       "id": "cabstg",
       "abvName": "Cabrillo Stg",
       "name": "Cabrillo Stage",
+      "onCompaniesPage": true,
       "primaryVenue": "CCT",
       "website": "https://www.cabrillostage.com/",
       "logo": "/images/companies/cabrillo-logo.png",
@@ -83,6 +100,7 @@
       "id": "aat",
       "abvName": "AAT",
       "name": "All About Theatre",
+      "onCompaniesPage": true,
       "primaryVenue": "Colligan",
       "website": "https://allabouttheatre.org/",
       "logo": "/images/companies/aat-logo.png",
@@ -92,6 +110,7 @@
       "id": "svpa",
       "abvName": "SVPA",
       "name": "Scotts Valley Performing Arts",
+      "onCompaniesPage": true,
       "website": "https://www.svpashows.org/",
       "logo": "/images/companies/svpa-logo.png"
     },
@@ -99,6 +118,7 @@
       "id": "milo-rep",
       "abvName": "Milo Rep",
       "name": "Milo Rep",
+      "onCompaniesPage": true,
       "website": "https://milorep.org/",
       "logo": "/images/companies/milo-rep-logo.png"
     },
@@ -106,6 +126,7 @@
       "id": "good-egg",
       "abvName": "Good Egg",
       "name": "Good Egg Productions",
+      "onCompaniesPage": true,
       "website": "https://www.goodeggsantacruz.com/",
       "logo": "/images/companies/good-egg-logo.png",
       "logoFill": true
@@ -114,6 +135,7 @@
       "id": "gih",
       "abvName": "GIH",
       "name": "Gay Innocent Heartless",
+      "onCompaniesPage": true,
       "website": "https://www.gayinnocentheartless.com/",
       "logo": "/images/companies/gih-logo.png",
       "logoDark": true,
@@ -130,6 +152,7 @@
       "id": "scratch",
       "abvName": "Scratch",
       "name": "Scratch Studios",
+      "onCompaniesPage": true,
       "website": "https://scratchsantacruz.com/",
       "logo": "/images/companies/scratch-logo.png",
       "editors": [
@@ -138,6 +161,60 @@
           "datasets": ["activities"]
         }
       ]
+    },
+    {
+      "id": "sh-theatrical",
+      "abvName": "SH Theatre",
+      "name": "SH Theatrical",
+      "filedUnderOther": true
+    },
+    {
+      "id": "shadow-city",
+      "abvName": "Shadow City",
+      "name": "Shadow City",
+      "filedUnderOther": true
+    },
+    {
+      "id": "cabrillo-ta",
+      "abvName": "Cabrillo TA",
+      "name": "Cabrillo College Theater Arts",
+      "website": "https://www.cabrillo.edu/vapa/#events",
+      "filedUnderOther": true
+    },
+    {
+      "id": "cabrillo-pac",
+      "abvName": "Cabrillo PAC",
+      "name": "Cabrillo Performing Arts Collective",
+      "website": "https://www.instagram.com/cabrillopac/",
+      "filedUnderOther": true
+    },
+    {
+      "id": "midsummer",
+      "abvName": "Midsummer",
+      "name": "Midsummer Ensemble",
+      "website": "https://www.midsummerensemble.com/",
+      "filedUnderOther": true
+    },
+    {
+      "id": "ucsc-barnstorm",
+      "abvName": "Barnstorm",
+      "name": "UCSC Barnstorm",
+      "website": "https://play.ucsc.edu/news-events/",
+      "filedUnderOther": true
+    },
+    {
+      "id": "ucsc-ta",
+      "abvName": "UCSC",
+      "name": "UCSC Theater Arts",
+      "website": "https://play.ucsc.edu/news-events/",
+      "filedUnderOther": true
+    },
+    {
+      "id": "dor-atkinson",
+      "abvName": "Dor Atkinson",
+      "name": "Dor Atkinson",
+      "website": "https://dorcosbyatkinson.wordpress.com/",
+      "filedUnderOther": true
     },
     {
       "id": "other",

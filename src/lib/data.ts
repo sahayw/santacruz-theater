@@ -1,4 +1,11 @@
-import type { Run, ShowsFile, PerformanceEvent, Activity, ActivitiesFile, Genre, ServiceListing, ServicesFile, ServiceCategory, ServiceCategoriesFile } from '../types.ts'
+import type { Run, ShowsFile, PerformanceEvent, Activity, ActivitiesFile, ActivityDate, CompanyEntry, Genre, ServiceListing, ServicesFile, ServiceCategory, ServiceCategoriesFile, Venue } from '../types.ts'
+import companiesData from '../../data/sc-theater-companies.json'
+import venuesData from '../../data/sc-theater-venues.json'
+import { organizerEntries, organizerLabel, organizerName, recordOrganizerIds } from './organizers.ts'
+import { runPlace, sessionPlace, type Place } from './venues.ts'
+
+export const companies = companiesData.companies as CompanyEntry[]
+export const venues = venuesData.venues as Venue[]
 
 function coerceGenre(raw: unknown): Genre[] {
   if (Array.isArray(raw)) return raw as Genre[]
@@ -26,6 +33,10 @@ export async function getPerformances(): Promise<PerformanceEvent[]> {
   const events: PerformanceEvent[] = []
 
   for (const run of allRuns) {
+    const organizers = recordOrganizerIds(run.company, run.organizers)
+    const organizerNames = organizerName(organizers, companies)
+    const organizerLabels = organizerLabel(organizers, companies)
+    const venue = runPlace(run, venues)?.name ?? run.venue
     for (const perf of run.performances) {
       events.push({
         id: perf.id,
@@ -35,7 +46,11 @@ export async function getPerformances(): Promise<PerformanceEvent[]> {
         show: run.show,
         description: run.description || '',
         genre: run.genre,
-        venue: run.venue,
+        organizers,
+        organizerName: organizerNames,
+        organizerLabel: organizerLabels,
+        venue,
+        venueCode: run.venue,
         price: run.price,
         discounts: perf.discounts || run.discounts,
         infoUrl: run.infoUrl,
@@ -52,9 +67,18 @@ export async function getPerformances(): Promise<PerformanceEvent[]> {
   )
 }
 
+/** A session with its venue or one-off location resolved for display. */
+export interface ActivityEventDate extends ActivityDate {
+  place?: Place
+}
+
 export interface ActivityEvent extends Activity {
-  company: string
+  company: string // the data file's company id ("other" for the catch-all file)
   year: number
+  dates: ActivityEventDate[]
+  organizerIds: string[] // main first
+  organizerName: string // display name(s)
+  organizerEntries: CompanyEntry[] // for names and websites in organizer details
 }
 
 export function getServices(): ServiceListing[] {
@@ -81,7 +105,17 @@ export function getActivities(): ActivityEvent[] {
   for (const mod of Object.values(files)) {
     const file = mod.default
     for (const a of file.activities) {
-      events.push({ ...a, genre: coerceGenre((a as unknown as Record<string, unknown>).genre), company: file.company, year: file.year })
+      const organizerIds = recordOrganizerIds(file.company, a.organizers)
+      events.push({
+        ...a,
+        genre: coerceGenre((a as unknown as Record<string, unknown>).genre),
+        company: file.company,
+        year: file.year,
+        dates: a.dates.map((d) => ({ ...d, place: sessionPlace(d, venues) })),
+        organizerIds,
+        organizerName: organizerName(organizerIds, companies),
+        organizerEntries: organizerEntries(organizerIds, companies)
+      })
     }
   }
   return events.sort((a, b) => {

@@ -20,12 +20,14 @@ export interface Run {
   show: string // full title, e.g. "Much Ado About Nothing (Shakespeare)"
   description?: string // optional narrative; supports bold, italic, links, and bullet lists
   genre: Genre[]
-  venue: string
+  venue: string // venue code from data/sc-theater-venues.json
+  room?: string // optional space within the venue, e.g. "Second Stage"
   price: string
   discounts: string
   infoUrl: string
   ticketsUrl: string
   performances: Performance[]
+  organizers?: string[] // organizer ids, main first; see recordOrganizerIds() in src/lib/organizers.ts
   updatedAt?: string // ISO 8601; set by the editor when the run changes (calendar feed LAST-MODIFIED)
 }
 
@@ -48,13 +50,25 @@ export interface CompanyEntry {
   abvName: string
   name: string
   primaryVenue?: string
-  venueCode?: string
   website?: string
   logo?: string
   logoDark?: boolean
   logoFill?: boolean
   editors?: CompanyEditor[]
-  adminOnly?: boolean
+  adminOnly?: boolean // the "admin" and "other" sentinels
+  filedUnderOther?: boolean // an organizer without its own data files; its records live in other-<year> files
+  major?: boolean // offered as a checkbox in subscriptions; has its own calendar colour
+  majorCode?: number // majors only: 1, 2, 4, 8… permanent; numbers the filtered feeds
+  colour?: string // majors only: calendar colour (hex)
+  onCompaniesPage?: boolean // listed on /companies
+}
+
+/** Shape of data/sc-theater-venues.json entries. */
+export interface Venue {
+  code: string
+  name: string
+  address?: string
+  website?: string
 }
 
 export type AuditionGender = 'female' | 'male' | 'any'
@@ -75,7 +89,9 @@ export interface ActivityDate {
   startTime: string // HH:MM 24-hour
   endTime?: string // HH:MM 24-hour (optional)
   notes?: string // e.g. "First come, first served"
-  location?: AuditionLocation
+  venue?: string // venue code from data/sc-theater-venues.json
+  location?: AuditionLocation // one-off place not in the venue list (used when venue is unset)
+  room?: string // optional space within the venue, e.g. "Mainstage"
 }
 
 export interface AuditionLocation {
@@ -106,8 +122,7 @@ export interface Activity {
   description?: string // full description; supports bold, italic, links, and bullet lists
   genre: Genre[]
   dates: ActivityDate[]
-  organizerName?: string // optional; used when company is "other"
-  organizerUrl?: string // optional organizer website when company is "other"
+  organizers?: string[] // organizer ids, main first; see recordOrganizerIds() in src/lib/organizers.ts
   rolesAvailable?: AuditionRole[] // audition only; suppressed when empty
   prep?: AuditionPrep // audition only
   virtualSubmission?: boolean // audition only; no scheduled dates — always "upcoming" until closed
@@ -115,7 +130,7 @@ export interface Activity {
   closed?: boolean // either type; retained but excluded from "upcoming" (retire without deleting)
   rehearsalStart?: string // audition only; YYYY-MM-DD
   openingDate?: string // audition only; YYYY-MM-DD
-  productionId?: string // audition only; soft ref to a Run id
+  productionId?: string // audition only; a Run id (validated; the run may not have dates yet)
   cost?: string // event only; free text e.g. "Free", "$20"
   registerUrl?: string // event only; registration link
   contact?: ActivityContact
@@ -185,7 +200,11 @@ export interface PerformanceEvent {
   show: string
   description: string
   genre: Genre[]
-  venue: string
+  organizers: string[] // organizer ids, main first
+  organizerName: string // display name(s), e.g. "Santa Cruz Shakespeare & Actors' Theatre"
+  organizerLabel: string // short label(s), e.g. "SCS / AT"
+  venue: string // venue display name (with room)
+  venueCode: string
   price: string
   discounts: string
   infoUrl: string

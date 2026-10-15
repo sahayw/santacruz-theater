@@ -158,20 +158,21 @@ interface CalendarEvent {
 Rules carried over from the old sync:
 
 - **Performances**
-  - Summary: `{showAbv || show} — {company name}`, or just the title for the
-    `other` company.
+  - Summary: `{showAbv || show} — {organizer name(s)}`. Organizers come from
+    `recordOrganizerIds()` (`notifications-spec.md`), so a production filed
+    under Other names its real organizer.
   - End time: start + 2 hours, since performances have no end time.
-  - Location: `run.venue`, looked up by name or code in
-    `sc-theater-venues.json` and formatted as `Name · Address`. If there's no
-    match, the raw text is used.
+  - Location: the `run.venue` code (plus any `room`) resolved in
+    `sc-theater-venues.json` and formatted as `Name · Address`. An unknown
+    code is shown as-is.
 - **Sessions**
-  - Summary: `Audition: {title} — {org}` or `Event: {title} — {org}`. `{org}`
-    is `organizerName` when the company is `other`, otherwise the company name.
-    The ` — {org}` part is dropped when there's no organizer.
+  - Summary: `Audition: {title} — {org}` or `Event: {title} — {org}`, where
+    `{org}` is the organizer name(s). The ` — {org}` part is dropped when
+    there's no organizer.
   - End time: `endTime` if set, otherwise start + 2 hours. An `endTime` at or
     before the start time means the session ends the next day.
-  - Location: `ActivityDate.location` (the address, or the name looked up as a
-    venue). Otherwise the company's `primaryVenue`.
+  - Location: the session's `venue` code or one-off `location` (plus any
+    `room`). Otherwise the main organizer's `primaryVenue`.
 - **Description**: plain text. Markdown is converted with a new `mdToPlain()`
   in `src/lib/audition-format.ts`, kept beside `renderMd()` so Markdown
   handling stays in one module:
@@ -249,8 +250,7 @@ One catch-all Astro static endpoint, `src/pages/[...feed].ics.ts`, writes
 every feed:
 
 - `getStaticPaths()` calls `buildFeeds()` and returns one path per feed.
-- It loads companies and venues by importing the JSON directly, as
-  `companies.astro` does.
+- It takes the companies and venues lists from `src/lib/data.ts`.
 - It uses `todayIso()` for the history window.
 
 The original plan was six separate endpoint files. They would have been

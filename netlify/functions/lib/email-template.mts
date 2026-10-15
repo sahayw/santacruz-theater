@@ -25,7 +25,7 @@ function activityBlock(a: DigestActivity, isUpdated: boolean, baseUrl: string) {
         `<tr>
       <td style="padding:3px 14px 3px 0;color:#1a1612;font-weight:500;white-space:nowrap">${esc(fmtFullDate(ad.date))}</td>
       <td style="padding:3px 14px 3px 0;color:#6b6259;white-space:nowrap">${esc(fmtTimeRange(ad.startTime, ad.endTime ?? ''))}</td>
-      <td style="padding:3px 0;color:#6b6259">${ad.location ? esc(ad.location.name) : ''}</td>
+      <td style="padding:3px 0;color:#6b6259">${ad.place ? esc(ad.place.name) : ''}</td>
     </tr>`
     )
     .join('')

@@ -1,4 +1,6 @@
-import type { Activity, Run, ServiceListing } from '../types.ts'
+import type { Activity, CompanyEntry, Run, ServiceListing, Venue } from '../types.ts'
+import { organizerErrors } from './organizers.ts'
+import { venueByCode } from './venues.ts'
 
 // Record-level validation rules, shared by the /admin editors (run on Save) and the
 // scripts/check-*.ts build validators, so the two can't disagree about what's valid.
@@ -9,6 +11,30 @@ import type { Activity, Run, ServiceListing } from '../types.ts'
 export interface RuleIssues {
   errors: string[]
   warnings: string[]
+}
+
+/** Reference data the rules check records against. */
+export interface RuleRefs {
+  companies: CompanyEntry[]
+  venues: Venue[]
+  /** Every Run id, for checking an audition's productionId. Omit to skip that check. */
+  runIds?: Set<string>
+}
+
+/**
+ * Details a record still lacks. Shown as editor warnings (productions) and published in
+ * /missing-details.json for the external alerting agent. Records whose dates are all past
+ * have none.
+ */
+export type Gap = 'dates' | 'tickets' | 'price' | 'info' | 'description' | 'location'
+
+const RUN_GAP_WARNINGS: Record<Gap, string> = {
+  dates: 'no performances — it won’t appear on the calendar',
+  tickets: 'no tickets link yet',
+  price: 'Price is empty',
+  info: 'Info URL is empty',
+  description: 'Description is empty',
+  location: 'Venue is empty'
 }
 
 /** Genre cap — enforced by the editor's picker and check-shows.ts (after legacy coercion). */
@@ -55,8 +81,41 @@ export function todayIso() {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
 }
 
+/** What a production still lacks; none once its last performance is before `today`. */
+export function runGaps(run: Run, today = todayIso()): Gap[] {
+  const dates = run.performances.map((p) => p.date).sort()
+  if (dates.length && dates.at(-1)! < today) return []
+  const gaps: Gap[] = []
+  if (!dates.length) gaps.push('dates')
+  if (isBlank(run.ticketsUrl) && !run.performances.some((p) => !isBlank(p.ticketsUrl)))
+    gaps.push('tickets')
+  if (isBlank(run.price)) gaps.push('price')
+  if (isBlank(run.infoUrl)) gaps.push('info')
+  if (isBlank(run.description)) gaps.push('description')
+  return gaps
+}
+
+/**
+ * What an open activity still lacks; none once it's closed or its dates are all past.
+ * `primaryVenue` is the organizing company's default venue, if any.
+ */
+export function activityGaps(a: Activity, primaryVenue?: string, today = todayIso()): Gap[] {
+  const dated = (a.dates || []).filter((d) => d.date)
+  if (a.closed || (dated.length && dated.every((d) => d.date < today))) return []
+  const gaps: Gap[] = []
+  if (isBlank(a.noticeUrl) && isBlank(a.registerUrl)) gaps.push('info')
+  if (!primaryVenue && dated.some((d) => isBlank(d.venue) && isBlank(d.location?.name)))
+    gaps.push('location')
+  return gaps
+}
+
 /** Warnings are skipped for a historic run — one whose last performance is before `today`. */
-export function runIssues(run: Run, fileYear: number, today = todayIso()): RuleIssues {
+export function runIssues(
+  run: Run,
+  fileYear: number,
+  refs: RuleRefs,
+  today = todayIso()
+): RuleIssues {
   const errors: string[] = []
   const warnings: string[] = []
 
@@ -65,6 +124,9 @@ export function runIssues(run: Run, fileYear: number, today = todayIso()): RuleI
   else if (run.showAbv.length > SHOW_ABV_MAX)
     errors.push(`Abbrev is longer than ${SHOW_ABV_MAX} characters`)
   if (isBlank(run.venue)) errors.push('Venue is required')
+  else if (!venueByCode(run.venue, refs.venues))
+    errors.push(`Venue "${run.venue}" isn't in the venue list`)
+  errors.push(...organizerErrors(run.company, run.organizers, refs.companies))
 
   run.performances.forEach((p, i) => {
     if (!isDateNearYear(p.date, fileYear))
@@ -79,26 +141,23 @@ export function runIssues(run: Run, fileYear: number, today = todayIso()): RuleI
   )
   if (yearIssue) errors.push(yearIssue)
 
-  const lastDate = run.performances
-    .map((p) => p.date)
-    .sort()
-    .at(-1)
-  if (lastDate && lastDate < today) return { errors, warnings }
-
-  if (!run.performances.length) warnings.push('no performances — it won’t appear on the calendar')
-  if (isBlank(run.price)) warnings.push('Price is empty')
-  if (isBlank(run.infoUrl)) warnings.push('Info URL is empty')
-  if (isBlank(run.description)) warnings.push('Description is empty')
+  warnings.push(...runGaps(run, today).map((g) => RUN_GAP_WARNINGS[g]))
 
   return { errors, warnings }
 }
 
 /** `a.dates` should already have the editor's blank rows removed, as saved. */
-export function activityIssues(a: Activity, fileYear: number): RuleIssues {
+export function activityIssues(
+  a: Activity,
+  fileYear: number,
+  fileCompany: string,
+  refs: RuleRefs
+): RuleIssues {
   const errors: string[] = []
   const warnings: string[] = []
 
   if (isBlank(a.title)) errors.push('Title is required')
+  errors.push(...organizerErrors(fileCompany, a.organizers, refs.companies))
 
   const dates = a.dates || []
   const noDatesAllowed =
@@ -112,6 +171,8 @@ export function activityIssues(a: Activity, fileYear: number): RuleIssues {
       errors.push(`date row ${i + 1} has an invalid start time "${d.startTime || '(empty)'}"`)
     if (d.endTime !== undefined && !isValidTime(d.endTime))
       errors.push(`date row ${i + 1} has an invalid end time "${d.endTime}"`)
+    if (d.venue !== undefined && !venueByCode(d.venue, refs.venues))
+      errors.push(`date row ${i + 1} has venue "${d.venue}", which isn't in the venue list`)
   })
   const yearIssue = firstDateYearIssue(
     dates.map((d) => d.date),
@@ -125,15 +186,21 @@ export function activityIssues(a: Activity, fileYear: number): RuleIssues {
       errors.push(`Rehearsal Start "${a.rehearsalStart}" is not a valid date`)
     if (a.openingDate !== undefined && !isRealDate(a.openingDate))
       errors.push(`Opening "${a.openingDate}" is not a valid date`)
+    if (a.productionId !== undefined && refs.runIds && !refs.runIds.has(a.productionId))
+      errors.push(`Production "${a.productionId}" doesn't exist`)
   }
 
+  // An organizer named on the record (Other or co-producer) counts as a contact via its website
+  const organizerSite = (a.organizers || []).some(
+    (id) => !isBlank(refs.companies.find((c) => c.id === id)?.website)
+  )
   if (
     a.type === 'event' &&
     isBlank(a.contact?.email) &&
     isBlank(a.contact?.phone) &&
     isBlank(a.noticeUrl) &&
     isBlank(a.registerUrl) &&
-    isBlank(a.organizerUrl)
+    !organizerSite
   )
     errors.push('an event needs a contact email, phone, or link (info, registration, or organizer)')
 

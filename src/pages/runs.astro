@@ -6,17 +6,12 @@
 import BaseHead from '../components/BaseHead.astro'
 import SiteNav from '../components/SiteNav.astro'
 import AddToCalendar from '../components/AddToCalendar.astro'
-import companiesData from '../../data/sc-theater-companies.json'
-import venuesData from '../../data/sc-theater-venues.json'
-import { getShows } from '../lib/data.ts'
+import { companies, getShows, venues } from '../lib/data.ts'
+import { organizerName, recordOrganizerIds } from '../lib/organizers.ts'
+import { runPlace } from '../lib/venues.ts'
 import { fmt12, fmtAudDateRange, fmtFullDate, renderMd } from '../lib/audition-format.ts'
 import { bareId } from '../lib/calendar-model.ts'
-import type { CompanyEntry, Performance, Run } from '../types.ts'
-
-const companies = companiesData.companies as CompanyEntry[]
-const companyName = (id: string) => companies.find((c) => c.id === id)?.name ?? id
-const venueName = (v: string) =>
-  venuesData.venues.find((x) => x.code === v || x.name === v)?.name ?? v
+import type { Performance, Run } from '../types.ts'
 
 const byDateTime = (a: Performance, b: Performance) =>
   (a.date + a.time).localeCompare(b.date + b.time)
@@ -39,8 +34,8 @@ function genreClass(genre: string) {
 }
 
 function summaryMeta(r: Run) {
-  const name = r.company === 'other' ? '' : companyName(r.company)
-  return [name, venueName(r.venue), r.price].filter(Boolean).join(' · ')
+  const name = organizerName(recordOrganizerIds(r.company, r.organizers), companies)
+  return [name, runPlace(r, venues)?.name ?? r.venue, r.price].filter(Boolean).join(' · ')
 }
 ---
 

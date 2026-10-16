@@ -1,18 +1,9 @@
 # ICS Calendar Feeds — Spec
 
-Status: **released 2026-10-14 (`ba58e77`).** This is now the design record;
-for how the shipped system works, see `implementation.md` and
-`feature-guide.md`. Revised 2026-10-14 from the original August draft. Replaces the Google Calendar sync, which was removed
-in `bda183f`. That commit's parent still has the old event-building code for
-reference.
-
-**Revised 2026-10-16** (stage 2 of [`notifications-spec.md`](notifications-spec.md)):
-the production page moved from `/runs` to `/productions`, and the feeds moved
-with it — `/productions.ics` for everything, plus numbered
-`/productions/selection/{n}.ics` feeds that leave out chosen majors — replacing
-the per-company `/runs/company/{id}.ics` feeds (no subscribers yet). The
-calendar lost its filters. This record is updated to match; historical notes
-(phases, the original `/runs` page) keep their old names.
+The design record for the calendar feeds and the Add to my calendar dialog:
+what they do and why. How the code works is in `implementation.md`; what
+visitors see is in `feature-guide.md`. How it was built and released is in
+[History](#history) at the end.
 
 ## Goal
 
@@ -38,8 +29,9 @@ written to.
 ## Terminology
 
 - **Run**: a company's scheduled set of performances of a work (`Run`). The
-  public feed namespace uses "runs". Internal names (`data/shows/`,
-  `getShows()`, `check-shows.ts`) still say "show" and are **not** renamed.
+  public pages and feeds call it a **production** (`/productions`,
+  `/productions.ics`). Internal names (`data/shows/`, `getShows()`,
+  `check-shows.ts`, the `Run` type) are **not** renamed.
 - **Performance**: one date/time in a run.
 - **Activity**: an audition or event (`Activity`). **Session**: one
   `ActivityDate` within it.
@@ -123,9 +115,8 @@ updates.
     activity's `updatedAt`, so the digest doesn't report a spurious update.
     The ids are written with the user's next real save.
   - `isEmptyDateRow` must ignore `id`.
-- **Migration**: `scripts/migrate-occurrence-ids.ts` is a one-off script, run
-  with `npx tsx`. It isn't an npm script. It assigns ids to every row that
-  lacks one and leaves everything else alone. In particular it **never touches
+- **Migration**: `scripts/migrate-occurrence-ids.ts` (one-off, `npx tsx`)
+  assigns ids to every row that lacks one and leaves everything else alone. In particular it **never touches
   `updatedAt`**: the digest reads that field, and touching it would send
   "updated" emails for every activity. Running it a second time changes
   nothing.
@@ -135,12 +126,6 @@ updates.
   - This lives in the check scripts, not `data-rules.ts`. Per the header of
     `data-rules.ts`, id formats are structural checks that editors guarantee
     by construction.
-- **Release race**: an editor page opened _before_ the deploy and saved
-  _after_ it would write rows without ids, which fails the build. Recovery is
-  to reload the editor and save, or to re-run the migration. Releasing at a
-  quiet moment avoids it.
-- Also check for any code that identifies a performance by run + date + time,
-  and switch it to the id where that makes sense.
 
 ## Calendar event model
 
@@ -164,7 +149,7 @@ interface CalendarEvent {
 }
 ```
 
-Rules carried over from the old sync:
+Rules:
 
 - **Performances**
   - Summary: `{showAbv || show} — {organizer name(s)}`. Organizers come from
@@ -182,7 +167,7 @@ Rules carried over from the old sync:
     before the start time means the session ends the next day.
   - Location: the session's `venue` code or one-off `location` (plus any
     `room`). Otherwise the main organizer's `primaryVenue`.
-- **Description**: plain text. Markdown is converted with a new `mdToPlain()`
+- **Description**: plain text. Markdown is converted with `mdToPlain()`
   in `src/lib/audition-format.ts`, kept beside `renderMd()` so Markdown
   handling stays in one module:
   - bold and italic markers are removed;
@@ -245,7 +230,7 @@ Rules carried over from the old sync:
 - **`DTSTAMP` / `LAST-MODIFIED` never use the build time.** Otherwise every
   event would look changed on every deploy.
   - Activities: `activity.updatedAt`.
-  - Runs: a new optional `Run.updatedAt`, set by the calendar editor on Save
+  - Runs: the optional `Run.updatedAt`, set by the calendar editor on Save
     for runs that changed, the same way `activities.js` does it. If it's
     missing, the creation time is taken from the epoch in `run.id`.
   - `SEQUENCE` is omitted. Subscribed clients ignore it, and a value that
@@ -262,10 +247,7 @@ every feed:
 - It takes the companies and venues lists from `src/lib/data.ts`.
 - It uses `todayIso()` for the history window.
 
-The original plan was six separate endpoint files. They would have been
-near-identical, so one route does the job with less code.
-
-## Website UI (phase C)
+## Website UI
 
 **Add to my calendar** opens one dialog, whose content depends on what's
 being added. Its title says what it does: **Subscribe to this calendar** for
@@ -301,13 +283,14 @@ Placements:
   - On phones it's an icon button.
   - The dialog has a checkbox per major, all ticked. All ticked subscribes to
     `/productions.ics`; unticking picks `/productions/selection/{n}.ics`.
-  - The calendar has no filters (revised 2026-10-16).
+  - The calendar has no filters.
 - **The calendar's per-date show card**: one event, that performance
   (`/performances/{id}.ics`). The card also gets an **All dates →** link to
   `/productions?id={id}`.
-- **`/productions`**: one event, on each upcoming performance row.
+- **`/productions`**: subscribe, from the bar (the same majors checkboxes as
+  `/calendar`); one event, on each upcoming performance row.
 - **`/events`**:
-  - **Banner**: subscribe, with two choices: All auditions & events
+  - **Filter row**: subscribe, with two choices: All auditions & events
     (`/activities.ics`) or Auditions only (`/auditions.ics`).
   - **Each upcoming date row of an open activity**: one event
     (`/sessions/{id}.ics`).
@@ -315,20 +298,19 @@ Placements:
     (`/activities/{id}.ics`).
   - These links are web-only; the editor Preview and emails don't show them.
 
-**New `/runs` page** (`src/pages/runs.astro`):
+**`/productions` page** (`src/pages/productions.astro`):
 
 - It works like `/events`: an index, client-side filtering, and a `?id=` deep
   link.
-- `?id=` shows the run's **full** performance schedule. Each row shows any
-  per-performance perf type, discounts or ticket link that differs from the
-  run's.
-- It is **not** in the nav or on the home page. It exists as the target of
+- `?id=` shows the production's **full** performance schedule. Each row shows
+  any per-performance perf type, discounts or ticket link that differs from
+  the production's.
+- It is **not** in the nav's links or on the home page. It's the target of
   the page links in calendar events and of the calendar card's **All dates**
   link.
 
-**Calendar editor Preview**: no change was needed. It already showed the
-run's full schedule, with per-performance overrides, in the same card layout
-that `/runs` now uses.
+**Calendar editor Preview** shows the run's full schedule, with
+per-performance overrides, in the same card layout as `/productions`.
 
 **Usage tracking**: the dialog sends Plausible custom events (`Calendar
 subscribe`, `Calendar add event`, `Calendar download all dates`), with the
@@ -374,20 +356,53 @@ break these tests.
   `dist/**/*.ics` file with `ical.js`, so real data with odd characters is
   checked on every deploy.
 
-**Migration equivalence (one-time)**
-
-- Build `dist/` before and after the migration and diff the two. Ids aren't
-  rendered anywhere, so the diff must be empty, apart from `/admin` assets if
-  those changed.
-
-**Manual (per phase, on a Netlify deploy preview, which Google can reach)**
+**Manual** (on a Netlify deploy, which Google can reach)
 
 - Subscribe in Apple Calendar, Google Calendar and Outlook.
 - Edit a performance time: the event should move, not duplicate.
 - Delete a performance: the event should disappear.
 - Check the times on a date after the daylight-saving change.
 
-## Phases
+## Design notes
+
+1. **Serializer**: hand-written, not `ical-generator`. The parts that need care
+   are escaping, folding, a fixed `VTIMEZONE` and deterministic ordering. They
+   come to about 150 lines, are fully unit-tested and are checked with
+   `ical.js`. The library would need its timestamp default overridden and a
+   timezone plugin to produce `VTIMEZONE`.
+2. **`Run.updatedAt`**: added, so a run's `LAST-MODIFIED` reflects real edits
+   rather than only its creation time.
+3. **History window**: 12 months rather than the old sync's 30 days. See
+   [Feeds](#feeds).
+4. **Subscribe vs download**:
+   - Whole calendars are subscription only. A one-off copy of hundreds of
+     events goes stale and caused duplicates in testing (a subscription plus
+     an import of the same events).
+   - Single performances and sessions are one-off events. A production's
+     dates aren't offered at all.
+   - An activity's dates can be downloaded together only when it has two or
+     more sessions.
+
+## History
+
+- **August 2026**: first draft. It replaced the Google Calendar sync, which
+  was removed in `bda183f` (that commit's parent still has the old
+  event-building code).
+- **2026-10-14**: revised after first testing, which settled subscribe vs
+  download ([Design notes](#design-notes)): whole calendars became
+  subscription only, after a subscription plus an import of the same events
+  caused duplicates. Released the same day (`ba58e77`). The subscribe button
+  then appeared only in the calendar's week view.
+- **2026-10-16** (stage 2 of [`notifications-spec.md`](notifications-spec.md)):
+  the production page moved from `/runs` to `/productions` and the feeds
+  with it — `/productions.ics` plus the numbered selection feeds, replacing
+  the per-company `/runs/company/{id}.ics` feeds (no subscribers yet). The
+  calendar lost its filters.
+
+The build originally planned six endpoint files; they would have been
+near-identical, so one catch-all route replaced them.
+
+### Phases
 
 Each phase was built on the `ics-feeds` branch (since deleted) and merged to
 `dev` for testing. Phases B and C were released to `main` together, because
@@ -401,7 +416,7 @@ phase C.
 | C     | `/runs` page, the Add to Calendar dialog and its placements, the editor Preview's full schedule.                                                                                                                   |
 | D     | Final docs pass (`implementation.md`, `feature-guide.md`, CLAUDE.md); drop the old `ICS spec` stash.                                                                                                               |
 
-**Releasing phase A** (done; kept for reference). The data migration is its own commit, and it's
+**Releasing phase A**. The data migration is its own commit, and it's
 regenerated at release time instead of being merged as committed. Live editor
 saves land on `main` daily, so the committed id lines would conflict with
 them. The ids carry no meaning until feeds are published, so regenerating
@@ -413,28 +428,17 @@ them loses nothing.
 3. `npx tsx scripts/migrate-occurrence-ids.ts`, then `npm run check`, then
    commit.
 4. `npm run release`, at a quiet time
-   ([release race](#occurrence-ids)).
+   ([release race](#one-off-release-checks)).
 
 Every phase updates `docs/implementation.md` §3 (schemas) and
 `docs/feature-guide.md` for whatever it ships, per CLAUDE.md.
 
-## Resolved questions
+### One-off release checks
 
-1. **Serializer**: hand-written, not `ical-generator`. The parts that need care
-   are escaping, folding, a fixed `VTIMEZONE` and deterministic ordering. They
-   come to about 150 lines, are fully unit-tested and are checked with
-   `ical.js`. The library would need its timestamp default overridden and a
-   timezone plugin to produce `VTIMEZONE`.
-2. **`Run.updatedAt`**: added, so a run's `LAST-MODIFIED` reflects real edits
-   rather than only its creation time.
-3. **History window**: 12 months rather than the old sync's 30 days. See
-   [Feeds](#feeds).
-4. **Subscribe vs download** (decided after first testing, 2026-10-14):
-   - Whole calendars are subscription only. A one-off copy of hundreds of
-     events goes stale and caused duplicates in testing (a subscription plus
-     an import of the same events).
-   - Single performances and sessions are one-off events. A production's
-     dates aren't offered at all.
-   - An activity's dates can be downloaded together only when it has two or
-     more sessions.
-   - The subscribe button appears only in the calendar's week view.
+- **Release race** (phase A): an editor page opened _before_ the deploy and saved
+  _after_ it would write rows without ids, which fails the build. Recovery is
+  to reload the editor and save, or to re-run the migration. Releasing at a
+  quiet moment avoids it.
+- **Migration equivalence** (phase A): build `dist/` before and after the migration and diff the two. Ids aren't
+  rendered anywhere, so the diff must be empty, apart from `/admin` assets if
+  those changed.

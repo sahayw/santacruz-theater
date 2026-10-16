@@ -3,6 +3,7 @@ import companiesData from '../../data/sc-theater-companies.json'
 import venuesData from '../../data/sc-theater-venues.json'
 import { organizerEntries, organizerLabel, organizerName, recordOrganizerIds } from './organizers.ts'
 import { runPlace, sessionPlace, type Place } from './venues.ts'
+import { activityTitle } from './audition-format.ts'
 
 export const companies = companiesData.companies as CompanyEntry[]
 export const venues = venuesData.venues as Venue[]
@@ -73,6 +74,7 @@ export interface ActivityEventDate extends ActivityDate {
 }
 
 export interface ActivityEvent extends Activity {
+  title: string // resolved: a linked audition's is its production's
   company: string // the data file's company id ("other" for the catch-all file)
   year: number
   dates: ActivityEventDate[]
@@ -108,6 +110,7 @@ export function getActivities(): ActivityEvent[] {
       const organizerIds = recordOrganizerIds(file.company, a.organizers)
       events.push({
         ...a,
+        title: activityTitle(a, allRuns),
         genre: coerceGenre((a as unknown as Record<string, unknown>).genre),
         company: file.company,
         year: file.year,

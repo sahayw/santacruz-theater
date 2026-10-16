@@ -117,7 +117,7 @@ export type ActivityType = 'audition' | 'event'
 export interface Activity {
   id: string // "activity-<timestamp>"
   type: ActivityType
-  title: string // production name (audition) or event name
+  title?: string // event name, or a season-wide audition's; a linked audition's comes from its production
   briefDescription?: string // event only: short blurb for collapsed card header
   description?: string // full description; supports bold, italic, links, and bullet lists
   genre: Genre[]

@@ -8,6 +8,7 @@ import type { ActivitiesFile, ShowsFile } from '../types.ts'
 import { companies } from '../lib/data.ts'
 import { activityGaps, runGaps, todayIso, type Gap } from '../lib/data-rules.ts'
 import { recordOrganizerIds } from '../lib/organizers.ts'
+import { activityTitle } from '../lib/audition-format.ts'
 
 interface MissingDetails {
   kind: 'production' | 'audition' | 'event'
@@ -54,7 +55,10 @@ export const GET: APIRoute = () => {
       records.push({
         kind: a.type,
         id: a.id,
-        title: a.title,
+        title: activityTitle(
+          a,
+          Object.values(shows).flatMap((m) => m.default.runs)
+        ),
         organizers,
         file: dataPath(key),
         firstDate: a.dates.map((d) => d.date).filter(Boolean).sort()[0],

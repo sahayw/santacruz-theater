@@ -934,7 +934,7 @@ async function saveFile() {
     updateStatus()
     const added = pendingReturn && runs.find((r) => r.id === addedRunId)
     if (added && confirm(`"${added.show || added.showAbv}" is saved. Go back to the audition?`)) {
-      const resume = { ...pendingReturn, productionId: added.id, title: added.show }
+      const resume = { ...pendingReturn, productionId: added.id }
       pendingReturn = null
       window.openEditor('activities', { resumeActivity: resume })
       return

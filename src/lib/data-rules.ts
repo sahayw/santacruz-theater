@@ -156,7 +156,8 @@ export function activityIssues(
   const errors: string[] = []
   const warnings: string[] = []
 
-  if (isBlank(a.title)) errors.push('Title is required')
+  const linked = a.type === 'audition' && !!a.productionId
+  if (!linked && isBlank(a.title)) errors.push('Title is required')
   errors.push(
     ...organizerErrors(fileCompany, a.organizers, refs.companies, { coProducers: false })
   )

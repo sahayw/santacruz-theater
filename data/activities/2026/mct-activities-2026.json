@@ -87,7 +87,6 @@
       "createdAt": "2026-06-02T00:00:00Z",
       "updatedAt": "2026-06-02T00:00:00Z",
       "type": "audition",
-      "title": "Rumors (Neil Simon)",
       "productionId": "run-1779380782967",
       "dates": [
         {
@@ -118,7 +117,6 @@
     {
       "id": "activity-1785598970210",
       "type": "audition",
-      "title": "Coney Island Christmas",
       "productionId": "run-1779617466366",
       "genre": [
         "Comedy"

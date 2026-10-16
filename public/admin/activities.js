@@ -6,7 +6,8 @@ import {
   fmtShortDate,
   fmtAudDateRange,
   rolesSum,
-  renderMd
+  renderMd,
+  activityTitle
 } from '/admin/audition-format.js'
 import {
   MAX_GENRES,
@@ -816,12 +817,25 @@ async function loadCompanyRuns(coId) {
  */
 function productionChoices(a) {
   const org = a.organizers?.[0]
+  const today = new Date().toLocaleDateString('en-CA') // YYYY-MM-DD, local
+  // An audition is for a production still to come: upcoming dates, or none yet. The
+  // production already linked stays listed even if it's since finished.
+  const upcoming = (r) => !r.performances.length || lastRunDate(r) >= today
   return companyRuns
     .filter((r) => currentCompanyId !== 'other' || (org && r.organizers?.includes(org)))
-    .sort((x, y) => (firstRunDate(y) || '9999').localeCompare(firstRunDate(x) || '9999'))
+    .filter((r) => upcoming(r) || r.id === a.productionId)
+    .sort((x, y) => (firstRunDate(x) || '9999').localeCompare(firstRunDate(y) || '9999'))
 }
 function firstRunDate(r) {
   return r.performances.map((p) => p.date).sort()[0]
+}
+function lastRunDate(r) {
+  return r.performances.map((p) => p.date).sort().at(-1)
+}
+
+/** An activity's title as shown: a linked audition's is its production's. */
+function titleOf(a) {
+  return activityTitle(a, companyRuns)
 }
 
 function renderProductionOptions(a) {
@@ -913,13 +927,14 @@ function addProduction(a) {
  * Back from "Add production": reloads the file and restores the audition as it was,
  * now linked to the new show and titled after it.
  */
-async function resumeActivity({ company, year, draft, productionId, title }) {
+async function resumeActivity({ company, year, draft, productionId }) {
   if (isAdminContext) document.getElementById('actCompanySelect').value = company
   pendingCompanyId = company
   populateYearSelect(allActFiles.filter((f) => f.companyId === company).map((f) => f.year))
   document.getElementById('actYearSelect').value = String(year)
   await loadCompanyFile(company, year)
-  const rec = { ...draft, productionId, title }
+  const { title: _typed, ...rest } = draft
+  const rec = { ...rest, productionId } // titled by the production
   const i = activities.findIndex((x) => x.id === draft.id)
   if (i >= 0) activities[i] = rec
   else activities.push(rec)
@@ -1218,7 +1233,7 @@ function renderSidebar() {
       ({ a, i }) => `
     <div class="act-list-item ${i === activeActIdx ? 'active' : ''}" onclick="act.selectAct(${i})">
       <div class="act-item-meta">${currentCompanyId === 'other' ? `${esc(organizerLabel(a.organizers || [], allCompanies)) || 'No organizer'} · ` : ''}${a.type === 'event' ? 'Event' : 'Audition'}${a.virtualSubmission ? ' · virtual' : ''}${a.closed ? ' · closed' : ''}</div>
-      <div class="act-item-title">${a.title || 'Untitled'}</div>
+      <div class="act-item-title">${esc(titleOf(a)) || 'Untitled'}</div>
     </div>`
     )
     .join('')
@@ -1279,7 +1294,7 @@ function loadActEditor() {
   setGenres('af-genre', genreArr)
   prevActGenreVals = genreArr
 
-  document.getElementById('af-title').value = a.title || ''
+  document.getElementById('af-title').value = titleOf(a)
   document.getElementById('af-rehearsal').value = a.rehearsalStart || ''
   document.getElementById('af-opening').value = a.openingDate || ''
   document.getElementById('af-notice-url').value = a.type !== 'event' ? a.noticeUrl || '' : ''
@@ -1325,7 +1340,7 @@ function loadActEditor() {
 
 function updateEditorTitle() {
   const a = activities[activeActIdx]
-  document.getElementById('actTitleText').textContent = a.title || 'Untitled'
+  document.getElementById('actTitleText').textContent = titleOf(a) || 'Untitled'
   const genreLabel = (Array.isArray(a.genre) ? a.genre : a.genre ? [a.genre] : []).join(' / ')
   const typeLabel = a.type === 'event' ? 'Event' : 'Audition'
   document.getElementById('actSubtitle').textContent =
@@ -1461,6 +1476,8 @@ function fieldChanged() {
     a.productionUrl = document.getElementById('af-prod-url').value || undefined
     const production = document.getElementById('af-production').value
     a.productionId = production && !production.startsWith('__') ? production : undefined
+    // A linked audition's title is looked up from its production, never stored
+    if (a.productionId) delete a.title
     a.virtualSubmission = document.getElementById('af-virtual').checked || undefined
     a.briefDescription = undefined
     a.cost = undefined
@@ -1514,7 +1531,7 @@ function toggleClosed() {
   if (!a.closed) {
     if (
       !confirm(
-        `Close "${a.title || 'this activity'}"? It stays in the file but drops off the public "upcoming" list. You can reopen it later.`
+        `Close "${titleOf(a) || 'this activity'}"? It stays in the file but drops off the public "upcoming" list. You can reopen it later.`
       )
     )
       return
@@ -1595,7 +1612,7 @@ function restoreActivity() {
   if (!snap) return
   if (
     !confirm(
-      `Restore "${a.title || 'this activity'}" to its last saved state? Unsaved changes will be lost.`
+      `Restore "${titleOf(a) || 'this activity'}" to its last saved state? Unsaved changes will be lost.`
     )
   )
     return
@@ -1609,7 +1626,7 @@ function restoreActivity() {
 async function deleteActivity() {
   if (activeActIdx < 0) return
   const a = activities[activeActIdx]
-  if (!confirm(`Delete "${a.title || 'this activity'}"? This can't be undone.`)) return
+  if (!confirm(`Delete "${titleOf(a) || 'this activity'}"? This can't be undone.`)) return
   if (actSnapshots.has(a.id)) {
     try {
       await deleteRecordFromFile(
@@ -1686,7 +1703,7 @@ function collectIssues() {
   const errors = []
   const warnings = []
   activities.forEach((a, ai) => {
-    const label = a.title || `Activity ${ai + 1}`
+    const label = titleOf(a) || `Activity ${ai + 1}`
     const issues = activityIssues(
       { ...a, dates: (a.dates || []).filter((d) => !isEmptyDateRow(d)) },
       currentYear,
@@ -2293,7 +2310,7 @@ function openPreview() {
         <div class="pv-main">
           <div class="pv-title-row">
             <span class="pv-dot" style="background:${dotColor}"></span>
-            <span class="pv-title">${esc(a.title || 'Untitled')}</span>
+            <span class="pv-title">${esc(titleOf(a) || 'Untitled')}</span>
             ${isEvent ? '<span class="pv-type-badge">Event</span>' : ''}
             ${isVirtual ? '<span class="pv-virtual-badge">Virtual</span>' : ''}
             ${!isEvent ? genreArr.map((g) => `<span class="pv-genre-badge" style="${PV_GENRE_STYLES[g] || ''}">${esc(g)}</span>`).join('') : ''}

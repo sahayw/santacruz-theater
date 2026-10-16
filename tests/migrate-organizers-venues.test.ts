@@ -84,10 +84,11 @@ describe('linking auditions to productions', () => {
     })
   })
 
-  it('links a unique match, takes its title, and lists the rest', () => {
+  it('links a unique match, drops its stored title, and lists the rest', () => {
     const r = migrateOrganizersVenues(dir)
     const [rumors, annie, season, event] = read('activities/2026/tst-activities-2026.json').activities
-    expect(rumors).toMatchObject({ title: 'Rumors (Neil Simon)', productionId: 'run-1' })
+    expect(rumors.productionId).toBe('run-1')
+    expect(rumors.title).toBeUndefined()
     expect(annie.productionId).toBeUndefined()
     expect(season.productionId).toBeUndefined()
     expect(event.productionId).toBeUndefined()

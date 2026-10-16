@@ -12,9 +12,11 @@ import { join } from 'node:path'
 import type { Activity, ActivitiesFile, ActivityDate } from '../../../src/types.ts'
 import { organizerName, recordOrganizerIds } from '../../../src/lib/organizers.ts'
 import { sessionPlace, type Place } from '../../../src/lib/venues.ts'
+import { activityTitle } from '../../../src/lib/audition-format.ts'
 import { loadCompanies, loadVenues } from './company-data.mts'
 
 export interface DigestActivity extends Activity {
+  title: string // resolved: a linked audition's is its production's
   company: string // the data file's company id ("other" for the catch-all file)
   companyName: string // organizer display name(s)
   year: number
@@ -28,6 +30,7 @@ const FILE_RE = /^.+-activities-\d{4}\.json$/
 export function loadAllActivities(): DigestActivity[] {
   const companies = loadCompanies()
   const venues = loadVenues()
+  const runs = loadRuns()
   const activities: DigestActivity[] = []
 
   let yearDirs: string[] = []
@@ -56,6 +59,7 @@ export function loadAllActivities(): DigestActivity[] {
         for (const a of parsed.activities) {
           activities.push({
             ...a,
+            title: activityTitle(a, runs),
             company: parsed.company,
             companyName: organizerName(
               recordOrganizerIds(parsed.company, a.organizers),
@@ -72,6 +76,20 @@ export function loadAllActivities(): DigestActivity[] {
   }
 
   return activities
+}
+
+/** Every run's id and title, for resolving linked auditions' titles. */
+function loadRuns(): { id: string; show: string }[] {
+  const root = join(DATA_ROOT, 'shows')
+  const runs: { id: string; show: string }[] = []
+  try {
+    for (const year of readdirSync(root))
+      for (const f of readdirSync(join(root, year)).filter((n) => n.endsWith('.json')))
+        runs.push(...(JSON.parse(readFileSync(join(root, year, f), 'utf-8')).runs ?? []))
+  } catch (e) {
+    console.error('activities-data: failed to read shows:', e)
+  }
+  return runs
 }
 
 export function isUpcoming(

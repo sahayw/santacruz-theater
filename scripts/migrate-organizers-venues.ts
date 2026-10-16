@@ -10,8 +10,9 @@
  *   `organizerName` / `organizerUrl` (now on the organizer's entry).
  * - "(Midsummer Ensemble)" comes out of the Dracula title.
  * - Auditions without a productionId are linked to the production whose title matches
- *   (same company — under Other, same organizer) and take its title. Ones that match
- *   nothing, or more than one production, are listed for linking by hand.
+ *   (same company — under Other, same organizer). Their stored title is dropped: it's
+ *   looked up from the production. Ones that match nothing, or more than one
+ *   production, are listed for linking by hand.
  *
  * `updatedAt` is never touched. Files keep the editor's 2-space JSON and their existing
  * trailing-newline style. A second run changes nothing. Anything it can't map is listed,
@@ -245,15 +246,19 @@ export function migrateOrganizersVenues(dataRoot: string): MigrationResult {
                 (titleKey(r.show) === key || titleKey(r.showAbv ?? '') === key)
             )
             if (matches.length === 1) {
-              // An audition's title is its production's
-              a.title = matches[0].show
+              // A linked audition's title is its production's, looked up by id — not stored
               setAfter(a, 'title', { productionId: matches[0].id })
+              delete a.title
               result.productions++
               n++
             } else
               result.unmapped.push(
                 `${a.id} (${a.title}): ${matches.length ? 'several productions match' : 'no matching production'}`
               )
+          }
+          if (a.type === 'audition' && a.productionId && 'title' in a) {
+            delete a.title // linked earlier, when the title was still copied
+            n++
           }
           if ('organizerName' in a || 'organizerUrl' in a) {
             delete a.organizerName

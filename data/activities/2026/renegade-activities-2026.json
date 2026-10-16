@@ -98,7 +98,6 @@
       "createdAt": "2026-06-02T00:00:00Z",
       "updatedAt": "2026-06-02T00:00:00Z",
       "type": "audition",
-      "title": "The Rocky Horror Show",
       "productionId": "run-1779381946580",
       "dates": [
         {
@@ -128,7 +127,6 @@
     {
       "id": "activity-1787191714843",
       "type": "audition",
-      "title": "Come from Away",
       "productionId": "run-1785895538901",
       "genre": [
         "Musical"

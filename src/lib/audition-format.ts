@@ -2,6 +2,18 @@ import type { ActivityDate, AuditionRole } from '../types.ts'
 
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 
+/**
+ * An activity's title. A linked audition's title is its production's, looked up by
+ * `productionId` each time (never stored), so renaming the show renames the audition.
+ */
+export function activityTitle(
+  a: { title?: string; productionId?: string },
+  runs: { id: string; show: string }[]
+) {
+  const run = a.productionId ? runs.find((r) => r.id === a.productionId) : undefined
+  return run ? run.show : (a.title ?? '')
+}
+
 export function fmt12(t: string) {
   if (!t) return ''
   const [hStr, mStr] = t.replace('.', ':').split(':')

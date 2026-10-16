@@ -92,7 +92,10 @@ for (const year of yearDirs) {
         err(al, 'id must be "activity-<timestamp>"')
       if (!VALID_TYPES.has(a.type as string))
         err(al, `type must be "audition" or "event", got: ${a.type}`)
-      if (typeof a.title !== 'string') err(al, 'title must be a string')
+      const linked = a.type === 'audition' && typeof a.productionId === 'string'
+      if (linked && a.title !== undefined)
+        err(al, "a linked audition's title comes from its production — don't store one")
+      if (!linked && typeof a.title !== 'string') err(al, 'title must be a string')
       if (!Array.isArray(a.genre)) err(al, 'genre must be an array')
       else
         (a.genre as unknown[]).forEach((g, gi) => {
@@ -173,7 +176,7 @@ for (const year of yearDirs) {
       }
 
       // Content rules shared with the /admin editor
-      if (typeof a.title === 'string' && Array.isArray(a.dates)) {
+      if (Array.isArray(a.dates)) {
         const issues = activityIssues(a as unknown as Activity, Number(year), String(f.company), refs)
         issues.errors.forEach((m) => err(al, m))
         issues.warnings.forEach((m) => warnings.push(`${al}: ${m}`))

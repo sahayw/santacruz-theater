@@ -218,17 +218,18 @@ A new record is an **Audition** or an **Event**; this can't change later.
 
 **Audition only**
 
-- **Production**: the run this audition casts, picked from the company's
-  runs (or, under Other, the organizer's), listed by title. Picking one sets
-  the title. If the production isn't on
-  file yet, choose **Add production…**: it opens the Calendar editor with a
-  new show titled as typed. Save the show (dates can come later) and you're
-  offered a way back to the audition, now linked to it, with everything you'd
-  entered. Only unsaved changes to _other_ activities would be lost, and
+- **Production**: the run this audition casts, picked from the company's runs
+  (or, under Other, the organizer's), listed by short title (full title on
+  hover); the hint reads "Select". Picking one sets the title. If the
+  production isn't on file yet, choose **Add production…**: it opens the
+  Calendar editor with a new show. Save the show (dates can come later) and
+  you're offered a way back to the audition, now linked to it, with everything
+  you'd entered. Only unsaved changes to _other_ activities would be lost, and
   you're asked first.
 - An audition is expected to be for one production. One covering several
-  shows (e.g. a season audition) can choose "Not on file" and type a title;
-  saving then warns, and you can save anyway.
+  shows (e.g. a season audition) chooses **Several productions…** and gets
+  its own title; saving then warns "not linked to a production", and you can
+  save anyway.
 - Genre (up to two); rehearsal-start and opening dates; notice URL;
   production-info URL.
 - **Roles table**: name, type, gender, age range, casting note, and voice
@@ -322,18 +323,17 @@ These apply in every editor.
 
 ### Dates
 
-Typed dates become `YYYY-MM-DD` when you leave the field. Numbers are read
-Year-Month-Day; a 2-digit year gets `20` prepended. Month names assume the
-current year.
+Every date field is a date picker: pick from the calendar, or type the
+month, day and year into it.
 
-| You type                                     | Becomes      |
-| -------------------------------------------- | ------------ |
-| `26/1/2`, `2026/1/2`, `26.01.02`, `2026-1-2` | `2026-01-02` |
-| `Oct 30`, `Oct. 30`, `Friday, Oct. 30`       | `2026-10-30` |
-| `Sat. Nov 7`                                 | `2026-11-07` |
-| `Oct 30 2026`                                | `2026-10-30` |
+The Calendar editor's paste parser reads dates written out as text. Month
+names assume the current year:
 
-The Calendar paste parser accepts the same month-name formats.
+| You paste                              | Becomes      |
+| -------------------------------------- | ------------ |
+| `Oct 30`, `Oct. 30`, `Friday, Oct. 30` | `2026-10-30` |
+| `Sat. Nov 7`                           | `2026-11-07` |
+| `Oct 30 2026`                          | `2026-10-30` |
 
 ### Times
 

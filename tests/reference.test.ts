@@ -128,7 +128,7 @@ describe('record rules', () => {
   })
 
   it('warns when an audition isn’t linked to a production', () => {
-    const warn = 'not linked to a production — fine only for an audition covering several shows'
+    const warn = 'not linked to a production'
     expect(activityIssues(activity(), 2026, 'tst', refs).warnings).toEqual([warn])
     expect(activityIssues(activity({ productionId: 'run-1700000000000' }), 2026, 'tst', refs).warnings).toEqual([])
     expect(activityIssues(activity({ type: 'event' }), 2026, 'tst', refs).warnings).toEqual([])

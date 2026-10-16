@@ -344,7 +344,7 @@ thead th {
   white-space: nowrap;
 }
 thead th.col-del  { width: 32px; }
-thead th.col-date { width: 110px; }
+thead th.col-date { width: 135px; }
 thead th.col-time { width: 80px; }
 thead th.col-type { width: 150px; }
 thead th.col-disc { min-width: 180px; }
@@ -1224,19 +1224,6 @@ function clearEditor() {
 }
 
 // ── VALIDATION ──
-function normalizeDate(v) {
-  if (!v) return v
-  const parts = v
-    .trim()
-    .replace(/[/.]/g, '-')
-    .split('-')
-    .map((s) => s.trim())
-  if (parts.length !== 3) return v
-  let [y, m, d] = parts
-  if (y.length === 2) y = '20' + y
-  if (y.length !== 4 || isNaN(Number(y)) || isNaN(Number(m)) || isNaN(Number(d))) return v
-  return `${y}-${m.padStart(2, '0')}-${d.padStart(2, '0')}`
-}
 function isValidDate(v) {
   return isDateNearYear(v, currentYear)
 }
@@ -1293,7 +1280,7 @@ function renderPerfTable() {
       (p, i) => `
     <tr id="row-${i}">
       <td><button class="del-btn" onclick="cal.deleteRow(${i})" title="Delete">×</button></td>
-      <td><input class="cell-input" value="${p.date || ''}" placeholder="2026-07-11"
+      <td><input type="date" class="cell-input" value="${p.date || ''}"
           onchange="cal.cellChanged(${i},'date',this.value)"
           onkeydown="cal.cellKey(event,${i},'date')"
           id="cell-${i}-date"></td>
@@ -1324,7 +1311,6 @@ function renderPerfTable() {
 
 function cellChanged(idx, field, value) {
   if (field === 'date') {
-    value = normalizeDate(value)
     const el = document.getElementById(`cell-${idx}-date`)
     if (el && el.value !== value) el.value = value
     if (value) setInvalid(`cell-${idx}-date`, !isValidDate(value))

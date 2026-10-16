@@ -12,7 +12,6 @@ import {
   MAX_GENRES,
   activityIssues,
   isDateNearYear,
-  isRealDate,
   isValidTime
 } from '/admin/data-rules.js'
 import { createIdGenerator, ensureSessionIds } from '/admin/occurrence-ids.js'
@@ -226,7 +225,7 @@ const ACT_CSS = `
   position: sticky; top: 0; z-index: 4; white-space: nowrap;
 }
 .act-table thead th.col-del   { width: 32px; }
-.act-table thead th.col-date  { width: 100px; }
+.act-table thead th.col-date  { width: 135px; }
 .act-table thead th.col-stime { width: 60px; }
 .act-table thead th.col-etime { width: 60px; }
 .act-table thead th.col-locn  { width: 150px; }
@@ -549,13 +548,13 @@ const ACT_HTML = `
               <label class="act-field-label">Genre (up to ${MAX_GENRES})</label>
               ${genreBoxesHtml('af-genre', 'act.genreChanged(this)')}
             </div>
-            <div class="act-field-group" style="flex:0 0 120px">
+            <div class="act-field-group" style="flex:0 0 140px">
               <label class="act-field-label">Rehearsal Start</label>
-              <input class="act-field-input mono" id="af-rehearsal" placeholder="YYYY-MM-DD" oninput="act.fieldChanged()" onblur="act.normalizeHeaderDate('af-rehearsal')">
+              <input type="date" class="act-field-input" id="af-rehearsal" onchange="act.fieldChanged()">
             </div>
-            <div class="act-field-group" style="flex:0 0 120px">
+            <div class="act-field-group" style="flex:0 0 140px">
               <label class="act-field-label">Opening Date</label>
-              <input class="act-field-input mono" id="af-opening" placeholder="YYYY-MM-DD" oninput="act.fieldChanged()" onblur="act.normalizeHeaderDate('af-opening')">
+              <input type="date" class="act-field-input" id="af-opening" onchange="act.fieldChanged()">
             </div>
           </div>
           <div class="act-hdr-row">
@@ -828,24 +827,33 @@ function renderProductionOptions(a) {
   const runs = productionChoices(a)
   const known = new Set(runs.map((r) => r.id))
   sel.innerHTML =
-    '<option value="">Not on file — type the title</option>' +
+    '<option value="">Select</option>' +
     runs
-      .map((r) => `<option value="${esc(r.id)}">${esc(r.show || r.showAbv || r.id)}</option>`)
+      .map(
+        (r) =>
+          `<option value="${esc(r.id)}" title="${esc(r.show)}">${esc(r.showAbv || r.show || r.id)}</option>`
+      )
       .join('') +
     (a.productionId && !known.has(a.productionId)
       ? `<option value="${esc(a.productionId)}">${esc(a.productionId)} (not found)</option>`
       : '') +
-    (canEditShows ? '<option value="__add__">Add production…</option>' : '')
-  sel.value = a.productionId || ''
+    (canEditShows ? '<option value="__add__">Add production…</option>' : '') +
+    '<option value="__several__">Several productions…</option>'
+  // Unlinked but titled = the season-wide exception
+  sel.value = a.productionId || (a.title?.trim() ? '__several__' : '')
   syncTitleField(a)
 }
 
-/** A linked audition's title is its production's; the title box shows only when unlinked. */
+/**
+ * An audition's title is its production's, so the title box shows only for events and
+ * for the exception: an audition covering several productions ("Several productions…"),
+ * which gets its own title, e.g. "2027 season".
+ */
 function syncTitleField(a) {
   const titleEl = document.getElementById('af-title')
-  const linked = a.type !== 'event' && !!a.productionId
-  titleEl.style.display = linked ? 'none' : ''
-  titleEl.placeholder = a.type === 'event' ? 'Event title' : 'Production title'
+  const several = document.getElementById('af-production').value === '__several__'
+  titleEl.style.display = a.type === 'event' || several ? '' : 'none'
+  titleEl.placeholder = a.type === 'event' ? 'Event title' : 'Title, e.g. 2027 season auditions'
 }
 
 function productionChanged() {
@@ -858,10 +866,13 @@ function productionChanged() {
     return
   }
   const id = sel.value
+  const titleEl = document.getElementById('af-title')
   const run = companyRuns.find((r) => r.id === id)
-  if (run) document.getElementById('af-title').value = run.show || run.showAbv || ''
+  if (run) titleEl.value = run.show || run.showAbv || ''
+  else if (!id) titleEl.value = '' // back to "Select": no production, no title
   fieldChanged()
   syncTitleField(a)
+  if (id === '__several__') titleEl.focus()
 }
 
 /**
@@ -1446,7 +1457,8 @@ function fieldChanged() {
     a.openingDate = document.getElementById('af-opening').value || undefined
     a.noticeUrl = document.getElementById('af-notice-url').value || undefined
     a.productionUrl = document.getElementById('af-prod-url').value || undefined
-    a.productionId = document.getElementById('af-production').value || undefined
+    const production = document.getElementById('af-production').value
+    a.productionId = production && !production.startsWith('__') ? production : undefined
     a.virtualSubmission = document.getElementById('af-virtual').checked || undefined
     a.briefDescription = undefined
     a.cost = undefined
@@ -1642,52 +1654,6 @@ const MONTH_MAP = {
   dec: 12,
   december: 12
 }
-function normalizeDate(v) {
-  if (!v) return v
-  const s = v.trim()
-  if (/[A-Za-z]/.test(s)) {
-    let month = null,
-      day = null,
-      year = null
-    const tokens = s
-      .split(/[\s,]+/)
-      .map((t) => t.replace(/\.$/, '').trim())
-      .filter(Boolean)
-    for (const token of tokens) {
-      const low = token.toLowerCase()
-      if (MONTH_MAP[low] !== undefined) {
-        month = MONTH_MAP[low]
-        continue
-      }
-      if (/^\d+$/.test(token)) {
-        const n = parseInt(token, 10)
-        if (token.length === 4 || n > 31) {
-          year = n
-          continue
-        }
-        if (day === null) {
-          day = n
-          continue
-        }
-      }
-    }
-    if (month !== null && day !== null) {
-      if (year === null) year = currentYear
-      if (String(year).length === 2) year = 2000 + year
-      return `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`
-    }
-  }
-  const parts = s
-    .replace(/[/.]/g, '-')
-    .split('-')
-    .map((p) => p.trim())
-    .filter(Boolean)
-  if (parts.length !== 3) return v
-  let [y, m, d] = parts
-  if (y.length === 2) y = '20' + y
-  if (y.length !== 4 || isNaN(Number(y)) || isNaN(Number(m)) || isNaN(Number(d))) return v
-  return `${y}-${m.padStart(2, '0')}-${d.padStart(2, '0')}`
-}
 function isValidDate(v) {
   return isDateNearYear(v, currentYear)
 }
@@ -1696,16 +1662,6 @@ function setActInvalid(id, invalid) {
 }
 function isEmptyDateRow(d) {
   return !d.date && !d.startTime
-}
-function normalizeHeaderDate(id) {
-  const el = document.getElementById(id)
-  if (!el) return
-  const norm = normalizeDate(el.value)
-  if (norm !== el.value) {
-    el.value = norm
-    fieldChanged()
-  }
-  setActInvalid(id, !!el.value && !isRealDate(el.value))
 }
 // Rules live in src/lib/data-rules.ts (shared with scripts/check-activities.ts),
 // applied to each activity as it will be saved (blank date rows dropped).
@@ -1776,7 +1732,7 @@ function renderDatesTable() {
       (d, i) => `
     <tr>
       <td><button class="act-del-btn" onclick="act.deleteDateRow(${i})" title="Delete">×</button></td>
-      <td><input class="act-cell-input" value="${esc(d.date)}" placeholder="2026-06-13"
+      <td><input type="date" class="act-cell-input" value="${esc(d.date)}"
           onchange="act.dateCellChanged(${i},'date',this.value)"
           onkeydown="act.dateCellKey(event,${i},'date')" id="dc-${i}-date"></td>
       <td><input class="act-cell-input" value="${esc(d.startTime)}" placeholder="7pm"
@@ -1862,7 +1818,6 @@ function dateCellChanged(idx, field, value) {
     d[field] = value || undefined
     if (value) setActInvalid(`dc-${idx}-${field}`, !isValidTime(value))
   } else if (field === 'date') {
-    value = normalizeDate(value)
     const del = document.getElementById(`dc-${idx}-date`)
     if (del && del.value !== value) del.value = value
     d.date = value || undefined
@@ -2364,7 +2319,6 @@ export function mount(container, context) {
     onLocNameInput,
     hideVenueDropdown,
     selectVenueItem,
-    normalizeHeaderDate,
     openPreview,
     closePreview,
     closePreviewOutside

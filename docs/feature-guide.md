@@ -111,8 +111,8 @@ What the dialog offers depends on what's being added:
 | ---------------------------------------------------------- | -------------------------------- | -------------------------------------------------------- |
 | All performances ("Santa Cruz Theater — All Performances") | Subscription                     | `/calendar` (drill-down) or `/productions` bar           |
 | Performances without some majors                           | Subscription                     | the same, majors unticked                                |
-| All auditions & events                                     | Subscription                     | `/events` bar                                            |
-| Auditions only                                             | Subscription                     | `/events` bar, Include picker                            |
+| All auditions & events                                     | Subscription                     | `/events` filter row                                     |
+| Auditions only                                             | Subscription                     | `/events` filter row, Include picker                     |
 | One performance                                            | One-off event                    | performance card; each upcoming row on `/productions`    |
 | One audition or event session                              | One-off event                    | each upcoming date row of an open activity on `/events`  |
 | All of an activity's dates                                 | One-off download (Apple/Outlook) | **Download all dates**, on open activities with 2+ dates |
@@ -188,15 +188,15 @@ A filterable list of collapsed cards; click to expand.
 
 - A location shared by every session is shown once.
 - **Status pills**: "Virtual", "Closed", "Past".
-- A dark bar under the nav, like the calendar's: **Filters** on the left,
-  the title in the middle, **Add to my calendar** on the right.
-- **Filters**: All upcoming (default) / Upcoming auditions / Upcoming
-  events / All.
-- `?company=<organizer id>` shows one organizer's auditions and events. It
-  adds a Company row to Filters; choosing All there drops it.
+- **Filters** (a row under the heading, with the count and **Add to my
+  calendar** on the right): All Upcoming (default) / Upcoming Auditions /
+  Upcoming Events / All, and Company — every organizer with a listing.
+- `?company=<organizer id>` shows one organizer's auditions and events, for
+  any organizer. Changing the Company filter updates the address, so it can
+  be shared.
 - **Deep link**: `?id=` shows one record, expanded, alone — used for sharing,
   in email digests, and from subscribed calendars.
-- **Add to my calendar**: the bar's button subscribes to every audition and
+- **Add to my calendar**: the filter row's button subscribes to every audition and
   event, or to auditions only. Each upcoming date of an open activity has its
   own **Add to my calendar** link. An activity with two or more dates also
   has **Download all dates** ([details](#add-to-my-calendar)).

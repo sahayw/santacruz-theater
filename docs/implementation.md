@@ -40,7 +40,7 @@ How the system is built. For what it does, see
 ```
 src/
   components/     calendar.astro (calendar UI), SiteNav.astro,
-                  PageBar.astro (/events and /productions bar, §6),
+                  PageBar.astro (/productions bar, §6),
                   AddToCalendar.astro (feed dialog, §6),
                   SubscribeShell.astro, SubscribeChoices.astro (/subscribe pages, §8)
   layouts/        page layout wrappers
@@ -406,16 +406,16 @@ Pure functions shared by pages, feeds, functions and `/admin`
   data file's company. The client filters match on it:
   - `?company=<organizer id>` keeps cards naming that organizer, for any id
     in `allOrganizers()` (the page embeds their names as `data-names` on
-    the Company select). An unknown id is ignored. On `/productions` an
-    organizer outside the dropdown gets its own option; on `/events` it
-    reveals the otherwise hidden Company row. Changing the select rewrites
-    the address with `history.replaceState`.
+    the Company select). An unknown id is ignored; an organizer outside the
+    dropdown gets its own option. Changing the select rewrites the address
+    with `history.replaceState`.
+  - `/events`' Company dropdown lists every organizer with a listing.
   - `/productions`' **Other** keeps cards with any organizer who isn't a
     major (`data-majors` on the select).
 
 ### Page bar — `src/components/PageBar.astro`
 
-The dark bar under the nav on `/events` and `/productions`, styled like the
+The dark bar under the nav on `/productions`, styled like the
 calendar's: a **Filters** button whose dropdown holds the page's
 `.filter-row`s (default slot), the title (`#page-bar-title`, the page's
 `h1`), and **Add to my calendar**, whose `data-ics-*` attributes come from
@@ -605,7 +605,7 @@ organizers is included, so non-majors are always in.
     - per-card **All dates** / **Add to my calendar** links. These need
       `PerformanceEvent.id`.
   - **`events.astro`**:
-    - the bar button's Include picker;
+    - the filter row's button, with the Include picker;
     - a per-session-row button for open activities, which the client script
       hides for past dates;
     - **Download all dates** in the links row for open activities with two

@@ -33,7 +33,7 @@ There is no bare `astro dev` / `astro preview` script — `npm run dev` (netlify
 
 ## Folder conventions
 
-- `src/components/` — `calendar.astro` (calendar UI), `SiteNav.astro` (shared nav; `subscribe` prop adds Subscribe for updates), `PageBar.astro` (the `/events` and `/productions` bar), `AddToCalendar.astro` (calendar-feed dialog), `SubscribeShell.astro` / `SubscribeChoices.astro` (the `/subscribe` pages)
+- `src/components/` — `calendar.astro` (calendar UI), `SiteNav.astro` (shared nav; `subscribe` prop adds Subscribe for updates), `PageBar.astro` (the `/productions` bar), `AddToCalendar.astro` (calendar-feed dialog), `SubscribeShell.astro` / `SubscribeChoices.astro` (the `/subscribe` pages)
 - `src/pages/` — file-based routes: `index`, `calendar`, `companies`, `events`, `productions` (production pages — not in the nav), `subscribe` + `subscribe/manage` (email lists and a subscriber's choices), `services`, `about`, `admin/*.js.ts` (serve the shared `src/lib` modules as browser ES modules), `[...feed].ics.ts` (all calendar feeds, built statically), `missing-details.json.ts` (gaps list for the external alerting agent)
 - `src/lib/` — `data.ts` (build-time data loading), `audition-format.ts` (shared formatting), `data-rules.ts` (shared validation rules and missing-details gaps), `organizers.ts` / `venues.ts` (who organizes a record; venue codes → places), `occurrence-ids.ts` (stable `perf-`/`session-` ids), `calendar-model.ts` / `ics.ts` (calendar feeds), `browser-module.ts` (serves a `src/lib` module to `/admin`), `email-lists.ts` / `notice-rules.ts` (email lists; digest change detection — §8) — see `docs/implementation.md` §6
 - `src/types.ts` — shared data types

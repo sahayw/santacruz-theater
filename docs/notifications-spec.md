@@ -291,10 +291,15 @@ Terminology: the **year view** and the **month view** (larger screens) or
 
 ## `/events` and `/productions`
 
-- Both get a dark bar like the calendar's: Filters on the left, title in the
-  middle, Add to my calendar on the right. The `/events` subscribe banner goes.
+- `/productions` gets a dark bar like the calendar's: Filters on the left,
+  title in the middle, Add to my calendar on the right.
+- `/events` keeps its layout (heading, then a filter row). Only its subscribe
+  form goes; Add to my calendar moves into the filter row. (Changed
+  2026-10-16: the dark bar was built for `/events` too and dropped after
+  review.)
 - Filters:
-  - `/events`: Upcoming/All and Auditions/Events.
+  - `/events`: Upcoming/All and Auditions/Events, and Company (every
+    organizer with a listing).
   - `/productions`: Upcoming/All, and Company (the four majors plus Other).
 - Every card names its organizers.
 - Cards carry their organizer ids (`data-organizers`), not the data file's
@@ -314,7 +319,7 @@ with `EMAIL_DIGEST_DRY_RUN=true`.
 | 1     | Reference data: organizer fields and entries, `organizers` on records, venue codes and one-off locations, validation rules (organizers, venues, `productionId`), shared organizer and venue helpers, editor pickers, missing-details list, migration script, organizer names shown where "Other" or a blank shows today. |
 | 2     | Calendar: year-view squares, month view and phone week view, entry format, descriptions in the performance card, major colours from data, the 16 numbered feeds and the checkbox dialog, `/runs` → `/productions` (page and feeds).                                                                                      |
 | 3     | Notifications: list definitions, `notice-rules.ts`, snapshots, the two digests, individual sends, `/subscribe` and `/subscribe/manage`, the `preferences` function, emails and welcome email, subscriber migration.                                                                                                      |
-| 4     | Nav link, `/events` and `/productions` bars, `data-organizers` and `?company=`, hub link removal.                                                                                                                                                                                                                        |
+| 4     | Nav link, `/productions` bar, `/events` subscribe form removal, `data-organizers` and `?company=`, hub link removal.                                                                                                                                                                                                     |
 
 **Releasing the migration**: as in `ics-spec.md`, live editor saves land on
 `main`. So the data migration is regenerated at release time rather than

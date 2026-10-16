@@ -3,7 +3,6 @@
 // /events?company=<organizer id> one organizer's. See docs/notifications-spec.md.
 import BaseHead from '../components/BaseHead.astro'
 import SiteNav from '../components/SiteNav.astro'
-import PageBar from '../components/PageBar.astro'
 import AddToCalendar from '../components/AddToCalendar.astro'
 import { FEED_NAMES, bareId } from '../lib/calendar-model.ts'
 import { companies, getActivities } from '../lib/data.ts'
@@ -20,8 +19,11 @@ import {
 
 const activities = getActivities()
 
-// ?company=<organizer id> filters to one organizer; the names label the Company filter
-// row it reveals.
+// Company filter: every organizer with a listing, by name. ?company= can name any
+// organizer; the names let the filter show one without a listing here.
+const filterCompanies = allOrganizers(companies).filter((c) =>
+  activities.some((a) => a.organizerIds.includes(c.id))
+)
 const organizerNames = JSON.stringify(
   Object.fromEntries(allOrganizers(companies).map((c) => [c.id, c.name]))
 )
@@ -41,7 +43,7 @@ function namedOrganizers(act: ActivityEvent) {
   return act.organizers?.length ? act.organizerEntries : []
 }
 
-// Add to my calendar (bar): which feed
+// Add to my calendar (filter bar): which feed
 const feedChoices = JSON.stringify([
   { label: 'All auditions & events', feed: 'activities', name: FEED_NAMES.activities },
   { label: 'Auditions only', feed: 'auditions', name: FEED_NAMES.auditions }
@@ -74,33 +76,45 @@ function roleTypeLabel(type: string): string {
   </head>
   <body>
     <SiteNav currentPage="events" subscribe={{ list: 'auditions-events', from: 'events' }} />
-    <PageBar
-      title="Auditions & Events"
-      calendar={{ 'data-ics-choices': feedChoices, 'data-ics-choice-label': 'Include' }}
-    >
-      <div class="filter-row">
-        <label for="filter-show">Show</label>
-        <select id="filter-show">
-          <option value="upcoming">All upcoming</option>
-          <option value="auditions">Upcoming auditions</option>
-          <option value="events">Upcoming events</option>
-          <option value="all">All</option>
-        </select>
-      </div>
-      <div class="filter-row" id="filter-company-row" hidden>
-        <label for="filter-company">Company</label>
-        <select id="filter-company" data-names={organizerNames}>
-          <option value="">All</option>
-        </select>
-      </div>
-    </PageBar>
 
     <main class="aud-page">
-      <div class="page-intro">
+      <header class="page-header">
+        <h1 class="page-title">Auditions & Events</h1>
         <p class="page-subtitle">
           Upcoming auditions, workshops, and other events for theater creators
         </p>
-        <span class="page-count" id="filter-count" aria-live="polite"></span>
+      </header>
+
+      <div class="filter-bar">
+        <div class="filter-controls">
+          <div class="filter-group">
+            <label for="filter-show">Show</label>
+            <select id="filter-show">
+              <option value="upcoming">All Upcoming</option>
+              <option value="auditions">Upcoming Auditions</option>
+              <option value="events">Upcoming Events</option>
+              <option value="all">All</option>
+            </select>
+          </div>
+          <div class="filter-group">
+            <label for="filter-company">Company</label>
+            <select id="filter-company" data-names={organizerNames}>
+              <option value="">All</option>
+              {filterCompanies.map((c) => <option value={c.id}>{c.name}</option>)}
+            </select>
+          </div>
+        </div>
+        <div class="filter-end">
+          <div class="filter-count" id="filter-count" aria-live="polite"></div>
+          <button
+            type="button"
+            class="filter-cal-btn"
+            data-ics-choices={feedChoices}
+            data-ics-choice-label="Include"
+          >
+            Add to my calendar
+          </button>
+        </div>
       </div>
 
       {
@@ -621,11 +635,118 @@ function roleTypeLabel(type: string): string {
 
   /* ── PAGE LAYOUT ── */
   .aud-page {
-    margin-top: calc(var(--nav-h) + var(--page-bar-h));
-    padding: 16px 32px 80px;
+    margin-top: var(--nav-h);
+    padding: 32px 32px 80px;
     max-width: 960px;
     margin-left: auto;
     margin-right: auto;
+  }
+
+  /* ── PAGE HEADER ── */
+  .page-header {
+    margin-bottom: 16px;
+  }
+
+  .page-title {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(22px, 3vw, 32px);
+    font-weight: 600;
+    color: var(--ink);
+    line-height: 1.15;
+    margin-bottom: 6px;
+  }
+
+  .page-subtitle {
+    font-size: 14px;
+    font-weight: 300;
+    color: var(--ink-muted);
+    letter-spacing: 0.01em;
+  }
+
+  /* ── FILTER BAR ── */
+  .filter-bar {
+    position: sticky;
+    top: var(--nav-h);
+    z-index: 50;
+    background: var(--page-bg);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 10px 0 10px;
+    margin: 0 -32px;
+    padding-left: 32px;
+    padding-right: 32px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+  }
+
+  .filter-controls {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  .filter-group {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .filter-group label {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--ink-muted);
+    white-space: nowrap;
+  }
+
+  .filter-group select {
+    font-family: inherit;
+    font-size: 12px;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 4px 8px;
+    background: var(--surface);
+    color: var(--ink);
+    cursor: pointer;
+    -webkit-appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%236b6259'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 8px center;
+    padding-right: 24px;
+  }
+
+  .filter-count {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--ink-muted);
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  .filter-end {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .filter-cal-btn {
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 500;
+    background: var(--surface);
+    color: var(--ink);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 4px 10px;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+
+  .filter-cal-btn:hover {
+    border-color: var(--border-primary);
   }
 
   /* ── EMPTY STATES ── */
@@ -1124,13 +1245,26 @@ function roleTypeLabel(type: string): string {
   /* ── RESPONSIVE ── */
   @media (max-width: 860px) {
     .aud-page {
-      padding: 16px 24px 64px;
+      padding: 28px 24px 64px;
+    }
+    .filter-bar {
+      margin: 0 -24px;
+      padding-left: 24px;
+      padding-right: 24px;
     }
   }
 
   @media (max-width: 600px) {
     .aud-page {
-      padding: 12px 16px 56px;
+      padding: 20px 16px 56px;
+    }
+    .filter-bar {
+      margin: 0 -16px;
+      padding-left: 16px;
+      padding-right: 16px;
+    }
+    .filter-controls {
+      gap: 8px;
     }
     .detail-grid {
       grid-template-columns: 1fr;
@@ -1143,6 +1277,13 @@ function roleTypeLabel(type: string): string {
     }
     .aud-meta-row {
       white-space: normal;
+    }
+  }
+
+  @media (max-width: 420px) {
+    .filter-controls {
+      flex-direction: column;
+      align-items: flex-start;
     }
   }
 </style>
@@ -1176,7 +1317,7 @@ function roleTypeLabel(type: string): string {
   })
 
   function updateFilters() {
-    const co = filterCompany.value
+    const co = filterCompany?.value ?? ''
     const sh = filterShow?.value ?? 'upcoming'
     let visible = 0
 
@@ -1237,26 +1378,20 @@ function roleTypeLabel(type: string): string {
     btn.setAttribute('aria-expanded', 'true')
   }
 
-  // ?company=<organizer id>: reveals the Company filter row with that organizer chosen.
-  // Choosing All drops it from the address.
+  // ?company=<organizer id>: picks that organizer in the Company filter, adding it if it
+  // has no listing here. The address follows later changes, so it can be shared.
   const params = new URLSearchParams(location.search)
   const company = params.get('company')
   if (company && NAMES[company]) {
-    filterCompany.add(new Option(NAMES[company], company))
+    if (!filterCompany.querySelector(`option[value="${company}"]`))
+      filterCompany.add(new Option(NAMES[company], company))
     filterCompany.value = company
-    document.getElementById('filter-company-row').hidden = false
   }
   function syncAddress() {
     if (filterCompany.value) params.set('company', filterCompany.value)
     else params.delete('company')
     const q = params.toString()
     history.replaceState(null, '', q ? `?${q}` : location.pathname)
-  }
-
-  function hideListChrome() {
-    document.querySelector('.page-bar-left').style.visibility = 'hidden'
-    document.querySelector('.page-bar-right').style.visibility = 'hidden'
-    document.querySelector('.page-intro').style.display = 'none'
   }
 
   // Deep-link: ?id=<timestamp> (prefix "activity-" stripped from URL for brevity)
@@ -1267,9 +1402,11 @@ function roleTypeLabel(type: string): string {
 
   if (deepId && deepCard) {
     // Single-card mode: show only the linked record, no filters
-    document.getElementById('page-bar-title').textContent =
-      deepCard.dataset.type === 'event' ? 'Event' : 'Audition'
-    hideListChrome()
+    const titleEl = document.querySelector('.page-title')
+    titleEl.textContent = deepCard.dataset.type === 'event' ? 'Event' : 'Audition'
+    titleEl.style.fontSize = '18px'
+    document.querySelector('.page-subtitle').style.display = 'none'
+    document.querySelector('.filter-bar').style.display = 'none'
     cards.forEach((c) => {
       if (c !== deepCard) c.style.display = 'none'
     })
@@ -1279,7 +1416,7 @@ function roleTypeLabel(type: string): string {
     if (evNav) evNav.style.pointerEvents = 'auto'
   } else if (deepId) {
     // Unrecognised id — show error, suppress list and filters
-    hideListChrome()
+    document.querySelector('.filter-bar').style.display = 'none'
     document.getElementById('aud-list')?.style.setProperty('display', 'none')
     const notFound = document.getElementById('aud-not-found')
     notFound.textContent = `activity-${deepId} not found`
@@ -1294,7 +1431,7 @@ function roleTypeLabel(type: string): string {
       syncAddress()
       updateFilters()
     })
-    filterShow.addEventListener('change', updateFilters)
+    filterShow?.addEventListener('change', updateFilters)
   }
 
   // Expand / collapse

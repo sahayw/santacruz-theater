@@ -1,4 +1,4 @@
-import { IS_DEV, apiFetch, apiPut, buildCompanyOptions } from './api.js'
+import { IS_DEV, apiFetch, apiPut, buildCompanyOptions, deleteRecordFromFile } from './api.js'
 import {
   fmt12,
   fmtTimeRange,
@@ -1603,12 +1603,25 @@ function restoreActivity() {
   updateSaveBtn()
 }
 
-function deleteActivity() {
+/** Deletes the activity from the file at once; other unsaved edits stay unsaved. */
+async function deleteActivity() {
   if (activeActIdx < 0) return
   const a = activities[activeActIdx]
-  if (!confirm(`Delete "${a.title || 'this activity'}"? It's removed from the file when you Save.`))
-    return
-  activities.splice(activeActIdx, 1)
+  if (!confirm(`Delete "${a.title || 'this activity'}"? This can't be undone.`)) return
+  if (actSnapshots.has(a.id)) {
+    try {
+      await deleteRecordFromFile(
+        `activities/${currentYear}/${currentCompanyId}-activities-${currentYear}.json`,
+        'activities',
+        a.id
+      )
+    } catch (e) {
+      alert('Delete failed: ' + e.message)
+      return
+    }
+    actSnapshots.delete(a.id)
+  }
+  activities.splice(activities.indexOf(a), 1)
   activeActIdx = Math.min(activeActIdx, activities.length - 1)
   renderSidebar()
   loadActEditor()

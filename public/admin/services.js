@@ -1,4 +1,4 @@
-import { IS_DEV, apiFetch, apiPut, apiUploadImage } from './api.js'
+import { IS_DEV, apiFetch, apiPut, apiUploadImage, deleteRecordFromFile } from './api.js'
 import { markdownToolbar } from './markdown-editor.js'
 import { renderMd } from '/admin/audition-format.js'
 import { listingIssues } from '/admin/data-rules.js'
@@ -792,12 +792,20 @@ function newListing() {
   document.getElementById('sf-name')?.focus()
 }
 
-function deleteListing() {
+/** Deletes the listing from the file at once; other unsaved edits stay unsaved. */
+async function deleteListing() {
   if (activeIdx < 0) return
   const l = listings[activeIdx]
-  if (!confirm(`Delete "${l.name || 'this listing'}"? It's removed from the file when you Save.`))
-    return
-  listings.splice(activeIdx, 1)
+  if (!confirm(`Delete "${l.name || 'this listing'}"? This can't be undone.`)) return
+  if (snapshots.has(l.id)) {
+    try {
+      await deleteRecordFromFile(FILE_PATH, 'listings', l.id)
+    } catch (e) {
+      alert('Delete failed: ' + e.message)
+      return
+    }
+  }
+  listings.splice(listings.indexOf(l), 1)
   snapshots.delete(l.id)
   pendingUpload = null
   const newIdx = Math.min(activeIdx, listings.length - 1)

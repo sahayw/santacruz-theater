@@ -304,6 +304,13 @@ Activities editor's `resumeActivity()` restores the draft, linked and titled.
 Both editors ignore a new record nothing has been entered in when deciding
 whether there are unsaved changes, and discard it when you move away.
 
+**Delete** is immediate: `deleteRecordFromFile()` (`api.js`) re-reads the file
+as saved, removes that one record, and writes it back, so other unsaved edits
+aren't published with it. The Calendar editor first refuses to delete a show
+that a saved audition's `productionId` points at. Each editor exports
+`hasUnsavedChanges()`; `index.html` asks before Home, switching editors, or
+closing the tab would discard them.
+
 | File                                          | Role                                                                                       |
 | --------------------------------------------- | ------------------------------------------------------------------------------------------ |
 | `index.html`                                  | login overlay, dataset hub, routing. On `localhost`, auth is skipped: full admin access.   |

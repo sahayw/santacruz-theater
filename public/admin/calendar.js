@@ -1,4 +1,4 @@
-import { IS_DEV, apiFetch, apiPut, buildCompanyOptions } from './api.js'
+import { IS_DEV, apiFetch, apiPut, buildCompanyOptions, deleteRecordFromFile } from './api.js'
 import { fmt12, fmtFullDate, renderMd } from '/admin/audition-format.js'
 import { MAX_GENRES, isDateNearYear, isValidTime, runIssues } from '/admin/data-rules.js'
 import { createIdGenerator, ensurePerformanceIds } from '/admin/occurrence-ids.js'
@@ -1170,12 +1170,61 @@ function newRun() {
   markDirty()
 }
 
-function deleteRun() {
+/** Titles of saved auditions, in this company's activity files, linked to run `runId`. */
+async function auditionsLinkedTo(runId) {
+  const resp = await fetch('/.netlify/functions/data?dir=activities')
+  if (!resp.ok) throw new Error(`HTTP ${resp.status}`)
+  const files = (await resp.json()).filter((f) => f.companyId === currentCompanyId)
+  const lists = await Promise.all(
+    files.map((f) =>
+      apiFetch(`activities/${f.year}/${currentCompanyId}-activities-${f.year}.json`).then(
+        (d) => d.activities || []
+      )
+    )
+  )
+  return lists
+    .flat()
+    .filter((a) => a.productionId === runId)
+    .map((a) => a.title || a.id)
+}
+
+/** Deletes the show from the file at once; other unsaved edits stay unsaved. */
+async function deleteRun() {
   if (activeRunIdx < 0) return
   const r = runs[activeRunIdx]
-  if (!confirm(`Delete "${r.showAbv || r.show || 'this show'}"? It's removed from the file when you Save.`))
-    return
-  runs.splice(activeRunIdx, 1)
+  if (runSnapshots.has(r.id)) {
+    // An audition linked to this show would be left pointing at nothing
+    let linked
+    try {
+      linked = await auditionsLinkedTo(r.id)
+    } catch (e) {
+      alert('Could not check for linked auditions: ' + e.message)
+      return
+    }
+    if (linked.length) {
+      alert(
+        `"${r.showAbv || r.show}" can't be deleted: it's the production for ${linked
+          .map((t) => `"${t}"`)
+          .join(', ')}. Link those auditions to another production, or delete them, first.`
+      )
+      return
+    }
+  }
+  if (!confirm(`Delete "${r.showAbv || r.show || 'this show'}"? This can't be undone.`)) return
+  if (runSnapshots.has(r.id)) {
+    try {
+      await deleteRecordFromFile(
+        `shows/${currentYear}/${currentCompanyId}-${currentYear}.json`,
+        'runs',
+        r.id
+      )
+    } catch (e) {
+      alert('Delete failed: ' + e.message)
+      return
+    }
+    runSnapshots.delete(r.id)
+  }
+  runs.splice(runs.indexOf(r), 1)
   activeRunIdx = Math.min(activeRunIdx, runs.length - 1)
   renderSidebar()
   loadRunEditor()

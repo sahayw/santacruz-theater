@@ -382,8 +382,10 @@ Completely blank date rows are ignored.
 - **Restore** — appears only with unsaved changes; reverts to the last save.
 - **Save** — publishes the whole file (every record for that company and
   year).
-- **Delete** — removes the record from the editor; it's gone from the file
-  only when you **Save**.
+- **Delete** — once confirmed, deletes the record from the file straight
+  away; there's no Save step. Other unsaved edits stay unsaved. A show that
+  an audition is linked to can't be deleted until the audition is linked
+  elsewhere or deleted.
 - Leaving an editor (Home, another editor, or closing the tab) with unsaved
   changes asks before discarding them.
 

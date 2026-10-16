@@ -31,6 +31,19 @@ export async function apiPut(file, payload) {
   }
 }
 
+/**
+ * Deletes one record from a data file straight away: re-reads the file as saved,
+ * removes the record with `id` from `data[key]`, and writes it back. Other unsaved
+ * edits in the editor are untouched (they're saved, or not, by the next Save).
+ */
+export async function deleteRecordFromFile(file, key, id) {
+  const data = await apiFetch(file)
+  const records = data[key] || []
+  const kept = records.filter((r) => r.id !== id)
+  if (kept.length === records.length) return // not in the saved file — nothing to do
+  await apiPut(file, { ...data, [key]: kept })
+}
+
 export async function apiUploadImage(filename, base64) {
   const hdrs = { 'Content-Type': 'application/json' }
   if (_identityUser) {

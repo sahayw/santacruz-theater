@@ -129,17 +129,19 @@ export function buttondown(apiKey = process.env.BUTTONDOWN_API_KEY) {
       return call<Subscriber>('PATCH', sub(id), fields)
     },
 
-    /** Every subscriber of `type` (carrying `tag`, if given), following pagination. */
+    /**
+     * Every subscriber of `type` (carrying the tag named `tag`, if given), following
+     * pagination. The tag is matched here: Buttondown's `?tag=` filter rejects tag names.
+     */
     async listSubscribers(tag?: string, type = 'regular') {
       const all: Subscriber[] = []
-      let next: string | null =
-        `/subscribers?type=${encodeURIComponent(type)}${tag ? `&tag=${encodeURIComponent(tag)}` : ''}`
+      let next: string | null = `/subscribers?type=${encodeURIComponent(type)}`
       while (next) {
         const page: { results: Subscriber[]; next: string | null } = await call('GET', next)
         all.push(...page.results)
         next = page.next
       }
-      return all
+      return tag ? all.filter((s) => s.tags.includes(tag)) : all
     },
 
     tagIds,

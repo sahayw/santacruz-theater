@@ -144,23 +144,23 @@ One file per company per year: `{ company, year, runs: [<Run>] }`.
 
 #### `Run`
 
-| Field          | Type            | Notes                                                        |
-| -------------- | --------------- | ------------------------------------------------------------ |
-| `id`           | `string`        | `"run-<timestamp>"`, editor-assigned                         |
-| `company`      | `string`        | the file's company id (`"other"` for the catch-all file)     |
-| `showAbv`      | `string`        | chip label; required, ≤ 20 chars                             |
-| `show`         | `string`        | full title; required                                         |
-| `description`  | `string?`       | Markdown ([`renderMd`](#6-shared-front-end-logic))           |
-| `genre`        | `Genre[]`       | see [Genre](#genre)                                          |
-| `organizers`   | `string[]?`     | organizer ids, main first — see below                        |
-| `venue`        | `string`        | venue code; required, must be listed                         |
-| `room`         | `string?`       | space within the venue                                       |
-| `price`        | `string`        | e.g. `"$72-$92"`; empty → warning                            |
-| `discounts`    | `string`        | default; overridable per performance                         |
-| `infoUrl`      | `string`        | empty → warning                                              |
-| `ticketsUrl`   | `string`        | default; overridable per performance                         |
-| `performances` | `Performance[]` | ordered; empty → warning (run never appears on the calendar) |
-| `updatedAt`    | `string?`       | ISO 8601; set by the editor on Save when the run changed     |
+| Field          | Type            | Notes                                                                                                          |
+| -------------- | --------------- | -------------------------------------------------------------------------------------------------------------- |
+| `id`           | `string`        | `"run-<timestamp>"`, editor-assigned                                                                           |
+| `company`      | `string`        | the file's company id (`"other"` for the catch-all file)                                                       |
+| `showAbv`      | `string`        | chip label; required, ≤ 20 chars                                                                               |
+| `show`         | `string`        | full title; required                                                                                           |
+| `description`  | `string?`       | Markdown ([`renderMd`](#6-shared-front-end-logic))                                                             |
+| `genre`        | `Genre[]`       | see [Genre](#genre); older runs store one genre as a string — read it with `toGenres()` (`audition-format.ts`) |
+| `organizers`   | `string[]?`     | organizer ids, main first — see below                                                                          |
+| `venue`        | `string`        | venue code; required, must be listed                                                                           |
+| `room`         | `string?`       | space within the venue                                                                                         |
+| `price`        | `string`        | e.g. `"$72-$92"`; empty → warning                                                                              |
+| `discounts`    | `string`        | default; overridable per performance                                                                           |
+| `infoUrl`      | `string`        | empty → warning                                                                                                |
+| `ticketsUrl`   | `string`        | default; overridable per performance                                                                           |
+| `performances` | `Performance[]` | ordered; empty → warning (run never appears on the calendar)                                                   |
+| `updatedAt`    | `string?`       | ISO 8601; set by the editor on Save when the run changed                                                       |
 
 #### `Performance`
 

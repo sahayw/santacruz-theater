@@ -1,4 +1,4 @@
-import type { ActivityDate, AuditionRole } from '../types.ts'
+import type { ActivityDate, AuditionRole, Genre } from '../types.ts'
 
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 
@@ -12,6 +12,12 @@ export function activityTitle(
 ) {
   const run = a.productionId ? runs.find((r) => r.id === a.productionId) : undefined
   return run ? run.show : (a.title ?? '')
+}
+
+/** A stored genre as a list — older runs store a single genre as a string. */
+export function toGenres(raw: unknown): Genre[] {
+  if (Array.isArray(raw)) return raw as Genre[]
+  return raw && typeof raw === 'string' ? [raw as Genre] : []
 }
 
 /** The production fields an audition can take from its run. */
@@ -40,9 +46,8 @@ export function auditionDetails(
   runs: RunLike[]
 ) {
   const run = a.productionId ? runs.find((r) => r.id === a.productionId) : undefined
-  const genre = (run ? run.genre : a.genre) as string[] | string | undefined
   return {
-    genre: Array.isArray(genre) ? genre : genre ? [genre] : [],
+    genre: toGenres(run ? run.genre : a.genre),
     openingDate: run ? runOpeningDate(run) : a.openingDate,
     productionUrl: run ? run.infoUrl || undefined : a.productionUrl
   }

@@ -3,8 +3,18 @@ import {
   activityTitle,
   auditionDetails,
   fmtTimeRange,
-  runOpeningDate
+  runOpeningDate,
+  toGenres
 } from '../src/lib/audition-format.ts'
+
+describe('toGenres', () => {
+  it('reads both stored forms of a genre', () => {
+    expect(toGenres(['Drama', 'Comedy'])).toEqual(['Drama', 'Comedy'])
+    expect(toGenres('Musical')).toEqual(['Musical'])
+    expect(toGenres('')).toEqual([])
+    expect(toGenres(undefined)).toEqual([])
+  })
+})
 
 describe('fmtTimeRange', () => {
   it('shows a lone time with its am/pm', () => {

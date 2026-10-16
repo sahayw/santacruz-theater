@@ -22,15 +22,10 @@ import {
   recordOrganizerIds
 } from './organizers.ts'
 import { runPlace, sessionPlace, type Place } from './venues.ts'
-import { activityTitle, auditionDetails } from './audition-format.ts'
+import { activityTitle, auditionDetails, toGenres } from './audition-format.ts'
 
 export const companies = companiesData.companies as CompanyEntry[]
 export const venues = venuesData.venues as Venue[]
-
-function coerceGenre(raw: unknown): Genre[] {
-  if (Array.isArray(raw)) return raw as Genre[]
-  return raw && typeof raw === 'string' ? [raw as Genre] : []
-}
 
 const modules = import.meta.glob<{ default: ShowsFile }>('../../data/shows/**/*.json', {
   eager: true
@@ -38,7 +33,7 @@ const modules = import.meta.glob<{ default: ShowsFile }>('../../data/shows/**/*.
 const allRuns: Run[] = Object.values(modules).flatMap((m) =>
   m.default.runs.map((r) => ({
     ...r,
-    genre: coerceGenre((r as unknown as Record<string, unknown>).genre)
+    genre: toGenres((r as unknown as Record<string, unknown>).genre)
   }))
 )
 

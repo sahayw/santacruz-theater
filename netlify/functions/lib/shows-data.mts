@@ -9,6 +9,7 @@ import type { CompanyEntry, Genre, Run, ShowsFile, Venue } from '../../../src/ty
 import { organizerName, recordOrganizerIds } from '../../../src/lib/organizers.ts'
 import { runPlace } from '../../../src/lib/venues.ts'
 import { bareId } from '../../../src/lib/calendar-model.ts'
+import { toGenres } from '../../../src/lib/audition-format.ts'
 
 const SHOWS_ROOT = join(process.cwd(), 'data', 'shows')
 
@@ -62,7 +63,7 @@ export function digestProduction(
   return {
     id: run.id,
     title: run.show,
-    genre: run.genre,
+    genre: toGenres(run.genre),
     organizerIds,
     organizerName: organizerName(organizerIds, companies),
     venueName: runPlace(run, venues)?.name ?? run.venue,

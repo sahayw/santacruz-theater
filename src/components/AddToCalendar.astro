@@ -426,15 +426,17 @@
     padding: 0;
   }
   .ics-majors legend {
+    padding: 0;
     font-size: 12px;
     font-weight: 500;
     color: var(--ics-muted);
     margin-bottom: 6px;
   }
+  /* Matches the subscribe form's company ticks (SubscribeChoices.astro) */
   .ics-majors-list {
     display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 4px 12px;
+    grid-template-columns: repeat(2, max-content);
+    gap: 4px 24px;
     font-size: 13px;
   }
   .ics-majors-list label {
@@ -442,6 +444,16 @@
     align-items: center;
     gap: 6px;
     cursor: pointer;
+    white-space: nowrap;
+  }
+  .ics-majors-list input {
+    accent-color: #2e2a26;
+    margin: 0;
+  }
+  @media (max-width: 460px) {
+    .ics-majors-list {
+      grid-template-columns: 1fr;
+    }
   }
   .ics-majors[hidden] {
     display: none;

@@ -112,14 +112,12 @@ const [performances, auditionsEvents] = ['performances', 'auditions-events'].map
     color: var(--ink-muted);
   }
 
+  /* Matches the Add to my calendar dialog's company ticks (AddToCalendar.astro) */
   .co-grid {
     display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 4px 12px;
-    font-size: 12px;
-    padding: 6px 8px;
-    background: var(--field-bg);
-    border-radius: 4px;
+    grid-template-columns: repeat(2, max-content);
+    gap: 4px 24px;
+    font-size: 13px;
   }
 
   .co-grid label {
@@ -127,19 +125,22 @@ const [performances, auditionsEvents] = ['performances', 'auditions-events'].map
     gap: 6px;
     align-items: center;
     cursor: pointer;
-    min-width: 0;
+    white-space: nowrap;
   }
 
   .co-grid input {
     accent-color: #2e2a26;
+    margin: 0;
   }
 
   .co-sum {
     font-size: 11px;
+    line-height: 1.45;
     color: var(--ink-subtle);
+    margin-top: 2px;
   }
 
-  @media (max-width: 460px) {
+  @media (max-width: 520px) {
     .co-grid {
       grid-template-columns: 1fr;
     }

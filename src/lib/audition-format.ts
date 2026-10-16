@@ -10,13 +10,16 @@ export function fmt12(t: string) {
   return m === 0 ? String(h % 12 || 12) : `${h % 12 || 12}:${String(m).padStart(2, '0')}`
 }
 
+/** "7–9 pm", "11 am–1 pm"; a lone start (or end) time still gets its am/pm: "7 pm". */
 export function fmtTimeRange(start: string, end: string) {
   if (!start && !end) return ''
-  if (!start || !end) return fmt12(start || end)
-  const sh = Number(start.split(':')[0]),
-    eh = Number(end.split(':')[0])
-  const sp = sh < 12 ? 'am' : 'pm',
-    ep = eh < 12 ? 'am' : 'pm'
+  const suffix = (t: string) => (Number(t.replace('.', ':').split(':')[0]) < 12 ? 'am' : 'pm')
+  if (!start || !end) {
+    const t = start || end
+    return `${fmt12(t)} ${suffix(t)}`
+  }
+  const sp = suffix(start),
+    ep = suffix(end)
   return sp === ep
     ? `${fmt12(start)}–${fmt12(end)} ${ep}`
     : `${fmt12(start)} ${sp}–${fmt12(end)} ${ep}`

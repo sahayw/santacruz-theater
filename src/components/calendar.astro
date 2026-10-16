@@ -782,7 +782,7 @@ const icsMajors = JSON.stringify(majors.map(({ code, label, name }) => ({ code, 
     min-height: 92px;
   }
   .wv-cell {
-    min-height: calc(100vh - var(--nav-h, 0px) - var(--bar-h) - var(--footer-h) - 70px);
+    min-height: 60px; /* only as tall as the day with most performances */
     padding: 3px 1px;
   }
   .mv-cell:nth-child(7n),

@@ -9,7 +9,12 @@
  *   shares one created email), or nothing if nothing is left.
  * - A per-day run record holds what has been sent, so a retry skips it. The snapshot is
  *   saved only once a list's sends are complete.
- * - Dry run (EMAIL_DIGEST_DRY_RUN=true) logs what would be sent and writes nothing.
+ * - Dry run (EMAIL_DIGEST_DRY_RUN=true) logs what would be sent, and who to, and saves each
+ *   broadcast as a Buttondown draft with its real filters (so its audience can be checked
+ *   in Buttondown). It sends nothing and saves no state, except seeding a missing
+ *   snapshot (which sends nothing anyway).
+ * - State lives in the store named by `storeName` — production's own, or a per-context
+ *   one elsewhere (lib/site.mts).
  *
  * See docs/notifications-spec.md ("Change detection", "Sending").
  */
@@ -28,9 +33,8 @@ import { allOf, buttondown, type Buttondown, type Subscriber } from './buttondow
 import { loadCompanies, loadVenues } from './company-data.mts'
 import { buildActivityDigest, buildPerformanceDigest, templateFooterLinks } from './email-template.mts'
 import { digestProduction, includesProduction, loadRuns } from './shows-data.mts'
-import { localToday, SITE_URL } from './site.mts'
+import { localToday } from './site.mts'
 
-const STORE = 'email-digests'
 const snapshotKey = (list: string) => `snapshot/${list}`
 
 interface ListRecord {
@@ -53,20 +57,22 @@ export function excludedOf(s: Pick<Subscriber, 'metadata'>, companies: CompanyEn
   return [...new Set(ids.map(String).filter((id) => majors.has(id)))].sort()
 }
 
-export async function runDigest(opts: { dryRun: boolean }) {
+export async function runDigest(opts: { dryRun: boolean; siteUrl: string; storeName: string }) {
   const { NETLIFY_SITE_ID, NETLIFY_TOKEN } = process.env
   if (!NETLIFY_SITE_ID || !NETLIFY_TOKEN)
     throw new Error('missing NETLIFY_SITE_ID or NETLIFY_TOKEN (required for Blob Storage)')
-  const store = getStore({ name: STORE, siteID: NETLIFY_SITE_ID, token: NETLIFY_TOKEN })
+  const store = getStore({ name: opts.storeName, siteID: NETLIFY_SITE_ID, token: NETLIFY_TOKEN })
   const bd = buttondown()
   const today = localToday()
   const runKey = `run/${today}`
   const record: RunRecord = ((await store.get(runKey, { type: 'json' })) as RunRecord) ?? {}
   const save = () => (opts.dryRun ? Promise.resolve() : store.setJSON(runKey, record))
   const log = (msg: string) => console.log(`digest${opts.dryRun ? ' [dry run]' : ''}: ${msg}`)
+  log(`store ${opts.storeName}, links to ${opts.siteUrl}, today ${today}`)
 
-  await performancesDigest({ store, bd, today, record, save, log, ...opts })
-  await activitiesDigest({ store, bd, today, record, save, log, ...opts })
+  const ctx = { store, bd, today, record, save, log, dryRun: opts.dryRun, siteUrl: opts.siteUrl }
+  await performancesDigest(ctx)
+  await activitiesDigest(ctx)
 }
 
 interface Ctx {
@@ -77,14 +83,16 @@ interface Ctx {
   save: () => Promise<unknown>
   log: (msg: string) => void
   dryRun: boolean
+  siteUrl: string
 }
 
 /** Reads a list's snapshot; seeds it (and returns null) on the first run. */
 async function snapshot<P>(ctx: Ctx, list: string, next: Record<string, P>) {
   const prev = (await ctx.store.get(snapshotKey(list), { type: 'json' })) as Record<string, P> | null
   if (prev) return prev
+  // Seeding sends nothing, so a dry run seeds too
   ctx.log(`${list}: no snapshot yet — seeding ${Object.keys(next).length} records, sending nothing`)
-  if (!ctx.dryRun) await ctx.store.setJSON(snapshotKey(list), next)
+  await ctx.store.setJSON(snapshotKey(list), next)
   return null
 }
 
@@ -109,7 +117,8 @@ async function performancesDigest(ctx: Ctx) {
   const result = classifyProductions(runs, prev, ctx.today)
 
   const byId = new Map(runs.map((r) => [r.id, r]))
-  const prod = (id: string) => digestProduction(byId.get(id)!, companies, venues, ctx.today, SITE_URL)
+  const prod = (id: string) =>
+    digestProduction(byId.get(id)!, companies, venues, ctx.today, ctx.siteUrl)
   const byFirstDate = (a: { perfs: { date: string }[] }, b: { perfs: { date: string }[] }) =>
     (a.perfs[0]?.date ?? '').localeCompare(b.perfs[0]?.date ?? '')
   const fresh = result.notices.filter((n) => n.isNew).map((n) => prod(n.id)).sort(byFirstDate)
@@ -125,25 +134,24 @@ async function performancesDigest(ctx: Ctx) {
   if (!fresh.length && !updated.length) return finish(ctx, list, result.next)
 
   const rec = (ctx.record[list] ??= {})
-  const links = templateFooterLinks(SITE_URL)
+  const links = templateFooterLinks(ctx.siteUrl)
 
   // One broadcast to everyone on the list who excluded nothing
   if (!rec.broadcast) {
-    const { subject, html } = buildPerformanceDigest(fresh, updated, [], SITE_URL, links)
-    if (ctx.dryRun) ctx.log(`${list}: would broadcast "${subject}"`)
+    const { subject, html } = buildPerformanceDigest(fresh, updated, [], ctx.siteUrl, links)
+    const tags = await ctx.bd.tagIds([listTag(list), SELECTED_TAG])
+    const email = await ctx.bd.createEmail({
+      subject,
+      body: html,
+      status: ctx.dryRun ? 'draft' : 'about_to_send',
+      filters: allOf(
+        { field: 'subscriber.tags', operator: 'contains', value: tags[listTag(list)] },
+        { field: 'subscriber.tags', operator: 'not_contains', value: tags[SELECTED_TAG] }
+      )
+    })
+    if (ctx.dryRun) ctx.log(`${list}: would broadcast "${subject}" — saved as draft ${email.id}`)
     else {
-      const tags = await ctx.bd.tagIds([listTag(list), SELECTED_TAG])
-      rec.broadcast = (
-        await ctx.bd.createEmail({
-          subject,
-          body: html,
-          status: 'about_to_send',
-          filters: allOf(
-            { field: 'subscriber.tags', operator: 'contains', value: tags[listTag(list)] },
-            { field: 'subscriber.tags', operator: 'not_contains', value: tags[SELECTED_TAG] }
-          )
-        })
-      ).id
+      rec.broadcast = email.id
       await ctx.save()
       ctx.log(`${list}: broadcast "${subject}"`)
     }
@@ -173,9 +181,10 @@ async function performancesDigest(ctx: Ctx) {
       continue
     }
     const names = excluded.map((id) => companies.find((c) => c.id === id)?.name ?? id)
-    const { subject, html } = buildPerformanceDigest(f, u, names, SITE_URL, links)
+    const { subject, html } = buildPerformanceDigest(f, u, names, ctx.siteUrl, links)
     if (ctx.dryRun) {
-      ctx.log(`${list}: would send "${subject}" to ${todo.length} excluding [${key}]`)
+      const who = todo.slice(0, 20).map((s) => s.email_address).join(', ')
+      ctx.log(`${list}: would send "${subject}" to ${todo.length} excluding [${key}]: ${who}`)
       continue
     }
     if (!rec.groups[key]) {
@@ -222,17 +231,21 @@ async function activitiesDigest(ctx: Ctx) {
 
   const rec = (ctx.record[list] ??= {})
   if (!rec.broadcast) {
-    const { subject, html } = buildActivityDigest(fresh, updated, SITE_URL, templateFooterLinks(SITE_URL))
-    if (ctx.dryRun) return ctx.log(`${list}: would broadcast "${subject}"`)
+    const { subject, html } = buildActivityDigest(
+      fresh,
+      updated,
+      ctx.siteUrl,
+      templateFooterLinks(ctx.siteUrl)
+    )
     const tags = await ctx.bd.tagIds([listTag(list)])
-    rec.broadcast = (
-      await ctx.bd.createEmail({
-        subject,
-        body: html,
-        status: 'about_to_send',
-        filters: allOf({ field: 'subscriber.tags', operator: 'contains', value: tags[listTag(list)] })
-      })
-    ).id
+    const email = await ctx.bd.createEmail({
+      subject,
+      body: html,
+      status: ctx.dryRun ? 'draft' : 'about_to_send',
+      filters: allOf({ field: 'subscriber.tags', operator: 'contains', value: tags[listTag(list)] })
+    })
+    if (ctx.dryRun) return ctx.log(`${list}: would broadcast "${subject}" — saved as draft ${email.id}`)
+    rec.broadcast = email.id
     await ctx.save()
     ctx.log(`${list}: broadcast "${subject}"`)
   }

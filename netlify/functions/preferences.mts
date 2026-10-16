@@ -15,6 +15,7 @@
 import type { Config, Context } from '@netlify/functions'
 import { buttondown, isEmailAddress, isSubscriberId } from './lib/buttondown.mts'
 import { loadCompanies } from './lib/company-data.mts'
+import { siteUrl } from './lib/site.mts'
 import {
   choicesOf,
   json,
@@ -52,7 +53,7 @@ export default async (req: Request, context: Context) => {
       context.waitUntil(
         bd
           .getSubscriber(email)
-          .then((s) => s && sendManageLink(bd, s))
+          .then((s) => s && sendManageLink(bd, s, siteUrl(req, context)))
           .catch((e) => console.error('preferences: send-link failed:', e))
       )
       return json(200, {

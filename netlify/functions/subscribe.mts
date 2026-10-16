@@ -16,6 +16,7 @@
 
 import type { Config, Context } from '@netlify/functions'
 import { buttondown, isEmailAddress } from './lib/buttondown.mts'
+import { siteUrl } from './lib/site.mts'
 import { loadCompanies } from './lib/company-data.mts'
 import {
   json,
@@ -58,7 +59,7 @@ export default async (req: Request, context: Context) => {
     if (created) {
       console.log(`subscribe: created ${created.id} lists=${choices.lists} excluded=${choices.excluded}`)
       context.waitUntil(
-        sendWelcome(bd, created, choices).then(
+        sendWelcome(bd, created, choices, siteUrl(req, context)).then(
           () => pingHealthcheck(),
           (e) => {
             console.error('subscribe: welcome email failed:', e)
@@ -71,7 +72,7 @@ export default async (req: Request, context: Context) => {
       context.waitUntil(
         bd
           .getSubscriber(email)
-          .then((s) => s && sendManageLink(bd, s))
+          .then((s) => s && sendManageLink(bd, s, siteUrl(req, context)))
           .catch((e) => console.error('subscribe: manage-link email failed:', e))
       )
     }

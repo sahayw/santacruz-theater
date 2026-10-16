@@ -19,7 +19,7 @@ import { loadCompanies, loadVenues } from './company-data.mts'
 import { excludedOf } from './digest.mts'
 import { buildManageLinkEmail, buildWelcomeEmail } from './email-template.mts'
 import { digestProduction, includesProduction, loadRuns } from './shows-data.mts'
-import { localToday, SITE_URL } from './site.mts'
+import { localToday } from './site.mts'
 
 export interface Choices {
   lists: ListId[]
@@ -54,8 +54,8 @@ export function subscriberFields(choices: Choices, current?: Pick<Subscriber, 't
   }
 }
 
-export const manageUrl = (subscriberId: string) =>
-  `${SITE_URL}/subscribe/manage?s=${encodeURIComponent(subscriberId)}`
+export const manageUrl = (siteUrl: string, subscriberId: string) =>
+  `${siteUrl}/subscribe/manage?s=${encodeURIComponent(subscriberId)}`
 
 /** Creates a one-off email and sends it to one subscriber. */
 async function sendOne(bd: Buttondown, subscriberId: string, email: { subject: string; html: string }) {
@@ -64,7 +64,12 @@ async function sendOne(bd: Buttondown, subscriberId: string, email: { subject: s
 }
 
 /** The welcome email: a section for each list chosen, with what's coming up. */
-export async function sendWelcome(bd: Buttondown, s: Subscriber, choices: Choices) {
+export async function sendWelcome(
+  bd: Buttondown,
+  s: Subscriber,
+  choices: Choices,
+  siteUrl: string
+) {
   const companies = loadCompanies()
   const today = localToday()
   const wantsPerformances = choices.lists.includes('performances')
@@ -72,7 +77,7 @@ export async function sendWelcome(bd: Buttondown, s: Subscriber, choices: Choice
   const venues = wantsPerformances ? loadVenues() : []
   const productions = wantsPerformances
     ? loadRuns()
-        .map((r) => digestProduction(r, companies, venues, today, SITE_URL))
+        .map((r) => digestProduction(r, companies, venues, today, siteUrl))
         .filter((p) => p.perfs.length && includesProduction(p, choices.excluded))
         .sort((a, b) => a.perfs[0].date.localeCompare(b.perfs[0].date))
     : null
@@ -84,15 +89,15 @@ export async function sendWelcome(bd: Buttondown, s: Subscriber, choices: Choice
       auditions: wantsActivities ? getUpcomingAuditions(activities) : null,
       events: wantsActivities ? getUpcomingEvents(activities) : null
     },
-    SITE_URL,
-    { manageUrl: manageUrl(s.id), unsubscribeUrl: '{{ unsubscribe_url }}' }
+    siteUrl,
+    { manageUrl: manageUrl(siteUrl, s.id), unsubscribeUrl: '{{ unsubscribe_url }}' }
   )
   await sendOne(bd, s.id, email)
 }
 
 /** Emails a subscriber the link to their choices. */
-export function sendManageLink(bd: Buttondown, s: Subscriber) {
-  return sendOne(bd, s.id, buildManageLinkEmail(manageUrl(s.id)))
+export function sendManageLink(bd: Buttondown, s: Subscriber, siteUrl: string) {
+  return sendOne(bd, s.id, buildManageLinkEmail(manageUrl(siteUrl, s.id)))
 }
 
 export function json(status: number, body: Record<string, unknown>) {

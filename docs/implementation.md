@@ -772,14 +772,29 @@ and "Unsubscribe from everything" (`{{ unsubscribe_url }}`) — Buttondown
 template variables, filled per recipient. A copy leaving out majors names
 them.
 
-`EMAIL_DIGEST_DRY_RUN=true` logs what would be sent and writes nothing (no
-sends, no snapshots, no run record). `DIGEST_HEALTHCHECK_URL` is pinged
-after each successful run.
+`EMAIL_DIGEST_DRY_RUN=true` sends nothing. It logs what would be sent and
+who to (individual copies list up to 20 addresses), and saves each broadcast
+as a Buttondown **draft** with its real filters, so the audience can be
+checked in Buttondown before anything goes out. It saves no run record and
+no snapshot updates, but it does seed a missing snapshot (seeding sends
+nothing). `DIGEST_HEALTHCHECK_URL` is pinged after each successful run.
+
+**Deploys** (`lib/site.mts`, from the function's `context.deploy.context`):
+
+- Blobs are site-wide, so only production uses the `email-digests` store;
+  every other deploy gets its own (`email-digests-branch-deploy` for the
+  `dev` deploy). Testing never touches production's snapshots.
+- Email links use `https://santacruz.theater` on production and the
+  request's own origin elsewhere, so emails sent from the `dev` deploy link
+  back to it. `subscribe` and `preferences` do the same.
+- The log's first line names the store and link address.
+- Buttondown is shared, though: a non-dry run on any deploy sends to real
+  subscribers on the list's tag. Keep `EMAIL_DIGEST_DRY_RUN=true` on the
+  `dev` deploy except for a deliberate test (and before step 2 of Go-live
+  only test addresses carry the new tags).
 
 **Why Blob credentials are explicit**: `getStore()` is given
 `NETLIFY_SITE_ID` + `NETLIFY_TOKEN` rather than relying on injected context.
-The store is site-wide, shared by every deploy — so the `dev` branch deploy
-must keep `EMAIL_DIGEST_DRY_RUN=true`.
 
 ### Go-live
 
@@ -797,7 +812,7 @@ must keep `EMAIL_DIGEST_DRY_RUN=true`.
 curl -X POST -H "x-digest-secret: $DIGEST_SECRET" \
   https://santacruz.theater/.netlify/functions/send-digest-background
 
-# Inspect / reset stored state
+# Inspect / reset stored state (the dev deploy's store: email-digests-branch-deploy)
 netlify blobs:list email-digests
 netlify blobs:get email-digests snapshot/performances
 netlify blobs:delete email-digests snapshot/performances   # next run re-seeds, sends nothing
@@ -934,7 +949,7 @@ Set in Netlify → Site configuration → Environment variables.
 | `DIGEST_SECRET`             | yes  | `send-digest*.mts`             | shared secret: trigger → background digest             |
 | `NETLIFY_SITE_ID`           | yes  | `send-digest-background.mts`   | Blobs access                                           |
 | `NETLIFY_TOKEN`             | yes  | `send-digest-background.mts`   | Blobs access                                           |
-| `EMAIL_DIGEST_DRY_RUN`      | no   | `send-digest-background.mts`   | `true` → log only; send and save nothing               |
+| `EMAIL_DIGEST_DRY_RUN`      | no   | `send-digest-background.mts`   | `true` → log and save drafts; send nothing             |
 | `DIGEST_HEALTHCHECK_URL`    | no   | `send-digest-background.mts`   | pinged on every successful run                         |
 | `SUBSCRIBE_HEALTHCHECK_URL` | no   | `subscribe.mts`                | welcome email: base URL on success, `/fail` on failure |
 

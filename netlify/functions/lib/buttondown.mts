@@ -129,12 +129,12 @@ export function buttondown(apiKey = process.env.BUTTONDOWN_API_KEY) {
 
     /**
      * Creates an email. `about_to_send` broadcasts it (to `filters`' subscribers);
-     * `transactional` only creates it, for sendTo().
+     * `transactional` only creates it, for sendTo(); `draft` saves it unsent.
      */
     createEmail(email: {
       subject: string
       body: string
-      status: 'about_to_send' | 'transactional'
+      status: 'about_to_send' | 'transactional' | 'draft'
       filters?: unknown
     }) {
       return call<{ id: string }>('POST', '/emails', email, 20000)

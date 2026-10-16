@@ -844,6 +844,13 @@ nothing). `DIGEST_HEALTHCHECK_URL` is pinged after each successful run.
 3. Run the background function once by hand (below) to seed both
    snapshots.
 
+**Buttondown settings** (in its dashboard, not in code): the plan must
+include tags — on one without them, the API accepts tag names on
+subscribers but silently drops them. **Portal** is off, so Buttondown's
+footer doesn't add its own subscription-management page link alongside our
+"Change your choices"; any other Buttondown footer element is hidden with
+custom CSS under Settings → Email.
+
 ### Testing the digest
 
 ```bash

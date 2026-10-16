@@ -793,6 +793,18 @@ const icsMajors = JSON.stringify(majors.map(({ code, label, name }) => ({ code, 
   .wv-cell.focus {
     background: #fff6e0;
   }
+  /* Day number strip across the top of each day; tinted for the month being shown */
+  .day-strip {
+    margin: -3px -3px 1px;
+    padding: 2px 2px 1px;
+  }
+  .wv-cell .day-strip {
+    margin: -3px -1px 1px;
+  }
+  .mv-cell.in-month .day-strip {
+    background: #f8f0dc;
+    border-bottom: 1px solid #f1ece5;
+  }
   .day-num-btn {
     align-self: flex-start;
     font: inherit;
@@ -1090,7 +1102,7 @@ const icsMajors = JSON.stringify(majors.map(({ code, label, name }) => ({ code, 
     const classes = [cls]
     if (ds === focusDate) classes.push('focus')
     if (perfs.length) classes.push('has-perf')
-    const num = `<button type="button" class="day-num-btn${ds === TODAY ? ' today' : ''}" data-day="${ds}" ${perfs.length ? '' : 'disabled'}>${label}</button>`
+    const num = `<div class="day-strip"><button type="button" class="day-num-btn${ds === TODAY ? ' today' : ''}" data-day="${ds}" ${perfs.length ? '' : 'disabled'}>${label}</button></div>`
     return `<div class="${classes.join(' ')}">${num}${perfs.map(entryHtml).join('')}</div>`
   }
 
@@ -1105,7 +1117,8 @@ const icsMajors = JSON.stringify(majors.map(({ code, label, name }) => ({ code, 
     let html = DOW.map((d) => `<div class="mv-dow">${d}</div>`).join('')
     for (let d = start; d <= end; d = addDays(d, 1)) {
       const label = d.getDate() === 1 ? `${MONTHS[d.getMonth()].slice(0, 3)} 1` : d.getDate()
-      html += dayCellHtml(d, 'mv-cell', label)
+      // The month's own days get a tinted number strip; its neighbours' don't
+      html += dayCellHtml(d, d.getMonth() === m ? 'mv-cell in-month' : 'mv-cell', label)
     }
     return `<div class="mv-grid">${html}</div>`
   }

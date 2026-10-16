@@ -8,6 +8,7 @@ import {
   subscriberFields
 } from '../netlify/functions/lib/subscriptions.mts'
 import { includesProduction } from '../netlify/functions/lib/shows-data.mts'
+import { isSubscriberId } from '../netlify/functions/lib/buttondown.mts'
 import { ctx } from './fixtures/calendar.ts'
 
 const { companies } = ctx // majors: tst, oth
@@ -70,5 +71,16 @@ describe('choices', () => {
     expect(includesProduction({ organizerIds: ['tst', 'oth'] }, ['tst'])).toBe(true)
     expect(includesProduction({ organizerIds: ['tst'] }, ['tst'])).toBe(false)
     expect(includesProduction({ organizerIds: ['fight'] }, ['tst', 'oth'])).toBe(true)
+  })
+})
+
+describe('subscriber ids', () => {
+  it('accepts both Buttondown id formats and nothing else', () => {
+    expect(isSubscriberId('2c4bc54b-35d8-5bd0-8e2c-07d30dc75ce2')).toBe(true)
+    expect(isSubscriberId('sub_74qn4db4mz94eshy2pvx3k8f0a')).toBe(true)
+    expect(isSubscriberId('sub_tag_74qn4db4mz94eshy2pvx3k')).toBe(false)
+    expect(isSubscriberId('sub_../emails')).toBe(false)
+    expect(isSubscriberId('someone@example.com')).toBe(false)
+    expect(isSubscriberId(undefined)).toBe(false)
   })
 })

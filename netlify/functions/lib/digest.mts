@@ -7,8 +7,9 @@
  * - Performance updates: one broadcast to subscribers who excluded nothing; each subscriber
  *   with exclusions gets an individual copy holding only their content (identical content
  *   shares one created email), or nothing if nothing is left.
- * - A per-day run record holds what has been sent, so a retry skips it. The snapshot is
- *   saved only once a list's sends are complete.
+ * - A per-day run record holds what has been sent, saved after each send, so a retry skips
+ *   it (at worst repeating the one send whose save failed). The snapshot is saved only once
+ *   a list's sends are complete.
  * - Dry run (EMAIL_DIGEST_DRY_RUN=true) logs what would be sent, and who to, and saves each
  *   broadcast as a Buttondown draft with its real filters (so its audience can be checked
  *   in Buttondown). It sends nothing and saves no state, except seeding a missing
@@ -33,7 +34,7 @@ import { allOf, buttondown, type Buttondown, type Subscriber } from './buttondow
 import { loadCompanies, loadVenues } from './company-data.mts'
 import { buildActivityDigest, buildPerformanceDigest, templateFooterLinks } from './email-template.mts'
 import { digestProduction, includesProduction, loadRuns } from './shows-data.mts'
-import { localToday } from './site.mts'
+import { todayIso } from '../../../src/lib/data-rules.ts'
 
 const snapshotKey = (list: string) => `snapshot/${list}`
 
@@ -63,7 +64,7 @@ export async function runDigest(opts: { dryRun: boolean; siteUrl: string; storeN
     throw new Error('missing NETLIFY_SITE_ID or NETLIFY_TOKEN (required for Blob Storage)')
   const store = getStore({ name: opts.storeName, siteID: NETLIFY_SITE_ID, token: NETLIFY_TOKEN })
   const bd = buttondown()
-  const today = localToday()
+  const today = todayIso() // Santa Cruz: the 02:00 UTC run is the previous evening there
   const runKey = `run/${today}`
   const record: RunRecord = ((await store.get(runKey, { type: 'json' })) as RunRecord) ?? {}
   const save = () => (opts.dryRun ? Promise.resolve() : store.setJSON(runKey, record))
@@ -191,12 +192,13 @@ async function performancesDigest(ctx: Ctx) {
       rec.groups[key] = (await ctx.bd.createEmail({ subject, body: html, status: 'transactional' })).id
       await ctx.save()
     }
-    for (const [i, s] of todo.entries()) {
+    // Progress is saved after every send, so a retry repeats at most the one send whose
+    // save didn't happen
+    for (const s of todo) {
       await ctx.bd.sendTo(s.id, rec.groups[key])
       rec.sent.push(s.id)
-      if (i % 10 === 9) await ctx.save()
+      await ctx.save()
     }
-    await ctx.save()
     ctx.log(`${list}: sent "${subject}" to ${todo.length} excluding [${key}]`)
   }
 

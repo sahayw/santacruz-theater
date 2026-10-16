@@ -198,7 +198,7 @@ every record it has notified about. Each nightly run:
 | Triggers an email                                                                 | Productions | Auditions & events |
 | --------------------------------------------------------------------------------- | ----------- | ------------------ |
 | New                                                                               | ✓           | ✓                  |
-| Dates added, removed or moved                                                     | ✓           | ✓                  |
+| Dates added, removed or moved (all remaining removed — "Cancelled")               | ✓           | ✓                  |
 | Venue / location changed (by code)                                                | ✓           | ✓                  |
 | Tickets link appears (production or any upcoming performance) — "Tickets on sale" | ✓           |                    |
 | Registration link appears — "Registration open"                                   |             | ✓                  |

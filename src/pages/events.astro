@@ -1304,7 +1304,8 @@ function roleTypeLabel(type: string): string {
 </style>
 
 <script is:inline>
-  const TODAY = new Date().toISOString().slice(0, 10)
+  // Today in Santa Cruz — the same date as todayIso() in src/lib/data-rules.ts
+  const TODAY = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Los_Angeles' })
 
   const cards = Array.from(document.querySelectorAll('.aud-card'))
   const countEl = document.getElementById('filter-count')

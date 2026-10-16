@@ -411,7 +411,8 @@ Pure functions shared by pages, feeds, functions and `/admin`
     with `history.replaceState`.
   - `/events`' Company dropdown lists every organizer with a listing.
   - `/productions`' **Other** keeps cards with any organizer who isn't a
-    major (`data-majors` on the select).
+    major (`data-majors` on the select). Its address is `?company=other`
+    (`other` is never an organizer id).
 
 ### Page bar — `src/components/PageBar.astro`
 
@@ -484,6 +485,13 @@ text (calendar apps would show raw URLs in full), and writes bullets as
 Implemented in **three places that must agree**: the `/events` client filter
 (`src/pages/events.astro`), `isUpcomingActivity()` in `src/lib/data-rules.ts`
 (emails and the digests' change detection), and the editor Preview.
+
+**Today** is always the Santa Cruz date: `todayIso()` in
+`src/lib/data-rules.ts` (builds, functions, emails, the editors). The
+`/events`, `/productions` and `/calendar` page scripts can't import it and
+compute the same date inline
+(`toLocaleDateString('en-CA', { timeZone: 'America/Los_Angeles' })`), so
+a listing is upcoming everywhere until midnight in Santa Cruz.
 
 ### Activity card rendering paths
 
@@ -688,6 +696,10 @@ emailed:
 - **Changed**: dates added / cancelled / moved (by occurrence id), venue or
   location changed, tickets link appeared ("Tickets on sale"), registration
   link appeared ("Registration open"), reopened.
+- **Cancelled**: a record that was listable and has lost all its remaining
+  dates is still reported, labelled "Cancelled" (`all: true` on the removal);
+  its email card reads "No upcoming performances" / "No upcoming sessions".
+  An activity that closes isn't a cancellation and sends nothing.
 - A past date dropping off, and every other field (description, price,
   contact, wording), never sends email. `createdAt` / `updatedAt` aren't
   used.
@@ -746,7 +758,7 @@ evening in Santa Cruz) and only POSTs to `send-digest-background` with the
 `DIGEST_SECRET` header: scheduled functions are limited to 30 seconds. The
 background function (15 minutes; Netlify retries twice on error) runs
 `runDigest()` in `lib/digest.mts`. "Today" is the Santa Cruz date
-(`localToday()`).
+(`todayIso()`, [§6](#the-upcoming-rule)).
 
 For each list:
 
@@ -764,8 +776,9 @@ For each list:
 5. Save the snapshot.
 
 **Retries**: `run/<date>` records each list's broadcast id, each group's
-email id, the subscribers sent to, and `done`. A retry skips all of them;
-the snapshot is saved only once a list's sends are complete.
+email id, the subscribers sent to (saved after each send), and `done`. A
+retry skips all of them; at worst it repeats the one individual send whose
+save failed. The snapshot is saved only once a list's sends are complete.
 
 **Footer**: "Change your choices" (`/subscribe/manage?s={{ subscriber.id }}`)
 and "Unsubscribe from everything" (`{{ unsubscribe_url }}`) — Buttondown
@@ -893,8 +906,8 @@ records only) / printed.
 
 - The editor drops blank activity date rows (no date, no start time) before
   checking, matching what it saves.
-- **Historic runs** (last performance before today, via `todayIso()`, local
-  time) skip warnings — in `runIssues()` and `check-shows.ts`'s ordering
+- **Historic runs** (last performance before today, via `todayIso()`) skip
+  warnings — in `runIssues()` and `check-shows.ts`'s ordering
   warning. Errors still apply. A run with no performances isn't historic.
 
 **Structural checks** (scripts only; editors guarantee these by

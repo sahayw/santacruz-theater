@@ -197,7 +197,8 @@ function summaryMeta(r: Run) {
 </html>
 
 <script is:inline>
-  const TODAY = new Date().toISOString().slice(0, 10)
+  // Today in Santa Cruz — the same date as todayIso() in src/lib/data-rules.ts
+  const TODAY = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Los_Angeles' })
   const cards = Array.from(document.querySelectorAll('.run-card'))
   const filterShow = document.getElementById('filter-show')
   const filterCompany = document.getElementById('filter-company')
@@ -244,18 +245,20 @@ function summaryMeta(r: Run) {
     emptyEl.hidden = visible > 0
   }
 
-  // ?company=<organizer id>: an organizer outside the dropdown gets its own option. The
-  // address follows later changes, so it can be shared.
+  // ?company=<organizer id>, or ?company=other for the Other group: an organizer outside
+  // the dropdown gets its own option. The address follows later changes, so it can be
+  // shared.
   const params = new URLSearchParams(location.search)
   const company = params.get('company')
-  if (company && NAMES[company]) {
+  if (company === 'other') filterCompany.value = 'other'
+  else if (company && NAMES[company]) {
     if (!filterCompany.querySelector(`option[value="${company}"]`))
       filterCompany.add(new Option(NAMES[company], company))
     filterCompany.value = company
   }
   function syncAddress() {
     const co = filterCompany.value
-    if (NAMES[co]) params.set('company', co)
+    if (co) params.set('company', co)
     else params.delete('company')
     const q = params.toString()
     history.replaceState(null, '', q ? `?${q}` : location.pathname)

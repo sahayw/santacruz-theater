@@ -4,7 +4,8 @@ import { isUpcomingActivity } from './data-rules.ts'
 // What sends an email. Each digest keeps a snapshot of every record's *significant*
 // fields as last emailed (a "print") and compares tonight's prints against it. A record
 // is new when it first becomes listable; it has changed when a significant field
-// differs. Everything else — descriptions, typos, price, contact — never sends email.
+// differs — including losing all its remaining dates, which is a cancellation. Everything
+// else — descriptions, typos, price, contact — never sends email.
 // Pure functions, unit-tested; the digest function stores the snapshots.
 // See docs/notifications-spec.md ("Change detection").
 
@@ -19,7 +20,7 @@ export interface ProductionPrint {
 
 export type ProductionChange =
   | { kind: 'dates-added'; perfIds: string[] }
-  | { kind: 'dates-removed'; when: string[] }
+  | { kind: 'dates-removed'; when: string[]; all: boolean } // all: none upcoming are left
   | { kind: 'dates-moved'; perfIds: string[] }
   | { kind: 'venue' }
   | { kind: 'tickets' }
@@ -47,7 +48,12 @@ export function productionChanges(
   )
   const moved = Object.keys(cur.perfs).filter((id) => id in prev.perfs && prev.perfs[id] !== cur.perfs[id])
   if (added.length) changes.push({ kind: 'dates-added', perfIds: added })
-  if (removed.length) changes.push({ kind: 'dates-removed', when: removed.map(([, w]) => w).sort() })
+  if (removed.length)
+    changes.push({
+      kind: 'dates-removed',
+      when: removed.map(([, w]) => w).sort(),
+      all: !Object.keys(cur.perfs).length
+    })
   if (moved.length) changes.push({ kind: 'dates-moved', perfIds: moved })
   if (prev.venue !== cur.venue) changes.push({ kind: 'venue' })
   if (!prev.tickets && cur.tickets) changes.push({ kind: 'tickets' })
@@ -66,7 +72,7 @@ export interface ActivityPrint {
 
 export type ActivityChange =
   | { kind: 'sessions-added'; sessionIds: string[] }
-  | { kind: 'sessions-removed'; when: string[] }
+  | { kind: 'sessions-removed'; when: string[]; all: boolean } // all: none upcoming are left
   | { kind: 'sessions-moved'; sessionIds: string[] }
   | { kind: 'location' }
   | { kind: 'registration' }
@@ -100,7 +106,12 @@ export function activityChanges(
     (id) => id in prev.sessions && prev.sessions[id] !== cur.sessions[id]
   )
   if (added.length) changes.push({ kind: 'sessions-added', sessionIds: added })
-  if (removed.length) changes.push({ kind: 'sessions-removed', when: removed.map(([, w]) => w).sort() })
+  if (removed.length)
+    changes.push({
+      kind: 'sessions-removed',
+      when: removed.map(([, w]) => w).sort(),
+      all: !Object.keys(cur.sessions).length
+    })
   if (moved.length) changes.push({ kind: 'sessions-moved', sessionIds: moved })
   if (Object.keys(cur.places).some((id) => id in prev.places && prev.places[id] !== cur.places[id]))
     changes.push({ kind: 'location' })
@@ -120,7 +131,9 @@ export interface Notice<C> {
  * Compares every record's print with the previous snapshot. A record is **new** when it's
  * listable now and wasn't listable (or known) before — so a record created early, before
  * its dates, is announced when its dates arrive. A **reopened** activity is a change, not
- * new. The returned snapshot holds every current record (deleted ones drop out).
+ * new. A record that was listable and has lost all its remaining dates is reported with
+ * its changes (a cancellation); one that closed, or whose dates simply passed, isn't.
+ * The returned snapshot holds every current record (deleted ones drop out).
  */
 export function classify<P extends { listable: boolean; closed?: boolean }, C>(
   records: { id: string; print: P }[],
@@ -131,8 +144,14 @@ export function classify<P extends { listable: boolean; closed?: boolean }, C>(
   const next: Record<string, P> = {}
   for (const { id, print } of records) {
     next[id] = print
-    if (!print.listable) continue
     const before = prev[id]
+    if (!print.listable) {
+      if (before?.listable && !print.closed) {
+        const changes = changesOf(before, print)
+        if (changes.length) notices.push({ id, isNew: false, changes })
+      }
+      continue
+    }
     const reopening = !!before?.closed && !print.closed
     if (!before || (!before.listable && !reopening)) {
       notices.push({ id, isNew: true, changes: [] })
@@ -177,7 +196,7 @@ export function productionChangeLabel(c: ProductionChange) {
     case 'dates-added':
       return `${plural(c.perfIds.length, 'date')} added`
     case 'dates-removed':
-      return `${plural(c.when.length, 'date')} cancelled`
+      return c.all ? 'Cancelled' : `${plural(c.when.length, 'date')} cancelled`
     case 'dates-moved':
       return `${plural(c.perfIds.length, 'date')} changed`
     case 'venue':
@@ -192,7 +211,7 @@ export function activityChangeLabel(c: ActivityChange) {
     case 'sessions-added':
       return `${plural(c.sessionIds.length, 'session')} added`
     case 'sessions-removed':
-      return `${plural(c.when.length, 'session')} cancelled`
+      return c.all ? 'Cancelled' : `${plural(c.when.length, 'session')} cancelled`
     case 'sessions-moved':
       return `${plural(c.sessionIds.length, 'session')} changed`
     case 'location':

@@ -898,8 +898,9 @@ const icsMajors = JSON.stringify(majors.map(({ code, label, name }) => ({ code, 
   const EARLIEST_YEAR = 2026
   const PHONE = window.matchMedia('(max-width: 640px)')
 
-  const today = new Date()
-  const TODAY = fmtDate(today)
+  // Today in Santa Cruz — the same date as todayIso() in src/lib/data-rules.ts
+  const TODAY = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Los_Angeles' })
+  const today = parseDate(TODAY)
   let displayYear = Math.max(EARLIEST_YEAR, today.getFullYear())
   let mode = 'annual' // 'annual' | 'drill'
   let drillAnchor = new Date(today) // the drill-down shows the month/week containing this

@@ -83,7 +83,8 @@ production's. Every card names its organizers.
   **Other** (everyone else). A co-production shows under each of its
   organizers. The Filters button shows how many filters are set.
 - `?company=<organizer id>` shows one organizer's productions, for any
-  organizer, including ones not in the dropdown. Changing the Company filter
+  organizer, including ones not in the dropdown; `?company=other` shows the
+  Other group. Changing the Company filter
   updates the address, so it can be shared.
 - Each upcoming performance has its own **Add to my calendar** link.
 - `?id=` shows one production, expanded, on its own.
@@ -450,7 +451,9 @@ What gets emailed:
   records that have just become upcoming — a production saved before its
   dates is announced when the dates are added. **Updates** carry labels
   saying what changed ("2 dates added", "Tickets on sale", "Venue changed",
-  "Registration open"…). Description, price, contact and wording edits never
+  "Registration open"…). A production or activity whose remaining dates are
+  all removed is reported as **Cancelled**. Closing an audition sends
+  nothing. Description, price, contact and wording edits never
   send email, so fixing a typo is safe. A performance that has happened just
   drops off.
 - Every email ends with **Change your choices** and **Unsubscribe from

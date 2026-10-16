@@ -76,6 +76,12 @@ describe('productions', () => {
     expect(classifyProductions([after], before, '2026-10-31').notices).toEqual([])
   })
 
+  it('reports a production that loses all its remaining dates as cancelled', () => {
+    const [n] = classifyProductions([run({ performances: [] })], snap([run()]), TODAY).notices
+    expect(n).toMatchObject({ isNew: false })
+    expect(n.changes.map(productionChangeLabel)).toEqual(['Cancelled'])
+  })
+
   it('keeps only upcoming performances in a print', () => {
     expect(Object.keys(productionPrint(run(), '2026-10-31').perfs)).toEqual(['perf-1700000000002'])
   })
@@ -118,6 +124,17 @@ describe('auditions & events', () => {
     expect(classifyActivities([closed], {}, TODAY).notices).toEqual([])
     const [n] = classifyActivities([activity()], prevOf(closed), TODAY).notices
     expect(n).toMatchObject({ isNew: false, changes: [{ kind: 'reopened' }] })
+  })
+
+  it('reports an activity that loses all its remaining sessions as cancelled', () => {
+    const [n] = classifyActivities([activity({ dates: [] })], prevOf(activity()), TODAY).notices
+    expect(n.changes.map(activityChangeLabel)).toEqual(['Cancelled'])
+  })
+
+  it('sends nothing when a listed activity closes', () => {
+    expect(classifyActivities([activity({ closed: true })], prevOf(activity()), TODAY).notices).toEqual(
+      []
+    )
   })
 
   it('keeps a virtual audition with no dates listable', () => {

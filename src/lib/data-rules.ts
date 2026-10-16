@@ -75,10 +75,13 @@ function firstDateYearIssue(dates: string[], fileYear: number, what: string) {
   return `first ${what} ${first} is in ${yr} — it belongs in the ${yr} file`
 }
 
-/** Today as `YYYY-MM-DD` in local time. */
-export function todayIso() {
-  const d = new Date()
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+/**
+ * Today as `YYYY-MM-DD` in Santa Cruz — the one definition of "today" for upcoming,
+ * listings, feeds and emails, wherever the code runs (builds and functions run in UTC).
+ * The /events and /productions page scripts and the calendar compute the same date inline.
+ */
+export function todayIso(now = new Date()) {
+  return now.toLocaleDateString('en-CA', { timeZone: 'America/Los_Angeles' })
 }
 
 /** What a production still lacks; none once its last performance is before `today`. */

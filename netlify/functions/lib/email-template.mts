@@ -127,7 +127,11 @@ export function productionCard(p: DigestProduction, changes: ProductionChange[] 
     ${changes.map((c) => pill(productionChangeLabel(c), c.kind === 'tickets')).join('')}
     <div style="${TITLE}">${esc(p.title)}${genre}</div>
     <div style="font-size:13px;color:#6b6259;margin-bottom:2px">${meta}</div>
-    <div style="${META}">${esc(fmtAudDateRange(p.perfs))} &middot; ${p.perfs.length === 1 ? '1 performance' : `${p.perfs.length} performances`}</div>
+    <div style="${META}">${
+      p.perfs.length // none left when it's cancelled
+        ? `${esc(fmtAudDateRange(p.perfs))} &middot; ${p.perfs.length === 1 ? '1 performance' : `${p.perfs.length} performances`}`
+        : 'No upcoming performances'
+    }</div>
     ${shown.length ? perfRows(shown.slice(0, PERF_ROWS), Math.max(0, shown.length - PERF_ROWS)) : ''}
     ${onSale ? `<a href="${esc(p.ticketsUrl)}" style="${BUTTON}">Get tickets</a>` : ''}
     <a href="${esc(p.url)}" style="${LINK}">All dates &rarr;</a>
@@ -166,8 +170,10 @@ export function activityCard(a: DigestActivity, siteUrl: string, changes: Activi
       : ''
 
   const noScheduledDates = !a.dates.some((d) => d.date)
-  const datesHtml =
-    noScheduledDates && a.type === 'audition' && a.virtualSubmission
+  const cancelled = changes.some((c) => c.kind === 'sessions-removed' && c.all)
+  const datesHtml = cancelled
+    ? `<div style="${META}">No upcoming sessions</div>`
+    : noScheduledDates && a.type === 'audition' && a.virtualSubmission
       ? `<div style="${META}">Virtual submission &mdash; no scheduled dates. See the audition notice for how to apply.</div>`
       : noScheduledDates && a.type === 'event' && a.datesByRequest
         ? `<div style="${META}">On request</div>`

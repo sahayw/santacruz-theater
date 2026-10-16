@@ -14,7 +14,8 @@ import {
   MAX_GENRES,
   activityIssues,
   isDateNearYear,
-  isValidTime
+  isValidTime,
+  todayIso
 } from '/admin/data-rules.js'
 import { createIdGenerator, ensureSessionIds } from '/admin/occurrence-ids.js'
 import {
@@ -819,7 +820,7 @@ async function loadCompanyRuns(coId) {
  */
 function productionChoices(a) {
   const org = a.organizers?.[0]
-  const today = new Date().toLocaleDateString('en-CA') // YYYY-MM-DD, local
+  const today = todayIso()
   // An audition is for a production still to come: upcoming dates, or none yet. The
   // production already linked stays listed even if it's since finished.
   const upcoming = (r) => !r.performances.length || lastRunDate(r) >= today
@@ -905,8 +906,8 @@ function productionChanged() {
 
 /**
  * "Add production…": opens the Calendar editor on this company's file for the same year,
- * with a new show titled as typed here. The audition links to it once the show is saved
- * (reopen the audition and pick it).
+ * with a new show titled as typed here. Once the show is saved, the editor comes back here
+ * and resumeActivity() restores the audition, linked to the new show.
  */
 function addProduction(a) {
   if (currentCompanyId === 'other' && !a.organizers?.length) {
@@ -2164,7 +2165,7 @@ function openPreview() {
   const companyName = allCompanies.find((c) => c.id === currentCompanyId)?.name || currentCompanyAbv
   const details = detailsOf(a) // a linked audition's genre, opening and link are its production's
   const genreArr = details.genre
-  const TODAY = new Date().toISOString().slice(0, 10)
+  const TODAY = todayIso()
   const latestD = [...(a.dates || [])].sort((x, y) => y.date.localeCompare(x.date))[0]?.date ?? ''
   const isEvent = a.type === 'event'
   const isVirtual = !isEvent && !!a.virtualSubmission

@@ -12,6 +12,7 @@ import {
   tagsFor,
   type ListId
 } from '../../../src/lib/email-lists.ts'
+import { todayIso } from '../../../src/lib/data-rules.ts'
 import type { CompanyEntry } from '../../../src/types.ts'
 import { getUpcomingAuditions, getUpcomingEvents, loadAllActivities } from './activities-data.mts'
 import type { Buttondown, Subscriber } from './buttondown.mts'
@@ -19,7 +20,6 @@ import { loadCompanies, loadVenues } from './company-data.mts'
 import { excludedOf } from './digest.mts'
 import { buildManageLinkEmail, buildWelcomeEmail } from './email-template.mts'
 import { digestProduction, includesProduction, loadRuns } from './shows-data.mts'
-import { localToday } from './site.mts'
 
 export interface Choices {
   lists: ListId[]
@@ -71,7 +71,7 @@ export async function sendWelcome(
   siteUrl: string
 ) {
   const companies = loadCompanies()
-  const today = localToday()
+  const today = todayIso()
   const wantsPerformances = choices.lists.includes('performances')
   const wantsActivities = choices.lists.includes('auditions-events')
   const venues = wantsPerformances ? loadVenues() : []
@@ -86,8 +86,8 @@ export async function sendWelcome(
     {
       productions,
       excludedNames: choices.excluded.map((id) => companies.find((c) => c.id === id)?.name ?? id),
-      auditions: wantsActivities ? getUpcomingAuditions(activities) : null,
-      events: wantsActivities ? getUpcomingEvents(activities) : null
+      auditions: wantsActivities ? getUpcomingAuditions(activities, today) : null,
+      events: wantsActivities ? getUpcomingEvents(activities, today) : null
     },
     siteUrl,
     { manageUrl: manageUrl(siteUrl, s.id), unsubscribeUrl: '{{ unsubscribe_url }}' }

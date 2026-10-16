@@ -88,10 +88,10 @@ function byEarliestDate(a: DigestActivity, b: DigestActivity) {
   return (a.dates[0]?.date ?? '').localeCompare(b.dates[0]?.date ?? '')
 }
 
-export function getUpcomingAuditions(activities: DigestActivity[]): DigestActivity[] {
-  return activities.filter((a) => a.type === 'audition' && isUpcoming(a)).sort(byEarliestDate)
+export function getUpcomingAuditions(activities: DigestActivity[], today?: string) {
+  return activities.filter((a) => a.type === 'audition' && isUpcoming(a, today)).sort(byEarliestDate)
 }
 
-export function getUpcomingEvents(activities: DigestActivity[]): DigestActivity[] {
-  return activities.filter((a) => a.type === 'event' && isUpcoming(a)).sort(byEarliestDate)
+export function getUpcomingEvents(activities: DigestActivity[], today?: string) {
+  return activities.filter((a) => a.type === 'event' && isUpcoming(a, today)).sort(byEarliestDate)
 }

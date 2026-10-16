@@ -54,8 +54,7 @@ What the site does, for visitors and for editors. For how it's built, see
   (one week at a time; the switch follows the screen width):
   - Each day lists its performances as "time · show · organizer", with the
     main organizer's colour on the left edge (grey for everyone but the
-    majors). Days from the neighbouring months fill out the month grid,
-    dimmed.
+    majors). Days from the neighbouring months fill out the month grid.
   - ‹ › step a month (or a week); **← Year** goes back.
   - Clicking a performance opens its card: organizer, title, the production's
     description, time, venue, price, genre, discounts, and info/ticket links.

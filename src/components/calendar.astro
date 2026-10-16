@@ -789,13 +789,6 @@ const icsMajors = JSON.stringify(majors.map(({ code, label, name }) => ({ code, 
   .wv-cell:nth-child(7n) {
     border-right: 0;
   }
-  .mv-cell.other-month {
-    background: #fbfaf8;
-  }
-  .mv-cell.other-month .day-num-btn,
-  .mv-cell.other-month .cal-entry {
-    opacity: 0.6;
-  }
   .mv-cell.focus,
   .wv-cell.focus {
     background: #fff6e0;
@@ -1101,7 +1094,7 @@ const icsMajors = JSON.stringify(majors.map(({ code, label, name }) => ({ code, 
     return `<div class="${classes.join(' ')}">${num}${perfs.map(entryHtml).join('')}</div>`
   }
 
-  /** Wider screens: the month as a grid, with days from the months either side filled in. */
+  /** Wider screens: the month as a grid, with days from the months either side filled in (shown the same; their 1st is labelled with its month). */
   function renderMonth() {
     const y = drillAnchor.getFullYear()
     const m = drillAnchor.getMonth()
@@ -1111,9 +1104,8 @@ const icsMajors = JSON.stringify(majors.map(({ code, label, name }) => ({ code, 
     const end = addDays(mondayOf(last), 6)
     let html = DOW.map((d) => `<div class="mv-dow">${d}</div>`).join('')
     for (let d = start; d <= end; d = addDays(d, 1)) {
-      const inMonth = d.getMonth() === m
       const label = d.getDate() === 1 ? `${MONTHS[d.getMonth()].slice(0, 3)} 1` : d.getDate()
-      html += dayCellHtml(d, inMonth ? 'mv-cell' : 'mv-cell other-month', label)
+      html += dayCellHtml(d, 'mv-cell', label)
     }
     return `<div class="mv-grid">${html}</div>`
   }

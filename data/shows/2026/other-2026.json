@@ -477,7 +477,7 @@
       "organizers": [
         "ucsc-ta"
       ],
-      "showAbv": "New Plays (UCSC)",
+      "showAbv": "New Plays",
       "show": "UCSC New Play Festival",
       "description": "New Play Festival is an annual student-run showcase of experimental, short stage readings that focuses on nurturing and showcasing new playwrights in the UC Santa Cruz Theater Arts Program. This year the festival is uplifting two new playwrights, supporting them through developmental drafts, shaping their stories, and giving them the opportunity to collaborate with actors, a director, and designers.",
       "genre": [],
@@ -536,7 +536,8 @@
           "discounts": "",
           "ticketsUrl": ""
         }
-      ]
+      ],
+      "updatedAt": "2026-10-16T20:36:22.365Z"
     },
     {
       "id": "run-1791918917067",

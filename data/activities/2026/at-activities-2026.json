@@ -4,9 +4,6 @@
   "activities": [
     {
       "id": "activity-1781438400002",
-      "genre": [
-        "Drama"
-      ],
       "rolesAvailable": [
         {
           "role": "Carol",
@@ -41,47 +38,35 @@
         "acting": "One-minute memorized monologue"
       },
       "rehearsalStart": "2026-07-01",
-      "openingDate": "2026-10-16",
       "contact": {
         "phone": "831-431-8666"
       },
-      "productionUrl": "https://www.santacruzactorstheatre.org/",
       "notes": "Dark comedy with supernatural elements. Performances run Thursday–Sunday, October 16–31.\nRehearsals begin late July.",
       "createdAt": "2026-06-14T12:00:00.000Z",
       "updatedAt": "2026-06-22T07:26:05.180Z",
       "type": "audition",
-      "title": "Feathers & Teeth",
+      "productionId": "run-1780383358514",
       "dates": [
         {
           "id": "session-1791991837934",
           "date": "2026-07-14",
           "startTime": "18:00",
           "endTime": "21:00",
-          "location": {
-            "name": "Actors' Theatre",
-            "address": "1001 Center St, Santa Cruz, CA 95060"
-          }
+          "venue": "AT"
         },
         {
           "id": "session-1791991837935",
           "date": "2026-07-15",
           "startTime": "00:00",
           "endTime": "00:00",
-          "notes": "Callbacks (by invitation — time TBA)",
-          "location": {
-            "name": "Actors' Theatre",
-            "address": "1001 Center St, Santa Cruz, CA 95060"
-          }
+          "venue": "AT",
+          "notes": "Callbacks (by invitation — time TBA)"
         }
       ],
       "noticeUrl": "https://www.santacruzactorstheatre.org/auditions"
     },
     {
       "id": "activity-1735000000006",
-      "genre": [
-        "Drama",
-        "Comedy"
-      ],
       "rolesAvailable": [
         {
           "role": "All ages and types needed (over 14 years of age)",
@@ -100,34 +85,26 @@
       "contact": {
         "email": "sccactorstheatre@gmail.com"
       },
-      "productionUrl": "https://www.santacruzactorstheatre.org/8-tens-at-8-festival",
       "notes": "Scripts will be available at the Santa Cruz main library, 224 Church St. in downtown Santa Cruz two weeks before auditions. Ask at the Reference Desk.\nPerformance dates: January 16 - February 15, 2026\nEach play is performed 14 times\nActors may be cast in up to two plays, and will also be considered for the Best of the Rest staged readings in March 2027\nFor a list of plays and their directors, see the audition form. (Coming as soon as the plays have been selected.)",
       "createdAt": "2026-06-02T00:00:00Z",
       "updatedAt": "2026-08-17T15:55:52.856Z",
-      "openingDate": "2027-01-16",
       "type": "audition",
-      "title": "8 Tens @ 8 Short Play Festival (2027)",
+      "productionId": "run-1780128058553",
       "dates": [
         {
           "id": "session-1791991837936",
           "date": "2026-09-20",
           "startTime": "18:30",
           "endTime": "21:00",
-          "notes": "General audition",
-          "location": {
-            "name": "Actors' Theatre",
-            "address": "1001 Center St, Santa Cruz, CA 95060"
-          }
+          "venue": "AT",
+          "notes": "General audition"
         },
         {
           "id": "session-1791991837937",
           "date": "2026-09-21",
           "startTime": "18:30",
           "endTime": "21:00",
-          "location": {
-            "name": "Actors' Theatre",
-            "address": "1001 Center St, Santa Cruz, CA 95060"
-          },
+          "venue": "AT",
           "notes": "General audition"
         },
         {
@@ -135,10 +112,7 @@
           "date": "2026-09-22",
           "startTime": "18:30",
           "endTime": "21:00",
-          "location": {
-            "name": "Actors' Theatre",
-            "address": "1001 Center St, Santa Cruz, CA 95060"
-          },
+          "venue": "AT",
           "notes": "Callbacks"
         },
         {
@@ -146,10 +120,7 @@
           "date": "2026-09-23",
           "startTime": "18:30",
           "endTime": "21:00",
-          "location": {
-            "name": "Actors' Theatre",
-            "address": "1001 Center St, Santa Cruz, CA 95060"
-          },
+          "venue": "AT",
           "notes": "Callbacks"
         },
         {
@@ -157,10 +128,7 @@
           "date": "2026-09-24",
           "startTime": "18:30",
           "endTime": "21:00",
-          "location": {
-            "name": "Actors' Theatre",
-            "address": "1001 Center St, Santa Cruz, CA 95060"
-          },
+          "venue": "AT",
           "notes": "Callbacks"
         },
         {
@@ -168,10 +136,7 @@
           "date": "2026-09-25",
           "startTime": "18:30",
           "endTime": "21:00",
-          "location": {
-            "name": "Actors' Theatre",
-            "address": "1001 Center St, Santa Cruz, CA 95060"
-          },
+          "venue": "AT",
           "notes": "Callbacks"
         }
       ],
@@ -188,30 +153,21 @@
           "date": "2026-08-22",
           "startTime": "11:00",
           "endTime": "13:00",
-          "location": {
-            "name": "Actors' Theatre",
-            "address": "1001 Center St, Santa Cruz, CA 95060"
-          }
+          "venue": "AT"
         },
         {
           "id": "session-1791991837943",
           "date": "2026-08-29",
           "startTime": "11:00",
           "endTime": "13:00",
-          "location": {
-            "name": "Actors' Theatre",
-            "address": "1001 Center St, Santa Cruz, CA 95060"
-          }
+          "venue": "AT"
         },
         {
           "id": "session-1791991837944",
           "date": "2026-09-05",
           "startTime": "11:00",
           "endTime": "13:00",
-          "location": {
-            "name": "Actors' Theatre",
-            "address": "1001 Center St, Santa Cruz, CA 95060"
-          }
+          "venue": "AT"
         }
       ],
       "createdAt": "2026-06-22T05:12:49.178Z",

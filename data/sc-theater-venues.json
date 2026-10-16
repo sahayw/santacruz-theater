@@ -11,6 +11,9 @@
     { "code": "LN",         "name": "London Nelson Community Center", "address": "301 Center St, Santa Cruz, CA 95060",               "website": "https://www.santacruzca.gov/Government/City-Departments/Parks-Recreation/Community-Spaces/London-Nelson-Community-Center" },
     { "code": "Satori",     "name": "Satori Arts",                    "address": "815 Almar Ave Unit 9, Santa Cruz, CA 95060",        "website": "https://www.satoriarts.org/events" },
     { "code": "Scratch",    "name": "Scratch Studios",                "address": "02B 303 Potrero St, Santa Cruz, CA 95060",          "website": "https://scratchsantacruz.com" },
-    { "code": "StA",        "name": "St Andrews Hall",                "address": "101 Riverside Ave, Ben Lomond, CA 95005",           "website": "https://saintandrewsbenlomond.org" }
+    { "code": "StA",        "name": "St Andrews Hall",                "address": "101 Riverside Ave, Ben Lomond, CA 95005",           "website": "https://saintandrewsbenlomond.org" },
+    { "code": "SVHS",       "name": "Scotts Valley High School",      "address": "555 Glenwood Dr, Scotts Valley, CA 95066" },
+    { "code": "UCSC-TA",    "name": "UCSC Theater Arts Center",       "address": "1156 High St, Santa Cruz, CA 95064",                "website": "https://play.ucsc.edu/news-events/" },
+    { "code": "CBB",        "name": "Cabrillo Black Box Theater",     "address": "6500 Soquel Dr, Aptos, CA 95003",                   "website": "https://www.cabrillo.edu/vapa/#events" }
   ]
 }

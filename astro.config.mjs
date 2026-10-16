@@ -2,7 +2,7 @@
 import { defineConfig } from 'astro/config'
 
 // Local dev runs through `netlify dev` (`npm run dev`), which serves the real
-// Netlify Functions — see netlify/functions/data.mjs and upload-image.mjs for
+// Netlify Functions — see netlify/functions/data.mts and upload-image.mjs for
 // their `NETLIFY_DEV` local-filesystem mode.
 export default defineConfig({
   vite: {

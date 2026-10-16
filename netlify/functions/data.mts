@@ -16,18 +16,50 @@
  * before pushing. Use http://localhost:8888/admin (the netlify dev port), not
  * the bare Astro port.
  *
+ * SAVE CHECK: before writing (in both modes), a PUT is checked with saveErrors() from
+ * src/lib/file-checks.ts — the same checks the build runs — and refused with 422 if it
+ * would fail the build, so a bad save (e.g. from an out-of-date editor tab) can never
+ * break the deploy. The editor shows the reasons.
+ *
  * Required env vars (production only): GITHUB_TOKEN, GITHUB_OWNER, GITHUB_REPO, GITHUB_BRANCH
  */
 
-import { promises as fs } from 'node:fs'
+import { promises as fs, readFileSync } from 'node:fs'
 import { join, dirname, sep } from 'node:path'
+import type { Handler, HandlerEvent } from '@netlify/functions'
+import type { CompanyEntry, Venue } from '../../src/types.ts'
+import { todayIso } from '../../src/lib/data-rules.ts'
+import { saveErrors, serviceSubcategories } from '../../src/lib/file-checks.ts'
 
 const FILE_RE = /^[\w-]+(\/[\w-]+)*\.json$/
 
 const LOCAL_FS = process.env.NETLIFY_DEV === 'true'
 const DATA_ROOT = join(process.cwd(), 'data')
 
-function jsonResponse(statusCode, obj) {
+/** The reference lists the checks need, from the bundle (netlify.toml included_files). */
+function checkRefs() {
+  const read = (f: string) => JSON.parse(readFileSync(join(DATA_ROOT, f), 'utf-8'))
+  return {
+    companies: read('sc-theater-companies.json').companies as CompanyEntry[],
+    venues: read('sc-theater-venues.json').venues as Venue[],
+    subcategories: serviceSubcategories(read('sc-theater-service-categories.json'))
+  }
+}
+
+/** A 422 response if saving `value` at `file` would fail the build; otherwise null. */
+function refuseIfInvalid(file: string, value: unknown) {
+  const errors = saveErrors(file, value, checkRefs(), todayIso())
+  if (!errors.length) return null
+  console.error(`[data] refused ${file}:\n  ${errors.join('\n  ')}`)
+  const shown = errors.slice(0, 5).map((e) => `• ${e.replace(/^data\/[^:]+: /, '')}`)
+  if (errors.length > 5) shown.push(`• …and ${errors.length - 5} more`)
+  return {
+    statusCode: 422,
+    body: `This save was refused because it would break the site:\n\n${shown.join('\n')}\n\nNothing was saved. Reload the editor and try again.`
+  }
+}
+
+function jsonResponse(statusCode: number, obj: unknown) {
   return {
     statusCode,
     headers: { 'Content-Type': 'application/json' },
@@ -36,15 +68,13 @@ function jsonResponse(statusCode, obj) {
 }
 
 // ── LOCAL FILESYSTEM MODE (netlify dev) ──────────────────────────────────────
-async function localHandler(event) {
+async function localHandler(event: HandlerEvent) {
   // ── DIR LISTING ──
   const dirParam = event.queryStringParameters?.dir
   if (dirParam === 'shows' || dirParam === 'activities') {
     const baseDir = join(DATA_ROOT, dirParam)
     const nameRe =
-      dirParam === 'activities'
-        ? /^(.+)-activities-(\d{4})\.json$/
-        : /^(.+)-(\d{4})\.json$/
+      dirParam === 'activities' ? /^(.+)-activities-(\d{4})\.json$/ : /^(.+)-(\d{4})\.json$/
     let yearDirs
     try {
       yearDirs = await fs.readdir(baseDir, { withFileTypes: true })
@@ -87,35 +117,39 @@ async function localHandler(event) {
         body: content
       }
     } catch (e) {
-      if (e.code === 'ENOENT') return { statusCode: 404, body: `Not found: data/${fileParam}` }
-      return { statusCode: 500, body: e.message }
+      if ((e as NodeJS.ErrnoException).code === 'ENOENT')
+        return { statusCode: 404, body: `Not found: data/${fileParam}` }
+      return { statusCode: 500, body: (e as Error).message }
     }
   }
 
   // ── PUT ──
   if (event.httpMethod === 'PUT') {
     const bodyText = event.isBase64Encoded
-      ? Buffer.from(event.body, 'base64').toString('utf-8')
+      ? Buffer.from(event.body ?? '', 'base64').toString('utf-8')
       : event.body || ''
+    let parsed: unknown
     try {
-      JSON.parse(bodyText)
+      parsed = JSON.parse(bodyText)
     } catch {
       return { statusCode: 400, body: 'Request body is not valid JSON' }
     }
+    const refused = refuseIfInvalid(fileParam, parsed)
+    if (refused) return refused
     try {
       await fs.mkdir(dirname(abs), { recursive: true })
       await fs.writeFile(abs, bodyText, 'utf-8')
       console.log(`[data] local dev write → data/${fileParam}`)
       return { statusCode: 200, body: 'OK (local dev: wrote to data/ on disk, not committed)' }
     } catch (e) {
-      return { statusCode: 500, body: e.message }
+      return { statusCode: 500, body: (e as Error).message }
     }
   }
 
   return { statusCode: 405, body: 'Method not allowed' }
 }
 
-export const handler = async (event, context) => {
+export const handler: Handler = async (event, context) => {
   if (LOCAL_FS) return localHandler(event)
 
   const { GITHUB_TOKEN, GITHUB_OWNER, GITHUB_REPO, BRANCH } = process.env
@@ -126,8 +160,8 @@ export const handler = async (event, context) => {
   }
 
   const ghHeaders = {
-    'Authorization': `Bearer ${GITHUB_TOKEN}`,
-    'Accept': 'application/vnd.github+json',
+    Authorization: `Bearer ${GITHUB_TOKEN}`,
+    Accept: 'application/vnd.github+json',
     'X-GitHub-Api-Version': '2022-11-28'
   }
 
@@ -142,14 +176,17 @@ export const handler = async (event, context) => {
       const yearDirs = await yearListResp.json()
       const result = []
       // activities files: <company>-activities-<year>.json; shows files: <company>-<year>.json
-      const fileRe = dirParam === 'activities'
-        ? /^(.+)-activities-(\d{4})\.json$/
-        : /^(.+)-(\d{4})\.json$/
-      for (const d of yearDirs.filter((x) => x.type === 'dir')) {
+      const fileRe =
+        dirParam === 'activities' ? /^(.+)-activities-(\d{4})\.json$/ : /^(.+)-(\d{4})\.json$/
+      for (const d of (yearDirs as { type: string; url: string }[]).filter(
+        (x) => x.type === 'dir'
+      )) {
         const fileListResp = await fetch(d.url, { headers: ghHeaders })
         if (!fileListResp.ok) continue
         const files = await fileListResp.json()
-        for (const f of files.filter((x) => x.type === 'file')) {
+        for (const f of (files as { type: string; name: string }[]).filter(
+          (x) => x.type === 'file'
+        )) {
           const m = f.name.match(fileRe)
           if (m) result.push({ companyId: m[1], year: parseInt(m[2], 10) })
         }
@@ -160,7 +197,7 @@ export const handler = async (event, context) => {
         body: JSON.stringify(result)
       }
     } catch (e) {
-      return { statusCode: 500, body: e.message }
+      return { statusCode: 500, body: (e as Error).message }
     }
   }
 
@@ -185,7 +222,7 @@ export const handler = async (event, context) => {
         body: content
       }
     } catch (e) {
-      return { statusCode: 500, body: e.message }
+      return { statusCode: 500, body: (e as Error).message }
     }
   }
 
@@ -199,14 +236,17 @@ export const handler = async (event, context) => {
     }
 
     const bodyText = event.isBase64Encoded
-      ? Buffer.from(event.body, 'base64').toString('utf-8')
+      ? Buffer.from(event.body ?? '', 'base64').toString('utf-8')
       : event.body || ''
 
+    let parsed: unknown
     try {
-      JSON.parse(bodyText)
+      parsed = JSON.parse(bodyText)
     } catch {
       return { statusCode: 400, body: 'Request body is not valid JSON' }
     }
+    const refused = refuseIfInvalid(fileParam, parsed)
+    if (refused) return refused
 
     try {
       // Fetch current SHA (required by GitHub API for updates; omit for new files)
@@ -234,7 +274,7 @@ export const handler = async (event, context) => {
 
       return { statusCode: 200, body: 'OK' }
     } catch (e) {
-      return { statusCode: 500, body: e.message }
+      return { statusCode: 500, body: (e as Error).message }
     }
   }
 

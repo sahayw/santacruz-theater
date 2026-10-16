@@ -8,7 +8,7 @@
       "showAbv": "Rocky Horror",
       "show": "The Rocky Horror Show",
       "genre": "Musical",
-      "venue": "Veterans Memorial Building",
+      "venue": "VMB",
       "price": "$33.42",
       "discounts": "$28.22",
       "infoUrl": "https://renegadetheaterco.org/2026/rocky-horror-show.html",
@@ -137,7 +137,7 @@
       "genre": [
         "Musical"
       ],
-      "venue": "London Nelson Community Center",
+      "venue": "LN",
       "price": "",
       "discounts": "",
       "infoUrl": "https://renegadetheaterco.org/2026/cry-baby.html",
@@ -192,7 +192,7 @@
       "showAbv": "She Kills Monsters",
       "show": "She Kills Monsters",
       "genre": "Musical",
-      "venue": "Other",
+      "venue": "LN",
       "price": "",
       "discounts": "",
       "infoUrl": "",
@@ -279,7 +279,7 @@
       "showAbv": "Reefer Madness",
       "show": "Reefer Madness",
       "genre": "Musical",
-      "venue": "Veterans Memorial Building",
+      "venue": "VMB",
       "price": "",
       "discounts": "",
       "infoUrl": "",
@@ -366,7 +366,7 @@
       "showAbv": "The Prom",
       "show": "The Prom",
       "genre": "Musical",
-      "venue": "Veterans Memorial Building",
+      "venue": "VMB",
       "price": "",
       "discounts": "",
       "infoUrl": "",
@@ -424,7 +424,7 @@
       "genre": [
         "Musical"
       ],
-      "venue": "London Nelson Community Center",
+      "venue": "LN",
       "price": "$38.62",
       "discounts": "Student $33.42",
       "infoUrl": "https://onthestage.tickets/show/renegade-theater-co/6a87a2a9fc8b65fe7683ec1f/",
@@ -505,7 +505,7 @@
       "genre": [
         "Drama"
       ],
-      "venue": "London Nelson Community Center",
+      "venue": "LN",
       "price": "$33.42",
       "discounts": "Student: $28.22",
       "infoUrl": "",

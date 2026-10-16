@@ -8,7 +8,7 @@ import { activity, ctx, run } from './fixtures/calendar.ts'
 const octets = (s: string) => new TextEncoder().encode(s).length
 
 function feedFor(runs = [run()], activities = [activity()]): Feed {
-  return buildFeeds(runs, activities, ctx, '2026-10-14').find((f) => f.path === 'runs')!
+  return buildFeeds(runs, activities, ctx, '2026-10-14').find((f) => f.path === 'productions')!
 }
 
 /** Parses with ical.js, registering the feed's own VTIMEZONE. */
@@ -80,7 +80,7 @@ describe('serializeFeed', () => {
     expect(opening.description).toContain('Shakespeare in the park.\n• Bring a blanket')
     // The page link appears once, as the description's last line — no URL property
     expect(opening.description).toMatch(
-      /\n\nDetails & tickets: https:\/\/santacruz\.theater\/runs\?id=1700000000000$/
+      /\n\nDetails & tickets: https:\/\/santacruz\.theater\/productions\?id=1700000000000$/
     )
     expect(opening.component.hasProperty('url')).toBe(false)
     expect(opening.component.getFirstPropertyValue('dtstamp')?.toString()).toBe(

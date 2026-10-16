@@ -5,12 +5,15 @@
     {
       "id": "run-1779397816337",
       "company": "other",
+      "organizers": [
+        "sh-theatrical"
+      ],
       "showAbv": "R&G",
       "show": "Rosencrantz and Guildenstern are Dead",
       "genre": [
         "Drama"
       ],
-      "venue": "Actors' Theatre",
+      "venue": "AT",
       "price": "$40",
       "discounts": "Senior / Student $35",
       "infoUrl": "https://randg.live/",
@@ -110,10 +113,13 @@
     {
       "id": "run-1779619220498",
       "company": "other",
+      "organizers": [
+        "shadow-city"
+      ],
       "showAbv": "Whole Monkey Show",
       "show": "The Whole Monkey Show (Christopher Michael Palermo)",
       "genre": "Drama",
-      "venue": "Actors' Theatre",
+      "venue": "AT",
       "price": "$25",
       "discounts": "",
       "infoUrl": "https://www.santacruzactorstheatre.org/",
@@ -157,16 +163,19 @@
     {
       "id": "run-1781470398513",
       "company": "other",
+      "organizers": [
+        "cabrillo-ta"
+      ],
       "showAbv": "Machinal",
       "show": "Machinal",
       "description": "Play by Sophie Treadwell.\nDirected by Robin Aronson.\nFirst performed on Broadway in 1928 and inspired by a sensational, media-frenzied murder trial, Machinal is a rare treasure of American Expressionism by a female playwright that tells the electrifying story of a Young Woman who, trapped by stifling expectations in a hard, mechanized society, performs an act of desperation to free herself, only to pay the ultimate price.",
       "genre": [
         "Drama"
       ],
-      "venue": "Cabrillo Crocker Theater",
+      "venue": "CCT",
       "price": "$30",
       "discounts": "Senior/Student $23",
-      "infoUrl": "",
+      "infoUrl": "https://www.cabrillo.edu/theatre-arts/",
       "ticketsUrl": "https://cabrillovapa.universitytickets.com/w/event.aspx?id=2130",
       "performances": [
         {
@@ -254,13 +263,16 @@
     {
       "id": "run-1781503044353",
       "company": "other",
+      "organizers": [
+        "sh-theatrical"
+      ],
       "showAbv": "Oscar Wilde",
       "show": "Gross Indecency: The Three Trials of Oscar Wilde",
       "description": "Play by Moises Kaufman, writer of The Laramie Project. Follows the 3 trials of Oscar Wilde that marked his downfall from the height of fame and success to his death following imprisonment in Reading Gaol.",
       "genre": [
         "Drama"
       ],
-      "venue": "Veterans Memorial Building",
+      "venue": "VMB",
       "price": "",
       "discounts": "",
       "infoUrl": "https://three-trials.live/",
@@ -343,11 +355,14 @@
     {
       "id": "run-1782741993666",
       "company": "other",
+      "organizers": [
+        "midsummer"
+      ],
       "showAbv": "Dracula",
-      "show": "Dracula (Midsummer Ensemble)",
+      "show": "Dracula",
       "description": "Midsummer Ensemble brings you Bram Stoker's Dracula, a classic work of gothic horror. This production is adapted for the stage and directed by Abby Smith and Yarrow Sifry and features thirteen local actors, both returning members of the ensemble and debuting artists.",
       "genre": [],
-      "venue": "The Broadway Playhouse",
+      "venue": "BroadwayPH",
       "price": "$16.30",
       "discounts": "",
       "infoUrl": "https://www.midsummerensemble.com/2026/06/14/announcing-our-final-show/",
@@ -406,13 +421,17 @@
     {
       "id": "run-1791850043550",
       "company": "other",
+      "organizers": [
+        "ucsc-barnstorm"
+      ],
       "showAbv": "The Flick",
       "show": "The Flick",
       "description": "Set in a failing movie theater in central Massachusetts, three employees sweep up spilled popcorn and tend to the last remaining 35-mm film projector in the state. Their daily struggles and quiet heartbreaks in the search for connection remind audiences to hold on to authenticity in hard times.",
       "genre": [
         "Comedy"
       ],
-      "venue": "Theater Arts B100 Studio Theater at UC Santa Cruz",
+      "venue": "UCSC-TA",
+      "room": "B100 Studio Theater",
       "price": "Free–$20",
       "discounts": "“Pay What You Like”",
       "infoUrl": "https://events.ucsc.edu/series/barnstorm-presents-the-flick/",
@@ -455,11 +474,15 @@
     {
       "id": "run-1791850670833",
       "company": "other",
+      "organizers": [
+        "ucsc-ta"
+      ],
       "showAbv": "New Plays (UCSC)",
       "show": "UCSC New Play Festival",
       "description": "New Play Festival is an annual student-run showcase of experimental, short stage readings that focuses on nurturing and showcasing new playwrights in the UC Santa Cruz Theater Arts Program. This year the festival is uplifting two new playwrights, supporting them through developmental drafts, shaping their stories, and giving them the opportunity to collaborate with actors, a director, and designers.",
       "genre": [],
-      "venue": "Theater Arts Second Stage at UC Santa Cruz",
+      "venue": "UCSC-TA",
+      "room": "Second Stage",
       "price": "Free - $20",
       "discounts": "“Pay What You Like”",
       "infoUrl": "https://events.ucsc.edu/series/new-play-festival-2026-27/",
@@ -518,13 +541,16 @@
     {
       "id": "run-1791918917067",
       "company": "other",
+      "organizers": [
+        "cabrillo-pac"
+      ],
       "showAbv": "39 Steps",
       "show": "The 39 Steps, Abridged",
       "description": "The 39 Steps is a parody play adapted from the 1935 film by Alfred Hitchcock",
       "genre": [
         "Comedy"
       ],
-      "venue": "Cabrillo Black Box Theater",
+      "venue": "CBB",
       "price": "",
       "discounts": "",
       "infoUrl": "",

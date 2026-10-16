@@ -11,13 +11,14 @@
       "genre": [
         "Musical"
       ],
-      "venue": "London Nelson Community Center",
+      "venue": "LN",
       "price": "$38.62",
       "discounts": "Student: $33.42, Community night: $20.42",
       "infoUrl": "https://www.renegadetheaterco.org/show/hair",
       "ticketsUrl": "https://onthestage.tickets/show/renegade-theater-co/6abc453cfa93f121b983cced/tickets#/productions-view",
       "performances": [
         {
+          "id": "perf-1792166708980",
           "date": "2027-08-06",
           "time": "19:00",
           "perfType": "Opening",
@@ -25,6 +26,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1792166708981",
           "date": "2027-08-07",
           "time": "19:00",
           "perfType": "",
@@ -32,6 +34,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1792166708982",
           "date": "2027-08-12",
           "time": "19:00",
           "perfType": "",
@@ -39,6 +42,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1792166708983",
           "date": "2027-08-13",
           "time": "19:00",
           "perfType": "",
@@ -46,6 +50,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1792166708984",
           "date": "2027-08-14",
           "time": "19:00",
           "perfType": "",
@@ -53,6 +58,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1792166708985",
           "date": "2027-08-15",
           "time": "14:00",
           "perfType": "",
@@ -60,6 +66,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1792166708986",
           "date": "2027-08-19",
           "time": "19:00",
           "perfType": "",
@@ -67,6 +74,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1792166708987",
           "date": "2027-08-20",
           "time": "19:00",
           "perfType": "",
@@ -74,6 +82,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1792166708988",
           "date": "2027-08-21",
           "time": "19:00",
           "perfType": "Closing",
@@ -91,13 +100,14 @@
       "genre": [
         "Drama"
       ],
-      "venue": "London Nelson Community Center",
+      "venue": "LN",
       "price": "$33.42",
       "discounts": "Student: $28.22",
       "infoUrl": "",
       "ticketsUrl": "https://onthestage.tickets/show/renegade-theater-co/6ab80d030bee17532f888ac4/tickets#/productions-view",
       "performances": [
         {
+          "id": "perf-1792166708989",
           "date": "2027-04-02",
           "time": "19:00",
           "perfType": "Opening",
@@ -105,6 +115,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1792166708990",
           "date": "2027-04-03",
           "time": "19:00",
           "perfType": "",
@@ -112,6 +123,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1792166708991",
           "date": "2027-04-04",
           "time": "14:00",
           "perfType": "",
@@ -119,6 +131,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1792166708992",
           "date": "2027-04-09",
           "time": "19:00",
           "perfType": "",
@@ -126,6 +139,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1792166708993",
           "date": "2027-04-10",
           "time": "19:00",
           "perfType": "",
@@ -133,6 +147,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1792166708994",
           "date": "2027-04-11",
           "time": "14:00",
           "perfType": "",
@@ -140,6 +155,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1792166708995",
           "date": "2027-04-16",
           "time": "19:00",
           "perfType": "",
@@ -147,6 +163,7 @@
           "ticketsUrl": ""
         },
         {
+          "id": "perf-1792166708996",
           "date": "2027-04-17",
           "time": "19:00",
           "perfType": "",

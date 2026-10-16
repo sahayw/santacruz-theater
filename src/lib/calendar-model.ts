@@ -3,8 +3,10 @@
 // can be unit-tested directly; serialized by src/lib/ics.ts and published by
 // src/pages/[...feed].ics.ts. See docs/ics-spec.md.
 
-import type { Activity, ActivityDate, CompanyEntry, Run } from '../types.ts'
+import type { Activity, ActivityDate, CompanyEntry, Run, Venue } from '../types.ts'
 import { mdToPlain, rolesSum } from './audition-format.ts'
+import { organizerName, recordOrganizerIds } from './organizers.ts'
+import { runPlace, sessionPlace, venueByCode } from './venues.ts'
 
 export const SITE_URL = 'https://santacruz.theater'
 export const UID_DOMAIN = 'santacruz.theater'
@@ -12,12 +14,6 @@ export const UID_DOMAIN = 'santacruz.theater'
 export const DEFAULT_DURATION_HOURS = 2
 /** Composite and company feeds include occurrences from this many months back. */
 export const HISTORY_MONTHS = 12
-
-export interface Venue {
-  code: string
-  name: string
-  address?: string
-}
 
 export interface CalendarContext {
   companies: CompanyEntry[]
@@ -54,8 +50,8 @@ export interface Feed {
   subscribable: boolean
 }
 
-/** Activity with its file's company id, as returned by getActivities(). */
-export type CompanyActivity = Activity & { company: string }
+/** Activity with its file's company id and resolved title, as returned by getActivities(). */
+export type CompanyActivity = Activity & { company: string; title: string }
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -82,18 +78,8 @@ export function monthsBefore(today: string, months: number) {
   return new Date(Date.UTC(y, m - 1 - months, d)).toISOString().slice(0, 10)
 }
 
-function resolveVenue(ctx: CalendarContext, nameOrCode: string): Venue | undefined {
-  return ctx.venues.find((v) => v.name === nameOrCode || v.code === nameOrCode)
-}
-
-function formatLocation(name: string, address?: string) {
-  return address ? `${name} · ${address}` : name
-}
-
-/** A venue name or code → `Name · Address`, or the raw text when unknown. */
-function venueLocation(ctx: CalendarContext, nameOrCode: string) {
-  const venue = resolveVenue(ctx, nameOrCode)
-  return venue ? formatLocation(venue.name, venue.address) : nameOrCode
+function formatLocation(place: { name: string; address?: string }) {
+  return place.address ? `${place.name} · ${place.address}` : place.name
 }
 
 function company(ctx: CalendarContext, id: string) {
@@ -117,14 +103,15 @@ function lines(...items: (string | false | undefined)[]) {
 // ── Performances ─────────────────────────────────────────────────────────────
 
 export function runUrl(run: Run) {
-  return `${SITE_URL}/runs?id=${bareId(run.id)}`
+  return `${SITE_URL}/productions?id=${bareId(run.id)}`
 }
 
 export function performanceEvents(run: Run, ctx: CalendarContext): CalendarEvent[] {
-  const co = company(ctx, run.company)
+  const org = organizerName(recordOrganizerIds(run.company, run.organizers), ctx.companies)
   const title = (run.showAbv || run.show).trim()
-  const summary = run.company === 'other' || !co ? title : `${title} — ${co.name}`
-  const location = venueLocation(ctx, run.venue)
+  const summary = org ? `${title} — ${org}` : title
+  const place = runPlace(run, ctx.venues)
+  const location = place ? formatLocation(place) : run.venue
   const url = runUrl(run)
   const lastModified = run.updatedAt || idTimestamp(run.id)
 
@@ -162,19 +149,12 @@ export function activityUrl(activity: Activity) {
   return `${SITE_URL}/events?id=${bareId(activity.id)}`
 }
 
-function organizer(activity: CompanyActivity, ctx: CalendarContext) {
-  if (activity.company === 'other') return activity.organizerName || ''
-  return company(ctx, activity.company)?.name || ''
-}
-
-function sessionLocation(d: ActivityDate, activity: CompanyActivity, ctx: CalendarContext) {
-  if (d.location?.name) {
-    return d.location.address
-      ? formatLocation(d.location.name, d.location.address)
-      : venueLocation(ctx, d.location.name)
-  }
-  const primary = company(ctx, activity.company)?.primaryVenue
-  return primary ? venueLocation(ctx, primary) : ''
+/** The session's venue or one-off place, else the main organizer's primary venue. */
+function sessionLocation(d: ActivityDate, organizers: string[], ctx: CalendarContext) {
+  const place = sessionPlace(d, ctx.venues)
+  if (place) return formatLocation(place)
+  const primary = venueByCode(company(ctx, organizers[0] ?? '')?.primaryVenue, ctx.venues)
+  return primary ? formatLocation(primary) : ''
 }
 
 function sessionEnd(d: ActivityDate): LocalDateTime {
@@ -189,7 +169,8 @@ function sessionEnd(d: ActivityDate): LocalDateTime {
 /** One event per dated session; a closed activity publishes none. */
 export function sessionEvents(activity: CompanyActivity, ctx: CalendarContext): CalendarEvent[] {
   if (activity.closed) return []
-  const org = organizer(activity, ctx)
+  const organizers = recordOrganizerIds(activity.company, activity.organizers)
+  const org = organizerName(organizers, ctx.companies)
   const label = activity.type === 'audition' ? 'Audition' : 'Event'
   const summary = `${label}: ${activity.title.trim()}${org ? ` — ${org}` : ''}`
   const url = activityUrl(activity)
@@ -213,7 +194,7 @@ export function sessionEvents(activity: CompanyActivity, ctx: CalendarContext): 
         activity.type === 'event' && activity.cost && `Cost: ${activity.cost}`,
         `${activity.type === 'event' && activity.registerUrl ? 'Details & registration' : 'Details'}: ${url}`
       ),
-      location: sessionLocation(d, activity, ctx),
+      location: sessionLocation(d, organizers, ctx),
       url,
       start: { date: d.date, time: d.startTime },
       end: sessionEnd(d),
@@ -227,10 +208,33 @@ const SITE_NAME = 'Santa Cruz Theater'
 
 /** Calendar names (X-WR-CALNAME) — shared with the Add to Calendar UI. */
 export const FEED_NAMES = {
-  runs: `${SITE_NAME} — All Performances`,
-  company: (companyName: string) => `${SITE_NAME} — Performances (${companyName})`,
+  productions: `${SITE_NAME} — All Performances`,
+  /** Performances without some majors; `excluded` are their short labels. */
+  selection: (excluded: string[]) =>
+    `${SITE_NAME} — Performances (excluding ${excluded.join(', ')})`,
   activities: `${SITE_NAME} — All Auditions & Events`,
   auditions: `${SITE_NAME} — Auditions`
+}
+
+/**
+ * Performance feed for the majors left out, given as the sum of their permanent
+ * `majorCode`s (`notifications-spec.md`): 0 is every performance. Numbers keep their
+ * meaning as majors come and go, so a subscription never changes underneath anyone.
+ */
+export function selectionFeedPath(excludedMask: number) {
+  return excludedMask ? `productions/selection/${excludedMask}` : 'productions'
+}
+
+/**
+ * Every exclusion number to publish: each non-empty combination of the `majorCode`s ever
+ * assigned (current and former majors), so a published feed is never withdrawn.
+ */
+export function selectionMasks(companies: CompanyEntry[]) {
+  const codes = companies.map((c) => c.majorCode).filter((c): c is number => !!c)
+  const masks: number[] = []
+  for (let combo = 1; combo < 1 << codes.length; combo++)
+    masks.push(codes.reduce((sum, code, i) => (combo & (1 << i) ? sum + code : sum), 0))
+  return masks.sort((a, b) => a - b)
 }
 
 /** Sorted by start, then uid, so unchanged data serializes byte-identically. */
@@ -243,8 +247,9 @@ export function sortEvents(events: CalendarEvent[]) {
 }
 
 /**
- * Every published file. Subscriptions: all performances, one company's, all
- * auditions & events, auditions only — each keeps occurrences from HISTORY_MONTHS
+ * Every published file. Subscriptions: all performances, performances without some
+ * majors (one per exclusion number), all auditions & events, auditions only — each
+ * keeps occurrences from HISTORY_MONTHS
  * before `today` onward. Downloads: one file per performance and per session (a
  * single event to add), and one per activity (all of its dates).
  */
@@ -258,22 +263,32 @@ export function buildFeeds(
   const recent = (events: CalendarEvent[]) => events.filter((e) => e.start.date >= since)
   const feeds: Feed[] = []
 
-  const perfsByRun = runs.map((run) => ({ run, events: performanceEvents(run, ctx) }))
+  const perfsByRun = runs.map((run) => ({
+    organizers: recordOrganizerIds(run.company, run.organizers),
+    events: performanceEvents(run, ctx)
+  }))
   feeds.push({
-    path: 'runs',
-    name: FEED_NAMES.runs,
+    path: selectionFeedPath(0),
+    name: FEED_NAMES.productions,
     description: 'Performances listed on santacruz.theater',
     events: recent(perfsByRun.flatMap((r) => r.events)),
     subscribable: true
   })
-  const companyIds = [...new Set(runs.map((r) => r.company))].sort()
-  for (const id of companyIds) {
-    const name = company(ctx, id)?.name || id
+  // Leaving majors out: a production stays in if any of its organizers is included, so
+  // everyone who isn't a (current) major is always included
+  const currentMajors = ctx.companies.filter((c) => c.major && c.majorCode)
+  for (const mask of selectionMasks(ctx.companies)) {
+    const excluded = currentMajors.filter((c) => mask & c.majorCode!)
+    const out = new Set(excluded.map((c) => c.id))
     feeds.push({
-      path: `runs/company/${id}`,
-      name: FEED_NAMES.company(name),
-      description: `${name} performances listed on santacruz.theater`,
-      events: recent(perfsByRun.filter((r) => r.run.company === id).flatMap((r) => r.events)),
+      path: selectionFeedPath(mask),
+      name: excluded.length
+        ? FEED_NAMES.selection(excluded.map((c) => c.abvName))
+        : FEED_NAMES.productions,
+      description: 'Performances listed on santacruz.theater',
+      events: recent(
+        perfsByRun.filter((r) => r.organizers.some((o) => !out.has(o))).flatMap((r) => r.events)
+      ),
       subscribable: true
     })
   }

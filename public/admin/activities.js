@@ -1,4 +1,4 @@
-import { IS_DEV, apiFetch, apiPut, buildCompanyOptions } from './api.js'
+import { IS_DEV, apiFetch, apiPut, buildCompanyOptions, deleteRecordFromFile } from './api.js'
 import {
   fmt12,
   fmtTimeRange,
@@ -6,11 +6,28 @@ import {
   fmtShortDate,
   fmtAudDateRange,
   rolesSum,
-  renderMd
+  renderMd,
+  activityTitle,
+  auditionDetails
 } from '/admin/audition-format.js'
-import { activityIssues, isDateNearYear, isRealDate, isValidTime } from '/admin/data-rules.js'
+import {
+  MAX_GENRES,
+  activityIssues,
+  isDateNearYear,
+  isValidTime,
+  todayIso
+} from '/admin/data-rules.js'
 import { createIdGenerator, ensureSessionIds } from '/admin/occurrence-ids.js'
+import {
+  organizerEntries,
+  organizerLabel,
+  organizerName,
+  recordOrganizerIds
+} from '/admin/organizers.js'
+import { sessionPlace, venueByCode } from '/admin/venues.js'
 import { markdownToolbar } from './markdown-editor.js'
+import { genreBoxesHtml, getGenres, limitGenres, setGenres } from './genre-boxes.js'
+import { renderOrganizerFields } from './organizer-picker.js'
 
 const ROLE_TYPES = ['lead', 'supporting', 'ensemble']
 const ROLE_GENDERS = ['any', 'female', 'male']
@@ -29,6 +46,9 @@ let currentYear = CURRENT_YEAR
 let currentCompanyAbv = ''
 let isAdminContext = false
 let venuesList = []
+let canEditShows = false // the user may also edit the calendar, so "Add production" can hand off
+let companyRuns = [] // this company's productions, every year, for the audition's Production picker
+let companyRunIds = undefined // Set of their ids for validation; undefined if they couldn't load
 let actSnapshots = new Map()
 let prevActGenreVals = []
 let _resizeMouseMove = null
@@ -142,11 +162,16 @@ const ACT_CSS = `
   padding: 10px 16px;
   background: var(--bg);
   border-bottom: 2px solid var(--border);
-  display: grid;
-  grid-template-columns: repeat(6, 1fr);
+  display: flex;
+  flex-direction: column;
   gap: 8px;
   flex-shrink: 0;
 }
+.act-hdr-row { display: flex; flex-wrap: wrap; gap: 8px; align-items: flex-end; }
+.act-hdr-row > .act-field-group { min-width: 0; }
+.act-title-row { display: flex; gap: 6px; }
+.act-title-row select { flex: 0 1 auto; width: auto; max-width: 60%; }
+.act-title-row input { flex: 1 1 auto; min-width: 0; }
 .act-field-group { display: flex; flex-direction: column; gap: 3px; }
 .act-field-label {
   font-size: 9px; font-weight: 500; text-transform: uppercase;
@@ -203,11 +228,14 @@ const ACT_CSS = `
   position: sticky; top: 0; z-index: 4; white-space: nowrap;
 }
 .act-table thead th.col-del   { width: 32px; }
-.act-table thead th.col-date  { width: 100px; }
+.act-table thead th.col-date  { width: 135px; }
 .act-table thead th.col-stime { width: 60px; }
 .act-table thead th.col-etime { width: 60px; }
 .act-table thead th.col-locn  { width: 150px; }
 .act-table thead th.col-loca  { width: 160px; }
+.act-table thead th.col-room  { width: 110px; }
+/* A listed venue's address: shown for reference, not focusable or selectable */
+.act-cell-input:disabled { color: var(--ink-faint); background: transparent; cursor: default; user-select: none; -webkit-user-select: none; }
 .act-table thead th.col-type  { width: 100px; }
 .act-table thead th.col-gend  { width: 80px; }
 .act-table thead th.col-age   { width: 90px; }
@@ -347,6 +375,7 @@ const ACT_CSS = `
   border-bottom: 1px solid var(--border);
 }
 .act-venue-item:last-child { border-bottom: none; }
+.act-venue-other .act-venue-item-name { font-style: italic; }
 .act-venue-item:hover { background: var(--bg); }
 .act-venue-item-name { font-size: 12px; font-family: 'IBM Plex Sans', sans-serif; color: var(--ink); }
 .act-venue-item-addr { font-size: 10px; font-family: 'IBM Plex Mono', monospace; color: var(--ink-faint); margin-top: 2px; }
@@ -390,7 +419,6 @@ const ACT_CSS = `
 }
 .pv-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
 .pv-title-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-.pv-dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
 .pv-title { font-family: 'Playfair Display', Georgia, serif; font-size: 16px; font-weight: 600; color: #1a1612; line-height: 1.25; }
 .pv-genre-badge { font-size: 11px; font-weight: 500; padding: 2px 8px; border-radius: 10px; flex-shrink: 0; letter-spacing: 0.02em; }
 .pv-type-badge { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; padding: 2px 7px; border-radius: 8px; flex-shrink: 0; background: #e8f4f0; color: #1a6b50; }
@@ -501,71 +529,71 @@ const ACT_HTML = `
       </div>
 
       <div class="act-fields">
-        <!-- Row 1: always visible -->
-        <div class="act-field-group">
-          <label class="act-field-label">Company</label>
-          <input class="act-field-input act-field-readonly" id="af-company" readonly tabindex="-1">
-        </div>
-        <div class="act-field-group" id="afTitleGroup" style="grid-column:span 4">
-          <label class="act-field-label">Title</label>
-          <input class="act-field-input" id="af-title" placeholder="Production or event title" oninput="act.fieldChanged()">
-        </div>
-        <div class="act-field-group" id="afGenreGroup" style="grid-column:6;grid-row:span 3">
-          <label class="act-field-label">Genre</label>
-          <select class="act-field-select act-field-select-multi" id="af-genre" multiple size="4" onchange="act.genreChanged()">
-            <option>Drama</option><option>Musical</option><option>Comedy</option><option>Other</option>
-          </select>
+        <!-- Row 1: who and what. Organizer only for records filed under Other. An audition's
+             title is its production: pick the run, or type a title if it isn't on file yet. -->
+        <div class="act-hdr-row">
+          <div class="act-field-group" id="afOrganizerGroup" style="flex:0 0 150px">
+            <label class="act-field-label">Organizer</label>
+            <div id="af-organizer"></div>
+          </div>
+          <div class="act-field-group" style="flex:1 1 320px">
+            <label class="act-field-label" id="afTitleLabel">Production</label>
+            <div class="act-title-row">
+              <select class="act-field-select" id="af-production" onchange="act.productionChanged()"></select>
+              <input class="act-field-input" id="af-title" placeholder="Production or event title" oninput="act.fieldChanged()">
+            </div>
+          </div>
         </div>
 
-        <!-- Audition-only fields (rows 2-3, cols 1-5; col 6 is Genre spanning all rows) -->
+        <!-- Audition-only fields -->
         <div class="act-fields-conditional" id="actAuditionFields">
-          <div class="act-field-group" style="grid-column:span 2">
-            <label class="act-field-label">Rehearsal Start</label>
-            <input class="act-field-input mono" id="af-rehearsal" placeholder="YYYY-MM-DD" oninput="act.fieldChanged()" onblur="act.normalizeHeaderDate('af-rehearsal')">
+          <div class="act-hdr-row">
+            <div class="act-field-group" id="afGenreGroup" style="flex:0 0 auto">
+              <label class="act-field-label">Genre (up to ${MAX_GENRES})</label>
+              ${genreBoxesHtml('af-genre', 'act.genreChanged(this)')}
+            </div>
+            <div class="act-field-group" style="flex:0 0 140px">
+              <label class="act-field-label">Rehearsal Start</label>
+              <input type="date" class="act-field-input" id="af-rehearsal" onchange="act.fieldChanged()">
+            </div>
+            <div class="act-field-group" id="afOpeningGroup" style="flex:0 0 140px">
+              <label class="act-field-label">Opening Date</label>
+              <input type="date" class="act-field-input" id="af-opening" onchange="act.fieldChanged()">
+            </div>
           </div>
-          <div class="act-field-group" style="grid-column:span 3">
-            <label class="act-field-label">Notice URL</label>
-            <input class="act-field-input mono" id="af-notice-url" placeholder="https://…" oninput="act.fieldChanged()">
-          </div>
-          <div class="act-field-group" style="grid-column:span 2">
-            <label class="act-field-label">Opening Date</label>
-            <input class="act-field-input mono" id="af-opening" placeholder="YYYY-MM-DD" oninput="act.fieldChanged()" onblur="act.normalizeHeaderDate('af-opening')">
-          </div>
-          <div class="act-field-group" style="grid-column:span 3">
-            <label class="act-field-label">Production URL</label>
-            <input class="act-field-input mono" id="af-prod-url" placeholder="https://…" oninput="act.fieldChanged()">
+          <div class="act-hdr-row">
+            <div class="act-field-group" style="flex:1 1 260px">
+              <label class="act-field-label">Notice URL</label>
+              <input class="act-field-input mono" id="af-notice-url" placeholder="https://…" oninput="act.fieldChanged()">
+            </div>
+            <div class="act-field-group" id="afProdUrlGroup" style="flex:1 1 260px">
+              <label class="act-field-label">Production URL</label>
+              <input class="act-field-input mono" id="af-prod-url" placeholder="https://…" oninput="act.fieldChanged()">
+            </div>
           </div>
         </div>
 
-        <!-- Event-only fields (no genre col, so span full 6 cols) -->
+        <!-- Event-only fields -->
         <div class="act-fields-conditional hidden" id="actEventFields">
-          <div class="act-field-group" style="grid-column:span 4">
-            <label class="act-field-label">Brief Description</label>
-            <input class="act-field-input" id="af-brief-desc" placeholder="One-line summary for card header" oninput="act.fieldChanged()">
+          <div class="act-hdr-row">
+            <div class="act-field-group" style="flex:1 1 320px">
+              <label class="act-field-label">Brief Description</label>
+              <input class="act-field-input" id="af-brief-desc" placeholder="One-line summary for card header" oninput="act.fieldChanged()">
+            </div>
+            <div class="act-field-group" style="flex:0 0 130px">
+              <label class="act-field-label">Cost</label>
+              <input class="act-field-input" id="af-cost" placeholder="Free, $20…" oninput="act.fieldChanged()">
+            </div>
           </div>
-          <div class="act-field-group" style="grid-column:span 2">
-            <label class="act-field-label">Cost</label>
-            <input class="act-field-input" id="af-cost" placeholder="Free, $20…" oninput="act.fieldChanged()">
-          </div>
-          <div class="act-field-group" style="grid-column:span 3">
-            <label class="act-field-label">Notice URL</label>
-            <input class="act-field-input mono" id="af-event-notice-url" placeholder="https://…" oninput="act.fieldChanged()">
-          </div>
-          <div class="act-field-group" style="grid-column:span 3">
-            <label class="act-field-label">Register URL</label>
-            <input class="act-field-input mono" id="af-register-url" placeholder="https://…" oninput="act.fieldChanged()">
-          </div>
-        </div>
-
-        <!-- Other-company fields (visible when company = other) -->
-        <div class="act-fields-conditional hidden" id="actOtherFields">
-          <div class="act-field-group" style="grid-column:span 3">
-            <label class="act-field-label">Organizer Name</label>
-            <input class="act-field-input" id="af-org-name" placeholder="Organization or individual" oninput="act.fieldChanged()">
-          </div>
-          <div class="act-field-group" style="grid-column:span 3">
-            <label class="act-field-label">Organizer URL</label>
-            <input class="act-field-input mono" id="af-org-url" placeholder="https://…" oninput="act.fieldChanged()">
+          <div class="act-hdr-row">
+            <div class="act-field-group" style="flex:1 1 260px">
+              <label class="act-field-label">Notice URL</label>
+              <input class="act-field-input mono" id="af-event-notice-url" placeholder="https://…" oninput="act.fieldChanged()">
+            </div>
+            <div class="act-field-group" style="flex:1 1 260px">
+              <label class="act-field-label">Register URL</label>
+              <input class="act-field-input mono" id="af-register-url" placeholder="https://…" oninput="act.fieldChanged()">
+            </div>
           </div>
         </div>
       </div>
@@ -598,8 +626,9 @@ const ACT_HTML = `
                   <th class="col-date">Date</th>
                   <th class="col-stime">Start</th>
                   <th class="col-etime">End</th>
-                  <th class="col-locn">Location</th>
+                  <th class="col-locn">Venue</th>
                   <th class="col-loca">Address</th>
+                  <th class="col-room">Location</th>
                   <th>Notes</th>
                 </tr>
               </thead>
@@ -716,8 +745,9 @@ function esc(v) {
   return (v || '').replace(/&/g, '&amp;').replace(/"/g, '&quot;')
 }
 function isMusical() {
-  const sel = document.getElementById('af-genre')
-  return sel ? Array.from(sel.selectedOptions).some((o) => o.value === 'Musical') : false
+  const a = activeActIdx >= 0 ? activities[activeActIdx] : null
+  if (a && a.type !== 'event' && a.productionId) return detailsOf(a).genre.includes('Musical')
+  return getGenres('af-genre').includes('Musical')
 }
 function currentType() {
   return activeActIdx >= 0 ? activities[activeActIdx].type || 'audition' : 'audition'
@@ -753,6 +783,7 @@ async function loadCompanyFile(coId, year) {
     currentCompanyId = coId
     currentYear = data.year || year
     currentCompanyAbv = allCompanies.find((c) => c.id === coId)?.abvName || coId
+    await loadCompanyRuns(coId)
     activeActIdx = activities.length > 0 ? 0 : -1
     refreshSnapshots()
     document.getElementById('actNewBtns')?.setAttribute('style', '')
@@ -763,6 +794,191 @@ async function loadCompanyFile(coId, year) {
   } catch (e) {
     alert('Could not load activities file: ' + e.message)
   }
+}
+
+/** This company's productions across every year (including ones without dates yet). */
+async function loadCompanyRuns(coId) {
+  try {
+    const resp = await fetch('/.netlify/functions/data?dir=shows')
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}`)
+    const files = (await resp.json()).filter((f) => f.companyId === coId)
+    const loaded = await Promise.all(
+      files.map((f) => apiFetch(`shows/${f.year}/${coId}-${f.year}.json`).then((d) => d.runs || []))
+    )
+    companyRuns = loaded.flat()
+    companyRunIds = new Set(companyRuns.map((r) => r.id))
+  } catch (e) {
+    console.warn('Could not load productions for the Production picker:', e)
+    companyRuns = []
+    companyRunIds = undefined
+  }
+}
+
+/**
+ * The productions an audition can be for: this company's, or under Other, its
+ * organizer's. Listed by title, most recent first.
+ */
+function productionChoices(a) {
+  const org = a.organizers?.[0]
+  const today = todayIso()
+  // An audition is for a production still to come: upcoming dates, or none yet. The
+  // production already linked stays listed even if it's since finished.
+  const upcoming = (r) => !r.performances.length || lastRunDate(r) >= today
+  return companyRuns
+    .filter((r) => currentCompanyId !== 'other' || (org && r.organizers?.includes(org)))
+    .filter((r) => upcoming(r) || r.id === a.productionId)
+    .sort((x, y) => (firstRunDate(x) || '9999').localeCompare(firstRunDate(y) || '9999'))
+}
+function firstRunDate(r) {
+  return r.performances.map((p) => p.date).sort()[0]
+}
+function lastRunDate(r) {
+  return r.performances
+    .map((p) => p.date)
+    .sort()
+    .at(-1)
+}
+
+/** An activity's title as shown: a linked audition's is its production's. */
+function titleOf(a) {
+  return activityTitle(a, companyRuns)
+}
+
+/** Genre, opening date and production link as shown: a linked audition's are its production's. */
+function detailsOf(a) {
+  return auditionDetails(a, companyRuns)
+}
+
+function renderProductionOptions(a) {
+  const sel = document.getElementById('af-production')
+  const runs = productionChoices(a)
+  const known = new Set(runs.map((r) => r.id))
+  sel.innerHTML =
+    '<option value="">Select</option>' +
+    runs
+      .map(
+        (r) =>
+          `<option value="${esc(r.id)}" title="${esc(r.show)}">${esc(r.showAbv || r.show || r.id)}</option>`
+      )
+      .join('') +
+    (a.productionId && !known.has(a.productionId)
+      ? `<option value="${esc(a.productionId)}">${esc(a.productionId)} (not found)</option>`
+      : '') +
+    (canEditShows ? '<option value="__add__">Add production…</option>' : '') +
+    '<option value="__several__">Several productions…</option>'
+  // Unlinked but titled = the season-wide exception
+  sel.value = a.productionId || (a.title?.trim() ? '__several__' : '')
+  syncTitleField(a)
+}
+
+/**
+ * An audition's title is its production's, so the title box shows only for events and
+ * for the exception: an audition covering several productions ("Several productions…"),
+ * which gets its own title, e.g. "2027 season".
+ */
+function syncTitleField(a) {
+  const titleEl = document.getElementById('af-title')
+  const several = document.getElementById('af-production').value === '__several__'
+  titleEl.style.display = a.type === 'event' || several ? '' : 'none'
+  // A linked audition's genre, opening date and link come from its production
+  const linked = a.type !== 'event' && !!a.productionId
+  for (const id of ['afGenreGroup', 'afOpeningGroup', 'afProdUrlGroup'])
+    document.getElementById(id).style.display = linked ? 'none' : ''
+  updateMusicLayout()
+  titleEl.placeholder = a.type === 'event' ? 'Event title' : 'Title, e.g. 2027 season auditions'
+}
+
+function productionChanged() {
+  if (activeActIdx < 0) return
+  const a = activities[activeActIdx]
+  const sel = document.getElementById('af-production')
+  if (sel.value === '__add__') {
+    sel.value = a.productionId || ''
+    addProduction(a)
+    return
+  }
+  const id = sel.value
+  const titleEl = document.getElementById('af-title')
+  const run = companyRuns.find((r) => r.id === id)
+  if (run) titleEl.value = run.show || run.showAbv || ''
+  else if (!id) titleEl.value = '' // back to "Select": no production, no title
+  fieldChanged()
+  syncTitleField(a)
+  if (id === '__several__') titleEl.focus()
+}
+
+/**
+ * "Add production…": opens the Calendar editor on this company's file for the same year,
+ * with a new show titled as typed here. Once the show is saved, the editor comes back here
+ * and resumeActivity() restores the audition, linked to the new show.
+ */
+function addProduction(a) {
+  if (currentCompanyId === 'other' && !a.organizers?.length) {
+    alert('Choose the organizer first, so the production is filed under them.')
+    return
+  }
+  if (
+    othersDirty(a) &&
+    !confirm('Other activities have unsaved changes, which will be lost. Continue?')
+  )
+    return
+  a.title = document.getElementById('af-title').value
+  window.openEditor('calendar', {
+    addRun: {
+      company: currentCompanyId,
+      year: currentYear,
+      show: a.title.trim(),
+      organizers: currentCompanyId === 'other' ? [a.organizers[0]] : undefined,
+      // This audition as entered so far; it comes back, linked, once the show is saved
+      returnTo: {
+        company: currentCompanyId,
+        year: currentYear,
+        draft: JSON.parse(JSON.stringify(a))
+      }
+    }
+  })
+}
+
+/**
+ * Back from "Add production": reloads the file and restores the audition as it was,
+ * now linked to the new show and titled after it.
+ */
+async function resumeActivity({ company, year, draft, productionId }) {
+  if (isAdminContext) document.getElementById('actCompanySelect').value = company
+  pendingCompanyId = company
+  populateYearSelect(allActFiles.filter((f) => f.companyId === company).map((f) => f.year))
+  document.getElementById('actYearSelect').value = String(year)
+  await loadCompanyFile(company, year)
+  const { title: _typed, ...rest } = draft
+  const rec = { ...rest, productionId } // titled by the production
+  const i = activities.findIndex((x) => x.id === draft.id)
+  if (i >= 0) activities[i] = rec
+  else activities.push(rec)
+  activeActIdx = activities.indexOf(rec)
+  renderSidebar()
+  loadActEditor()
+  markDirty()
+}
+
+/** Records filed under Other pick their organizer; auditions and events have no co-producers. */
+function renderActOrganizers(a) {
+  document.getElementById('afOrganizerGroup').style.display =
+    currentCompanyId === 'other' ? '' : 'none'
+  renderOrganizerFields({
+    mainEl: document.getElementById('af-organizer'),
+    coEl: null,
+    fileCompany: currentCompanyId,
+    organizers: a.organizers,
+    companies: allCompanies,
+    selectClass: 'act-field-select',
+    onChange: (value) => {
+      if (value) a.organizers = value
+      else delete a.organizers
+      renderProductionOptions(a) // Other's productions depend on the organizer
+      renderSidebar()
+      markDirty()
+    }
+  })
 }
 
 // ── EMPTY STATE ──
@@ -782,6 +998,7 @@ function updateEmptyState() {
 async function initFromContext(context) {
   isAdminContext = context.isAdmin
   allCompanies = context.allCompanies || []
+  canEditShows = (context.datasets || []).includes('calendar')
   updateEmptyState()
   try {
     allActFiles = await loadActivitiesDir()
@@ -907,16 +1124,21 @@ async function onYearSelect() {
 }
 
 // ── PERSISTENCE ──
+/** Unsaved changes, ignoring a new record nothing has been entered in yet. */
 function computeIsDirty() {
-  if (activities.length !== actSnapshots.size) return true
-  for (const a of activities) {
-    const snap = actSnapshots.get(a.id)
-    if (!snap) return true
-    const clean = { ...a, dates: (a.dates || []).filter((d) => !isEmptyDateRow(d)) }
-    const { updatedAt, ...rest } = clean
-    if (snap !== JSON.stringify(rest)) return true
-  }
-  return false
+  const kept = activities.filter((a) => !isUntouchedNew(a))
+  if (kept.length !== actSnapshots.size) return true
+  return kept.some((a) => actSnapshots.get(a.id) !== makeActivitySnapshot(a))
+}
+
+/** Unsaved changes in any record other than `a`. */
+function othersDirty(a) {
+  const others = activities.filter((x) => x !== a && !isUntouchedNew(x))
+  const savedOthers = [...actSnapshots.keys()].filter((id) => id !== a.id)
+  return (
+    others.length !== savedOthers.length ||
+    others.some((x) => actSnapshots.get(x.id) !== makeActivitySnapshot(x))
+  )
 }
 
 function markDirty() {
@@ -942,12 +1164,21 @@ async function saveFile() {
     alert('Please log in to save.')
     return
   }
+  if (dropUntouchedNew()) {
+    renderSidebar()
+    loadActEditor()
+    updateSaveBtn()
+  }
+  if (!computeIsDirty()) return // nothing entered — nothing to save
   const { errors, warnings } = collectIssues()
   if (errors.length) {
     alert('Cannot save — fix these issues:\n\n' + errors.join('\n'))
     return
   }
-  if (warnings.length && !confirm('Missing details:\n\n' + warnings.join('\n') + '\n\nSave anyway?'))
+  if (
+    warnings.length &&
+    !confirm('Missing details:\n\n' + warnings.join('\n') + '\n\nSave anyway?')
+  )
     return
   const btn = document.getElementById('actSaveBtn')
   btn.disabled = true
@@ -1020,8 +1251,8 @@ function renderSidebar() {
     .map(
       ({ a, i }) => `
     <div class="act-list-item ${i === activeActIdx ? 'active' : ''}" onclick="act.selectAct(${i})">
-      <div class="act-item-meta">${a.type === 'event' ? 'Event' : 'Audition'}${(Array.isArray(a.genre) ? a.genre : []).length ? ' · ' + (Array.isArray(a.genre) ? a.genre : []).join('/') : ''}${a.virtualSubmission ? ' · virtual' : ''}${a.closed ? ' · closed' : ''}</div>
-      <div class="act-item-title">${a.title || 'Untitled'}</div>
+      <div class="act-item-meta">${currentCompanyId === 'other' ? `${esc(organizerLabel(a.organizers || [], allCompanies)) || 'No organizer'} · ` : ''}${a.type === 'event' ? 'Event' : 'Audition'}${a.virtualSubmission ? ' · virtual' : ''}${a.closed ? ' · closed' : ''}</div>
+      <div class="act-item-title">${esc(titleOf(a)) || 'Untitled'}</div>
     </div>`
     )
     .join('')
@@ -1030,9 +1261,39 @@ function renderSidebar() {
 
 // ── ACTIVITY SELECTION ──
 function selectAct(idx) {
-  activeActIdx = idx
+  const target = activities[idx]
+  if (dropUntouchedNew()) updateSaveBtn()
+  activeActIdx = activities.indexOf(target)
   renderSidebar()
   loadActEditor()
+}
+
+/** A new audition/event nothing has been entered in yet (never saved, all blank). */
+function isUntouchedNew(a) {
+  return (
+    !actSnapshots.has(a.id) &&
+    !a.title?.trim() &&
+    (a.dates || []).every(isEmptyDateRow) &&
+    !(a.rolesAvailable || []).length &&
+    !a.productionId &&
+    !a.organizers &&
+    !a.contact &&
+    !a.prep &&
+    ![a.description, a.notes, a.noticeUrl, a.registerUrl, a.briefDescription, a.cost].some((v) =>
+      v?.trim()
+    )
+  )
+}
+
+/**
+ * Leaving a new record before anything is entered discards it, so clicking away doesn't
+ * leave an empty "Untitled" entry. Returns true if one was dropped.
+ */
+function dropUntouchedNew() {
+  if (activeActIdx < 0 || !isUntouchedNew(activities[activeActIdx])) return false
+  activities.splice(activeActIdx, 1)
+  activeActIdx = -1
+  return true
 }
 
 function loadActEditor() {
@@ -1048,16 +1309,11 @@ function loadActEditor() {
   formEl.style.display = ''
   const a = activities[activeActIdx]
 
-  document.getElementById('af-company').value = currentCompanyAbv || ''
-
-  const genreSel = document.getElementById('af-genre')
   const genreArr = Array.isArray(a.genre) ? a.genre : a.genre ? [a.genre] : []
-  Array.from(genreSel.options).forEach((o) => {
-    o.selected = genreArr.includes(o.value)
-  })
+  setGenres('af-genre', genreArr)
   prevActGenreVals = genreArr
 
-  document.getElementById('af-title').value = a.title || ''
+  document.getElementById('af-title').value = titleOf(a)
   document.getElementById('af-rehearsal').value = a.rehearsalStart || ''
   document.getElementById('af-opening').value = a.openingDate || ''
   document.getElementById('af-notice-url').value = a.type !== 'event' ? a.noticeUrl || '' : ''
@@ -1066,8 +1322,8 @@ function loadActEditor() {
   document.getElementById('af-cost').value = a.cost || ''
   document.getElementById('af-event-notice-url').value = a.type === 'event' ? a.noticeUrl || '' : ''
   document.getElementById('af-register-url').value = a.registerUrl || ''
-  document.getElementById('af-org-name').value = a.organizerName || ''
-  document.getElementById('af-org-url').value = a.organizerUrl || ''
+  renderActOrganizers(a)
+  renderProductionOptions(a)
 
   document.getElementById('af-virtual').checked = !!a.virtualSubmission
   document.getElementById('af-dates-by-request').checked = !!a.datesByRequest
@@ -1103,8 +1359,8 @@ function loadActEditor() {
 
 function updateEditorTitle() {
   const a = activities[activeActIdx]
-  document.getElementById('actTitleText').textContent = a.title || 'Untitled'
-  const genreLabel = (Array.isArray(a.genre) ? a.genre : a.genre ? [a.genre] : []).join(' / ')
+  document.getElementById('actTitleText').textContent = titleOf(a) || 'Untitled'
+  const genreLabel = a.type === 'event' ? '' : detailsOf(a).genre.join(' / ')
   const typeLabel = a.type === 'event' ? 'Event' : 'Audition'
   document.getElementById('actSubtitle').textContent =
     ` · ${typeLabel}${genreLabel ? ' · ' + genreLabel : ''}${a.closed ? ' · closed' : ''}`
@@ -1154,8 +1410,8 @@ function updateTypeLayout() {
   const datesLabel = document.getElementById('actDatesLabel')
   const virtualToggle = document.getElementById('actVirtualToggle')
   const datesByRequestToggle = document.getElementById('actDatesByRequestToggle')
-  const genreGroup = document.getElementById('afGenreGroup')
-  const titleGroup = document.getElementById('afTitleGroup')
+  const productionSel = document.getElementById('af-production')
+  const titleLabel = document.getElementById('afTitleLabel')
   const descSection = document.getElementById('actDescSection')
   const notesSection = document.getElementById('actNotesSection')
 
@@ -1168,8 +1424,8 @@ function updateTypeLayout() {
     if (virtualToggle) virtualToggle.style.display = 'none'
     if (datesByRequestToggle) datesByRequestToggle.style.display = ''
     if (datesLabel) datesLabel.textContent = 'Dates'
-    if (genreGroup) genreGroup.style.display = 'none'
-    if (titleGroup) titleGroup.style.gridColumn = 'span 5'
+    if (productionSel) productionSel.style.display = 'none'
+    if (titleLabel) titleLabel.textContent = 'Title'
     if (descSection) descSection.style.display = ''
     if (notesSection) notesSection.style.display = 'none'
   } else {
@@ -1181,15 +1437,10 @@ function updateTypeLayout() {
     if (virtualToggle) virtualToggle.style.display = ''
     if (datesByRequestToggle) datesByRequestToggle.style.display = 'none'
     if (datesLabel) datesLabel.textContent = 'Audition Dates'
-    if (genreGroup) genreGroup.style.display = ''
-    if (titleGroup) titleGroup.style.gridColumn = 'span 4'
+    if (productionSel) productionSel.style.display = ''
+    if (titleLabel) titleLabel.textContent = 'Production'
     if (descSection) descSection.style.display = 'none'
     if (notesSection) notesSection.style.display = ''
-  }
-
-  const otherFields = document.getElementById('actOtherFields')
-  if (otherFields) {
-    otherFields.classList.toggle('hidden', currentCompanyId !== 'other')
   }
 
   // Re-measure now that the correct textarea is visible
@@ -1212,24 +1463,9 @@ function updateMusicLayout() {
 }
 
 // ── FIELD SYNC ──
-const MAX_GENRES = 2
 
-function genreChanged() {
-  const sel = document.getElementById('af-genre')
-  const current = Array.from(sel.selectedOptions).map((o) => o.value)
-  if (current.length > MAX_GENRES) {
-    const added = current.filter((v) => !prevActGenreVals.includes(v))
-    const keptPrev = prevActGenreVals
-      .filter((v) => current.includes(v))
-      .slice(-(MAX_GENRES - added.length))
-    const kept = [...keptPrev, ...added].slice(0, MAX_GENRES)
-    Array.from(sel.options).forEach((o) => {
-      o.selected = kept.includes(o.value)
-    })
-    prevActGenreVals = kept
-  } else {
-    prevActGenreVals = current
-  }
+function genreChanged(box) {
+  prevActGenreVals = limitGenres('af-genre', box, prevActGenreVals, MAX_GENRES)
   fieldChanged()
 }
 
@@ -1246,7 +1482,7 @@ function fieldChanged() {
     a.notes = undefined
     a.datesByRequest = document.getElementById('af-dates-by-request').checked || undefined
   } else {
-    a.genre = Array.from(document.getElementById('af-genre').selectedOptions).map((o) => o.value)
+    a.genre = getGenres('af-genre')
     a.notes = document.getElementById('af-notes').value || undefined
     a.description = undefined
     a.datesByRequest = undefined
@@ -1257,6 +1493,11 @@ function fieldChanged() {
     a.openingDate = document.getElementById('af-opening').value || undefined
     a.noticeUrl = document.getElementById('af-notice-url').value || undefined
     a.productionUrl = document.getElementById('af-prod-url').value || undefined
+    const production = document.getElementById('af-production').value
+    a.productionId = production && !production.startsWith('__') ? production : undefined
+    // A linked audition's title, genre, opening and link come from its production
+    if (a.productionId)
+      for (const k of ['title', 'genre', 'openingDate', 'productionUrl']) delete a[k]
     a.virtualSubmission = document.getElementById('af-virtual').checked || undefined
     a.briefDescription = undefined
     a.cost = undefined
@@ -1267,7 +1508,7 @@ function fieldChanged() {
       .value.split('\n')
       .map((s) => s.trim())
       .filter(Boolean)
-    const musical = a.genre.includes('Musical')
+    const musical = isMusical()
     const prep = {
       acting: document.getElementById('af-prep-acting').value.trim() || undefined,
       singing: musical ? document.getElementById('af-prep-singing').value || undefined : undefined,
@@ -1283,14 +1524,10 @@ function fieldChanged() {
     a.rehearsalStart = undefined
     a.openingDate = undefined
     a.productionUrl = undefined
+    a.productionId = undefined
     a.virtualSubmission = undefined
     a.prep = undefined
     a.rolesAvailable = undefined
-  }
-
-  if (currentCompanyId === 'other') {
-    a.organizerName = document.getElementById('af-org-name').value || undefined
-    a.organizerUrl = document.getElementById('af-org-url').value || undefined
   }
 
   const contact = {
@@ -1314,7 +1551,7 @@ function toggleClosed() {
   if (!a.closed) {
     if (
       !confirm(
-        `Close "${a.title || 'this activity'}"? It stays in the file but drops off the public "upcoming" list. You can reopen it later.`
+        `Close "${titleOf(a) || 'this activity'}"? It stays in the file but drops off the public "upcoming" list. You can reopen it later.`
       )
     )
       return
@@ -1350,6 +1587,7 @@ function autoResizeTextarea(el) {
 
 // ── ACTIVITY CRUD ──
 function newAudition() {
+  dropUntouchedNew()
   const now = new Date().toISOString()
   activities.push({
     id: `activity-${Date.now()}`,
@@ -1369,6 +1607,7 @@ function newAudition() {
 }
 
 function newEvent() {
+  dropUntouchedNew()
   const now = new Date().toISOString()
   activities.push({
     id: `activity-${Date.now()}`,
@@ -1393,7 +1632,7 @@ function restoreActivity() {
   if (!snap) return
   if (
     !confirm(
-      `Restore "${a.title || 'this activity'}" to its last saved state? Unsaved changes will be lost.`
+      `Restore "${titleOf(a) || 'this activity'}" to its last saved state? Unsaved changes will be lost.`
     )
   )
     return
@@ -1403,11 +1642,25 @@ function restoreActivity() {
   updateSaveBtn()
 }
 
-function deleteActivity() {
+/** Deletes the activity from the file at once; other unsaved edits stay unsaved. */
+async function deleteActivity() {
   if (activeActIdx < 0) return
   const a = activities[activeActIdx]
-  if (!confirm(`Delete "${a.title || 'this activity'}"? This cannot be undone.`)) return
-  activities.splice(activeActIdx, 1)
+  if (!confirm(`Delete "${titleOf(a) || 'this activity'}"? This can't be undone.`)) return
+  if (actSnapshots.has(a.id)) {
+    try {
+      await deleteRecordFromFile(
+        `activities/${currentYear}/${currentCompanyId}-activities-${currentYear}.json`,
+        'activities',
+        a.id
+      )
+    } catch (e) {
+      alert('Delete failed: ' + e.message)
+      return
+    }
+    actSnapshots.delete(a.id)
+  }
+  activities.splice(activities.indexOf(a), 1)
   activeActIdx = Math.min(activeActIdx, activities.length - 1)
   renderSidebar()
   loadActEditor()
@@ -1454,52 +1707,6 @@ const MONTH_MAP = {
   dec: 12,
   december: 12
 }
-function normalizeDate(v) {
-  if (!v) return v
-  const s = v.trim()
-  if (/[A-Za-z]/.test(s)) {
-    let month = null,
-      day = null,
-      year = null
-    const tokens = s
-      .split(/[\s,]+/)
-      .map((t) => t.replace(/\.$/, '').trim())
-      .filter(Boolean)
-    for (const token of tokens) {
-      const low = token.toLowerCase()
-      if (MONTH_MAP[low] !== undefined) {
-        month = MONTH_MAP[low]
-        continue
-      }
-      if (/^\d+$/.test(token)) {
-        const n = parseInt(token, 10)
-        if (token.length === 4 || n > 31) {
-          year = n
-          continue
-        }
-        if (day === null) {
-          day = n
-          continue
-        }
-      }
-    }
-    if (month !== null && day !== null) {
-      if (year === null) year = currentYear
-      if (String(year).length === 2) year = 2000 + year
-      return `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`
-    }
-  }
-  const parts = s
-    .replace(/[/.]/g, '-')
-    .split('-')
-    .map((p) => p.trim())
-    .filter(Boolean)
-  if (parts.length !== 3) return v
-  let [y, m, d] = parts
-  if (y.length === 2) y = '20' + y
-  if (y.length !== 4 || isNaN(Number(y)) || isNaN(Number(m)) || isNaN(Number(d))) return v
-  return `${y}-${m.padStart(2, '0')}-${d.padStart(2, '0')}`
-}
 function isValidDate(v) {
   return isDateNearYear(v, currentYear)
 }
@@ -1509,16 +1716,6 @@ function setActInvalid(id, invalid) {
 function isEmptyDateRow(d) {
   return !d.date && !d.startTime
 }
-function normalizeHeaderDate(id) {
-  const el = document.getElementById(id)
-  if (!el) return
-  const norm = normalizeDate(el.value)
-  if (norm !== el.value) {
-    el.value = norm
-    fieldChanged()
-  }
-  setActInvalid(id, !!el.value && !isRealDate(el.value))
-}
 // Rules live in src/lib/data-rules.ts (shared with scripts/check-activities.ts),
 // applied to each activity as it will be saved (blank date rows dropped).
 // Warnings are only raised for activities changed since the last load/save.
@@ -1526,10 +1723,12 @@ function collectIssues() {
   const errors = []
   const warnings = []
   activities.forEach((a, ai) => {
-    const label = a.title || `Activity ${ai + 1}`
+    const label = titleOf(a) || `Activity ${ai + 1}`
     const issues = activityIssues(
       { ...a, dates: (a.dates || []).filter((d) => !isEmptyDateRow(d)) },
-      currentYear
+      currentYear,
+      currentCompanyId,
+      { companies: allCompanies, venues: venuesList, runIds: companyRunIds }
     )
     issues.errors.forEach((m) => errors.push(`"${label}": ${m}`))
     if (actSnapshots.get(a.id) !== makeActivitySnapshot(a))
@@ -1586,7 +1785,7 @@ function renderDatesTable() {
       (d, i) => `
     <tr>
       <td><button class="act-del-btn" onclick="act.deleteDateRow(${i})" title="Delete">×</button></td>
-      <td><input class="act-cell-input" value="${esc(d.date)}" placeholder="2026-06-13"
+      <td><input type="date" class="act-cell-input" value="${esc(d.date)}"
           onchange="act.dateCellChanged(${i},'date',this.value)"
           onkeydown="act.dateCellKey(event,${i},'date')" id="dc-${i}-date"></td>
       <td><input class="act-cell-input" value="${esc(d.startTime)}" placeholder="7pm"
@@ -1595,15 +1794,19 @@ function renderDatesTable() {
       <td><input class="act-cell-input" value="${esc(d.endTime || '')}" placeholder="9pm"
           onchange="act.dateCellChanged(${i},'endTime',this.value)"
           onkeydown="act.dateCellKey(event,${i},'endTime')" id="dc-${i}-endTime"></td>
-      <td><input class="act-cell-input" value="${esc(d.location?.name)}" placeholder="Venue name"
+      <td><input class="act-cell-input" value="${esc(locNameOf(d))}" placeholder="Venue name"
           onchange="act.dateCellChanged(${i},'locName',this.value)"
           oninput="act.onLocNameInput(${i},this)"
           onfocus="act.onLocNameInput(${i},this)"
           onblur="setTimeout(()=>act.hideVenueDropdown(),150)"
           onkeydown="act.dateCellKey(event,${i},'locName')" id="dc-${i}-locName"></td>
-      <td><input class="act-cell-input" value="${esc(d.location?.address)}" placeholder="123 Main St, City"
+      <td><input class="act-cell-input" value="${esc(locAddrOf(d))}" placeholder="${d.venue ? '' : '123 Main St, City'}"
+          ${d.venue ? 'disabled title="Listed venue — address comes from the venue list"' : ''}
           onchange="act.dateCellChanged(${i},'locAddr',this.value)"
           onkeydown="act.dateCellKey(event,${i},'locAddr')" id="dc-${i}-locAddr"></td>
+      <td><input class="act-cell-input" value="${esc(d.room)}" placeholder="e.g. Studio B"
+          onchange="act.dateCellChanged(${i},'room',this.value)"
+          onkeydown="act.dateCellKey(event,${i},'room')" id="dc-${i}-room"></td>
       <td><input class="act-cell-input" value="${esc(d.notes)}" placeholder="e.g. Open call"
           onchange="act.dateCellChanged(${i},'notes',this.value)"
           onkeydown="act.dateCellKey(event,${i},'notes')" id="dc-${i}-notes"></td>
@@ -1643,18 +1846,24 @@ function normalizeTime(v) {
 function dateCellChanged(idx, field, value) {
   const d = activities[activeActIdx].dates[idx]
   if (field === 'locName') {
-    if (!d.location) d.location = { name: '' }
-    d.location.name = value
-    const knownVenue = venuesList.find((v) => v.name === value)
-    if (!knownVenue) {
-      d.location.address = undefined
-      const addrEl = document.getElementById(`dc-${idx}-locAddr`)
-      if (addrEl) addrEl.value = ''
+    // A listed venue's name stores its code; anything else is a one-off location
+    const name = value.trim()
+    const listed = venuesList.find((v) => v.name.toLowerCase() === name.toLowerCase())
+    if (listed) setSessionVenue(idx, listed.code)
+    else {
+      const wasListed = !!d.venue
+      delete d.venue
+      if (name) d.location = { name, address: wasListed ? undefined : d.location?.address }
+      else delete d.location
+      refreshLocationCells(idx)
     }
-    if (!value && !d.location.address) d.location = undefined
   } else if (field === 'locAddr') {
+    if (d.venue) return // the listed venue's address isn't editable here
     if (!d.location) d.location = { name: '' }
     d.location.address = value || undefined
+  } else if (field === 'room') {
+    if (value.trim()) d.room = value.trim()
+    else delete d.room
   } else if (field === 'startTime' || field === 'endTime') {
     value = normalizeTime(value)
     const tel = document.getElementById(`dc-${idx}-${field}`)
@@ -1662,7 +1871,6 @@ function dateCellChanged(idx, field, value) {
     d[field] = value || undefined
     if (value) setActInvalid(`dc-${idx}-${field}`, !isValidTime(value))
   } else if (field === 'date') {
-    value = normalizeDate(value)
     const del = document.getElementById(`dc-${idx}-date`)
     if (del && del.value !== value) del.value = value
     d.date = value || undefined
@@ -1674,7 +1882,34 @@ function dateCellChanged(idx, field, value) {
   markDirty()
 }
 
-const DATE_COLS = ['date', 'startTime', 'endTime', 'locName', 'locAddr', 'notes']
+const DATE_COLS = ['date', 'startTime', 'endTime', 'locName', 'locAddr', 'room', 'notes']
+
+/** What the Location and Address cells show: the listed venue's, else the one-off's. */
+function locNameOf(d) {
+  return venueByCode(d.venue, venuesList)?.name ?? d.venue ?? d.location?.name ?? ''
+}
+function locAddrOf(d) {
+  return d.venue ? (venueByCode(d.venue, venuesList)?.address ?? '') : (d.location?.address ?? '')
+}
+
+function refreshLocationCells(idx) {
+  const d = activities[activeActIdx].dates[idx]
+  const nameEl = document.getElementById(`dc-${idx}-locName`)
+  const addrEl = document.getElementById(`dc-${idx}-locAddr`)
+  if (nameEl) nameEl.value = locNameOf(d)
+  if (addrEl) {
+    addrEl.value = locAddrOf(d)
+    addrEl.disabled = !!d.venue
+    addrEl.placeholder = d.venue ? '' : '123 Main St, City'
+  }
+}
+
+function setSessionVenue(idx, code) {
+  const d = activities[activeActIdx].dates[idx]
+  d.venue = code
+  delete d.location
+  refreshLocationCells(idx)
+}
 function dateCellKey(event, rowIdx, field) {
   if (field === 'locName' && event.key === 'Escape') {
     hideVenueDropdown()
@@ -1682,20 +1917,26 @@ function dateCellKey(event, rowIdx, field) {
   }
   if (field === 'locName' && (event.key === 'Tab' || event.key === 'Enter')) {
     const dd = document.getElementById('act-venue-dropdown')
-    if (dd && dd.style.display !== 'none' && dd.children.length === 1) {
+    // Exactly one listed venue suggested: Tab/Enter picks it
+    const listed = dd && dd.style.display !== 'none' ? dd.querySelectorAll('[data-venue]') : []
+    if (listed.length === 1) {
       event.preventDefault()
-      const code = dd.children[0].getAttribute('onmousedown').match(/'([^']+)'\)$/)?.[1]
-      if (code) {
-        selectVenueItem(rowIdx, code)
-        return
-      }
+      selectVenueItem(rowIdx, listed[0].dataset.venue)
+      return
     }
   }
   const col = DATE_COLS.indexOf(field)
   if (event.key === 'Tab') {
     event.preventDefault()
     hideVenueDropdown()
-    const next = event.shiftKey ? col - 1 : col + 1
+    // Step over cells that can't take focus (a listed venue's address)
+    let next = event.shiftKey ? col - 1 : col + 1
+    while (
+      next >= 0 &&
+      next < DATE_COLS.length &&
+      document.getElementById(`dc-${rowIdx}-${DATE_COLS[next]}`)?.disabled
+    )
+      next += event.shiftKey ? -1 : 1
     if (next >= 0 && next < DATE_COLS.length) {
       document.getElementById(`dc-${rowIdx}-${DATE_COLS[next]}`)?.focus()
     } else if (!event.shiftKey) {
@@ -1728,7 +1969,9 @@ function addDateRow() {
   const newRow = { id: nextSessionId(), date: '', startTime: '' }
   if (prev?.startTime) newRow.startTime = prev.startTime
   if (prev?.endTime) newRow.endTime = prev.endTime
+  if (prev?.venue) newRow.venue = prev.venue
   if (prev?.location) newRow.location = { ...prev.location }
+  if (prev?.room) newRow.room = prev.room
   dates.push(newRow)
   renderDatesTable()
   markDirty()
@@ -1857,19 +2100,21 @@ function onLocNameInput(rowIdx, inputEl) {
   const query = inputEl.value.trim().toLowerCase()
   const matches = venuesList.filter((v) => !query || v.name.toLowerCase().includes(query))
   const dd = getVenueDropdown()
-  if (!matches.length) {
-    dd.style.display = 'none'
-    return
-  }
-  dd.innerHTML = matches
-    .map(
-      (v) => `
-    <div class="act-venue-item" onmousedown="act.selectVenueItem(${rowIdx},'${v.code}')">
+  // "Other venue…" is always last: a one-off place, with its own name and address
+  dd.innerHTML =
+    matches
+      .map(
+        (v) => `
+    <div class="act-venue-item" data-venue="${esc(v.code)}" onmousedown="act.selectVenueItem(${rowIdx},'${v.code}')">
       <div class="act-venue-item-name">${esc(v.name)}</div>
       ${v.address ? `<div class="act-venue-item-addr">${esc(v.address)}</div>` : ''}
     </div>`
-    )
-    .join('')
+      )
+      .join('') +
+    `<div class="act-venue-item act-venue-other" onmousedown="act.selectOtherVenue(${rowIdx})">
+      <div class="act-venue-item-name">Other venue…</div>
+      <div class="act-venue-item-addr">Not in the list: type its name and address</div>
+    </div>`
   const rect = inputEl.getBoundingClientRect()
   dd.style.left = rect.left + 'px'
   dd.style.top = rect.bottom + 2 + 'px'
@@ -1882,34 +2127,37 @@ function hideVenueDropdown() {
   if (dd) dd.style.display = 'none'
 }
 
+/** "Other venue…": unlinks any listed venue so the name and address can be typed. */
+function selectOtherVenue(rowIdx) {
+  const d = activities[activeActIdx].dates[rowIdx]
+  const nameEl = document.getElementById(`dc-${rowIdx}-locName`)
+  const typed = nameEl?.value.trim() || ''
+  const wasListed = !!d.venue
+  delete d.venue
+  // Keep a typed one-off name; a listed venue's name is cleared for typing afresh
+  const name = wasListed ? '' : typed
+  if (name) d.location = { name, address: d.location?.address }
+  else delete d.location
+  refreshLocationCells(rowIdx)
+  hideVenueDropdown()
+  markDirty()
+  nameEl?.focus()
+  nameEl?.select()
+}
+
 function selectVenueItem(rowIdx, code) {
   const venue = venuesList.find((v) => v.code === code)
   if (!venue) {
     hideVenueDropdown()
     return
   }
-  const d = activities[activeActIdx].dates[rowIdx]
-  if (!d.location) d.location = {}
-  d.location.name = venue.name
-  d.location.address = venue.address || undefined
-  const nameEl = document.getElementById(`dc-${rowIdx}-locName`)
-  const addrEl = document.getElementById(`dc-${rowIdx}-locAddr`)
-  if (nameEl) nameEl.value = venue.name
-  if (addrEl) addrEl.value = venue.address || ''
+  setSessionVenue(rowIdx, venue.code)
   hideVenueDropdown()
   markDirty()
-  document.getElementById(`dc-${rowIdx}-notes`)?.focus()
+  document.getElementById(`dc-${rowIdx}-room`)?.focus()
 }
 
 // ── PREVIEW ──
-const PV_DOT_COLORS = {
-  scs: '#ce8481',
-  at: '#7b8bc4',
-  mct: '#71c75f',
-  renegade: '#5dadbe',
-  cabrillo: '#c8a96e',
-  abt: '#a57bc4'
-}
 const PV_GENRE_STYLES = {
   Musical: 'background:#dce4fb;color:#2c3e9a',
   Drama: 'background:#fbe5e1;color:#8c3a2e',
@@ -1921,9 +2169,9 @@ function openPreview() {
   if (activeActIdx < 0) return
   const a = activities[activeActIdx]
   const companyName = allCompanies.find((c) => c.id === currentCompanyId)?.name || currentCompanyAbv
-  const dotColor = PV_DOT_COLORS[currentCompanyId] || '#cbcbcb'
-  const genreArr = Array.isArray(a.genre) ? a.genre : a.genre ? [a.genre] : []
-  const TODAY = new Date().toISOString().slice(0, 10)
+  const details = detailsOf(a) // a linked audition's genre, opening and link are its production's
+  const genreArr = details.genre
+  const TODAY = todayIso()
   const latestD = [...(a.dates || [])].sort((x, y) => y.date.localeCompare(x.date))[0]?.date ?? ''
   const isEvent = a.type === 'event'
   const isVirtual = !isEvent && !!a.virtualSubmission
@@ -1931,10 +2179,13 @@ function openPreview() {
   const showDatesByRequest = isEvent && a.datesByRequest && !hasDates
   const isPast = !a.closed && !isVirtual && latestD && latestD < TODAY
   const showVoice = genreArr.includes('Musical')
-  const displayName =
-    currentCompanyId === 'other' && a.organizerName ? a.organizerName : companyName
+  const organizerIds = recordOrganizerIds(currentCompanyId, a.organizers)
+  const displayName = organizerName(organizerIds, allCompanies) || companyName
 
-  const _filteredDates = (a.dates || []).filter((d) => d.date)
+  // Each session with its venue or one-off location resolved, as the public card shows it
+  const _filteredDates = (a.dates || [])
+    .filter((d) => d.date)
+    .map((d) => ({ ...d, location: sessionPlace(d, venuesList) }))
   const _pvLocs = _filteredDates.map((d) => d.location?.name).filter(Boolean)
   const _pvShared =
     _pvLocs.length > 0 && _pvLocs.every((n) => n === _pvLocs[0])
@@ -2001,13 +2252,18 @@ function openPreview() {
   }
 
   // Events show the organizer in the right column; auditions keep it here, above Contact
-  const organizerHtml =
-    a.organizerName || a.organizerUrl
-      ? `<section class="pv-section"><h4 class="pv-section-head">Organizer</h4>
-      ${a.organizerName ? `<div class="pv-sub" style="font-size:13px">${esc(a.organizerName)}</div>` : ''}
-      ${a.organizerUrl ? `<div class="pv-sub" style="overflow-wrap:anywhere"><a href="${esc(a.organizerUrl)}" class="pv-link-inline" target="_blank" rel="noopener">${esc(a.organizerUrl)}</a></div>` : ''}
+  // Listed when the record names organizers (filed under Other, or co-producers)
+  const named = a.organizers?.length ? organizerEntries(organizerIds, allCompanies) : []
+  const organizerHtml = named.length
+    ? `<section class="pv-section"><h4 class="pv-section-head">Organizer</h4>
+      ${named
+        .map(
+          (o) => `<div class="pv-sub" style="font-size:13px">${esc(o.name)}</div>
+      ${o.website ? `<div class="pv-sub" style="overflow-wrap:anywhere"><a href="${esc(o.website)}" class="pv-link-inline" target="_blank" rel="noopener">${esc(o.website)}</a></div>` : ''}`
+        )
+        .join('')}
     </section>`
-      : ''
+    : ''
   if (!isEvent) leftColHtml += organizerHtml
 
   if (a.contact && (a.contact.name || a.contact.email || a.contact.phone)) {
@@ -2045,7 +2301,7 @@ function openPreview() {
     rightColHtml += `<section class="pv-section"><h4 class="pv-section-head">About</h4><div class="pv-sub" style="font-size:13px;line-height:1.55;white-space:pre-wrap">${renderMd(a.description)}</div></section>`
   }
 
-  const metaRow = `${esc(displayName)}${!isEvent && a.openingDate ? ` · Opens ${fmtShortDate(a.openingDate)}` : ''}${!isEvent && a.rehearsalStart ? ` · Rehearsals start ${fmtShortDate(a.rehearsalStart)}` : ''}`
+  const metaRow = `${esc(displayName)}${!isEvent && details.openingDate ? ` · Opens ${fmtShortDate(details.openingDate)}` : ''}${!isEvent && a.rehearsalStart ? ` · Rehearsals start ${fmtShortDate(a.rehearsalStart)}` : ''}`
   const rolesRow = isEvent
     ? a.briefDescription
       ? esc(a.briefDescription)
@@ -2053,10 +2309,10 @@ function openPreview() {
     : rolesSum(a.rolesAvailable)
 
   const linksHtml =
-    a.noticeUrl || a.productionUrl
+    a.noticeUrl || details.productionUrl
       ? `<div class="pv-links-row">
     ${a.noticeUrl ? `<a href="${esc(a.noticeUrl)}" class="pv-action-link" target="_blank" rel="noopener">${isEvent ? 'More info →' : 'Audition notice →'}</a>` : ''}
-    ${!isEvent && a.productionUrl ? `<a href="${esc(a.productionUrl)}" class="pv-action-link" target="_blank" rel="noopener">Production info →</a>` : ''}
+    ${!isEvent && details.productionUrl ? `<a href="${esc(details.productionUrl)}" class="pv-action-link" target="_blank" rel="noopener">Production info →</a>` : ''}
   </div>`
       : ''
 
@@ -2065,8 +2321,7 @@ function openPreview() {
       <div class="pv-summary">
         <div class="pv-main">
           <div class="pv-title-row">
-            <span class="pv-dot" style="background:${dotColor}"></span>
-            <span class="pv-title">${esc(a.title || 'Untitled')}</span>
+            <span class="pv-title">${esc(titleOf(a) || 'Untitled')}</span>
             ${isEvent ? '<span class="pv-type-badge">Event</span>' : ''}
             ${isVirtual ? '<span class="pv-virtual-badge">Virtual</span>' : ''}
             ${!isEvent ? genreArr.map((g) => `<span class="pv-genre-badge" style="${PV_GENRE_STYLES[g] || ''}">${esc(g)}</span>`).join('') : ''}
@@ -2101,6 +2356,11 @@ function closePreviewOutside(e) {
 }
 
 // ── MODULE API ──
+/** For the /admin shell: warn before leaving with unsaved changes. */
+export function hasUnsavedChanges() {
+  return !!currentCompanyId && computeIsDirty()
+}
+
 export function mount(container, context) {
   injectStyles()
   container.innerHTML = ACT_HTML
@@ -2118,6 +2378,7 @@ export function mount(container, context) {
     deleteActivity,
     toggleClosed,
     genreChanged,
+    productionChanged,
     fieldChanged,
     toggleDescExpand,
     toggleNotesExpand,
@@ -2133,7 +2394,7 @@ export function mount(container, context) {
     onLocNameInput,
     hideVenueDropdown,
     selectVenueItem,
-    normalizeHeaderDate,
+    selectOtherVenue,
     openPreview,
     closePreview,
     closePreviewOutside
@@ -2162,7 +2423,9 @@ export function mount(container, context) {
     document.addEventListener('mouseup', _resizeMouseUp)
   })
 
-  initFromContext(context)
+  initFromContext(context).then(() => {
+    if (context.intent?.resumeActivity) resumeActivity(context.intent.resumeActivity)
+  })
   updateStatus()
   updateSaveBtn()
 }
@@ -2184,4 +2447,7 @@ export function unmount() {
   currentCompanyAbv = ''
   isAdminContext = false
   venuesList = []
+  companyRuns = []
+  companyRunIds = undefined
+  canEditShows = false
 }

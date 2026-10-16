@@ -1,8 +1,12 @@
-import { IS_DEV, apiFetch, apiPut, buildCompanyOptions } from './api.js'
+import { IS_DEV, apiFetch, apiPut, buildCompanyOptions, deleteRecordFromFile } from './api.js'
 import { fmt12, fmtFullDate, renderMd } from '/admin/audition-format.js'
 import { MAX_GENRES, isDateNearYear, isValidTime, runIssues } from '/admin/data-rules.js'
 import { createIdGenerator, ensurePerformanceIds } from '/admin/occurrence-ids.js'
+import { organizerLabel, organizerName, recordOrganizerIds } from '/admin/organizers.js'
+import { runPlace, venueByCode } from '/admin/venues.js'
 import { markdownToolbar } from './markdown-editor.js'
+import { genreBoxesHtml, getGenres, limitGenres, setGenres } from './genre-boxes.js'
+import { renderOrganizerFields } from './organizer-picker.js'
 
 const PERF_TYPES = ['', 'Preview', 'Opening', 'Closing', 'Talk-back']
 const MONTH_MAP = {
@@ -45,6 +49,8 @@ let currentYear = CURRENT_YEAR
 let currentCompanyAbv = ''
 let venuesList = []
 let isDirty = false
+let pendingReturn = null // set by "Add production": the audition to go back to once the show is saved
+let addedRunId = null
 let runSnapshots = new Map()
 let prevCalGenreVals = []
 let isAdminContext = false
@@ -141,6 +147,8 @@ const CAL_CSS = `
   margin-bottom: 1px;
 }
 .run-item-show { font-size: 12px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+/* A show with no performances yet is flagged in red, in the list and the editor title */
+.run-item.no-perfs .run-item-show, .run-header-title.no-perfs #editorTitleText { color: #b3261e; }
 .run-item-count { font-size: 10px; color: var(--ink-faint); font-family: 'IBM Plex Mono', monospace; }
 .sidebar-empty { padding: 20px 12px; font-size: 12px; color: var(--ink-faint); text-align: center; line-height: 1.6; }
 .cal-main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
@@ -172,11 +180,13 @@ const CAL_CSS = `
   padding: 10px 16px;
   background: var(--bg);
   border-bottom: 2px solid var(--border);
-  display: grid;
-  grid-template-columns: repeat(4, 1fr) 2fr 2fr;
+  display: flex;
+  flex-direction: column;
   gap: 8px;
   flex-shrink: 0;
 }
+.hdr-row { display: flex; flex-wrap: wrap; gap: 8px; align-items: flex-end; }
+.hdr-row > .field-group { min-width: 0; }
 .field-group { display: flex; flex-direction: column; gap: 3px; }
 .field-label { font-size: 9px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.07em; color: var(--ink-mid); }
 .field-input, .field-select {
@@ -247,13 +257,13 @@ const CAL_CSS = `
   color: var(--ink);
   width: 100%;
   resize: none;
-  overflow: hidden;
+  overflow-y: auto;
   line-height: 1.5;
-  height: 26px;
+  height: 82px; /* about four lines */
   transition: height 0.15s;
 }
 .desc-textarea:focus { outline: none; border-color: var(--accent2); }
-.desc-textarea.expanded { height: 90px; overflow-y: auto; resize: vertical; }
+.desc-textarea.expanded { height: 220px; resize: vertical; }
 .perf-section { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
 .perf-toolbar {
   padding: 7px 16px;
@@ -334,7 +344,7 @@ thead th {
   white-space: nowrap;
 }
 thead th.col-del  { width: 32px; }
-thead th.col-date { width: 110px; }
+thead th.col-date { width: 135px; }
 thead th.col-time { width: 80px; }
 thead th.col-type { width: 150px; }
 thead th.col-disc { min-width: 180px; }
@@ -464,7 +474,6 @@ tbody td { padding: 2px 4px; vertical-align: middle; }
 .cp-summary { padding: 14px 16px; }
 .cp-main { display: flex; flex-direction: column; gap: 4px; }
 .cp-title-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-.cp-dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
 .cp-title { font-family: 'Playfair Display', Georgia, serif; font-size: 16px; font-weight: 600; color: #1a1612; line-height: 1.25; }
 .cp-genre-badge { font-size: 11px; font-weight: 500; padding: 2px 8px; border-radius: 10px; flex-shrink: 0; letter-spacing: 0.02em; }
 .cp-meta-row { font-size: 12px; color: #6b6259; }
@@ -503,7 +512,7 @@ const CAL_HTML = `
 <div class="cal-wrap">
   <div class="sidebar" id="calSidebar">
     <div class="sidebar-header">
-      <span class="sidebar-label">Runs</span>
+      <span class="sidebar-label">Shows</span>
       <button class="btn btn-green btn-sm" id="newRunBtn" onclick="cal.newRun()" style="display:none">+ New</button>
     </div>
     <div class="run-list" id="runList"></div>
@@ -531,46 +540,58 @@ const CAL_HTML = `
       </div>
 
       <div class="run-fields">
-        <div class="field-group">
-          <label class="field-label">Company</label>
-          <input class="field-input field-readonly" id="f-company" readonly tabindex="-1">
+        <div class="hdr-row">
+          <div class="field-group" id="f-organizer-group" style="flex:0 0 150px">
+            <label class="field-label">Organizer</label>
+            <div id="f-organizer"></div>
+          </div>
+          <div class="field-group" style="flex:1 1 280px">
+            <label class="field-label">Full Show Title</label>
+            <input class="field-input" id="f-show" placeholder="Full title" oninput="cal.runFieldChanged()">
+          </div>
+          <div class="field-group" style="flex:0 0 170px">
+            <label class="field-label">Abbrev</label>
+            <input class="field-input" id="f-showAbv" placeholder="Brief title" maxlength="20" oninput="cal.runFieldChanged()">
+          </div>
         </div>
-        <div class="field-group">
-          <label class="field-label">Abbrev</label>
-          <input class="field-input" id="f-showAbv" placeholder="Brief title" maxlength="20" oninput="cal.runFieldChanged()">
+        <div class="hdr-row">
+          <div class="field-group" style="flex:0 1 200px">
+            <label class="field-label">Venue</label>
+            <input class="field-input" id="f-venue" placeholder="Venue name" autocomplete="off"
+              oninput="cal.onVenueInput(this); cal.runFieldChanged()" onfocus="cal.onVenueInput(this)"
+              onblur="setTimeout(()=>cal.hideCalVenueDropdown(),150)"
+              onkeydown="cal.venueKeyDown(event,this)">
+          </div>
+          <div class="field-group" style="flex:0 1 150px">
+            <label class="field-label">Location</label>
+            <input class="field-input" id="f-room" placeholder="e.g. Second Stage" oninput="cal.runFieldChanged()">
+          </div>
+          <div class="field-group" style="flex:0 0 120px">
+            <label class="field-label">Price</label>
+            <input class="field-input" id="f-price" placeholder="e.g. $xx-$yy" oninput="cal.runFieldChanged()">
+          </div>
+          <div class="field-group" style="flex:0 1 230px">
+            <label class="field-label">Discounts</label>
+            <input class="field-input" id="f-discounts" placeholder="e.g. Senior $aa, Student $bb" oninput="cal.runFieldChanged()">
+          </div>
+          <div class="field-group" style="flex:0 1 auto">
+            <label class="field-label">Co-producers</label>
+            <div id="f-coproducers"></div>
+          </div>
         </div>
-        <div class="field-group">
-          <label class="field-label">Genre</label>
-          <select class="field-select field-select-multi" id="f-genre" multiple size="4" onchange="cal.genreChanged()">
-            <option>Drama</option><option>Musical</option><option>Comedy</option><option>Other</option>
-          </select>
-        </div>
-        <div class="field-group">
-          <label class="field-label">Venue</label>
-          <input class="field-input" id="f-venue" placeholder="Venue name" autocomplete="off"
-            oninput="cal.onVenueInput(this); cal.runFieldChanged()" onfocus="cal.onVenueInput(this)"
-            onblur="setTimeout(()=>cal.hideCalVenueDropdown(),150)"
-            onkeydown="cal.venueKeyDown(event,this)">
-        </div>
-        <div class="field-group" style="grid-column:span 1">
-          <label class="field-label">Full Show Title</label>
-          <input class="field-input" id="f-show" placeholder="Full title" oninput="cal.runFieldChanged()">
-        </div>
-        <div class="field-group" style="grid-column:span 1">
-          <label class="field-label">Price</label>
-          <input class="field-input" id="f-price" placeholder="e.g. $xx-$yy" oninput="cal.runFieldChanged()">
-        </div>
-        <div class="field-group" style="grid-column:span 2">
-          <label class="field-label">Discounts</label>
-          <input class="field-input" id="f-discounts" placeholder="e.g. Senior $aa, Student $bb" oninput="cal.runFieldChanged()">
-        </div>
-        <div class="field-group" style="grid-column:span 2">
-          <label class="field-label">Info URL</label>
-          <input class="field-input mono" id="f-infoUrl" placeholder="https://..." oninput="cal.runFieldChanged()">
-        </div>
-        <div class="field-group" style="grid-column:span 2">
-          <label class="field-label">Default Tickets URL</label>
-          <input class="field-input mono" id="f-ticketsUrl" placeholder="https://..." oninput="cal.runFieldChanged()">
+        <div class="hdr-row">
+          <div class="field-group" style="flex:1 1 240px">
+            <label class="field-label">Info URL</label>
+            <input class="field-input mono" id="f-infoUrl" placeholder="https://..." oninput="cal.runFieldChanged()">
+          </div>
+          <div class="field-group" style="flex:1 1 240px">
+            <label class="field-label">Default Tickets URL</label>
+            <input class="field-input mono" id="f-ticketsUrl" placeholder="https://..." oninput="cal.runFieldChanged()">
+          </div>
+          <div class="field-group" style="flex:0 0 auto">
+            <label class="field-label">Genre (up to ${MAX_GENRES})</label>
+            ${genreBoxesHtml('f-genre', 'cal.genreChanged(this)')}
+          </div>
         </div>
       </div>
 
@@ -580,7 +601,7 @@ const CAL_HTML = `
           ${markdownToolbar('f-description')}
           <button class="desc-expand-btn" id="descExpandBtn" onclick="cal.toggleDescExpand()" title="Expand / collapse">↕</button>
         </div>
-        <textarea class="field-input desc-textarea" id="f-description" rows="1"
+        <textarea class="field-input desc-textarea" id="f-description" rows="4"
           data-markdown-editor placeholder="Brief narrative"
           oninput="cal.runFieldChanged()"></textarea>
       </div>
@@ -648,7 +669,7 @@ const CAL_HTML = `
 </div>
 
 <div class="cal-statusbar">
-  <span class="status-item"><span class="status-key">Runs</span><span id="st-runs">0</span></span>
+  <span class="status-item"><span class="status-key">Shows</span><span id="st-runs">0</span></span>
   <span class="status-item"><span class="status-key">Total perfs</span><span id="st-perfs">0</span></span>
   <span class="status-item"><span class="status-key">Status</span><span id="st-saved" style="color:rgba(255,255,255,0.35)">no file loaded</span></span>
 </div>
@@ -852,7 +873,7 @@ async function onYearSelect() {
 // ── PERSISTENCE ──
 function markDirty() {
   if (!currentCompanyId) return
-  isDirty = true
+  isDirty = computeRunsDirty()
   updateStatus()
   updateSaveBtn()
   updateRestoreBtn()
@@ -874,12 +895,20 @@ async function saveFile() {
     alert('Please log in to save.')
     return
   }
+  if (dropUntouchedNewRun()) {
+    renderSidebar()
+    loadRunEditor()
+  }
+  if (!computeRunsDirty()) return // nothing entered — nothing to save
   const { errors, warnings } = collectIssues()
   if (errors.length) {
     alert('Cannot save — fix these issues:\n\n' + errors.join('\n'))
     return
   }
-  if (warnings.length && !confirm('Missing details:\n\n' + warnings.join('\n') + '\n\nSave anyway?'))
+  if (
+    warnings.length &&
+    !confirm('Missing details:\n\n' + warnings.join('\n') + '\n\nSave anyway?')
+  )
     return
   const btn = document.getElementById('saveBtn')
   btn.disabled = true
@@ -905,6 +934,13 @@ async function saveFile() {
     btn.style.color = '#fff'
     btn.style.borderColor = 'var(--green)'
     updateStatus()
+    const added = pendingReturn && runs.find((r) => r.id === addedRunId)
+    if (added && confirm(`"${added.show || added.showAbv}" is saved. Go back to the audition?`)) {
+      const resume = { ...pendingReturn, productionId: added.id }
+      pendingReturn = null
+      window.openEditor('activities', { resumeActivity: resume })
+      return
+    }
     setTimeout(() => {
       btn.textContent = 'Save'
       updateSaveBtn()
@@ -952,8 +988,8 @@ function renderSidebar() {
   list.innerHTML = sorted
     .map(
       ({ r, i }) => `
-    <div class="run-item ${i === activeRunIdx ? 'active' : ''}" onclick="cal.selectRun(${i})">
-      <div class="run-item-company">${allCompanies.find((c) => c.id === r.company)?.abvName || r.company || '—'}</div>
+    <div class="run-item ${i === activeRunIdx ? 'active' : ''} ${r.performances.length ? '' : 'no-perfs'}" onclick="cal.selectRun(${i})" ${r.performances.length ? '' : 'title="No performances yet"'}>
+      ${r.company === 'other' ? `<div class="run-item-company">${esc(organizerLabel(recordOrganizerIds(r.company, r.organizers), allCompanies)) || 'No organizer'}</div>` : ''}
       <div class="run-item-show">${r.showAbv || r.show || 'Untitled'}</div>
       <div class="run-item-count">${r.performances.length} perf${r.performances.length !== 1 ? 's' : ''}</div>
     </div>`
@@ -964,9 +1000,55 @@ function renderSidebar() {
 
 // ── RUN SELECTION ──
 function selectRun(idx) {
-  activeRunIdx = idx
+  const target = runs[idx]
+  dropUntouchedNewRun()
+  activeRunIdx = runs.indexOf(target)
   renderSidebar()
   loadRunEditor()
+}
+
+/** Unsaved changes, ignoring a new show nothing has been entered in yet. */
+function computeRunsDirty() {
+  const kept = runs.filter((r) => !isUntouchedNewRun(r))
+  return (
+    kept.length !== runSnapshots.size ||
+    kept.some((r) => runSnapshots.get(r.id) !== makeRunSnapshot(r))
+  )
+}
+
+/** A new show nothing has been entered in yet (never saved, all blank). */
+function isUntouchedNewRun(r) {
+  return (
+    !runSnapshots.has(r.id) &&
+    !r.performances.length &&
+    !r.organizers &&
+    !r.room &&
+    !(r.genre || []).length &&
+    ![
+      r.show,
+      r.showAbv,
+      r.venue,
+      r.price,
+      r.discounts,
+      r.infoUrl,
+      r.ticketsUrl,
+      r.description
+    ].some((v) => v?.trim())
+  )
+}
+
+/**
+ * Leaving a new show before anything is entered discards it, so clicking away doesn't
+ * leave an empty "Untitled" entry. Recomputes the unsaved-changes flag.
+ */
+function dropUntouchedNewRun() {
+  if (activeRunIdx < 0 || !isUntouchedNewRun(runs[activeRunIdx])) return false
+  runs.splice(activeRunIdx, 1)
+  activeRunIdx = -1
+  isDirty = computeRunsDirty()
+  updateStatus()
+  updateSaveBtn()
+  return true
 }
 
 function loadRunEditor() {
@@ -979,16 +1061,15 @@ function loadRunEditor() {
   document.getElementById('emptyState').style.display = 'none'
   document.getElementById('runEditor').style.display = ''
   const r = runs[activeRunIdx]
-  document.getElementById('f-company').value = r.company || ''
   document.getElementById('f-showAbv').value = r.showAbv || ''
   document.getElementById('f-show').value = r.show || ''
-  const genreSel = document.getElementById('f-genre')
   const genreArr = Array.isArray(r.genre) ? r.genre : r.genre ? [r.genre] : []
-  Array.from(genreSel.options).forEach((o) => {
-    o.selected = genreArr.includes(o.value)
-  })
+  setGenres('f-genre', genreArr)
   prevCalGenreVals = genreArr
-  document.getElementById('f-venue').value = r.venue || ''
+  // The venue is stored as a code; the field shows its name (or unmatched text as typed)
+  document.getElementById('f-venue').value = venueByCode(r.venue, venuesList)?.name || r.venue || ''
+  document.getElementById('f-room').value = r.room || ''
+  renderRunOrganizers()
   document.getElementById('f-price').value = r.price || ''
   document.getElementById('f-discounts').value = r.discounts || ''
   document.getElementById('f-infoUrl').value = r.infoUrl || ''
@@ -1005,27 +1086,43 @@ function loadRunEditor() {
 function updateEditorTitle() {
   const r = runs[activeRunIdx]
   document.getElementById('editorTitleText').textContent = r.showAbv || r.show || 'Untitled'
-  document.getElementById('editorSubtitle').textContent = r.company
-    ? ` · ${allCompanies.find((c) => c.id === r.company)?.abvName || r.company}`
-    : ''
+  // Every show in a company's file is that company's; only Other's need their organizer named
+  const label =
+    r.company === 'other'
+      ? organizerLabel(recordOrganizerIds(r.company, r.organizers), allCompanies)
+      : ''
+  document.getElementById('editorSubtitle').textContent = label ? ` · ${label}` : ''
 }
 
-function genreChanged() {
-  const sel = document.getElementById('f-genre')
-  const current = Array.from(sel.selectedOptions).map((o) => o.value)
-  if (current.length > MAX_GENRES) {
-    const added = current.filter((v) => !prevCalGenreVals.includes(v))
-    const keptPrev = prevCalGenreVals
-      .filter((v) => current.includes(v))
-      .slice(-(MAX_GENRES - added.length))
-    const kept = [...keptPrev, ...added].slice(0, MAX_GENRES)
-    Array.from(sel.options).forEach((o) => {
-      o.selected = kept.includes(o.value)
-    })
-    prevCalGenreVals = kept
-  } else {
-    prevCalGenreVals = current
-  }
+function renderRunOrganizers() {
+  const r = runs[activeRunIdx]
+  document.getElementById('f-organizer-group').style.display = r.company === 'other' ? '' : 'none'
+  renderOrganizerFields({
+    mainEl: document.getElementById('f-organizer'),
+    coEl: document.getElementById('f-coproducers'),
+    fileCompany: r.company,
+    organizers: r.organizers,
+    companies: allCompanies,
+    selectClass: 'field-select',
+    onChange: (value) => {
+      if (value) r.organizers = value
+      else delete r.organizers
+      updateEditorTitle()
+      renderSidebar()
+      markDirty()
+    }
+  })
+}
+
+/** The venue code for what's typed in the Venue field: a listed name or code, else the text. */
+function venueCodeFor(text) {
+  const t = text.trim().toLowerCase()
+  const match = venuesList.find((v) => v.name.toLowerCase() === t || v.code.toLowerCase() === t)
+  return match ? match.code : text.trim()
+}
+
+function genreChanged(box) {
+  prevCalGenreVals = limitGenres('f-genre', box, prevCalGenreVals, MAX_GENRES)
   runFieldChanged()
 }
 
@@ -1034,8 +1131,11 @@ function runFieldChanged() {
   const r = runs[activeRunIdx]
   r.showAbv = document.getElementById('f-showAbv').value
   r.show = document.getElementById('f-show').value
-  r.genre = Array.from(document.getElementById('f-genre').selectedOptions).map((o) => o.value)
-  r.venue = document.getElementById('f-venue').value
+  r.genre = getGenres('f-genre')
+  r.venue = venueCodeFor(document.getElementById('f-venue').value)
+  const room = document.getElementById('f-room').value.trim()
+  if (room) r.room = room
+  else delete r.room
   r.price = document.getElementById('f-price').value
   r.discounts = document.getElementById('f-discounts').value
   r.infoUrl = document.getElementById('f-infoUrl').value
@@ -1056,6 +1156,7 @@ function toggleDescExpand() {
 
 // ── RUN CRUD ──
 function newRun() {
+  dropUntouchedNewRun()
   const run = {
     id: `run-${Date.now()}`,
     company: currentCompanyId,
@@ -1078,11 +1179,61 @@ function newRun() {
   markDirty()
 }
 
-function deleteRun() {
+/** Titles of saved auditions, in this company's activity files, linked to run `runId`. */
+async function auditionsLinkedTo(runId) {
+  const resp = await fetch('/.netlify/functions/data?dir=activities')
+  if (!resp.ok) throw new Error(`HTTP ${resp.status}`)
+  const files = (await resp.json()).filter((f) => f.companyId === currentCompanyId)
+  const lists = await Promise.all(
+    files.map((f) =>
+      apiFetch(`activities/${f.year}/${currentCompanyId}-activities-${f.year}.json`).then(
+        (d) => d.activities || []
+      )
+    )
+  )
+  return lists
+    .flat()
+    .filter((a) => a.productionId === runId)
+    .map((a) => a.title || a.id)
+}
+
+/** Deletes the show from the file at once; other unsaved edits stay unsaved. */
+async function deleteRun() {
   if (activeRunIdx < 0) return
   const r = runs[activeRunIdx]
-  if (!confirm(`Delete "${r.showAbv || 'this run'}"? This cannot be undone.`)) return
-  runs.splice(activeRunIdx, 1)
+  if (runSnapshots.has(r.id)) {
+    // An audition linked to this show would be left pointing at nothing
+    let linked
+    try {
+      linked = await auditionsLinkedTo(r.id)
+    } catch (e) {
+      alert('Could not check for linked auditions: ' + e.message)
+      return
+    }
+    if (linked.length) {
+      alert(
+        `"${r.showAbv || r.show}" can't be deleted: it's the production for ${linked
+          .map((t) => `"${t}"`)
+          .join(', ')}. Link those auditions to another production, or delete them, first.`
+      )
+      return
+    }
+  }
+  if (!confirm(`Delete "${r.showAbv || r.show || 'this show'}"? This can't be undone.`)) return
+  if (runSnapshots.has(r.id)) {
+    try {
+      await deleteRecordFromFile(
+        `shows/${currentYear}/${currentCompanyId}-${currentYear}.json`,
+        'runs',
+        r.id
+      )
+    } catch (e) {
+      alert('Delete failed: ' + e.message)
+      return
+    }
+    runSnapshots.delete(r.id)
+  }
+  runs.splice(runs.indexOf(r), 1)
   activeRunIdx = Math.min(activeRunIdx, runs.length - 1)
   renderSidebar()
   loadRunEditor()
@@ -1132,19 +1283,6 @@ function clearEditor() {
 }
 
 // ── VALIDATION ──
-function normalizeDate(v) {
-  if (!v) return v
-  const parts = v
-    .trim()
-    .replace(/[/.]/g, '-')
-    .split('-')
-    .map((s) => s.trim())
-  if (parts.length !== 3) return v
-  let [y, m, d] = parts
-  if (y.length === 2) y = '20' + y
-  if (y.length !== 4 || isNaN(Number(y)) || isNaN(Number(m)) || isNaN(Number(d))) return v
-  return `${y}-${m.padStart(2, '0')}-${d.padStart(2, '0')}`
-}
 function isValidDate(v) {
   return isDateNearYear(v, currentYear)
 }
@@ -1181,7 +1319,7 @@ function collectIssues() {
   const warnings = []
   runs.forEach((run, ri) => {
     const label = run.showAbv || run.show || `Run ${ri + 1}`
-    const issues = runIssues(run, currentYear)
+    const issues = runIssues(run, currentYear, { companies: allCompanies, venues: venuesList })
     issues.errors.forEach((m) => errors.push(`"${label}": ${m}`))
     if (runSnapshots.get(run.id) !== makeRunSnapshot(run))
       issues.warnings.forEach((m) => warnings.push(`"${label}": ${m}`))
@@ -1194,12 +1332,14 @@ function renderPerfTable() {
   if (activeRunIdx < 0) return
   const perfs = runs[activeRunIdx].performances
   document.getElementById('perfCount').textContent = `(${perfs.length})`
+  document.querySelector('.run-header-title')?.classList.toggle('no-perfs', !perfs.length)
+  renderSidebar() // keeps the list's performance count and no-performances flag current
   document.getElementById('perfBody').innerHTML = perfs
     .map(
       (p, i) => `
     <tr id="row-${i}">
       <td><button class="del-btn" onclick="cal.deleteRow(${i})" title="Delete">×</button></td>
-      <td><input class="cell-input" value="${p.date || ''}" placeholder="2026-07-11"
+      <td><input type="date" class="cell-input" value="${p.date || ''}"
           onchange="cal.cellChanged(${i},'date',this.value)"
           onkeydown="cal.cellKey(event,${i},'date')"
           id="cell-${i}-date"></td>
@@ -1230,7 +1370,6 @@ function renderPerfTable() {
 
 function cellChanged(idx, field, value) {
   if (field === 'date') {
-    value = normalizeDate(value)
     const el = document.getElementById(`cell-${idx}-date`)
     if (el && el.value !== value) el.value = value
     if (value) setInvalid(`cell-${idx}-date`, !isValidDate(value))
@@ -1653,12 +1792,6 @@ function venueKeyDown(event, inputEl) {
 function esc(v) {
   return (v || '').replace(/&/g, '&amp;').replace(/"/g, '&quot;')
 }
-const CAL_DOT_COLORS = {
-  scs: '#ce8481',
-  at: '#7b8bc4',
-  mct: '#71c75f',
-  renegade: '#5dadbe'
-}
 const CAL_GENRE_STYLES = {
   Musical: 'background:#dce4fb;color:#2c3e9a',
   Drama: 'background:#fbe5e1;color:#8c3a2e',
@@ -1666,9 +1799,9 @@ const CAL_GENRE_STYLES = {
   Other: 'background:#f0ece6;color:#6b6259'
 }
 const CAL_PERF_TYPE_STYLES = {
-  'Preview': 'background:#fff0cc;color:#7a5200',
-  'Opening': 'background:#c8f0da;color:#1a5c35',
-  'Closing': 'background:#ffd4d4;color:#8c1e1e',
+  Preview: 'background:#fff0cc;color:#7a5200',
+  Opening: 'background:#c8f0da;color:#1a5c35',
+  Closing: 'background:#ffd4d4;color:#8c1e1e',
   'Talk-back': 'background:#d4ddff;color:#2035a0'
 }
 
@@ -1681,8 +1814,8 @@ function fmtPerfTime(t) {
 function openPreview() {
   if (activeRunIdx < 0) return
   const r = runs[activeRunIdx]
-  const companyName = allCompanies.find((c) => c.id === r.company)?.name || r.company
-  const dotColor = CAL_DOT_COLORS[r.company] || '#dadada'
+  const companyName = organizerName(recordOrganizerIds(r.company, r.organizers), allCompanies)
+  const venueName = runPlace(r, venuesList)?.name || r.venue
   const genreArr = Array.isArray(r.genre) ? r.genre : r.genre ? [r.genre] : []
 
   const perfsHtml =
@@ -1712,11 +1845,10 @@ function openPreview() {
       <div class="cp-summary">
         <div class="cp-main">
           <div class="cp-title-row">
-            <span class="cp-dot" style="background:${dotColor}"></span>
             <span class="cp-title">${esc(r.showAbv || r.show || 'Untitled')}</span>
             ${genreArr.map((g) => `<span class="cp-genre-badge" style="${CAL_GENRE_STYLES[g] || ''}">${esc(g)}</span>`).join('')}
           </div>
-          <div class="cp-meta-row">${esc(companyName)}${r.venue ? ` · ${esc(r.venue)}` : ''}${r.price ? ` · ${esc(r.price)}` : ''}</div>
+          <div class="cp-meta-row">${esc(companyName)}${venueName ? ` · ${esc(venueName)}` : ''}${r.price ? ` · ${esc(r.price)}` : ''}</div>
         </div>
       </div>
       <div class="cp-detail">
@@ -1738,6 +1870,11 @@ function closePreviewOutside(e) {
 }
 
 // ── MODULE API ──
+/** For the /admin shell: warn before leaving with unsaved changes. */
+export function hasUnsavedChanges() {
+  return !!currentCompanyId && computeRunsDirty()
+}
+
 export function mount(container, context) {
   injectStyles()
   container.innerHTML = CAL_HTML
@@ -1819,9 +1956,42 @@ export function mount(container, context) {
     document.addEventListener('mouseup', _resizeMouseUp)
   })
 
-  initFromContext(context)
+  initFromContext(context).then(() => {
+    if (context.intent?.addRun) startAddRun(context.intent.addRun)
+  })
   updateStatus()
   updateSaveBtn()
+}
+
+/**
+ * Handed off from the Activities editor's "Add production": opens the company's file
+ * for that year (creating it if needed) with a new show, titled as typed there.
+ */
+async function startAddRun({ company, year, show, organizers, returnTo }) {
+  if (isAdminContext) document.getElementById('companySelect').value = company
+  pendingCompanyId = company
+  if (!allShowFiles.some((f) => f.companyId === company && f.year === year)) {
+    try {
+      await apiPut(`shows/${year}/${company}-${year}.json`, { company, year, runs: [] })
+    } catch (e) {
+      alert('Could not create the show file: ' + e.message)
+      return
+    }
+    allShowFiles.push({ companyId: company, year })
+  }
+  populateYearSelect(allShowFiles.filter((f) => f.companyId === company).map((f) => f.year))
+  document.getElementById('yearSelect').value = String(year)
+  await loadCompanyFile(company, year)
+  newRun()
+  const r = runs[activeRunIdx]
+  r.show = show || ''
+  if (organizers?.length) r.organizers = organizers
+  pendingReturn = returnTo || null
+  addedRunId = r.id
+  loadRunEditor()
+  renderSidebar()
+  markDirty()
+  document.getElementById(show ? 'f-showAbv' : 'f-show')?.focus()
 }
 
 export function unmount() {
@@ -1844,4 +2014,6 @@ export function unmount() {
   isDirty = false
   runSnapshots = new Map()
   isAdminContext = false
+  pendingReturn = null
+  addedRunId = null
 }

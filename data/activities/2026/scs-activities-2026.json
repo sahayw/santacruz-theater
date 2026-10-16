@@ -52,11 +52,8 @@
           "date": "2026-01-25",
           "startTime": "11:00",
           "endTime": "18:00",
-          "notes": "Walk-in, no appointment needed. Sign-ups begin 10:30am. Everyone will be seen.",
-          "location": {
-            "name": "Veterans Memorial Building",
-            "address": "846 Front St, Santa Cruz, CA"
-          }
+          "venue": "VMB",
+          "notes": "Walk-in, no appointment needed. Sign-ups begin 10:30am. Everyone will be seen."
         },
         {
           "id": "session-1791991837988",

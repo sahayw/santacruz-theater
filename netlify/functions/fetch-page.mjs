@@ -6,44 +6,44 @@
  * Returns the raw HTML of the target page, or an error status.
  */
 export const handler = async (event) => {
-  const url = event.queryStringParameters?.url;
+  const url = event.queryStringParameters?.url
   if (!url) {
-    return { statusCode: 400, body: 'Missing url parameter' };
+    return { statusCode: 400, body: 'Missing url parameter' }
   }
 
-  let parsed;
+  let parsed
   try {
-    parsed = new URL(url);
+    parsed = new URL(url)
   } catch {
-    return { statusCode: 400, body: 'Invalid URL' };
+    return { statusCode: 400, body: 'Invalid URL' }
   }
 
   // Only allow http/https to prevent SSRF against internal resources
   if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
-    return { statusCode: 400, body: 'Only http/https URLs are supported' };
+    return { statusCode: 400, body: 'Only http/https URLs are supported' }
   }
 
   try {
     const response = await fetch(url, {
       headers: {
         'User-Agent': 'Mozilla/5.0 (compatible; SCTheaterAdmin/1.0)',
-        'Accept': 'text/html,application/xhtml+xml',
+        Accept: 'text/html,application/xhtml+xml'
       },
       signal: AbortSignal.timeout(8000),
-      redirect: 'follow',
-    });
+      redirect: 'follow'
+    })
 
     if (!response.ok) {
-      return { statusCode: response.status, body: `Upstream returned ${response.status}` };
+      return { statusCode: response.status, body: `Upstream returned ${response.status}` }
     }
 
-    const html = await response.text();
+    const html = await response.text()
     return {
       statusCode: 200,
       headers: { 'Content-Type': 'text/html; charset=utf-8' },
-      body: html,
-    };
+      body: html
+    }
   } catch (e) {
-    return { statusCode: 502, body: `Fetch failed: ${e.message}` };
+    return { statusCode: 502, body: `Fetch failed: ${e.message}` }
   }
-};
+}

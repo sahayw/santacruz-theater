@@ -1,292 +1,105 @@
 ---
-import BaseHead from '../components/BaseHead.astro'
-import SiteNav from '../components/SiteNav.astro'
+// /subscribe — both email lists, either or both. `?list=<list id>` pre-ticks a list and
+// `?from=calendar|events|productions` adds a back link (the nav link on those pages).
+// See docs/notifications-spec.md ("Subscribe and manage").
+import SubscribeShell from '../components/SubscribeShell.astro'
+import SubscribeChoices from '../components/SubscribeChoices.astro'
 ---
 
-<!doctype html>
-<html lang="en">
-  <head>
-    <BaseHead
-      title="Subscribe to Audition & Event Notices — Santa Cruz Theater"
-      description="Get an email when new auditions and events are posted by Santa Cruz County theater companies."
-      canonicalPath="/subscribe"
-    />
-  </head>
-  <body>
-    <SiteNav />
+<SubscribeShell
+  title="Email updates — Santa Cruz Theater"
+  description="Get an email about new productions and dates, or about auditions and events for theater makers, across Santa Cruz County."
+  canonicalPath="/subscribe"
+>
+  <a href="/" class="back-link" id="sub-back" hidden>&#8592;</a>
 
-    <main class="sub-page">
-      <div class="sub-container">
-        <a href="/events" class="back-link">&#8592; Events</a>
+  <h1 class="sub-title">Email updates</h1>
+  <p class="sub-desc">Two lists for two audiences. Pick either or both.</p>
 
-        <header class="sub-header">
-          <h1 class="sub-title">Audition & Event Notices</h1>
-          <p class="sub-desc">
-            Get an email when new auditions and events are posted by Santa Cruz County theater
-            companies. Unsubscribe any time — there's a link in every email.
-          </p>
-        </header>
-
-        <div class="sub-card" id="sub-card">
-          <form id="subscribe-form" class="sub-form" novalidate>
-            <label for="subscribe-email" class="sub-label">Your email address</label>
-            <div class="sub-field-row">
-              <input
-                type="email"
-                id="subscribe-email"
-                class="sub-input"
-                placeholder="you@example.com"
-                autocomplete="email"
-                required
-              />
-              <button type="submit" id="subscribe-btn" class="sub-btn">Subscribe</button>
-            </div>
-          </form>
-          <div id="subscribe-status" class="sub-status" hidden aria-live="polite"></div>
-        </div>
-
-        <p class="sub-note">
-          Emails are sent as a daily digest when new or updated auditions or events have been
-          posted. No other emails — just theater notices.
-        </p>
+  <div class="sub-card">
+    <form id="subscribe-form" class="sub-form" novalidate>
+      <div>
+        <label for="subscribe-email" class="sub-label">Email address</label>
+        <input
+          type="email"
+          id="subscribe-email"
+          class="sub-input"
+          placeholder="you@example.com"
+          autocomplete="email"
+          required
+        />
       </div>
-    </main>
-  </body>
-</html>
+      <SubscribeChoices />
+      <div class="sub-err" id="subscribe-err" hidden aria-live="polite"></div>
+      <button type="submit" id="subscribe-btn" class="sub-btn">Subscribe</button>
+      <div class="sub-foot">
+        At most one email a day for each list, and only when there's news. Every email has a link to
+        change your choices or unsubscribe.
+      </div>
+    </form>
+    <div id="subscribe-status" class="sub-status ok" hidden aria-live="polite"></div>
+  </div>
 
-<style>
-  *,
-  *::before,
-  *::after {
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;
+  <p class="sub-after">
+    Already subscribed? <a href="/subscribe/manage">Get a link to change your choices</a>
+  </p>
+</SubscribeShell>
+
+<script>
+  import { readFormChoices, setFormChoices } from '../lib/subscribe-choices.ts'
+
+  const BACK: Record<string, [string, string]> = {
+    calendar: ['/calendar', 'Calendar'],
+    events: ['/events', 'Events'],
+    productions: ['/productions', 'Productions']
+  }
+  const params = new URLSearchParams(location.search)
+  const back = BACK[params.get('from') ?? '']
+  if (back) {
+    const a = document.getElementById('sub-back') as HTMLAnchorElement
+    a.href = back[0]
+    a.textContent = `← ${back[1]}`
+    a.hidden = false
+  }
+  const list = params.get('list')
+  if (list) setFormChoices({ lists: [list] })
+
+  const form = document.getElementById('subscribe-form') as HTMLFormElement
+  const emailInput = document.getElementById('subscribe-email') as HTMLInputElement
+  const btn = document.getElementById('subscribe-btn') as HTMLButtonElement
+  const err = document.getElementById('subscribe-err')!
+  const status = document.getElementById('subscribe-status')!
+
+  const showError = (msg: string) => {
+    err.textContent = msg
+    err.hidden = !msg
   }
 
-  :root {
-    --nav-h: 44px;
-    --page-bg: #f0ede8;
-    --surface: #ffffff;
-    --ink: #1a1612;
-    --ink-muted: #6b6259;
-    --ink-subtle: #9c9189;
-    --border: #e0d9d0;
-    --border-primary: #c8a96e;
-    --radius: 6px;
-  }
+  form.addEventListener('change', () => showError(''))
 
-  body {
-    font-family: 'DM Sans', sans-serif;
-    background: var(--page-bg);
-    color: var(--ink);
-    min-height: 100vh;
-    font-size: 14px;
-  }
-
-  .sub-page {
-    margin-top: var(--nav-h);
-    min-height: calc(100vh - var(--nav-h));
-    display: flex;
-    align-items: flex-start;
-    justify-content: center;
-    padding: 48px 24px 80px;
-  }
-
-  .sub-container {
-    width: 100%;
-    max-width: 480px;
-  }
-
-  .back-link {
-    display: inline-block;
-    font-size: 13px;
-    color: var(--ink-muted);
-    text-decoration: none;
-    margin-bottom: 32px;
-    transition: color 0.14s;
-  }
-
-  .back-link:hover {
-    color: var(--ink);
-  }
-
-  /* ── HEADER ── */
-  .sub-header {
-    margin-bottom: 28px;
-  }
-
-  .sub-title {
-    font-family: 'Playfair Display', serif;
-    font-size: 26px;
-    font-weight: 600;
-    color: var(--ink);
-    line-height: 1.15;
-    margin-bottom: 10px;
-  }
-
-  .sub-desc {
-    font-size: 14px;
-    font-weight: 300;
-    color: var(--ink-muted);
-    line-height: 1.6;
-    letter-spacing: 0.01em;
-  }
-
-  /* ── FORM CARD ── */
-  .sub-card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 24px;
-    margin-bottom: 20px;
-  }
-
-  .sub-label {
-    display: block;
-    font-size: 12px;
-    font-weight: 500;
-    color: var(--ink-muted);
-    margin-bottom: 8px;
-    letter-spacing: 0.01em;
-  }
-
-  .sub-field-row {
-    display: flex;
-    gap: 8px;
-  }
-
-  .sub-input {
-    font-family: inherit;
-    font-size: 14px;
-    border: 1px solid var(--border);
-    border-radius: 4px;
-    padding: 9px 12px;
-    flex: 1;
-    color: var(--ink);
-    background: #f7f4ef;
-    min-width: 0;
-    transition: border-color 0.14s;
-  }
-
-  .sub-input:focus {
-    outline: none;
-    border-color: var(--border-primary);
-  }
-
-  .sub-btn {
-    font-family: inherit;
-    font-size: 13px;
-    font-weight: 500;
-    background: var(--ink);
-    color: #fff;
-    border: none;
-    border-radius: 4px;
-    padding: 9px 18px;
-    cursor: pointer;
-    white-space: nowrap;
-    flex-shrink: 0;
-    transition: background 0.14s;
-  }
-
-  .sub-btn:hover:not(:disabled) {
-    background: #333;
-  }
-
-  .sub-btn:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-  }
-
-  /* ── STATUS ── */
-  .sub-status {
-    margin-top: 14px;
-    font-size: 14px;
-    line-height: 1.5;
-    padding: 12px 16px;
-    border-radius: 4px;
-  }
-
-  .sub-status.ok {
-    background: #edf7ea;
-    border: 1px solid #b8e0b0;
-    color: #2d6020;
-  }
-
-  .sub-status.err {
-    background: #fdf0ed;
-    border: 1px solid #f0c5bb;
-    color: #8c3a2e;
-  }
-
-  .sub-status.pending {
-    background: #f7f4ef;
-    border: 1px solid #e0d9d0;
-    color: #6b6259;
-  }
-
-  /* ── FOOTER NOTE ── */
-  .sub-note {
-    font-size: 12px;
-    color: var(--ink-subtle);
-    line-height: 1.6;
-  }
-
-  @media (max-width: 600px) {
-    .sub-page {
-      padding: 32px 16px 64px;
-    }
-
-    .sub-field-row {
-      flex-direction: column;
-    }
-
-    .sub-btn {
-      width: 100%;
-    }
-  }
-</style>
-
-<script is:inline>
-  const form = document.getElementById('subscribe-form')
-  const emailInput = document.getElementById('subscribe-email')
-  const btn = document.getElementById('subscribe-btn')
-  const status = document.getElementById('subscribe-status')
-
-  form?.addEventListener('submit', async (e) => {
+  form.addEventListener('submit', async (e) => {
     e.preventDefault()
     const email = emailInput.value.trim()
-    if (!email) return
-
+    const choices = readFormChoices(form)
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return showError('Enter your email address.')
+    if (!choices.lists.length) return showError('Choose at least one list.')
+    showError('')
     btn.disabled = true
-    btn.textContent = 'Sending…'
-    status.textContent = 'Subscribing…'
-    status.className = 'sub-status pending'
-    status.hidden = false
-
+    btn.textContent = 'Subscribing…'
     try {
       const resp = await fetch('/.netlify/functions/subscribe', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email })
+        body: JSON.stringify({ email, ...choices })
       })
-      let data = {}
-      try {
-        data = await resp.json()
-      } catch {}
-      const msg =
-        data.message ||
-        (resp.ok ? 'Subscribed!' : 'Something went wrong — please try again shortly.')
-      status.textContent = resp.ok ? msg : `${msg} [${resp.status}]`
-      status.className = `sub-status ${resp.ok ? 'ok' : 'err'}`
+      const data = await resp.json().catch(() => ({}))
+      if (!resp.ok)
+        return showError(data.message || 'Something went wrong — please try again shortly.')
+      status.textContent = data.message
       status.hidden = false
-      if (resp.ok) {
-        emailInput.value = ''
-        form.style.display = 'none'
-      }
+      form.hidden = true
     } catch {
-      status.textContent = 'Network error — please try again shortly.'
-      status.className = 'sub-status err'
-      status.hidden = false
+      showError('Network error — please try again shortly.')
     } finally {
       btn.disabled = false
       btn.textContent = 'Subscribe'

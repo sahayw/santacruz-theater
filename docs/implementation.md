@@ -31,27 +31,39 @@ How the system is built. For what it does, see
   local dev — [§4](#4-data-flow)). Each write triggers a rebuild, the site's
   only publish mechanism.
 - Routes: `/` hub → `/calendar`, `/companies`, `/events`, `/services`,
-  `/about`, `/subscribe`. `SiteNav.astro` is shared.
+  `/about`. `SiteNav.astro` is shared; its `subscribe` prop adds
+  **Subscribe for updates** (to `/subscribe?list=…&from=…`) on `/calendar`,
+  `/events` and `/productions`.
 
 ## 2. Repository layout
 
 ```
 src/
   components/     calendar.astro (calendar UI), SiteNav.astro,
-                  AddToCalendar.astro (feed dialog, §6)
+                  PageBar.astro (/productions bar, §6),
+                  AddToCalendar.astro (feed dialog, §6),
+                  SubscribeShell.astro, SubscribeChoices.astro (/subscribe pages, §8)
   layouts/        page layout wrappers
-  pages/          routes — index, calendar, companies, events, runs, subscribe,
-                  services, about, admin/audition-format.js.ts,
-                  admin/data-rules.js.ts, admin/occurrence-ids.js.ts,
-                  [...feed].ics.ts (calendar feeds, §6)
+  pages/          routes — index, calendar, companies, events, productions,
+                  subscribe, subscribe/manage,
+                  services, about, admin/*.js.ts (shared modules for /admin, §6),
+                  admin/version.json.ts (editor-code fingerprint, §4),
+                  [...feed].ics.ts (calendar feeds, §6),
+                  missing-details.json.ts (§6)
   lib/
     data.ts             build-time data loading (import.meta.glob)
     audition-format.ts  shared formatting — Astro, functions, browser
-    data-rules.ts       shared validation rules — editors + check scripts
+    data-rules.ts       shared validation rules + missing-details gaps — editors + check scripts
+    file-checks.ts      per-file checks — check scripts + the save function (§4)
+    organizers.ts       who organizes a record; organizer rules (§6)
+    venues.ts           venue codes and one-off locations → places (§6)
     occurrence-ids.ts   perf-/session- id generator + backfill (§6)
     calendar-model.ts   runs/activities → calendar events + feeds (§6)
     ics.ts              RFC 5545 serializer for the feeds (§6)
     browser-module.ts   serves a src/lib module to /admin (§6)
+    email-lists.ts      the email lists and their Buttondown tags (§8)
+    notice-rules.ts     digest change detection (§8)
+    subscribe-choices.ts  browser helpers for the subscribe forms (§8)
   types.ts        shared TypeScript interfaces
   styles/         global CSS
 data/             canonical data files (§3)
@@ -59,13 +71,15 @@ public/
   admin/          editor SPA, served at /admin
   images/companies/, images/services/   locally stored images
 netlify/functions/  serverless functions (§7)
-scripts/          check-json.ts, check-shows.ts, check-activities.ts,
-                  check-services.ts, check-markdown.ts,
+scripts/          check-json.ts, check-reference.ts, check-shows.ts,
+                  check-activities.ts, check-services.ts, check-markdown.ts,
                   check-feeds.ts (post-build),
-                  migrate-occurrence-ids.ts (one-off),
+                  migrate-occurrence-ids.ts, migrate-organizers-venues.ts,
+                  migrate-subscribers.ts (one-off),
                   sync-branches.sh, release.sh
 tests/            vitest unit tests + fixtures/ (§9)
-docs/             feature-guide.md, implementation.md
+docs/             feature-guide.md, implementation.md, ics-spec.md,
+                  notifications-spec.md (design records)
 astro.config.mjs  one dev-server redirect (§10)
 netlify.toml      build command, included_files, headers
 ```
@@ -76,36 +90,53 @@ The canonical definition of every data shape.
 
 ### Companies — `data/sc-theater-companies.json`
 
-Hand-edited. `{ "companies": [<CompanyEntry>] }`.
+Hand-edited (there's no editor for it). `{ "companies": [<CompanyEntry>] }`.
+The single list of **organizers**: companies with their own data files, plus
+smaller organizers whose records are filed under Other
+([`notifications-spec.md`](notifications-spec.md)).
 
-| Field          | Type                  | Notes                                             |
-| -------------- | --------------------- | ------------------------------------------------- |
-| `id`           | `string`              | kebab-case slug, e.g. `"scs"`                     |
-| `abvName`      | `string`              | short label for selectors and chips               |
-| `name`         | `string`              | full name                                         |
-| `primaryVenue` | `string?`             | display string                                    |
-| `venueCode`    | `string?`             | venue-list code or custom string                  |
-| `website`      | `string?`             |                                                   |
-| `logo`         | `string?`             | local path, e.g. `/images/companies/scs-logo.png` |
-| `logoDark`     | `boolean?`            | logo needs a dark card background                 |
-| `editors`      | `{email,datasets}[]?` | grants each email the listed dataset keys         |
-| `adminOnly`    | `boolean?`            | sentinel entries; excluded from `/companies`      |
+| Field             | Type                  | Notes                                                                     |
+| ----------------- | --------------------- | ------------------------------------------------------------------------- |
+| `id`              | `string`              | kebab-case slug, e.g. `"scs"`; permanent (saved choices and links use it) |
+| `abvName`         | `string`              | short label: chips, calendar entries, selectors; ≤ 12 chars (warning)     |
+| `name`            | `string`              | full name                                                                 |
+| `primaryVenue`    | `string?`             | venue code; a session with no venue falls back to it                      |
+| `website`         | `string?`             |                                                                           |
+| `logo`            | `string?`             | local path, e.g. `/images/companies/scs-logo.png`                         |
+| `logoDark`        | `boolean?`            | logo needs a dark card background                                         |
+| `logoFill`        | `boolean?`            | logo fills its card                                                       |
+| `editors`         | `{email,datasets}[]?` | grants each email the listed dataset keys                                 |
+| `adminOnly`       | `boolean?`            | sentinel entries (`admin`, `other`); never organizers                     |
+| `filedUnderOther` | `boolean?`            | no data files of its own; its records live in `other-<year>` files        |
+| `major`           | `boolean?`            | offered as a checkbox in subscriptions; has a calendar colour             |
+| `majorCode`       | `number?`             | 1, 2, 4, 8…; permanent (a former major keeps it); numbers filtered feeds  |
+| `colour`          | `string?`             | majors only, hex                                                          |
+| `onCompaniesPage` | `boolean?`            | listed on `/companies`                                                    |
 
 **Sentinels** (`adminOnly: true`):
 
 - `admin` — must be first. Its `editors` are site-wide admins.
-- `other` — must be last. Holds runs/activities for unlisted companies;
-  admin-edited only.
+- `other` — must be last. Not an organizer: the bucket for the
+  `other-<year>` data files of organizers marked `filedUnderOther`.
+  Admin-edited only.
+
+**Adding an organizer** (hand edit): add an entry with `id`, `abvName`,
+`name`, `website?` and `filedUnderOther: true`. Editors pick it from a list;
+they can't create one. **Promoting** one to its own files: remove
+`filedUnderOther`, move its records into `<id>-<year>.json` files, keep the
+`id`.
 
 **Entry order is display order** in public company filters (no sort). The
-editor's selectors (`buildCompanyOptions()` in `api.js`) sort by `abvName`
-with `other` last, independent of file order.
+editor's selectors (`buildCompanyOptions()` in `api.js`) list companies with
+their own files, sorted by `abvName`, then `other`; `filedUnderOther`
+organizers aren't in it.
 
 ### Venues — `data/sc-theater-venues.json`
 
-`{ code, name, address, website }[]`. Autocomplete suggestions in the
-Calendar and Activities editors only — `Run.venue` stores whatever was
-entered, and the calendar displays it as-is.
+Hand-edited. `{ code, name, address?, website? }[]`. Productions refer to a
+venue by `code` (`Run.venue`); audition/event sessions by `ActivityDate.venue`,
+or give a one-off `location`. Either may add a `room` ("Second Stage"), shown
+as "Venue, Room". Codes are permanent.
 
 ### Shows — `data/shows/<year>/<company-id>-<year>.json`
 
@@ -113,21 +144,23 @@ One file per company per year: `{ company, year, runs: [<Run>] }`.
 
 #### `Run`
 
-| Field          | Type            | Notes                                                        |
-| -------------- | --------------- | ------------------------------------------------------------ |
-| `id`           | `string`        | `"run-<timestamp>"`, editor-assigned                         |
-| `company`      | `string`        | company `abvName`                                            |
-| `showAbv`      | `string`        | chip label; required, ≤ 20 chars                             |
-| `show`         | `string`        | full title; required                                         |
-| `description`  | `string?`       | Markdown ([`renderMd`](#6-shared-front-end-logic))           |
-| `genre`        | `Genre[]`       | see [Genre](#genre)                                          |
-| `venue`        | `string`        | venue name or free text; required                            |
-| `price`        | `string`        | e.g. `"$72-$92"`; empty → warning                            |
-| `discounts`    | `string`        | default; overridable per performance                         |
-| `infoUrl`      | `string`        | empty → warning                                              |
-| `ticketsUrl`   | `string`        | default; overridable per performance                         |
-| `performances` | `Performance[]` | ordered; empty → warning (run never appears on the calendar) |
-| `updatedAt`    | `string?`       | ISO 8601; set by the editor on Save when the run changed     |
+| Field          | Type            | Notes                                                                                                          |
+| -------------- | --------------- | -------------------------------------------------------------------------------------------------------------- |
+| `id`           | `string`        | `"run-<timestamp>"`, editor-assigned                                                                           |
+| `company`      | `string`        | the file's company id (`"other"` for the catch-all file)                                                       |
+| `showAbv`      | `string`        | chip label; required, ≤ 20 chars                                                                               |
+| `show`         | `string`        | full title; required                                                                                           |
+| `description`  | `string?`       | Markdown ([`renderMd`](#6-shared-front-end-logic))                                                             |
+| `genre`        | `Genre[]`       | see [Genre](#genre); older runs store one genre as a string — read it with `toGenres()` (`audition-format.ts`) |
+| `organizers`   | `string[]?`     | organizer ids, main first — see below                                                                          |
+| `venue`        | `string`        | venue code; required, must be listed                                                                           |
+| `room`         | `string?`       | space within the venue                                                                                         |
+| `price`        | `string`        | e.g. `"$72-$92"`; empty → warning                                                                              |
+| `discounts`    | `string`        | default; overridable per performance                                                                           |
+| `infoUrl`      | `string`        | empty → warning                                                                                                |
+| `ticketsUrl`   | `string`        | default; overridable per performance                                                                           |
+| `performances` | `Performance[]` | ordered; empty → warning (run never appears on the calendar)                                                   |
+| `updatedAt`    | `string?`       | ISO 8601; set by the editor on Save when the run changed                                                       |
 
 #### `Performance`
 
@@ -138,8 +171,17 @@ non-empty `discounts` / `ticketsUrl` override the run's. `id` is a stable
 
 `getPerformances()` (`src/lib/data.ts`) flattens all runs into a
 `PerformanceEvent[]` (each carrying its performance `id`) with run fields
-merged and overrides resolved, sorted
-by date then time.
+merged and overrides resolved, sorted by date then time. Each carries its
+`organizers`, `organizerName`, `organizerLabel`, the venue's display name in
+`venue` and its code in `venueCode`.
+
+**Organizers**: a record in a company's own file is organized by that
+company; a run may list co-producers in `organizers`. A record in an
+`other-<year>` file must list its organizers, main first, and the main one
+must be `filedUnderOther`. Auditions and events have exactly one organizer —
+`organizers` only under Other, with one id. `recordOrganizerIds()`
+([§6](#organizers-and-venues--srcliborganizersts-srclibvenuests)) turns
+either into the full list.
 
 ### Activities — `data/activities/<year>/<company-id>-activities-<year>.json`
 
@@ -148,30 +190,30 @@ Auditions and events share one schema.
 
 #### `Activity`
 
-| Field                            | Type                    | Applies to | Notes                                                      |
-| -------------------------------- | ----------------------- | ---------- | ---------------------------------------------------------- |
-| `id`                             | `string`                | both       | `"activity-<timestamp>"`, editor-assigned                  |
-| `type`                           | `'audition' \| 'event'` | both       | set at creation; immutable                                 |
-| `title`                          | `string`                | both       | required                                                   |
-| `dates`                          | `ActivityDate[]`        | both       | ordered sessions                                           |
-| `contact`                        | `ActivityContact?`      | both       | `{ name?, email?, phone? }`                                |
-| `noticeUrl`                      | `string?`               | both       | primary info link                                          |
-| `organizerName` / `organizerUrl` | `string?`               | both       | `"other"` only; the name stands in for the company         |
-| `closed`                         | `boolean?`              | both       | excluded from upcoming; reversible                         |
-| `createdAt` / `updatedAt`        | `string`                | both       | ISO 8601 — drive the digest ([§8](#8-email-notifications)) |
-| `genre`                          | `Genre[]`               | audition   |                                                            |
-| `rehearsalStart` / `openingDate` | `string?`               | audition   | `YYYY-MM-DD`                                               |
-| `productionUrl`                  | `string?`               | audition   |                                                            |
-| `rolesAvailable`                 | `AuditionRole[]?`       | audition   | hidden publicly when empty                                 |
-| `prep`                           | `AuditionPrep?`         | audition   | `{ acting?, singing?, dance?, bring? }`                    |
-| `notes`                          | `string?`               | audition   | Markdown                                                   |
-| `virtualSubmission`              | `boolean?`              | audition   | dates optional; always upcoming until closed               |
-| `productionId`                   | `string?`               | audition   | soft ref to a `Run.id`; not exposed in the editor          |
-| `briefDescription`               | `string?`               | event      | collapsed-card blurb                                       |
-| `description`                    | `string?`               | event      | Markdown, expanded card                                    |
-| `cost`                           | `string?`               | event      |                                                            |
-| `registerUrl`                    | `string?`               | event      |                                                            |
-| `datesByRequest`                 | `boolean?`              | event      | dates optional; shows "On request"; upcoming until closed  |
+| Field                            | Type                    | Applies to | Notes                                                                                                                                 |
+| -------------------------------- | ----------------------- | ---------- | ------------------------------------------------------------------------------------------------------------------------------------- |
+| `id`                             | `string`                | both       | `"activity-<timestamp>"`, editor-assigned                                                                                             |
+| `type`                           | `'audition' \| 'event'` | both       | set at creation; immutable                                                                                                            |
+| `title`                          | `string?`               | both       | required, except a linked audition: its title is looked up from `productionId` (`activityTitle()`), never stored                      |
+| `dates`                          | `ActivityDate[]`        | both       | ordered sessions                                                                                                                      |
+| `contact`                        | `ActivityContact?`      | both       | `{ name?, email?, phone? }`                                                                                                           |
+| `noticeUrl`                      | `string?`               | both       | primary info link                                                                                                                     |
+| `organizers`                     | `string[]?`             | both       | organizer ids, main first — see [Organizers](#run)                                                                                    |
+| `closed`                         | `boolean?`              | both       | excluded from upcoming; reversible                                                                                                    |
+| `createdAt` / `updatedAt`        | `string`                | both       | ISO 8601 — record history; the digests don't use them ([§8](#8-email-notifications))                                                  |
+| `genre`                          | `Genre[]?`              | audition   | not stored when linked: taken from the production (`auditionDetails()`)                                                               |
+| `rehearsalStart` / `openingDate` | `string?`               | audition   | `YYYY-MM-DD`; when linked, `openingDate` isn't stored: it's the production's Opening performance, else its first (`runOpeningDate()`) |
+| `productionUrl`                  | `string?`               | audition   | not stored when linked: the production's `infoUrl`                                                                                    |
+| `rolesAvailable`                 | `AuditionRole[]?`       | audition   | hidden publicly when empty                                                                                                            |
+| `prep`                           | `AuditionPrep?`         | audition   | `{ acting?, singing?, dance?, bring? }`                                                                                               |
+| `notes`                          | `string?`               | audition   | Markdown                                                                                                                              |
+| `virtualSubmission`              | `boolean?`              | audition   | dates optional; always upcoming until closed                                                                                          |
+| `productionId`                   | `string?`               | audition   | a `Run.id` (any year); validated; Production picker                                                                                   |
+| `briefDescription`               | `string?`               | event      | collapsed-card blurb                                                                                                                  |
+| `description`                    | `string?`               | event      | Markdown, expanded card                                                                                                               |
+| `cost`                           | `string?`               | event      |                                                                                                                                       |
+| `registerUrl`                    | `string?`               | event      |                                                                                                                                       |
+| `datesByRequest`                 | `boolean?`              | event      | dates optional; shows "On request"; upcoming until closed                                                                             |
 
 Validation rules (required dates, event contact route, etc.) are in the
 [rule reference](#rule-reference); the upcoming rule is in
@@ -180,8 +222,10 @@ Validation rules (required dates, event contact route, etc.) are in the
 #### `ActivityDate`
 
 `{ id: "session-<timestamp>", date: "YYYY-MM-DD", startTime: "HH:MM",
-endTime?: "HH:MM", notes?, location?: { name, address? } }` — location is per
-session. `id` is a stable
+endTime?: "HH:MM", notes?, venue?, location?: { name, address? }, room? }` —
+place is per session: `venue` is a listed venue code; `location` is a one-off
+place not in the list (never both). With neither, feeds fall back to the main
+organizer's `primaryVenue`. `id` is a stable
 [occurrence id](#occurrence-ids--srcliboccurrence-idsts).
 
 #### `AuditionRole`
@@ -190,7 +234,9 @@ session. `id` is a stable
 ageRange?, voicePart? (Musical only), description? }`
 
 `getActivities()` (`src/lib/data.ts`) globs every activities file into a
-sorted `ActivityEvent[]` (activity + `company` + `year`).
+sorted `ActivityEvent[]`: activity + `company` (the file's) + `year` +
+`organizerIds`, `organizerName`, `organizerEntries`, and each date's
+resolved `place`.
 
 ### Services
 
@@ -237,7 +283,7 @@ are coerced to a 1-item array on read.
 typed accessors. Pages call them directly; the public site does no client
 data fetching.
 
-**Editor writes**: `public/admin/*.js` → `/.netlify/functions/data.mjs` (JSON)
+**Editor writes**: `public/admin/*.js` → `/.netlify/functions/data` (`data.mts`, JSON)
 and `upload-image.mjs` (service photos). Both have two modes:
 
 | Mode                                     | Storage                                                      | Auth                                                                                |
@@ -249,19 +295,58 @@ Local PUT bodies are byte-identical to what production would commit, so an
 unwanted local save is undone with `git checkout`. See
 [§10](#10-local-development).
 
+**Save guards** — a save can't break the build, and an old editor tab can't
+save:
+
+- **Server check**: every PUT, in both modes, runs `saveErrors()` from
+  `src/lib/file-checks.ts` — the same per-file checks as `check-shows`,
+  `check-activities` and `check-services` (shape, occurrence ids, the
+  `data-rules.ts` rules). A failure is a 422 listing the reasons, and nothing
+  is written. Only the cross-file rules are left to the build: ids unique
+  across files (they're timestamps, so a clash is near-impossible) and an
+  audition's `productionId` existing (a production saved moments earlier
+  isn't deployed yet).
+- **Editor version**: `/admin/version.json` (`src/pages/admin/version.json.ts`)
+  is a hash of `public/admin/`, `src/lib/` and `src/pages/admin/` — editor
+  code only, so data saves don't change it. `api.js` remembers it at page
+  load and fetches it again when the tab regains focus (showing a "Reload"
+  banner if it changed) and before every PUT (refusing the save). If the
+  file can't be fetched, nothing is blocked.
+
 **Function reads**: `lib/activities-data.mts` and `lib/company-data.mts`
-(email) read `data/` with Node `fs` — `import.meta.glob` is Vite-only and
+(email; activities, companies and venues) read `data/` with Node `fs` — `import.meta.glob` is Vite-only and
 doesn't work in esbuild-bundled functions. The files reach the bundle via
 `[functions].included_files` in `netlify.toml`, so function reads reflect the
 last deploy, not live edits.
 
 ## 5. The `/admin` SPA
 
+Editors can hand off to each other: `window.openEditor(key, intent)` (in
+`index.html`) unmounts the current editor and mounts `key` with `intent` in
+its context. The Activities editor's **Add production…** passes
+`{ addRun: { company, year, show, organizers, returnTo } }`; the Calendar
+editor's `startAddRun()` opens (or creates) that file and starts a new show.
+`returnTo` carries the audition as entered so far. After the show is saved,
+the Calendar editor offers to go back, passing `{ resumeActivity }`; the
+Activities editor's `resumeActivity()` restores the draft, linked and titled.
+
+Both editors ignore a new record nothing has been entered in when deciding
+whether there are unsaved changes, and discard it when you move away.
+
+**Delete** is immediate: `deleteRecordFromFile()` (`api.js`) re-reads the file
+as saved, removes that one record, and writes it back, so other unsaved edits
+aren't published with it. The Calendar editor first refuses to delete a show
+that a saved audition's `productionId` points at. Each editor exports
+`hasUnsavedChanges()`; `index.html` asks before Home, switching editors, or
+closing the tab would discard them.
+
 | File                                          | Role                                                                                       |
 | --------------------------------------------- | ------------------------------------------------------------------------------------------ |
 | `index.html`                                  | login overlay, dataset hub, routing. On `localhost`, auth is skipped: full admin access.   |
 | `api.js`                                      | `apiFetch` / `apiPut` / `apiUploadImage` / `resolveUserAccess()` / `buildCompanyOptions()` |
 | `calendar.js`, `activities.js`, `services.js` | one ES module per editor, exporting `mount(container, context)` / `unmount()`              |
+| `organizer-picker.js`                         | organizer select (records filed under Other) and co-producer chips (shows only)            |
+| `genre-boxes.js`                              | the genre checkbox row (at most `MAX_GENRES`)                                              |
 | `markdown-editor.js`                          | shared rich-text toolbar and shortcuts                                                     |
 
 **Auth**
@@ -290,21 +375,27 @@ activities.
 ### Validation rules
 
 Every record-level rule lives in `src/lib/data-rules.ts`:
-`runIssues(run, fileYear)`, `activityIssues(activity, fileYear)`,
-`listingIssues(listing)`, each returning `{ errors, warnings }`.
+`runIssues(run, fileYear, refs)`, `activityIssues(activity, fileYear,
+fileCompany, refs)`, `listingIssues(listing)`, each returning `{ errors,
+warnings }`. `refs` is `{ companies, venues, runIds? }` — the reference lists
+the record is checked against (`runIds` omitted = skip the `productionId`
+check).
 
 - **Editors** (`collectIssues()` on Save): errors block; warnings ask "Save
   anyway?" for records changed since load.
 - **Check scripts** (`check-shows/activities/services.ts`): errors fail the
-  build; warnings print.
+  build; warnings print. Their per-file checks live in
+  `src/lib/file-checks.ts`, which the save function also runs
+  ([§4](#4-data-flow)), so the build and saves can't disagree.
 
 **Change a rule in `data-rules.ts` only**, then update the
 [rule reference](#rule-reference) and
 [feature-guide §7](feature-guide.md#whats-required).
 
-Date/time _input_ normalization is per-editor (`normalizeDate()` /
-`normalizeTime()` in `activities.js`; `parseDate()` in the Calendar paste
-panel). Accepted formats are documented in
+Date fields are native `<input type="date">` pickers, so they always hold
+`YYYY-MM-DD`. Time _input_ normalization is per-editor (`normalizeTime()`),
+and the Calendar paste panel parses text dates with `parseDate()`. Accepted
+formats are documented in
 [feature-guide §7](feature-guide.md#7-editing-conventions).
 
 ### Serving `src/lib` modules to `/admin`
@@ -312,8 +403,61 @@ panel). Accepted formats are documented in
 `src/pages/admin/*.js.ts` routes import a module with `?raw` and pass it to
 `browserModuleResponse()` (`src/lib/browser-module.ts`), which transpiles it
 with TypeScript's `transpileModule` at build. Any TypeScript syntax works;
-runtime imports from other files don't (type-only imports are dropped).
-Never hand-maintain a copy under `public/admin/`.
+type-only imports are dropped. A runtime import of a sibling module
+(`./organizers.ts`) is rewritten to `./organizers.js`, so that module needs
+its own route too (`data-rules` imports `organizers` and `venues`). Never
+hand-maintain a copy under `public/admin/`.
+
+### Organizers and venues — `src/lib/organizers.ts`, `src/lib/venues.ts`
+
+Pure functions shared by pages, feeds, functions and `/admin`
+(`/admin/organizers.js`, `/admin/venues.js`).
+
+- `recordOrganizerIds(fileCompany, organizers)` — a record's organizer ids,
+  main first. Use it everywhere a record's organizer is shown or matched;
+  never read `company` directly for display ("other" is not an organizer).
+- `organizerName()` / `organizerLabel()` — "A & B" / "A / B".
+  `organizerEntries()`, `majors()`, `otherOrganizers()`, `allOrganizers()`
+  for pickers. `organizerErrors()` is the organizer rule.
+- `runPlace(run, venues)` / `sessionPlace(date, venues)` — the venue or
+  one-off location as `{ name, address }`, room included.
+- `public/admin/organizer-picker.js` is the editors' shared picker: the main
+  organizer for records filed under Other, co-producer chips for all.
+- **Public cards** on `/events` and `/productions` carry
+  `data-organizers="<id> <id>…"` (from `recordOrganizerIds()`), never the
+  data file's company. The client filters match on it:
+  - `?company=<organizer id>` keeps cards naming that organizer, for any id
+    in `allOrganizers()` (the page embeds their names as `data-names` on
+    the Company select). An unknown id is ignored; an organizer outside the
+    dropdown gets its own option. Changing the select rewrites the address
+    with `history.replaceState`.
+  - `/events`' Company dropdown lists every organizer with a listing.
+  - `/productions`' **Other** keeps cards with any organizer who isn't a
+    major (`data-majors` on the select). Its address is `?company=other`
+    (`other` is never an organizer id).
+
+### Page bar — `src/components/PageBar.astro`
+
+The dark bar under the nav on `/productions`, styled like the
+calendar's: a **Filters** button whose dropdown holds the page's
+`.filter-row`s (default slot), the title (`#page-bar-title`, the page's
+`h1`), and **Add to my calendar**, whose `data-ics-*` attributes come from
+the `calendar` prop. The Filters badge counts selects in visible rows that
+aren't on their first option, so a page's default must be its first option.
+It also styles `.page-intro` (description and `.page-count`) under the bar.
+Pages offset their content by `--nav-h` + `--page-bar-h`. The `?id=` deep
+link hides both buttons and the intro and retitles the bar.
+
+### Missing details — `/missing-details.json`
+
+`runGaps(run)` / `activityGaps(activity, primaryVenue)` in `data-rules.ts`
+list what an upcoming production or open activity lacks: `dates`,
+`tickets`, `price`, `info`, `description`, `location`. Production gaps are
+also the editor's warnings. `src/pages/missing-details.json.ts` publishes
+every record with gaps at build time — `{ generated, records: [{ kind, id,
+title, organizers, file, firstDate?, missing }] }` — for the external
+alerting agent (not part of this repo). Change the gap rules in
+`data-rules.ts` only.
 
 ### Occurrence ids — `src/lib/occurrence-ids.ts`
 
@@ -329,8 +473,8 @@ array position.
 - `ensurePerformanceIds()` / `ensureSessionIds()` add ids only to rows
   without one, placing `id` first in the object.
   - The editors call them on load, **before** taking snapshots, so backfilled
-    ids don't mark the file dirty or bump `updatedAt`. That matters because
-    the digest reads `updatedAt`. The ids are written on the next real save.
+    ids don't mark the file dirty or bump `updatedAt` (the calendar feeds'
+    `LAST-MODIFIED`). The ids are written on the next real save.
   - `scripts/migrate-occurrence-ids.ts` (`npx tsx …`) applies the same helpers
     to every data file. It never touches `updatedAt`, keeps each file's
     trailing-newline style, and is idempotent.
@@ -351,7 +495,7 @@ text (calendar apps would show raw URLs in full), and writes bullets as
 | Consumer                                                           | How it gets the module                                                         |
 | ------------------------------------------------------------------ | ------------------------------------------------------------------------------ |
 | `events.astro`, `services.astro`, `calendar.astro` (client script) | direct import                                                                  |
-| `send-digest.mts`                                                  | esbuild bundle                                                                 |
+| email functions (`netlify/functions/`)                             | esbuild bundle                                                                 |
 | `activities.js`, `calendar.js`, `services.js` (Preview)            | `/admin/audition-format.js`, served by `src/pages/admin/audition-format.js.ts` |
 
 ### The "upcoming" rule
@@ -361,8 +505,15 @@ text (calendar apps would show raw URLs in full), and writes bullets as
 - Otherwise → latest `dates[].date` ≥ today.
 
 Implemented in **three places that must agree**: the `/events` client filter
-(`src/pages/events.astro`), `isUpcoming()` in
-`netlify/functions/lib/activities-data.mts` (emails), and the editor Preview.
+(`src/pages/events.astro`), `isUpcomingActivity()` in `src/lib/data-rules.ts`
+(emails and the digests' change detection), and the editor Preview.
+
+**Today** is always the Santa Cruz date: `todayIso()` in
+`src/lib/data-rules.ts` (builds, functions, emails, the editors). The
+`/events`, `/productions` and `/calendar` page scripts can't import it and
+compute the same date inline
+(`toLocaleDateString('en-CA', { timeZone: 'America/Los_Angeles' })`), so
+a listing is upcoming everywhere until midnight in Santa Cruz.
 
 ### Activity card rendering paths
 
@@ -389,24 +540,28 @@ Netlify's CDN, which handles ETag/304. There's no function and no
 calendar-service API. The design and its rationale are in
 [`ics-spec.md`](ics-spec.md).
 
-| File                     | Contents                              | Use          |
-| ------------------------ | ------------------------------------- | ------------ |
-| `/runs.ics`              | all performances                      | subscription |
-| `/runs/company/{id}.ics` | one company's performances            | subscription |
-| `/activities.ics`        | sessions of all auditions and events  | subscription |
-| `/auditions.ics`         | audition sessions only                | subscription |
-| `/activities/{id}.ics`   | one activity's sessions ("all dates") | download     |
-| `/performances/{id}.ics` | one performance                       | download     |
-| `/sessions/{id}.ics`     | one activity session                  | download     |
+| File                             | Contents                              | Use          |
+| -------------------------------- | ------------------------------------- | ------------ |
+| `/productions.ics`               | all performances                      | subscription |
+| `/productions/selection/{n}.ics` | performances without some majors      | subscription |
+| `/activities.ics`                | sessions of all auditions and events  | subscription |
+| `/auditions.ics`                 | audition sessions only                | subscription |
+| `/activities/{id}.ics`           | one activity's sessions ("all dates") | download     |
+| `/performances/{id}.ics`         | one performance                       | download     |
+| `/sessions/{id}.ics`             | one activity session                  | download     |
 
 `{id}` is the bare epoch from the record's or occurrence's id, with the
-prefix stripped.
+prefix stripped. `{n}` is the sum of the left-out majors' permanent
+`majorCode`s (`selectionFeedPath()`); `selectionMasks()` publishes every
+combination of the codes ever assigned, so a number keeps its meaning and is
+never withdrawn. A production stays in a selection feed if any of its
+organizers is included, so non-majors are always in.
 
 - **`src/lib/calendar-model.ts`** (pure) turns runs and activities into
   `CalendarEvent`s, and `buildFeeds()` groups them into the feeds above.
   - **Window**: subscriptions keep events from 12 months before the build
     onward (`HISTORY_MONTHS`). Download files aren't windowed.
-  - **`Feed.subscribable`**: true only for the four kinds of subscription.
+  - **`Feed.subscribable`**: true only for the subscriptions.
     `ics.ts` adds the refresh hints (`REFRESH-INTERVAL`, `X-PUBLISHED-TTL`)
     only to those.
   - **Closed and undated activities**: a closed activity publishes no events.
@@ -416,13 +571,14 @@ prefix stripped.
     - UID: `{occurrence id}@santacruz.theater`.
     - Times: wall-clock America/Los_Angeles. With no end time, an event
       lasts 2 hours.
-    - Location: a venue name or code is looked up in `sc-theater-venues.json`.
-      Sessions fall back to the company's `primaryVenue`.
-    - Page link: `/runs?id=` or `/events?id=`. It appears only as the
+    - Location: the venue code (or a session's one-off location) resolved by
+      `runPlace()` / `sessionPlace()`, room included. Sessions with neither
+      fall back to the main organizer's `primaryVenue`.
+    - Page link: `/productions?id=` or `/events?id=`. It appears only as the
       description's last line. There's no `URL` property, which Apple would
       show as a second, duplicate link.
     - Description: plain text, via `mdToPlain`. It contains no third-party
-      URLs; it ends with one short `Details & tickets: …/runs?id=` (or
+      URLs; it ends with one short `Details & tickets: …/productions?id=` (or
       `Details: …`) line pointing at our page. The dialog's Google add-event
       link turns that line into a real link, since Google renders HTML there.
 - **`src/lib/ics.ts`** is a hand-written serializer. It escapes text, folds
@@ -437,9 +593,10 @@ prefix stripped.
   `Content-Type: text/calendar; charset=utf-8` for `/*.ics`.
 - **UI — `src/components/AddToCalendar.astro`**: a single native `<dialog>`
   per page, with three modes chosen by the trigger's attribute.
-  - **Subscribe**: `data-ics-feed` + `data-ics-name`, or `data-ics-choices`
+  - **Subscribe**: `data-ics-feed` + `data-ics-name`; `data-ics-choices`
     (a JSON list of `{label, feed, name}`) + `data-ics-choice-label` for a
-    picker. It shows a `webcal://` link, Google's
+    picker; or `data-ics-majors` (a JSON list of `{code, label, name}`) for
+    a checkbox per major, all ticked, which picks the selection feed. It shows a `webcal://` link, Google's
     `calendar.google.com/calendar/r?cid=<webcal URL>` link, and a copyable
     `https` URL.
   - **One event**: `data-ics-event="performances/{id}"` or
@@ -454,15 +611,15 @@ prefix stripped.
     It lists the file's dates and offers a download only.
   - **Shared behaviour**:
     - Clicks are delegated from `document`, so triggers in client-rendered
-      markup (the calendar's show cards) work.
+      markup (the calendar's performance cards) work.
     - URLs come from `location.origin`, so branch deploys use their own
       files.
     - Subscription names come from `FEED_NAMES` in `calendar-model.ts`.
   - **Usage tracking**: each action sends a Plausible custom event. Plausible
     loads only in production builds (`BaseHead.astro`), and the call is a
     no-op where it isn't loaded.
-    - `Calendar subscribe` — props `calendar` (feed name) and `app` (`Apple /
-Outlook`, `Google`, `Copy link`);
+    - `Calendar subscribe` — props `calendar` (feed name) and `app`
+      (`Apple / Outlook`, `Google`, `Copy link`);
     - `Calendar add event` — props `event` (summary) and `app`;
     - `Calendar download all dates` — props `activity` and `app`.
 
@@ -473,21 +630,24 @@ Outlook`, `Google`, `Copy link`);
 
 - **Placements**:
   - **`calendar.astro`**:
-    - a bar button with a company picker, hidden unless
-      `body.scroll-mode` (week view);
+    - a bar button with the majors' checkboxes, hidden unless
+      `body.drill-mode` (month / week view);
     - per-card **All dates** / **Add to my calendar** links. These need
       `PerformanceEvent.id`.
   - **`events.astro`**:
-    - the banner picker;
+    - the filter row's button, with the Include picker;
     - a per-session-row button for open activities, which the client script
       hides for past dates;
     - **Download all dates** in the links row for open activities with two
       or more dated sessions.
-  - **`runs.astro`**: a per-performance-row button, hidden for past rows.
-- **`/runs` (`src/pages/runs.astro`)**: lists runs that have performances
-  (index / filter / `?id=` deep link, like `/events`) with the full schedule.
-  It's deliberately not in `SiteNav`. It is the page link in performance
-  events, and the calendar's **All dates** link.
+  - **`productions.astro`**: the bar button with the majors' checkboxes (as
+    on `/calendar`), and a per-performance-row button, hidden for past rows.
+- **`/productions` (`src/pages/productions.astro`)**: lists runs that have
+  performances
+  (index / filter / `?id=` deep link / `?company=`, like `/events`) with the
+  full schedule. It's deliberately not in `SiteNav`'s links. It is the page
+  link in performance events, the calendar's **All dates** link, and the
+  link on email cards.
 - **Checks**:
   - Unit tests (`tests/calendar-model.test.ts`, `tests/ics.test.ts`) run on
     fixtures and parse the output with `ical.js`, including daylight-saving
@@ -498,126 +658,238 @@ Outlook`, `Google`, `Copy link`);
 ## 7. Netlify functions
 
 New functions use the **v2 interface** (`export default async (req: Request)
-=> …` + `export const config`). `data.mjs` and `send-digest.mts` are legacy
-style and aren't being migrated proactively.
+=> …` + `export const config`). `data.mts` keeps the legacy `handler` style
+(it's TypeScript so it can import the shared checks); it isn't being
+migrated proactively.
 
-| Function                  | Purpose                                                             |
-| ------------------------- | ------------------------------------------------------------------- |
-| `data.mjs`                | data read/write — two modes ([§4](#4-data-flow))                    |
-| `upload-image.mjs`        | service photo upload — same two modes                               |
-| `fetch-page.mjs`          | page-fetch proxy (unused by current editors)                        |
-| `subscribe.mts`           | Buttondown subscribe + welcome email ([§8](#8-email-notifications)) |
-| `send-digest.mts`         | daily digest ([§8](#8-email-notifications))                         |
-| `lib/email-template.mts`  | inline-styled welcome + digest HTML                                 |
-| `lib/activities-data.mts` | fs-based activity loading and classification                        |
-| `lib/company-data.mts`    | fs-based company name lookup                                        |
+| Function                     | Purpose                                                      |
+| ---------------------------- | ------------------------------------------------------------ |
+| `data.mts`                   | data read/write — two modes, save check ([§4](#4-data-flow)) |
+| `upload-image.mjs`           | service photo upload — same two modes                        |
+| `fetch-page.mjs`             | page-fetch proxy (unused by current editors)                 |
+| `subscribe.mts`              | subscribe + welcome email ([§8](#8-email-notifications))     |
+| `preferences.mts`            | read/change a subscriber's choices; send a manage link       |
+| `send-digest.mts`            | scheduled trigger for the nightly digest                     |
+| `send-digest-background.mts` | the nightly digests for both lists                           |
+| `lib/digest.mts`             | digest logic: snapshots, broadcasts, individual sends        |
+| `lib/subscriptions.mts`      | choices ↔ tags/metadata; welcome and manage-link emails      |
+| `lib/buttondown.mts`         | Buttondown API client                                        |
+| `lib/email-template.mts`     | inline-styled digest, welcome and manage-link HTML           |
+| `lib/activities-data.mts`    | fs-based activity loading                                    |
+| `lib/shows-data.mts`         | fs-based production loading; email card shape                |
+| `lib/company-data.mts`       | fs-based company/organizer and venue lists                   |
+| `lib/site.mts`               | site URL; Santa Cruz "today"                                 |
 
 ## 8. Email notifications
 
-Welcome email on signup, then a daily digest. Delivered by **Buttondown**
-(subscribers, unsubscribe, delivery); subscribers are added as
-`type: "regular"` — no double opt-in.
+Two lists, delivered by **Buttondown** (subscribers, unsubscribe, delivery):
+**Performance updates** and **Audition & event notices**. A list is a
+Buttondown tag. Subscribers are added as `type: "regular"` — no double
+opt-in. The design record is `docs/notifications-spec.md`.
 
-### Data access — `lib/activities-data.mts`
+### Lists — `src/lib/email-lists.ts`
 
-The only place functions read activity data (via `fs` — [§4](#4-data-flow)).
-Exports `loadAllActivities()`, `isUpcoming()`, `getUpcomingActivities()` /
-`getUpcomingAuditions()` / `getUpcomingEvents()`, and
-`classifyForDigest(activities, lastSent)`. Don't duplicate it or reintroduce
-GitHub API reads.
+The one definition of the lists (id, tag, label, description), read by the
+pages, functions, digests and migration. Two more pieces of subscriber
+state:
+
+- tag `performances-selected` — on Performance updates subscribers who left
+  out any majors; they get individual copies instead of the broadcast.
+- metadata `excluded_majors` — those majors' company ids, comma-separated.
+
+`tagsFor()` / `listsFromTags()` convert between lists and tags. Tags the
+system doesn't manage (`MANAGED_TAGS`) are kept when choices change.
+
+### Change detection — `src/lib/notice-rules.ts`
+
+Pure functions, unit-tested (`tests/notice-rules.test.ts`). Each record gets
+a **print** of its significant fields:
+
+| List               | Print                                                                                    |
+| ------------------ | ---------------------------------------------------------------------------------------- |
+| Productions        | upcoming performances (id → date time), venue code + room, whether a tickets link exists |
+| Auditions & events | upcoming sessions (id → date time), each session's place, closed, registration link      |
+
+`classify()` compares tonight's prints with the snapshot of what was last
+emailed:
+
+- **New**: listable now (upcoming; for activities, `isUpcomingActivity()`)
+  and not listable or unknown before — so a production saved before its
+  dates is announced when its dates arrive.
+- **Changed**: dates added / cancelled / moved (by occurrence id), venue or
+  location changed, tickets link appeared ("Tickets on sale"), registration
+  link appeared ("Registration open"), reopened.
+- **Cancelled**: a record that was listable and has lost all its remaining
+  dates is still reported, labelled "Cancelled" (`all: true` on the removal);
+  its email card reads "No upcoming performances" / "No upcoming sessions".
+  An activity that closes isn't a cancellation and sends nothing.
+- A past date dropping off, and every other field (description, price,
+  contact, wording), never sends email. `createdAt` / `updatedAt` aren't
+  used.
+
+### Data access — `lib/activities-data.mts`, `lib/shows-data.mts`, `lib/company-data.mts`
+
+The only places functions read data (via `fs` — [§4](#4-data-flow)).
+`loadAllActivities()` resolves titles, organizer names and places;
+`isUpcoming()` is `isUpcomingActivity()` from `src/lib/data-rules.ts`.
+`loadRuns()` reads every shows file; `digestProduction()` shapes a run for an
+email card (upcoming performances only); `includesProduction()` keeps a
+production for a subscriber when any of its organizers isn't excluded (as
+the selection feeds). Don't duplicate these or reintroduce GitHub API reads.
+
+### Buttondown client — `lib/buttondown.mts`
+
+Subscribers (create — `null` when the address exists — get, update, list by
+tag), tag ids by name (email filters take ids, not names), create email,
+send an email to one subscriber. Creating or updating a subscriber first
+creates any of its tags that don't exist yet, with a colour — Buttondown
+requires one, and a tag it auto-creates from an unseen name on a subscriber
+is colourless and missing from the dashboard's tag list. Buttondown documents only one per-endpoint
+limit (creating subscribers, 100 an hour) and no rate-limit headers; a 429
+is retried after a pause.
 
 ### Subscribe — `subscribe.mts`
 
-- Accepts `{ email }` and POSTs to Buttondown. Responses: 201 new; 409/422
-  already subscribed; 400/5xx error.
-- On 201, `context.waitUntil()` sends the welcome email after responding, so
-  the visitor waits only for the subscribe call (~2.5s).
-- Widget on `/events` (hidden in deep-link/not-found modes) and `/subscribe`.
+- Accepts `{ email, lists, excluded }`; `lists` defaults to
+  `["auditions-events"]`.
+- New address: creates the subscriber with its tags and metadata, then
+  `context.waitUntil()` sends the **welcome email** (`sendWelcome()` in
+  `lib/subscriptions.mts`) — one email with a section per list chosen:
+  upcoming productions as a compact list (less any excluded majors), and
+  upcoming auditions and events as cards. Result pings
+  `SUBSCRIBE_HEALTHCHECK_URL` (or `/fail`).
+- Existing address (subscribed or not): emails it a link to its choices.
+- The reply is the same in both cases, so it never says whether an address
+  is subscribed.
 
-### Welcome email
+One-off emails are created with `status: "transactional"` and sent with
+`POST /v1/subscribers/{id}/emails/{email_id}`.
 
-1. `POST /v1/emails` (`status: "transactional"`) creates a one-off email.
-2. `POST /v1/subscribers/{id_or_email}/emails/{email_id}` sends it to the new
-   subscriber only — avoids draft-preview headers and the per-draft
-   recipient limit.
+### Preferences — `preferences.mts`
 
-Step 2 is skipped if step 1 fails. Each call has an 8s timeout. Result pings
-`SUBSCRIBE_HEALTHCHECK_URL` (or `/fail`, with the response body logged);
-the visitor's response is unaffected. Template: `buildWelcomeHtml(auditions,
-events, baseUrl)` — Upcoming Auditions and Upcoming Events sections, each
-with an empty-state line.
+Backs `/subscribe/manage`. The subscriber id (`?s=`) is the bearer token —
+the same one Buttondown's unsubscribe link carries.
 
-### Daily digest — `send-digest.mts`
+- `GET ?s=` → `{ email, lists, excluded }` (no lists when unsubscribed).
+- `POST { action: "update", s, lists, excluded }` — `lists` must not be
+  empty; resubscribes an unsubscribed address.
+- `POST { action: "unsubscribe", s }`.
+- `POST { action: "send-link", email }` — emails the address its link if
+  it's on file; same reply either way.
 
-Runs `0 2 * * *` (02:00 UTC), set in the `schedule()` call.
+### Nightly digest — `send-digest.mts` → `send-digest-background.mts`
 
-1. Read `last-sent` from Blob store `audition-notifications` (missing →
-   everything is new).
-2. `classifyForDigest()` → new/updated auditions and events. **New**:
-   `createdAt` > last-sent. **Updated**: `updatedAt` > last-sent and
-   `createdAt` ≤ last-sent.
-3. Nothing to send → stop (timestamp unchanged; healthcheck still pinged).
-4. `EMAIL_DIGEST_DRY_RUN=true` → log only.
-5. POST to Buttondown (`status: "about_to_send"`).
-6. On success, write the new timestamp.
-7. Ping `DIGEST_HEALTHCHECK_URL`.
+`send-digest.mts` is scheduled (`0 2 * * *`, 02:00 UTC — the previous
+evening in Santa Cruz) and only POSTs to `send-digest-background` with the
+`DIGEST_SECRET` header: scheduled functions are limited to 30 seconds. The
+background function (15 minutes; Netlify retries twice on error) runs
+`runDigest()` in `lib/digest.mts`. "Today" is the Santa Cruz date
+(`todayIso()`, [§6](#the-upcoming-rule)).
 
-**Why JSON timestamps, not file mtime**: git and Netlify deploys don't
-preserve mtime. The editor sets `createdAt` on create and advances
-`updatedAt` only when a record actually changed (dirty-check against a load
-snapshot), so re-saving unchanged doesn't produce a spurious "Updated".
+For each list:
 
-**Why Blob credentials are explicit**: Netlify doesn't inject a Blobs token
-into scheduled functions, so `getStore()` needs `NETLIFY_SITE_ID` +
-`NETLIFY_TOKEN`.
+1. Read `snapshot/<list>` from Blob store `email-digests`. **Missing** →
+   save tonight's prints and send nothing (no burst at go-live).
+2. Classify against it. Nothing new or changed → save the snapshot.
+3. **Audition & event notices**: one broadcast to the `auditions-events`
+   tag. Sections: New auditions, New events, Updates.
+4. **Performance updates**: one broadcast to `performances` and not
+   `performances-selected`. Then each `performances-selected` subscriber is
+   grouped by their exclusions; each group with anything left gets one
+   created email, sent to each member individually. Sections: New
+   productions, Updates; "1 date added" shows only the added dates; "Tickets
+   on sale" adds a Get tickets button.
+5. Save the snapshot.
+
+**Retries**: `run/<date>` records each list's broadcast id, each group's
+email id, the subscribers sent to (saved after each send), and `done`. A
+retry skips all of them; at worst it repeats the one individual send whose
+save failed. The snapshot is saved only once a list's sends are complete.
+
+**Footer**: "Change your choices" (`/subscribe/manage?s={{ subscriber.id }}`)
+and "Unsubscribe from everything" (`{{ unsubscribe_url }}`) — Buttondown
+template variables, filled per recipient. A copy leaving out majors names
+them.
+
+`EMAIL_DIGEST_DRY_RUN=true` sends nothing. It logs what would be sent and
+who to (individual copies list up to 20 addresses), and saves each broadcast
+as a Buttondown **draft** with its real filters, so the audience can be
+checked in Buttondown before anything goes out. It saves no run record and
+no snapshot updates, but it does seed a missing snapshot (seeding sends
+nothing). `DIGEST_HEALTHCHECK_URL` is pinged after each successful run.
+
+**Deploys** (`lib/site.mts`, from the function's `context.deploy.context`):
+
+- Blobs are site-wide, so only production uses the `email-digests` store;
+  every other deploy gets its own (`email-digests-branch-deploy` for the
+  `dev` deploy). Testing never touches production's snapshots.
+- Email links use `https://santacruz.theater` on production and the
+  request's own origin elsewhere, so emails sent from the `dev` deploy link
+  back to it. `subscribe` and `preferences` do the same.
+- The log's first line names the store and link address.
+- Buttondown is shared, though: a non-dry run on any deploy sends to real
+  subscribers on the list's tag. Keep `EMAIL_DIGEST_DRY_RUN=true` on the
+  `dev` deploy except for a deliberate test (and before step 2 of Go-live
+  only test addresses carry the new tags).
+
+**Why Blob credentials are explicit**: `getStore()` is given
+`NETLIFY_SITE_ID` + `NETLIFY_TOKEN` rather than relying on injected context.
+
+### Go-live
+
+1. Set `DIGEST_SECRET` (any long random string).
+2. Tag existing subscribers with `scripts/migrate-subscribers.ts` (needs
+   `BUTTONDOWN_API_KEY`). On its own it reports; with `--apply` it tags
+   everyone not on a list `auditions-events`. Safe to re-run.
+3. Run the background function once by hand (below) to seed both
+   snapshots.
+
+**Buttondown settings** (in its dashboard, not in code): the plan must
+include tags — on one without them, the API accepts tag names on
+subscribers but silently drops them. **Portal** is off, so Buttondown's
+footer doesn't add its own subscription-management page link alongside our
+"Change your choices"; any other Buttondown footer element is hidden with
+custom CSS under Settings → Email.
 
 ### Testing the digest
 
-Requires `netlify login` and `netlify link`.
-
 ```bash
-# Negative test — should find nothing after a recent successful run
-netlify functions:invoke send-digest --live
+# Run it now (dry run if EMAIL_DIGEST_DRY_RUN=true on that deploy)
+curl -X POST -H "x-digest-secret: $DIGEST_SECRET" \
+  https://santacruz.theater/.netlify/functions/send-digest-background
 
-# Dry run — preview without sending or advancing the timestamp
-netlify env:set EMAIL_DIGEST_DRY_RUN true
-netlify deploy --trigger
-netlify functions:invoke send-digest --live
-
-# Real send — reset the timestamp, then invoke live
-netlify env:unset EMAIL_DIGEST_DRY_RUN
-netlify blobs:set audition-notifications last-sent "1970-01-01T00:00:00.000Z"
-netlify deploy --trigger
-netlify functions:invoke send-digest --live
-
-# Inspect / manipulate the stored timestamp
-netlify blobs:get audition-notifications last-sent
-netlify blobs:set audition-notifications last-sent "2026-06-01T00:00:00.000Z"
-netlify blobs:delete audition-notifications last-sent   # next run treats everything as new
+# Inspect / reset stored state (the dev deploy's store: email-digests-branch-deploy)
+netlify blobs:list email-digests
+netlify blobs:get email-digests snapshot/performances
+netlify blobs:delete email-digests snapshot/performances   # next run re-seeds, sends nothing
+netlify blobs:delete email-digests run/2026-10-20          # let today's run send again
 
 # Logs
-netlify functions:log send-digest --live
+netlify functions:log send-digest-background --live
 ```
 
 Healthcheck: 24h period, ~2h grace. It pings on every successful run, so a
 missing ping always means a problem.
 
-| Symptom                           | Likely cause                                |
-| --------------------------------- | ------------------------------------------- |
-| `MissingBlobsEnvironmentError`    | `NETLIFY_SITE_ID` / `NETLIFY_TOKEN` not set |
-| `missing BUTTONDOWN_API_KEY`      | key not set or not yet deployed             |
-| Buttondown 401                    | API key invalid/revoked                     |
-| Buttondown 429                    | rate limited; retries next run              |
-| No healthcheck ping on success    | `DIGEST_HEALTHCHECK_URL` not set            |
-| Same records reappear next digest | Blob write failed after send — check logs   |
+| Symptom                           | Likely cause                                         |
+| --------------------------------- | ---------------------------------------------------- |
+| `missing or wrong secret` in logs | `DIGEST_SECRET` not set, or differs between deploys  |
+| `MissingBlobsEnvironmentError`    | `NETLIFY_SITE_ID` / `NETLIFY_TOKEN` not set          |
+| `missing BUTTONDOWN_API_KEY`      | key not set or not yet deployed                      |
+| Buttondown 401                    | API key invalid/revoked                              |
+| Buttondown 429 after retries      | rate limited; the next run resumes from `run/<date>` |
+| No healthcheck ping on success    | `DIGEST_HEALTHCHECK_URL` not set                     |
+| Same notices in two digests       | snapshot write failed after sending — check logs     |
 
 ## 9. Validation scripts
 
 `npm run check` (first step of `npm run build`) runs:
 
 - `check-json.ts` — JSON syntax.
+- `check-reference.ts` — the companies/organizers and venue lists (below).
 - `check-shows.ts`, `check-activities.ts`, `check-services.ts` — the shared
-  rules below plus structural checks.
+  rules below plus structural checks. `check-activities.ts` also lists
+  one-off session locations, so regulars can be added to the venue list.
 - `check-markdown.ts` — `renderMd` regression cases.
 - `vitest run` — unit tests in `tests/`. They run against fixture data in
   `tests/fixtures/`, never live `data/`, so an editor save can't break them.
@@ -642,42 +914,54 @@ Errors fail the build; warnings print.
 _Error_: blocks Save / fails build. _Warning_: "Save anyway?" (changed
 records only) / printed.
 
-| Record   | Rule                                                                                 | Level   |
-| -------- | ------------------------------------------------------------------------------------ | ------- |
-| Run      | `show` non-blank                                                                     | error   |
-| Run      | `showAbv` non-blank, ≤ 20 chars (`SHOW_ABV_MAX`)                                     | error   |
-| Run      | `venue` non-blank                                                                    | error   |
-| Run      | each performance: real `YYYY-MM-DD` within file year ± 1; `time` `HH:MM` 00:00–23:59 | error   |
-| Run      | earliest performance in the file's year                                              | error   |
-| Run      | `price`, `infoUrl`, `description` non-blank                                          | warning |
-| Run      | at least one performance                                                             | warning |
-| Activity | `title` non-blank                                                                    | error   |
-| Activity | at least one date, unless audition + `virtualSubmission` or event + `datesByRequest` | error   |
-| Activity | each date row: `date` as above; `startTime` valid; `endTime` valid if present        | error   |
-| Activity | earliest date in the file's year                                                     | error   |
-| Audition | `rehearsalStart` / `openingDate` real `YYYY-MM-DD` if present                        | error   |
-| Event    | one of `contact.email`, `contact.phone`, `noticeUrl`, `registerUrl`, `organizerUrl`  | error   |
-| Listing  | `name` non-blank                                                                     | error   |
-| Listing  | at least one category                                                                | error   |
-| Listing  | `contact.tel` or `contact.email`                                                     | error   |
+| Record   | Rule                                                                                                                                                                                                    | Level   |
+| -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------- |
+| Run      | `show` non-blank                                                                                                                                                                                        | error   |
+| Run      | `showAbv` non-blank, ≤ 20 chars (`SHOW_ABV_MAX`)                                                                                                                                                        | error   |
+| Run      | `venue` non-blank and a listed venue code                                                                                                                                                               | error   |
+| Both     | organizers listed exist (not sentinels), no repeats; `other` records name ≥ 1, main `filedUnderOther`; own-file records don't repeat their company; auditions/events name at most one, only under Other | error   |
+| Run      | each performance: real `YYYY-MM-DD` within file year ± 1; `time` `HH:MM` 00:00–23:59                                                                                                                    | error   |
+| Run      | earliest performance in the file's year                                                                                                                                                                 | error   |
+| Run      | `price`, `infoUrl`, `description` non-blank; a tickets link (run or performance)                                                                                                                        | warning |
+| Run      | at least one performance                                                                                                                                                                                | warning |
+| Activity | `title` non-blank, unless an audition with a `productionId` (which must not store one, nor `genre`, `openingDate` or `productionUrl`)                                                                   | error   |
+| Activity | at least one date, unless audition + `virtualSubmission` or event + `datesByRequest`                                                                                                                    | error   |
+| Activity | each date row: `date` as above; `startTime` valid; `endTime` valid if present                                                                                                                           | error   |
+| Activity | each date row's `venue`, if set, is a listed venue code                                                                                                                                                 | error   |
+| Activity | earliest date in the file's year                                                                                                                                                                        | error   |
+| Audition | `rehearsalStart` / `openingDate` real `YYYY-MM-DD` if present                                                                                                                                           | error   |
+| Audition | `productionId`, if set, is an existing run id                                                                                                                                                           | error   |
+| Audition | has a `productionId` (a season-wide audition may not)                                                                                                                                                   | warning |
+| Event    | one of `contact.email`, `contact.phone`, `noticeUrl`, `registerUrl`, or a named organizer's `website`                                                                                                   | error   |
+| Listing  | `name` non-blank                                                                                                                                                                                        | error   |
+| Listing  | at least one category                                                                                                                                                                                   | error   |
+| Listing  | `contact.tel` or `contact.email`                                                                                                                                                                        | error   |
 
 - The editor drops blank activity date rows (no date, no start time) before
   checking, matching what it saves.
-- **Historic runs** (last performance before today, via `todayIso()`, local
-  time) skip warnings — in `runIssues()` and `check-shows.ts`'s ordering
+- **Historic runs** (last performance before today, via `todayIso()`) skip
+  warnings — in `runIssues()` and `check-shows.ts`'s ordering
   warning. Errors still apply. A run with no performances isn't historic.
 
 **Structural checks** (scripts only; editors guarantee these by
 construction):
 
-- `check-shows.ts` — field types; `company` is a known id; genres valid, ≤ 2
+- `check-reference.ts` — venue codes unique, names present; company ids
+  kebab-case and unique; `admin` first, `other` last; `abvName` present (≤ 12
+  warning); `primaryVenue` a listed code; sentinels aren't majors, Other or
+  on `/companies`; `filedUnderOther` organizers have no data files or
+  editors and aren't majors; `majorCode` a unique power of two; majors have
+  a `majorCode` and hex `colour`; only majors have a `colour`.
+- `check-shows.ts` — field types; `company` is a known id and matches the
+  file's; `organizers` an array of strings; genres valid, ≤ 2
   (`MAX_GENRES`, after legacy coercion); `perfType` valid; run ids unique
   across files; performance `id` is `perf-<timestamp>` and unique across
   files; `updatedAt` ISO 8601 if present. Warns on out-of-order performances (not for historic runs).
 - `check-activities.ts` — field types; `id` format; session `id` is
-  `session-<timestamp>` and unique across files; `type` valid; genres,
-  role `type`/`gender` valid; booleans; ISO 8601 timestamps; no
-  audition-only fields on events or vice versa.
+  `session-<timestamp>` and unique across files; a session has a `venue` or
+  a one-off `location`, not both; `type` valid; genres, role `type`/`gender`
+  valid; booleans; ISO 8601 timestamps; no audition-only fields on events or
+  vice versa; no leftover `organizerName` / `organizerUrl`.
 - `check-services.ts` — field types; `id` format and uniqueness; every
   category is a known subcategory id; `active` boolean; ISO 8601 timestamps;
   no `_`-prefixed fields.
@@ -688,7 +972,7 @@ construction):
   so `/admin` works fully offline.
 - `npx astro dev` gives a lighter server without functions — the editor
   can't load or save there.
-- Under `netlify dev`, `data.mjs` / `upload-image.mjs` use local-filesystem
+- Under `netlify dev`, `data.mts` / `upload-image.mjs` use local-filesystem
   mode ([§4](#4-data-flow)).
 - `astro.config.mjs` has one Vite plugin: redirect `/admin` → `/admin/`.
   Without it the dev server serves `index.html` at `/admin`, breaking the
@@ -701,18 +985,19 @@ construction):
 
 Set in Netlify → Site configuration → Environment variables.
 
-| Variable                    | Req. | Used by                            | Purpose                                                |
-| --------------------------- | ---- | ---------------------------------- | ------------------------------------------------------ |
-| `GITHUB_TOKEN`              | yes  | `data.mjs`, `upload-image.mjs`     | fine-grained PAT, Contents read/write                  |
-| `GITHUB_OWNER`              | yes  | same                               | repo owner                                             |
-| `GITHUB_REPO`               | yes  | same                               | repo name                                              |
-| `GITHUB_BRANCH`             | no   | same                               | commit branch (default `main`)                         |
-| `BUTTONDOWN_API_KEY`        | yes  | `subscribe.mts`, `send-digest.mts` | Buttondown API key                                     |
-| `NETLIFY_SITE_ID`           | yes  | `send-digest.mts`                  | Blobs access (not injected for scheduled functions)    |
-| `NETLIFY_TOKEN`             | yes  | `send-digest.mts`                  | Blobs access                                           |
-| `EMAIL_DIGEST_DRY_RUN`      | no   | `send-digest.mts`                  | `true` → log only; don't send or advance timestamp     |
-| `DIGEST_HEALTHCHECK_URL`    | no   | `send-digest.mts`                  | pinged on every successful run                         |
-| `SUBSCRIBE_HEALTHCHECK_URL` | no   | `subscribe.mts`                    | welcome email: base URL on success, `/fail` on failure |
+| Variable                    | Req. | Used by                        | Purpose                                                |
+| --------------------------- | ---- | ------------------------------ | ------------------------------------------------------ |
+| `GITHUB_TOKEN`              | yes  | `data.mts`, `upload-image.mjs` | fine-grained PAT, Contents read/write                  |
+| `GITHUB_OWNER`              | yes  | same                           | repo owner                                             |
+| `GITHUB_REPO`               | yes  | same                           | repo name                                              |
+| `GITHUB_BRANCH`             | no   | same                           | commit branch (default `main`)                         |
+| `BUTTONDOWN_API_KEY`        | yes  | email functions                | Buttondown API key                                     |
+| `DIGEST_SECRET`             | yes  | `send-digest*.mts`             | shared secret: trigger → background digest             |
+| `NETLIFY_SITE_ID`           | yes  | `send-digest-background.mts`   | Blobs access                                           |
+| `NETLIFY_TOKEN`             | yes  | `send-digest-background.mts`   | Blobs access                                           |
+| `EMAIL_DIGEST_DRY_RUN`      | no   | `send-digest-background.mts`   | `true` → log and save drafts; send nothing             |
+| `DIGEST_HEALTHCHECK_URL`    | no   | `send-digest-background.mts`   | pinged on every successful run                         |
+| `SUBSCRIBE_HEALTHCHECK_URL` | no   | `subscribe.mts`                | welcome email: base URL on success, `/fail` on failure |
 
 ## 12. Build, deploy & branch workflow
 
@@ -722,7 +1007,7 @@ Set in Netlify → Site configuration → Environment variables.
 - **Branches**: fixes and small enhancements branch from and merge to
   `main`; major features from and to `dev`. No PRs; never commit directly to
   `main` or `dev`; confirm the branch before committing.
-- **Live edits land on `main`** — `data.mjs` commits straight to
+- **Live edits land on `main`** — `data.mts` commits straight to
   production.
 - **`npm run sync`** (`sync-branches.sh`): fast-forward local `main` and
   `dev` to origin, merge `main` into `dev`, push. Run at the start of a
@@ -738,35 +1023,23 @@ Set in Netlify → Site configuration → Environment variables.
 
 ### Colour system
 
-All CSS custom properties are in `:root` of `src/components/calendar.astro`;
-matching JS maps follow the `PERFORMANCES` constant in its `<script>`. No
-separate token file.
+Base tokens are CSS custom properties in `:root` of
+`src/components/calendar.astro` (no separate token file): `--bg` `#f7f4ef`
+(page), `--surface` `#ffffff` (cards/panels), `--ink` `#1a1612` (header,
+primary text), `--ink-muted` `#6b6259` (secondary text), `--border`
+`#e0d9d0`.
 
-**Base tokens**: `--bg` `#f7f4ef` (page), `--surface` `#ffffff`
-(cards/panels), `--ink` `#1a1612` (header, primary text), `--ink-muted`
-`#6b6259` (secondary text), `--border` `#e0d9d0`.
+**Company colours come from the data**: each major's `colour` in
+`sc-theater-companies.json` (SCS `#ce8481` rose, AT `#7b8bc4` blue, MCT
+`#71c75f` green, Renegade `#5dadbe` teal — SCS and AT near-complementary for
+small-size contrast). Everyone else is grey, `#b9b0a4` (`OTHER_COLOUR` in the
+calendar script). They mark the year view's day squares, the drill-down
+entries' left edge, the hover-panel dots, the card badge and the legend.
+Nothing else is coloured by company.
 
-**Company colours**, three tiers (each falls back to neutral grey for
-unmapped companies):
-
-| Tier   | Variables | S / L             | Function         | Used for                                                                                      |
-| ------ | --------- | ----------------- | ---------------- | --------------------------------------------------------------------------------------------- |
-| Fill   | `--col-*` | ~35–40% / ~82–83% | `companyColor()` | year-view day cells; week-view bars (softened with `filter: saturate(0.78) brightness(1.02)`) |
-| Dot    | `--dot-*` | ~30–35% / ~56–62% | `dotColor()`     | hover-panel dots, legend squares                                                              |
-| Accent | `--acc-*` | ~55–65% / ~42–48% | `accentColor()`  | show-chip stripe, show-card company badge                                                     |
-
-Named sets: SCS 7° (rose), MCT 116° (green), Renegade 188° (teal), AT 225°
-(blue) — SCS and AT near-complementary for small-size contrast.
-`--col-multi` / `--dot-multi` mark multi-company days.
-
-**Adding a company colour**:
-
-1. Add `--col-*`, `--dot-*`, `--acc-*` to `:root`.
-2. Add entries to `COMPANY_COLORS`, `COMPANY_DOTS`, `COMPANY_ACCS` (keyed by
-   the company string in the data), a `LEGEND_ENTRIES` item, and the full
-   name in `COMPANY_NAMES`.
-3. Use an unused hue — ~60° (amber), ~270° (purple), ~305° (orchid) are
-   free.
+**Making a company a major**: set `major`, the next free `majorCode` and a
+`colour` on its entry (`check-reference.ts` checks them). Pick an unused
+hue — ~60° (amber), ~270° (purple), ~305° (orchid) are free.
 
 ### Home page spacing — `src/pages/index.astro`
 

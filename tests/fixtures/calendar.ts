@@ -4,8 +4,16 @@ import type { Run } from '../../src/types.ts'
 
 export const ctx: CalendarContext = {
   companies: [
-    { id: 'tst', abvName: 'TST', name: 'Test Theatre', primaryVenue: 'TH' },
-    { id: 'oth', abvName: 'OTH', name: 'Other Players' },
+    {
+      id: 'tst',
+      abvName: 'TST',
+      name: 'Test Theatre',
+      primaryVenue: 'TH',
+      major: true,
+      majorCode: 1,
+      colour: '#ce8481'
+    },
+    { id: 'oth', abvName: 'OTH', name: 'Other Players', major: true, majorCode: 2, colour: '#7b8bc4' },
     { id: 'fight', abvName: 'Fight', name: 'Fight Club SC', filedUnderOther: true },
     { id: 'other', abvName: 'Other', name: 'Other Companies', adminOnly: true }
   ],

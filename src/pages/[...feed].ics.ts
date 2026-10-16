@@ -1,6 +1,7 @@
-// Builds every calendar feed as a static .ics file at build time: /runs.ics,
-// /runs/company/{id}.ics, /runs/{id}.ics, /activities.ics, /auditions.ics,
-// /activities/{id}.ics. Content-Type comes from the /*.ics header in netlify.toml.
+// Builds every calendar feed as a static .ics file at build time: /productions.ics,
+// /productions/selection/{n}.ics, /activities.ics, /auditions.ics, and the downloads
+// /activities/{id}.ics, /performances/{id}.ics, /sessions/{id}.ics. Content-Type comes
+// from the /*.ics header in netlify.toml.
 // See docs/ics-spec.md.
 import type { APIRoute, GetStaticPaths } from 'astro'
 import { buildFeeds } from '../lib/calendar-model.ts'

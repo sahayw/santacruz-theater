@@ -1,8 +1,9 @@
 ---
-// Production (run) directory and detail page — /runs lists every run, /runs?id=<bare id>
-// shows one with its complete performance schedule. Deliberately not in the nav or on the
-// home page: /calendar is the browsing surface; this is the stable destination for calendar
-// calendar-event page links and the calendar's "All dates" links. See docs/ics-spec.md.
+// Production directory and detail page — /productions lists every run,
+// /productions?id=<bare id> shows one with its complete performance schedule. Deliberately
+// not in the nav or on the home page: /calendar is the browsing surface; this is the stable
+// destination for calendar-event page links and the calendar's "All dates" links.
+// See docs/ics-spec.md.
 import BaseHead from '../components/BaseHead.astro'
 import SiteNav from '../components/SiteNav.astro'
 import AddToCalendar from '../components/AddToCalendar.astro'
@@ -45,7 +46,7 @@ function summaryMeta(r: Run) {
     <BaseHead
       title="Productions — Santa Cruz Theater"
       description="Every production on the Santa Cruz Theater calendar, with its full performance schedule."
-      canonicalPath="/runs"
+      canonicalPath="/productions"
     />
   </head>
   <body>
@@ -176,7 +177,7 @@ function summaryMeta(r: Run) {
       </div>
 
       <div class="run-not-found" id="run-not-found" hidden>
-        That production isn't listed. <a href="/runs">See all productions</a> or the
+        That production isn't listed. <a href="/productions">See all productions</a> or the
         <a href="/calendar">calendar</a>.
       </div>
     </main>

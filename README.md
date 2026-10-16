@@ -6,7 +6,7 @@ Five areas, reachable from a persistent top nav and a hub landing page:
 
 | Section   | URL          | What it is                                                           |
 | --------- | ------------ | -------------------------------------------------------------------- |
-| Calendar  | `/calendar`  | Performances calendar — annual grid and weekly drill-down            |
+| Calendar  | `/calendar`  | Performances calendar — year view, month / week drill-down           |
 | Companies | `/companies` | Santa Cruz County theater company directory                          |
 | Events    | `/events`    | Upcoming auditions and other events, with email digest subscriptions |
 | Services  | `/services`  | Production resources — crew, equipment, spaces, coaching             |

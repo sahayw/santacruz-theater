@@ -474,7 +474,6 @@ tbody td { padding: 2px 4px; vertical-align: middle; }
 .cp-summary { padding: 14px 16px; }
 .cp-main { display: flex; flex-direction: column; gap: 4px; }
 .cp-title-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-.cp-dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
 .cp-title { font-family: 'Playfair Display', Georgia, serif; font-size: 16px; font-weight: 600; color: #1a1612; line-height: 1.25; }
 .cp-genre-badge { font-size: 11px; font-weight: 500; padding: 2px 8px; border-radius: 10px; flex-shrink: 0; letter-spacing: 0.02em; }
 .cp-meta-row { font-size: 12px; color: #6b6259; }
@@ -1783,12 +1782,6 @@ function venueKeyDown(event, inputEl) {
 function esc(v) {
   return (v || '').replace(/&/g, '&amp;').replace(/"/g, '&quot;')
 }
-const CAL_DOT_COLORS = {
-  scs: '#ce8481',
-  at: '#7b8bc4',
-  mct: '#71c75f',
-  renegade: '#5dadbe'
-}
 const CAL_GENRE_STYLES = {
   Musical: 'background:#dce4fb;color:#2c3e9a',
   Drama: 'background:#fbe5e1;color:#8c3a2e',
@@ -1813,7 +1806,6 @@ function openPreview() {
   const r = runs[activeRunIdx]
   const companyName = organizerName(recordOrganizerIds(r.company, r.organizers), allCompanies)
   const venueName = runPlace(r, venuesList)?.name || r.venue
-  const dotColor = CAL_DOT_COLORS[r.company] || '#dadada'
   const genreArr = Array.isArray(r.genre) ? r.genre : r.genre ? [r.genre] : []
 
   const perfsHtml =
@@ -1843,7 +1835,6 @@ function openPreview() {
       <div class="cp-summary">
         <div class="cp-main">
           <div class="cp-title-row">
-            <span class="cp-dot" style="background:${dotColor}"></span>
             <span class="cp-title">${esc(r.showAbv || r.show || 'Untitled')}</span>
             ${genreArr.map((g) => `<span class="cp-genre-badge" style="${CAL_GENRE_STYLES[g] || ''}">${esc(g)}</span>`).join('')}
           </div>

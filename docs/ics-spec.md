@@ -6,6 +6,14 @@ for how the shipped system works, see `implementation.md` and
 in `bda183f`. That commit's parent still has the old event-building code for
 reference.
 
+**Revised 2026-10-16** (stage 2 of [`notifications-spec.md`](notifications-spec.md)):
+the production page moved from `/runs` to `/productions`, and the feeds moved
+with it — `/productions.ics` for everything, plus numbered
+`/productions/selection/{n}.ics` feeds that leave out chosen majors — replacing
+the per-company `/runs/company/{id}.ics` feeds (no subscribers yet). The
+calendar lost its filters. This record is updated to match; historical notes
+(phases, the original `/runs` page) keep their old names.
+
 ## Goal
 
 Publish standards-compliant iCalendar (RFC 5545) feeds of performances and
@@ -21,7 +29,7 @@ written to.
 | Google Calendar copy | Dropped for good. No Google publisher, now or later.                                                                  |
 | Generation           | **Build time.** Static `.ics` files in `dist/`, written by Astro endpoints. No Netlify Functions.                     |
 | Caching              | Netlify's CDN: ETag / `If-None-Match` → 304 on static files. No caching code.                                         |
-| Company filter       | A pre-built file per company (`/runs/company/{id}.ics`), not a query parameter.                                       |
+| Company choice       | Pre-built files per combination of majors left out (`/productions/selection/{n}.ics`), not a query parameter.         |
 | `/events` page       | Keeps its name. The `/events` → `/activities` rename is separate work, not part of this.                              |
 | Event identity       | New persisted occurrence ids: `perf-<epoch-ms>` on `Performance` and `session-<epoch-ms>` on `ActivityDate`.          |
 | Serializer           | Hand-written in `src/lib/ics.ts` (~150 lines), checked with an independent parser (`ical.js`). No library dependency. |
@@ -42,12 +50,12 @@ written to.
 
 **Subscriptions** (live calendars, with refresh hints):
 
-| Path                     | Contents                                                | `X-WR-CALNAME`                                           |
-| ------------------------ | ------------------------------------------------------- | -------------------------------------------------------- |
-| `/runs.ics`              | every run's performances                                | Santa Cruz Theater — All Performances                    |
-| `/runs/company/{id}.ics` | one company's performances (only companies with ≥1 run) | Santa Cruz Theater — Performances (&lt;company name&gt;) |
-| `/activities.ics`        | sessions of every audition and event                    | Santa Cruz Theater — All Auditions & Events              |
-| `/auditions.ics`         | sessions of auditions only                              | Santa Cruz Theater — Auditions                           |
+| Path                             | Contents                                                                                                       | `X-WR-CALNAME`                                               |
+| -------------------------------- | -------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------ |
+| `/productions.ics`               | every run's performances                                                                                       | Santa Cruz Theater — All Performances                        |
+| `/productions/selection/{n}.ics` | performances without the majors whose `majorCode`s sum to `n`; a production stays if any organizer is included | Santa Cruz Theater — Performances (excluding &lt;labels&gt;) |
+| `/activities.ics`                | sessions of every audition and event                                                                           | Santa Cruz Theater — All Auditions & Events                  |
+| `/auditions.ics`                 | sessions of auditions only                                                                                     | Santa Cruz Theater — Auditions                               |
 
 **Downloads** (one-off copies, no refresh hints):
 
@@ -59,17 +67,18 @@ written to.
 
 **Rule**: whole calendars are offered as subscriptions only. Single items are
 offered as one-off copies only. There are no per-production feeds: people
-attend one performance, not a run, and the company feed covers "follow this
-company".
+attend one performance, not a run. Leaving majors out covers "not that
+company"; non-majors are always included, matching the email lists.
 
 `{id}` is the bare epoch from the record or occurrence id, with the prefix
 stripped (`activity-`, `perf-`, `session-`). This matches the existing
-`/events?id=` deep-link convention. Company ids are used as-is. There is no
+`/events?id=` deep-link convention. `{n}` numbers are permanent: every
+combination of the `majorCode`s ever assigned is published. There is no
 `/events.ics`: non-audition events alone aren't a useful subscription.
 
 **Which events are included**
 
-- **Window**: the composite and company feeds include occurrences dated from
+- **Window**: the subscription feeds include occurrences dated from
   12 months before the build onward, so subscribers can look back at past
   performances. The cap stops these feeds growing without limit. Size is not
   a concern: today's full dataset (~530 events) is ~300 KB, or ~30–50 KB as
@@ -185,7 +194,7 @@ Rules carried over from the old sync:
     1. the perf type (e.g. "Opening performance");
     2. the run description;
     3. price and discounts (per-performance discounts override the run's);
-    4. `Details & tickets: https://santacruz.theater/runs?id={id}`, or just
+    4. `Details & tickets: https://santacruz.theater/productions?id={id}`, or just
        `Details: …` when there's no ticket link.
   - Auditions: a summary of the roles, the session notes, then
     `Details: https://santacruz.theater/events?id={id}`.
@@ -205,7 +214,7 @@ Rules carried over from the old sync:
     reading "Label". Google's add-event page renders HTML; `.ics` files can't
     rely on that.
 - **Page link**: performances link to
-  `https://santacruz.theater/runs?id={id}` and sessions to
+  `https://santacruz.theater/productions?id={id}` and sessions to
   `https://santacruz.theater/events?id={id}`. The link appears **once**, as the
   description's last line.
   - There's no `URL` property. Apple Calendar shows `URL` as a separate link
@@ -285,20 +294,16 @@ at a similar size, so it's clear what's being added.
 
 Placements:
 
-- **`/calendar`**: at the right-hand end of the bar, **week (list) view
-  only**. The year view doesn't show what you'd be subscribing to.
-  - **Filters** sit at the other (left) end, beside the view switch, so they
-    don't look like they shape the subscription.
-  - On phones both are icon buttons, and the filter panel spans the bar.
-  - The dialog has its own Company selector. It is _not_ tied to the page's
-    live filters, and offers the same companies as `#filterCompany`.
-  - "All companies" subscribes to `/runs.ics`; a company subscribes to
-    `/runs/company/{id}.ics`.
-  - Genre and time-of-day are not offered as feed filters.
+- **`/calendar`**: at the right-hand end of the bar, **drill-down (month /
+  week view) only**. The year view doesn't show what you'd be subscribing to.
+  - On phones it's an icon button.
+  - The dialog has a checkbox per major, all ticked. All ticked subscribes to
+    `/productions.ics`; unticking picks `/productions/selection/{n}.ics`.
+  - The calendar has no filters (revised 2026-10-16).
 - **The calendar's per-date show card**: one event, that performance
   (`/performances/{id}.ics`). The card also gets an **All dates →** link to
-  `/runs?id={id}`.
-- **`/runs`**: one event, on each upcoming performance row.
+  `/productions?id={id}`.
+- **`/productions`**: one event, on each upcoming performance row.
 - **`/events`**:
   - **Banner**: subscribe, with two choices: All auditions & events
     (`/activities.ics`) or Auditions only (`/auditions.ics`).

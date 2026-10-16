@@ -418,7 +418,6 @@ const ACT_CSS = `
 }
 .pv-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
 .pv-title-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-.pv-dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
 .pv-title { font-family: 'Playfair Display', Georgia, serif; font-size: 16px; font-weight: 600; color: #1a1612; line-height: 1.25; }
 .pv-genre-badge { font-size: 11px; font-weight: 500; padding: 2px 8px; border-radius: 10px; flex-shrink: 0; letter-spacing: 0.02em; }
 .pv-type-badge { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; padding: 2px 7px; border-radius: 8px; flex-shrink: 0; background: #e8f4f0; color: #1a6b50; }
@@ -2152,14 +2151,6 @@ function selectVenueItem(rowIdx, code) {
 }
 
 // ── PREVIEW ──
-const PV_DOT_COLORS = {
-  scs: '#ce8481',
-  at: '#7b8bc4',
-  mct: '#71c75f',
-  renegade: '#5dadbe',
-  cabrillo: '#c8a96e',
-  abt: '#a57bc4'
-}
 const PV_GENRE_STYLES = {
   Musical: 'background:#dce4fb;color:#2c3e9a',
   Drama: 'background:#fbe5e1;color:#8c3a2e',
@@ -2171,7 +2162,6 @@ function openPreview() {
   if (activeActIdx < 0) return
   const a = activities[activeActIdx]
   const companyName = allCompanies.find((c) => c.id === currentCompanyId)?.name || currentCompanyAbv
-  const dotColor = PV_DOT_COLORS[currentCompanyId] || '#cbcbcb'
   const details = detailsOf(a) // a linked audition's genre, opening and link are its production's
   const genreArr = details.genre
   const TODAY = new Date().toISOString().slice(0, 10)
@@ -2324,7 +2314,6 @@ function openPreview() {
       <div class="pv-summary">
         <div class="pv-main">
           <div class="pv-title-row">
-            <span class="pv-dot" style="background:${dotColor}"></span>
             <span class="pv-title">${esc(titleOf(a) || 'Untitled')}</span>
             ${isEvent ? '<span class="pv-type-badge">Event</span>' : ''}
             ${isVirtual ? '<span class="pv-virtual-badge">Virtual</span>' : ''}

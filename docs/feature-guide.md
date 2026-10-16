@@ -22,8 +22,8 @@ What the site does, for visitors and for editors. For how it's built, see
 - **Public site**: a hub (`/`) linking to **Calendar**, **Companies**,
   **Events**, and **Services**, plus **About**. Every inner page shares a top
   nav.
-- **Calendar feeds**: visitors can subscribe to all performances (or one
-  company's), or to all auditions and events, in Apple Calendar, Google
+- **Calendar feeds**: visitors can subscribe to all performances (or
+  leave out some of the major companies), or to all auditions and events, in Apple Calendar, Google
   Calendar, Outlook or any other calendar app. A subscription stays up to
   date. They can also add a single performance or session as a one-off
   event. See [Add to my calendar](#add-to-my-calendar).
@@ -44,24 +44,32 @@ What the site does, for visitors and for editors. For how it's built, see
 
 ### Visitors — `/calendar`
 
-- **Year view** (default): every month, each day colored by the company
-  performing (neutral when several share a day). Hover or tap a day to list
-  its performances; click to open that week.
-- **Week view**: one chip per running production (hover/tap shows its
-  description), beside day columns of performance time bars. Clicking a bar
-  opens a card: title, company, venue, date/time, price, discounts, and
-  ticket/info links.
-- **Filters** (left of the top bar): company, genre, time of day. They change
-  what the page shows, not what **Add to my calendar** subscribes to. A
-  footer legend maps colors to companies.
-- **Add to my calendar** (top bar, week view only): subscribe to every
-  performance, or to one company's. It isn't offered in the year view, which
-  doesn't show what you'd be subscribing to. The bar's filters don't change
-  what's in the feed.
+- **Year view** (default): every month at a glance. Each performance day
+  shows one small coloured square per **major** company performing (SCS,
+  AT, MCT, Renegade — always in that order), then a grey square if any other
+  company or organizer is. On a computer, hovering a day lists its
+  performances. Clicking or tapping a day opens the drill-down at that day.
+  On a phone the year view opens scrolled to the current month.
+- **Drill-down** — **Month view** on wider screens, **Week view** on phones
+  (one week at a time; the switch follows the screen width):
+  - Each day lists its performances as "time · show · organizer", with the
+    main organizer's colour on the left edge (grey for everyone but the
+    majors). Days from the neighbouring months fill out the month grid,
+    dimmed.
+  - ‹ › step a month (or a week); **← Year** goes back.
+  - Clicking a performance opens its card: organizer, title, the production's
+    description, time, venue, price, genre, discounts, and info/ticket links.
+    Clicking a day's number shows all of that day's performances.
+- There are no filters: the calendar always shows everything. A footer
+  legend maps the colours to the majors, plus grey for Other.
+- **Add to my calendar** (top bar, drill-down only): subscribe to
+  performances, with a checkbox per major — all ticked; untick the ones you
+  don't want. Everyone else's performances are always included. It isn't
+  offered in the year view.
 - Each performance card links to **All dates**, the production's page, and
   to **Add to my calendar** for that one performance.
 
-### Productions — `/runs`
+### Productions — `/productions`
 
 Every production with its complete performance schedule. Each performance
 shows its type, plus any discounts or ticket link that differ from the
@@ -92,11 +100,11 @@ What the dialog offers depends on what's being added:
 
 | What                                                       | Offered as                       | Where                                                    |
 | ---------------------------------------------------------- | -------------------------------- | -------------------------------------------------------- |
-| All performances ("Santa Cruz Theater — All Performances") | Subscription                     | `/calendar` bar (week view)                              |
-| One company's performances                                 | Subscription                     | `/calendar` bar, Company picker                          |
+| All performances ("Santa Cruz Theater — All Performances") | Subscription                     | `/calendar` bar (drill-down), all majors ticked          |
+| Performances without some majors                           | Subscription                     | `/calendar` bar, majors unticked                         |
 | All auditions & events                                     | Subscription                     | `/events` banner                                         |
 | Auditions only                                             | Subscription                     | `/events` banner, Include picker                         |
-| One performance                                            | One-off event                    | performance card; each upcoming row on `/runs`           |
+| One performance                                            | One-off event                    | performance card; each upcoming row on `/productions`    |
 | One audition or event session                              | One-off event                    | each upcoming date row of an open activity on `/events`  |
 | All of an activity's dates                                 | One-off download (Apple/Outlook) | **Download all dates**, on open activities with 2+ dates |
 
@@ -117,15 +125,15 @@ out of everything.
 
 A **run** is one production:
 
-| Field                        | Notes                                                 |
-| ---------------------------- | ----------------------------------------------------- |
-| Title, abbreviation          | Required. Abbreviation (≤ 20 chars) labels chips.     |
-| Venue                        | Required. Pick from the venue list (type to search).  |
-| Location                     | Optional space within the venue, e.g. "Second Stage". |
-| Organizer / Co-producers     | See below.                                            |
-| Genre                        | Up to two.                                            |
-| Price, info URL, description | Recommended. Description is [rich text](#rich-text).  |
-| Discounts, tickets URL       | Defaults for every performance.                       |
+| Field                        | Notes                                                                       |
+| ---------------------------- | --------------------------------------------------------------------------- |
+| Title, abbreviation          | Required. Abbreviation (≤ 20 chars) is the show's name in calendar entries. |
+| Venue                        | Required. Pick from the venue list (type to search).                        |
+| Location                     | Optional space within the venue, e.g. "Second Stage".                       |
+| Organizer / Co-producers     | See below.                                                                  |
+| Genre                        | Up to two.                                                                  |
+| Price, info URL, description | Recommended. Description is [rich text](#rich-text).                        |
+| Discounts, tickets URL       | Defaults for every performance.                                             |
 
 **Organizers**: a run in a company's file is that company's, so the list of
 **Shows** doesn't repeat the company name (except under Other). Add

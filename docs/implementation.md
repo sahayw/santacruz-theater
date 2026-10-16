@@ -40,7 +40,7 @@ src/
   components/     calendar.astro (calendar UI), SiteNav.astro,
                   AddToCalendar.astro (feed dialog, §6)
   layouts/        page layout wrappers
-  pages/          routes — index, calendar, companies, events, runs, subscribe,
+  pages/          routes — index, calendar, companies, events, productions, subscribe,
                   services, about, admin/*.js.ts (shared modules for /admin, §6),
                   [...feed].ics.ts (calendar feeds, §6),
                   missing-details.json.ts (§6)
@@ -478,24 +478,28 @@ Netlify's CDN, which handles ETag/304. There's no function and no
 calendar-service API. The design and its rationale are in
 [`ics-spec.md`](ics-spec.md).
 
-| File                     | Contents                              | Use          |
-| ------------------------ | ------------------------------------- | ------------ |
-| `/runs.ics`              | all performances                      | subscription |
-| `/runs/company/{id}.ics` | one company's performances            | subscription |
-| `/activities.ics`        | sessions of all auditions and events  | subscription |
-| `/auditions.ics`         | audition sessions only                | subscription |
-| `/activities/{id}.ics`   | one activity's sessions ("all dates") | download     |
-| `/performances/{id}.ics` | one performance                       | download     |
-| `/sessions/{id}.ics`     | one activity session                  | download     |
+| File                             | Contents                              | Use          |
+| -------------------------------- | ------------------------------------- | ------------ |
+| `/productions.ics`               | all performances                      | subscription |
+| `/productions/selection/{n}.ics` | performances without some majors      | subscription |
+| `/activities.ics`                | sessions of all auditions and events  | subscription |
+| `/auditions.ics`                 | audition sessions only                | subscription |
+| `/activities/{id}.ics`           | one activity's sessions ("all dates") | download     |
+| `/performances/{id}.ics`         | one performance                       | download     |
+| `/sessions/{id}.ics`             | one activity session                  | download     |
 
 `{id}` is the bare epoch from the record's or occurrence's id, with the
-prefix stripped.
+prefix stripped. `{n}` is the sum of the left-out majors' permanent
+`majorCode`s (`selectionFeedPath()`); `selectionMasks()` publishes every
+combination of the codes ever assigned, so a number keeps its meaning and is
+never withdrawn. A production stays in a selection feed if any of its
+organizers is included, so non-majors are always in.
 
 - **`src/lib/calendar-model.ts`** (pure) turns runs and activities into
   `CalendarEvent`s, and `buildFeeds()` groups them into the feeds above.
   - **Window**: subscriptions keep events from 12 months before the build
     onward (`HISTORY_MONTHS`). Download files aren't windowed.
-  - **`Feed.subscribable`**: true only for the four kinds of subscription.
+  - **`Feed.subscribable`**: true only for the subscriptions.
     `ics.ts` adds the refresh hints (`REFRESH-INTERVAL`, `X-PUBLISHED-TTL`)
     only to those.
   - **Closed and undated activities**: a closed activity publishes no events.
@@ -508,11 +512,11 @@ prefix stripped.
     - Location: the venue code (or a session's one-off location) resolved by
       `runPlace()` / `sessionPlace()`, room included. Sessions with neither
       fall back to the main organizer's `primaryVenue`.
-    - Page link: `/runs?id=` or `/events?id=`. It appears only as the
+    - Page link: `/productions?id=` or `/events?id=`. It appears only as the
       description's last line. There's no `URL` property, which Apple would
       show as a second, duplicate link.
     - Description: plain text, via `mdToPlain`. It contains no third-party
-      URLs; it ends with one short `Details & tickets: …/runs?id=` (or
+      URLs; it ends with one short `Details & tickets: …/productions?id=` (or
       `Details: …`) line pointing at our page. The dialog's Google add-event
       link turns that line into a real link, since Google renders HTML there.
 - **`src/lib/ics.ts`** is a hand-written serializer. It escapes text, folds
@@ -527,9 +531,10 @@ prefix stripped.
   `Content-Type: text/calendar; charset=utf-8` for `/*.ics`.
 - **UI — `src/components/AddToCalendar.astro`**: a single native `<dialog>`
   per page, with three modes chosen by the trigger's attribute.
-  - **Subscribe**: `data-ics-feed` + `data-ics-name`, or `data-ics-choices`
+  - **Subscribe**: `data-ics-feed` + `data-ics-name`; `data-ics-choices`
     (a JSON list of `{label, feed, name}`) + `data-ics-choice-label` for a
-    picker. It shows a `webcal://` link, Google's
+    picker; or `data-ics-majors` (a JSON list of `{code, label, name}`) for
+    a checkbox per major, all ticked, which picks the selection feed. It shows a `webcal://` link, Google's
     `calendar.google.com/calendar/r?cid=<webcal URL>` link, and a copyable
     `https` URL.
   - **One event**: `data-ics-event="performances/{id}"` or
@@ -544,7 +549,7 @@ prefix stripped.
     It lists the file's dates and offers a download only.
   - **Shared behaviour**:
     - Clicks are delegated from `document`, so triggers in client-rendered
-      markup (the calendar's show cards) work.
+      markup (the calendar's performance cards) work.
     - URLs come from `location.origin`, so branch deploys use their own
       files.
     - Subscription names come from `FEED_NAMES` in `calendar-model.ts`.
@@ -563,8 +568,8 @@ prefix stripped.
 
 - **Placements**:
   - **`calendar.astro`**:
-    - a bar button with a company picker, hidden unless
-      `body.scroll-mode` (week view);
+    - a bar button with the majors' checkboxes, hidden unless
+      `body.drill-mode` (month / week view);
     - per-card **All dates** / **Add to my calendar** links. These need
       `PerformanceEvent.id`.
   - **`events.astro`**:
@@ -573,8 +578,10 @@ prefix stripped.
       hides for past dates;
     - **Download all dates** in the links row for open activities with two
       or more dated sessions.
-  - **`runs.astro`**: a per-performance-row button, hidden for past rows.
-- **`/runs` (`src/pages/runs.astro`)**: lists runs that have performances
+  - **`productions.astro`**: a per-performance-row button, hidden for past
+    rows.
+- **`/productions` (`src/pages/productions.astro`)**: lists runs that have
+  performances
   (index / filter / `?id=` deep link, like `/events`) with the full schedule.
   It's deliberately not in `SiteNav`. It is the page link in performance
   events, and the calendar's **All dates** link.
@@ -842,35 +849,23 @@ Set in Netlify → Site configuration → Environment variables.
 
 ### Colour system
 
-All CSS custom properties are in `:root` of `src/components/calendar.astro`;
-matching JS maps follow the `PERFORMANCES` constant in its `<script>`. No
-separate token file.
+Base tokens are CSS custom properties in `:root` of
+`src/components/calendar.astro` (no separate token file): `--bg` `#f7f4ef`
+(page), `--surface` `#ffffff` (cards/panels), `--ink` `#1a1612` (header,
+primary text), `--ink-muted` `#6b6259` (secondary text), `--border`
+`#e0d9d0`.
 
-**Base tokens**: `--bg` `#f7f4ef` (page), `--surface` `#ffffff`
-(cards/panels), `--ink` `#1a1612` (header, primary text), `--ink-muted`
-`#6b6259` (secondary text), `--border` `#e0d9d0`.
+**Company colours come from the data**: each major's `colour` in
+`sc-theater-companies.json` (SCS `#ce8481` rose, AT `#7b8bc4` blue, MCT
+`#71c75f` green, Renegade `#5dadbe` teal — SCS and AT near-complementary for
+small-size contrast). Everyone else is grey, `#b9b0a4` (`OTHER_COLOUR` in the
+calendar script). They mark the year view's day squares, the drill-down
+entries' left edge, the hover-panel dots, the card badge and the legend.
+Nothing else is coloured by company.
 
-**Company colours**, three tiers (each falls back to neutral grey for
-unmapped companies):
-
-| Tier   | Variables | S / L             | Function         | Used for                                                                                      |
-| ------ | --------- | ----------------- | ---------------- | --------------------------------------------------------------------------------------------- |
-| Fill   | `--col-*` | ~35–40% / ~82–83% | `companyColor()` | year-view day cells; week-view bars (softened with `filter: saturate(0.78) brightness(1.02)`) |
-| Dot    | `--dot-*` | ~30–35% / ~56–62% | `dotColor()`     | hover-panel dots, legend squares                                                              |
-| Accent | `--acc-*` | ~55–65% / ~42–48% | `accentColor()`  | show-chip stripe, show-card company badge                                                     |
-
-Named sets: SCS 7° (rose), MCT 116° (green), Renegade 188° (teal), AT 225°
-(blue) — SCS and AT near-complementary for small-size contrast.
-`--col-multi` / `--dot-multi` mark multi-company days.
-
-**Adding a company colour**:
-
-1. Add `--col-*`, `--dot-*`, `--acc-*` to `:root`.
-2. Add entries to `COMPANY_COLORS`, `COMPANY_DOTS`, `COMPANY_ACCS` (keyed by
-   the company string in the data), a `LEGEND_ENTRIES` item, and the full
-   name in `COMPANY_NAMES`.
-3. Use an unused hue — ~60° (amber), ~270° (purple), ~305° (orchid) are
-   free.
+**Making a company a major**: set `major`, the next free `majorCode` and a
+`colour` on its entry (`check-reference.ts` checks them). Pick an unused
+hue — ~60° (amber), ~270° (purple), ~305° (orchid) are free.
 
 ### Home page spacing — `src/pages/index.astro`
 

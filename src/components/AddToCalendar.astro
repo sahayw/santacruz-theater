@@ -4,6 +4,9 @@
 //   data-ics-feed="runs" data-ics-name="…"                    subscribe to one feed
 //   data-ics-choices='[{"label","feed","name"}, …]'           subscribe, with a picker
 //     data-ics-choice-label="Company"
+//   data-ics-majors='[{"code","label","name"}, …]'            subscribe to performances,
+//                                                             unticking majors (numbered
+//                                                             selection feeds)
 //   data-ics-event="performances/123"                         add one event (download
 //                                                             .ics or Google add-event)
 //   data-ics-download="activities/123" data-ics-name="…"      download all of an
@@ -24,6 +27,13 @@
     <span id="icsChoiceLabel">Calendar</span>
     <select id="icsChoice"></select>
   </label>
+
+  <!-- Performances: untick the majors you don't want; everyone else is always included -->
+  <fieldset class="ics-majors" id="icsMajorsWrap" hidden>
+    <legend>Select companies</legend>
+    <div class="ics-majors-list" id="icsMajors"></div>
+    <p class="ics-note ics-note--small" id="icsMajorsNote"></p>
+  </fieldset>
 
   <!-- Subscribe: the big feeds -->
   <section class="ics-section" id="icsSubscribe" hidden>
@@ -64,9 +74,16 @@
 </dialog>
 
 <script>
+  import { FEED_NAMES, selectionFeedPath } from '../lib/calendar-model.ts'
+
   interface Choice {
     label: string
     feed: string
+    name: string
+  }
+  interface Major {
+    code: number // permanent majorCode
+    label: string // short label, used in the feed's name
     name: string
   }
   interface IcsEvent {
@@ -93,8 +110,28 @@
   const downloadLink = $<HTMLAnchorElement>('icsDownload')
   const googleEventLink = $<HTMLAnchorElement>('icsGoogleEvent')
   const saveNote = $('icsSaveNote')
+  const majorsWrap = $('icsMajorsWrap')
+  const majorsList = $('icsMajors')
+  const majorsNote = $('icsMajorsNote')
 
   let choices: Choice[] = []
+  let majors: Major[] = []
+
+  /** The selection feed for the majors currently unticked (0 = all performances). */
+  function showMajorsSelection() {
+    const out = majors.filter(
+      (m) => !majorsList.querySelector<HTMLInputElement>(`input[value="${m.code}"]`)?.checked
+    )
+    const mask = out.reduce((sum, m) => sum + m.code, 0)
+    majorsNote.textContent =
+      out.length === majors.length
+        ? 'You’ll get performances by other companies and organizers only.'
+        : 'Performances by all other companies and organizers are always included.'
+    showSubscribe(
+      selectionFeedPath(mask),
+      out.length ? FEED_NAMES.selection(out.map((m) => m.label)) : FEED_NAMES.productions
+    )
+  }
 
   // ── Usage tracking (Plausible custom events; no-op where Plausible isn't loaded) ──
   // Records interest, not ongoing subscribers — see docs/ics-spec.md.
@@ -229,13 +266,28 @@
   }
 
   function open(trigger: HTMLElement) {
-    const { icsChoices, icsFeed, icsEvent, icsDownload, icsName = '' } = trigger.dataset
+    const { icsChoices, icsMajors, icsFeed, icsEvent, icsDownload, icsName = '' } = trigger.dataset
     choices = icsChoices ? (JSON.parse(icsChoices) as Choice[]) : []
-    const subscribing = Boolean(icsChoices || icsFeed)
+    majors = icsMajors ? (JSON.parse(icsMajors) as Major[]) : []
+    const subscribing = Boolean(icsChoices || icsMajors || icsFeed)
     subscribeSection.hidden = !subscribing
     saveSection.hidden = subscribing
     choiceWrap.hidden = choices.length === 0
-    if (choices.length) {
+    majorsWrap.hidden = !icsMajors
+    if (icsMajors) {
+      majorsList.innerHTML = ''
+      for (const m of majors) {
+        const label = document.createElement('label')
+        const box = document.createElement('input')
+        box.type = 'checkbox'
+        box.value = String(m.code)
+        box.checked = true
+        box.addEventListener('change', showMajorsSelection)
+        label.append(box, ` ${m.name}`)
+        majorsList.append(label)
+      }
+      showMajorsSelection()
+    } else if (choices.length) {
       choiceLabel.textContent = trigger.dataset.icsChoiceLabel || 'Calendar'
       choiceSelect.innerHTML = ''
       choices.forEach((c, i) => choiceSelect.add(new Option(c.label, String(i))))
@@ -279,7 +331,7 @@
 
   document.addEventListener('click', (e) => {
     const trigger = (e.target as Element | null)?.closest<HTMLElement>(
-      '[data-ics-feed], [data-ics-choices], [data-ics-event], [data-ics-download]'
+      '[data-ics-feed], [data-ics-choices], [data-ics-majors], [data-ics-event], [data-ics-download]'
     )
     if (!trigger) return
     e.preventDefault()
@@ -367,6 +419,32 @@
     border: 1px solid var(--ics-border);
     border-radius: 4px;
     background: var(--ics-bg);
+  }
+  .ics-majors {
+    border: none;
+    margin: 0 0 12px;
+    padding: 0;
+  }
+  .ics-majors legend {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--ics-muted);
+    margin-bottom: 6px;
+  }
+  .ics-majors-list {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4px 12px;
+    font-size: 13px;
+  }
+  .ics-majors-list label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+  }
+  .ics-majors[hidden] {
+    display: none;
   }
   .ics-section {
     border-top: 1px solid var(--ics-border);

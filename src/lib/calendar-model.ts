@@ -50,8 +50,8 @@ export interface Feed {
   subscribable: boolean
 }
 
-/** Activity with its file's company id, as returned by getActivities(). */
-export type CompanyActivity = Activity & { company: string }
+/** Activity with its file's company id and resolved title, as returned by getActivities(). */
+export type CompanyActivity = Activity & { company: string; title: string }
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -103,7 +103,7 @@ function lines(...items: (string | false | undefined)[]) {
 // ── Performances ─────────────────────────────────────────────────────────────
 
 export function runUrl(run: Run) {
-  return `${SITE_URL}/runs?id=${bareId(run.id)}`
+  return `${SITE_URL}/productions?id=${bareId(run.id)}`
 }
 
 export function performanceEvents(run: Run, ctx: CalendarContext): CalendarEvent[] {
@@ -208,10 +208,33 @@ const SITE_NAME = 'Santa Cruz Theater'
 
 /** Calendar names (X-WR-CALNAME) — shared with the Add to Calendar UI. */
 export const FEED_NAMES = {
-  runs: `${SITE_NAME} — All Performances`,
-  company: (companyName: string) => `${SITE_NAME} — Performances (${companyName})`,
+  productions: `${SITE_NAME} — All Performances`,
+  /** Performances without some majors; `excluded` are their short labels. */
+  selection: (excluded: string[]) =>
+    `${SITE_NAME} — Performances (excluding ${excluded.join(', ')})`,
   activities: `${SITE_NAME} — All Auditions & Events`,
   auditions: `${SITE_NAME} — Auditions`
+}
+
+/**
+ * Performance feed for the majors left out, given as the sum of their permanent
+ * `majorCode`s (`notifications-spec.md`): 0 is every performance. Numbers keep their
+ * meaning as majors come and go, so a subscription never changes underneath anyone.
+ */
+export function selectionFeedPath(excludedMask: number) {
+  return excludedMask ? `productions/selection/${excludedMask}` : 'productions'
+}
+
+/**
+ * Every exclusion number to publish: each non-empty combination of the `majorCode`s ever
+ * assigned (current and former majors), so a published feed is never withdrawn.
+ */
+export function selectionMasks(companies: CompanyEntry[]) {
+  const codes = companies.map((c) => c.majorCode).filter((c): c is number => !!c)
+  const masks: number[] = []
+  for (let combo = 1; combo < 1 << codes.length; combo++)
+    masks.push(codes.reduce((sum, code, i) => (combo & (1 << i) ? sum + code : sum), 0))
+  return masks.sort((a, b) => a - b)
 }
 
 /** Sorted by start, then uid, so unchanged data serializes byte-identically. */
@@ -224,8 +247,9 @@ export function sortEvents(events: CalendarEvent[]) {
 }
 
 /**
- * Every published file. Subscriptions: all performances, one company's, all
- * auditions & events, auditions only — each keeps occurrences from HISTORY_MONTHS
+ * Every published file. Subscriptions: all performances, performances without some
+ * majors (one per exclusion number), all auditions & events, auditions only — each
+ * keeps occurrences from HISTORY_MONTHS
  * before `today` onward. Downloads: one file per performance and per session (a
  * single event to add), and one per activity (all of its dates).
  */
@@ -239,22 +263,32 @@ export function buildFeeds(
   const recent = (events: CalendarEvent[]) => events.filter((e) => e.start.date >= since)
   const feeds: Feed[] = []
 
-  const perfsByRun = runs.map((run) => ({ run, events: performanceEvents(run, ctx) }))
+  const perfsByRun = runs.map((run) => ({
+    organizers: recordOrganizerIds(run.company, run.organizers),
+    events: performanceEvents(run, ctx)
+  }))
   feeds.push({
-    path: 'runs',
-    name: FEED_NAMES.runs,
+    path: selectionFeedPath(0),
+    name: FEED_NAMES.productions,
     description: 'Performances listed on santacruz.theater',
     events: recent(perfsByRun.flatMap((r) => r.events)),
     subscribable: true
   })
-  const companyIds = [...new Set(runs.map((r) => r.company))].sort()
-  for (const id of companyIds) {
-    const name = company(ctx, id)?.name || id
+  // Leaving majors out: a production stays in if any of its organizers is included, so
+  // everyone who isn't a (current) major is always included
+  const currentMajors = ctx.companies.filter((c) => c.major && c.majorCode)
+  for (const mask of selectionMasks(ctx.companies)) {
+    const excluded = currentMajors.filter((c) => mask & c.majorCode!)
+    const out = new Set(excluded.map((c) => c.id))
     feeds.push({
-      path: `runs/company/${id}`,
-      name: FEED_NAMES.company(name),
-      description: `${name} performances listed on santacruz.theater`,
-      events: recent(perfsByRun.filter((r) => r.run.company === id).flatMap((r) => r.events)),
+      path: selectionFeedPath(mask),
+      name: excluded.length
+        ? FEED_NAMES.selection(excluded.map((c) => c.abvName))
+        : FEED_NAMES.productions,
+      description: 'Performances listed on santacruz.theater',
+      events: recent(
+        perfsByRun.filter((r) => r.organizers.some((o) => !out.has(o))).flatMap((r) => r.events)
+      ),
       subscribable: true
     })
   }

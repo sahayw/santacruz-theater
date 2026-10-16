@@ -47,12 +47,14 @@ src/
   pages/          routes — index, calendar, companies, events, productions,
                   subscribe, subscribe/manage,
                   services, about, admin/*.js.ts (shared modules for /admin, §6),
+                  admin/version.json.ts (editor-code fingerprint, §4),
                   [...feed].ics.ts (calendar feeds, §6),
                   missing-details.json.ts (§6)
   lib/
     data.ts             build-time data loading (import.meta.glob)
     audition-format.ts  shared formatting — Astro, functions, browser
     data-rules.ts       shared validation rules + missing-details gaps — editors + check scripts
+    file-checks.ts      per-file checks — check scripts + the save function (§4)
     organizers.ts       who organizes a record; organizer rules (§6)
     venues.ts           venue codes and one-off locations → places (§6)
     occurrence-ids.ts   perf-/session- id generator + backfill (§6)
@@ -281,7 +283,7 @@ are coerced to a 1-item array on read.
 typed accessors. Pages call them directly; the public site does no client
 data fetching.
 
-**Editor writes**: `public/admin/*.js` → `/.netlify/functions/data.mjs` (JSON)
+**Editor writes**: `public/admin/*.js` → `/.netlify/functions/data` (`data.mts`, JSON)
 and `upload-image.mjs` (service photos). Both have two modes:
 
 | Mode                                     | Storage                                                      | Auth                                                                                |
@@ -292,6 +294,24 @@ and `upload-image.mjs` (service photos). Both have two modes:
 Local PUT bodies are byte-identical to what production would commit, so an
 unwanted local save is undone with `git checkout`. See
 [§10](#10-local-development).
+
+**Save guards** — a save can't break the build, and an old editor tab can't
+save:
+
+- **Server check**: every PUT, in both modes, runs `saveErrors()` from
+  `src/lib/file-checks.ts` — the same per-file checks as `check-shows`,
+  `check-activities` and `check-services` (shape, occurrence ids, the
+  `data-rules.ts` rules). A failure is a 422 listing the reasons, and nothing
+  is written. Only the cross-file rules are left to the build: ids unique
+  across files (they're timestamps, so a clash is near-impossible) and an
+  audition's `productionId` existing (a production saved moments earlier
+  isn't deployed yet).
+- **Editor version**: `/admin/version.json` (`src/pages/admin/version.json.ts`)
+  is a hash of `public/admin/`, `src/lib/` and `src/pages/admin/` — editor
+  code only, so data saves don't change it. `api.js` remembers it at page
+  load and fetches it again when the tab regains focus (showing a "Reload"
+  banner if it changed) and before every PUT (refusing the save). If the
+  file can't be fetched, nothing is blocked.
 
 **Function reads**: `lib/activities-data.mts` and `lib/company-data.mts`
 (email; activities, companies and venues) read `data/` with Node `fs` — `import.meta.glob` is Vite-only and
@@ -364,7 +384,9 @@ check).
 - **Editors** (`collectIssues()` on Save): errors block; warnings ask "Save
   anyway?" for records changed since load.
 - **Check scripts** (`check-shows/activities/services.ts`): errors fail the
-  build; warnings print.
+  build; warnings print. Their per-file checks live in
+  `src/lib/file-checks.ts`, which the save function also runs
+  ([§4](#4-data-flow)), so the build and saves can't disagree.
 
 **Change a rule in `data-rules.ts` only**, then update the
 [rule reference](#rule-reference) and
@@ -636,26 +658,27 @@ organizers is included, so non-majors are always in.
 ## 7. Netlify functions
 
 New functions use the **v2 interface** (`export default async (req: Request)
-=> …` + `export const config`). `data.mjs` is legacy style and isn't being
+=> …` + `export const config`). `data.mts` keeps the legacy `handler` style
+(it's TypeScript so it can import the shared checks); it isn't being
 migrated proactively.
 
-| Function                     | Purpose                                                  |
-| ---------------------------- | -------------------------------------------------------- |
-| `data.mjs`                   | data read/write — two modes ([§4](#4-data-flow))         |
-| `upload-image.mjs`           | service photo upload — same two modes                    |
-| `fetch-page.mjs`             | page-fetch proxy (unused by current editors)             |
-| `subscribe.mts`              | subscribe + welcome email ([§8](#8-email-notifications)) |
-| `preferences.mts`            | read/change a subscriber's choices; send a manage link   |
-| `send-digest.mts`            | scheduled trigger for the nightly digest                 |
-| `send-digest-background.mts` | the nightly digests for both lists                       |
-| `lib/digest.mts`             | digest logic: snapshots, broadcasts, individual sends    |
-| `lib/subscriptions.mts`      | choices ↔ tags/metadata; welcome and manage-link emails  |
-| `lib/buttondown.mts`         | Buttondown API client                                    |
-| `lib/email-template.mts`     | inline-styled digest, welcome and manage-link HTML       |
-| `lib/activities-data.mts`    | fs-based activity loading                                |
-| `lib/shows-data.mts`         | fs-based production loading; email card shape            |
-| `lib/company-data.mts`       | fs-based company/organizer and venue lists               |
-| `lib/site.mts`               | site URL; Santa Cruz "today"                             |
+| Function                     | Purpose                                                      |
+| ---------------------------- | ------------------------------------------------------------ |
+| `data.mts`                   | data read/write — two modes, save check ([§4](#4-data-flow)) |
+| `upload-image.mjs`           | service photo upload — same two modes                        |
+| `fetch-page.mjs`             | page-fetch proxy (unused by current editors)                 |
+| `subscribe.mts`              | subscribe + welcome email ([§8](#8-email-notifications))     |
+| `preferences.mts`            | read/change a subscriber's choices; send a manage link       |
+| `send-digest.mts`            | scheduled trigger for the nightly digest                     |
+| `send-digest-background.mts` | the nightly digests for both lists                           |
+| `lib/digest.mts`             | digest logic: snapshots, broadcasts, individual sends        |
+| `lib/subscriptions.mts`      | choices ↔ tags/metadata; welcome and manage-link emails      |
+| `lib/buttondown.mts`         | Buttondown API client                                        |
+| `lib/email-template.mts`     | inline-styled digest, welcome and manage-link HTML           |
+| `lib/activities-data.mts`    | fs-based activity loading                                    |
+| `lib/shows-data.mts`         | fs-based production loading; email card shape                |
+| `lib/company-data.mts`       | fs-based company/organizer and venue lists                   |
+| `lib/site.mts`               | site URL; Santa Cruz "today"                                 |
 
 ## 8. Email notifications
 
@@ -939,7 +962,7 @@ construction):
   so `/admin` works fully offline.
 - `npx astro dev` gives a lighter server without functions — the editor
   can't load or save there.
-- Under `netlify dev`, `data.mjs` / `upload-image.mjs` use local-filesystem
+- Under `netlify dev`, `data.mts` / `upload-image.mjs` use local-filesystem
   mode ([§4](#4-data-flow)).
 - `astro.config.mjs` has one Vite plugin: redirect `/admin` → `/admin/`.
   Without it the dev server serves `index.html` at `/admin`, breaking the
@@ -954,7 +977,7 @@ Set in Netlify → Site configuration → Environment variables.
 
 | Variable                    | Req. | Used by                        | Purpose                                                |
 | --------------------------- | ---- | ------------------------------ | ------------------------------------------------------ |
-| `GITHUB_TOKEN`              | yes  | `data.mjs`, `upload-image.mjs` | fine-grained PAT, Contents read/write                  |
+| `GITHUB_TOKEN`              | yes  | `data.mts`, `upload-image.mjs` | fine-grained PAT, Contents read/write                  |
 | `GITHUB_OWNER`              | yes  | same                           | repo owner                                             |
 | `GITHUB_REPO`               | yes  | same                           | repo name                                              |
 | `GITHUB_BRANCH`             | no   | same                           | commit branch (default `main`)                         |
@@ -974,7 +997,7 @@ Set in Netlify → Site configuration → Environment variables.
 - **Branches**: fixes and small enhancements branch from and merge to
   `main`; major features from and to `dev`. No PRs; never commit directly to
   `main` or `dev`; confirm the branch before committing.
-- **Live edits land on `main`** — `data.mjs` commits straight to
+- **Live edits land on `main`** — `data.mts` commits straight to
   production.
 - **`npm run sync`** (`sync-branches.sh`): fast-forward local `main` and
   `dev` to origin, merge `main` into `dev`, push. Run at the start of a

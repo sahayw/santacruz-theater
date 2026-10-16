@@ -192,23 +192,6 @@
       "contact": {
         "email": "sccactorstheatre@gmail.com"
       }
-    },
-    {
-      "id": "activity-1792110268925",
-      "type": "audition",
-      "title": "8 Tens @ 8 (Best of the Rest)",
-      "genre": [],
-      "dates": [
-        {
-          "id": "session-1792110268925",
-          "date": "2026-11-18",
-          "startTime": "19:00"
-        }
-      ],
-      "rolesAvailable": [],
-      "createdAt": "2026-10-16T00:24:28.925Z",
-      "updatedAt": "2026-10-16T00:25:18.658Z",
-      "productionId": "run-1788019619245"
     }
   ]
 }

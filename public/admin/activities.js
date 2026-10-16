@@ -371,6 +371,7 @@ const ACT_CSS = `
   border-bottom: 1px solid var(--border);
 }
 .act-venue-item:last-child { border-bottom: none; }
+.act-venue-other .act-venue-item-name { font-style: italic; }
 .act-venue-item:hover { background: var(--bg); }
 .act-venue-item-name { font-size: 12px; font-family: 'IBM Plex Sans', sans-serif; color: var(--ink); }
 .act-venue-item-addr { font-size: 10px; font-family: 'IBM Plex Mono', monospace; color: var(--ink-faint); margin-top: 2px; }
@@ -1878,13 +1879,12 @@ function dateCellKey(event, rowIdx, field) {
   }
   if (field === 'locName' && (event.key === 'Tab' || event.key === 'Enter')) {
     const dd = document.getElementById('act-venue-dropdown')
-    if (dd && dd.style.display !== 'none' && dd.children.length === 1) {
+    // Exactly one listed venue suggested: Tab/Enter picks it
+    const listed = dd && dd.style.display !== 'none' ? dd.querySelectorAll('[data-venue]') : []
+    if (listed.length === 1) {
       event.preventDefault()
-      const code = dd.children[0].getAttribute('onmousedown').match(/'([^']+)'\)$/)?.[1]
-      if (code) {
-        selectVenueItem(rowIdx, code)
-        return
-      }
+      selectVenueItem(rowIdx, listed[0].dataset.venue)
+      return
     }
   }
   const col = DATE_COLS.indexOf(field)
@@ -2055,19 +2055,21 @@ function onLocNameInput(rowIdx, inputEl) {
   const query = inputEl.value.trim().toLowerCase()
   const matches = venuesList.filter((v) => !query || v.name.toLowerCase().includes(query))
   const dd = getVenueDropdown()
-  if (!matches.length) {
-    dd.style.display = 'none'
-    return
-  }
-  dd.innerHTML = matches
-    .map(
-      (v) => `
-    <div class="act-venue-item" onmousedown="act.selectVenueItem(${rowIdx},'${v.code}')">
+  // "Other venue…" is always last: a one-off place, with its own name and address
+  dd.innerHTML =
+    matches
+      .map(
+        (v) => `
+    <div class="act-venue-item" data-venue="${esc(v.code)}" onmousedown="act.selectVenueItem(${rowIdx},'${v.code}')">
       <div class="act-venue-item-name">${esc(v.name)}</div>
       ${v.address ? `<div class="act-venue-item-addr">${esc(v.address)}</div>` : ''}
     </div>`
-    )
-    .join('')
+      )
+      .join('') +
+    `<div class="act-venue-item act-venue-other" onmousedown="act.selectOtherVenue(${rowIdx})">
+      <div class="act-venue-item-name">Other venue…</div>
+      <div class="act-venue-item-addr">Not in the list: type its name and address</div>
+    </div>`
   const rect = inputEl.getBoundingClientRect()
   dd.style.left = rect.left + 'px'
   dd.style.top = rect.bottom + 2 + 'px'
@@ -2078,6 +2080,24 @@ function onLocNameInput(rowIdx, inputEl) {
 function hideVenueDropdown() {
   const dd = document.getElementById('act-venue-dropdown')
   if (dd) dd.style.display = 'none'
+}
+
+/** "Other venue…": unlinks any listed venue so the name and address can be typed. */
+function selectOtherVenue(rowIdx) {
+  const d = activities[activeActIdx].dates[rowIdx]
+  const nameEl = document.getElementById(`dc-${rowIdx}-locName`)
+  const typed = nameEl?.value.trim() || ''
+  const wasListed = !!d.venue
+  delete d.venue
+  // Keep a typed one-off name; a listed venue's name is cleared for typing afresh
+  const name = wasListed ? '' : typed
+  if (name) d.location = { name, address: d.location?.address }
+  else delete d.location
+  refreshLocationCells(rowIdx)
+  hideVenueDropdown()
+  markDirty()
+  nameEl?.focus()
+  nameEl?.select()
 }
 
 function selectVenueItem(rowIdx, code) {
@@ -2338,6 +2358,7 @@ export function mount(container, context) {
     onLocNameInput,
     hideVenueDropdown,
     selectVenueItem,
+    selectOtherVenue,
     openPreview,
     closePreview,
     closePreviewOutside

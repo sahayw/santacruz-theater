@@ -200,11 +200,12 @@ A new record is an **Audition** or an **Event**; this can't change later.
 
 - Title (required). For an audition this is its **Production** — see below.
 - **Dates table**: date, start time, optional end time, venue, address,
-  location (a space within the venue), session notes. Typing a listed
-  venue's name (or picking it from the suggestions) links the session to
-  that venue, and its address comes from the venue list. Any other name is a
-  one-off venue with its own address. A new row copies the previous row's
-  time, venue and location.
+  location (a space within the venue), session notes. Typing a listed venue's
+  name (or picking it from the suggestions) links the session to that venue,
+  and its address comes from the venue list. Any other name — or **Other
+  venue…** at the bottom of the suggestions, which unlinks a listed venue — is
+  a one-off venue whose name and address you type. A new row copies the
+  previous row's time, venue and location.
 - Contact: name, email, phone.
 - **Organizer** (records filed under **Other** only): picked from the list;
   its name replaces the company on the card and in the email digest. An

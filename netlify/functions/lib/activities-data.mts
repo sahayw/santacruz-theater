@@ -1,5 +1,5 @@
 /**
- * Local-file activity loading, shared by the digest and welcome-email functions.
+ * Local-file activity loading, shared by the digest, subscribe and preferences functions.
  *
  * Reads data/activities/**\/*.json and data/sc-theater-companies.json via fs from the
  * function bundle (see [functions].included_files in netlify.toml) rather than the
@@ -9,13 +9,20 @@
 
 import { readFileSync, readdirSync } from 'node:fs'
 import { join } from 'node:path'
-import type { Activity, ActivitiesFile } from '../../../src/types.ts'
-import { loadCompanyNames } from './company-data.mts'
+import type { Activity, ActivitiesFile, ActivityDate } from '../../../src/types.ts'
+import { organizerName, recordOrganizerIds } from '../../../src/lib/organizers.ts'
+import { sessionPlace, type Place } from '../../../src/lib/venues.ts'
+import { activityTitle, auditionDetails } from '../../../src/lib/audition-format.ts'
+import { isUpcomingActivity } from '../../../src/lib/data-rules.ts'
+import { loadCompanies, loadVenues } from './company-data.mts'
+import { loadRuns } from './shows-data.mts'
 
 export interface DigestActivity extends Activity {
-  company: string
-  companyName: string
+  title: string // resolved: a linked audition's is its production's
+  company: string // the data file's company id ("other" for the catch-all file)
+  companyName: string // organizer display name(s)
   year: number
+  dates: (ActivityDate & { place?: Place })[]
 }
 
 const DATA_ROOT = join(process.cwd(), 'data')
@@ -23,7 +30,9 @@ const ACTIVITIES_ROOT = join(DATA_ROOT, 'activities')
 const FILE_RE = /^.+-activities-\d{4}\.json$/
 
 export function loadAllActivities(): DigestActivity[] {
-  const nameMap = loadCompanyNames()
+  const companies = loadCompanies()
+  const venues = loadVenues()
+  const runs = loadRuns()
   const activities: DigestActivity[] = []
 
   let yearDirs: string[] = []
@@ -52,11 +61,15 @@ export function loadAllActivities(): DigestActivity[] {
         for (const a of parsed.activities) {
           activities.push({
             ...a,
+            title: activityTitle(a, runs),
+            ...(auditionDetails(a, runs) as Pick<
+              Activity,
+              'genre' | 'openingDate' | 'productionUrl'
+            >),
             company: parsed.company,
-            companyName:
-              (parsed.company === 'other' && a.organizerName) ||
-              (nameMap[parsed.company] ?? parsed.company),
-            year: parsed.year
+            companyName: organizerName(recordOrganizerIds(parsed.company, a.organizers), companies),
+            year: parsed.year,
+            dates: a.dates.map((d) => ({ ...d, place: sessionPlace(d, venues) }))
           })
         }
       } catch (e) {
@@ -68,66 +81,19 @@ export function loadAllActivities(): DigestActivity[] {
   return activities
 }
 
-export function isUpcoming(
-  a: DigestActivity,
-  todayStr = new Date().toISOString().slice(0, 10)
-): boolean {
-  if (a.closed) return false
-  if (a.virtualSubmission) return true // no scheduled dates — always current until closed
-  if (a.type === 'event' && a.datesByRequest && !a.dates.some((d) => d.date)) return true
-  return (
-    (a.dates
-      .map((d) => d.date)
-      .filter(Boolean)
-      .sort()
-      .pop() ?? '') >= todayStr
-  )
-}
+/** The "upcoming" rule — shared with /events and the editor (src/lib/data-rules.ts). */
+export const isUpcoming = (a: DigestActivity, today?: string) => isUpcomingActivity(a, today)
 
 function byEarliestDate(a: DigestActivity, b: DigestActivity) {
   return (a.dates[0]?.date ?? '').localeCompare(b.dates[0]?.date ?? '')
 }
 
-export function getUpcomingActivities(activities: DigestActivity[]): DigestActivity[] {
-  return activities.filter((a) => isUpcoming(a)).sort(byEarliestDate)
+export function getUpcomingAuditions(activities: DigestActivity[], today?: string) {
+  return activities
+    .filter((a) => a.type === 'audition' && isUpcoming(a, today))
+    .sort(byEarliestDate)
 }
 
-export function getUpcomingAuditions(activities: DigestActivity[]): DigestActivity[] {
-  return activities.filter((a) => a.type === 'audition' && isUpcoming(a)).sort(byEarliestDate)
-}
-
-export function getUpcomingEvents(activities: DigestActivity[]): DigestActivity[] {
-  return activities.filter((a) => a.type === 'event' && isUpcoming(a)).sort(byEarliestDate)
-}
-
-export function classifyForDigest(activities: DigestActivity[], lastSent: Date) {
-  const newAuditions = activities
-    .filter((a) => a.type === 'audition' && new Date(a.createdAt) > lastSent)
-    .sort(byEarliestDate)
-
-  const updatedAuditions = activities
-    .filter(
-      (a) =>
-        a.type === 'audition' &&
-        new Date(a.updatedAt) > lastSent &&
-        new Date(a.createdAt) <= lastSent &&
-        isUpcoming(a)
-    )
-    .sort(byEarliestDate)
-
-  const newEvents = activities
-    .filter((a) => a.type === 'event' && new Date(a.createdAt) > lastSent)
-    .sort(byEarliestDate)
-
-  const updatedEvents = activities
-    .filter(
-      (a) =>
-        a.type === 'event' &&
-        new Date(a.updatedAt) > lastSent &&
-        new Date(a.createdAt) <= lastSent &&
-        isUpcoming(a)
-    )
-    .sort(byEarliestDate)
-
-  return { newAuditions, updatedAuditions, newEvents, updatedEvents }
+export function getUpcomingEvents(activities: DigestActivity[], today?: string) {
+  return activities.filter((a) => a.type === 'event' && isUpcoming(a, today)).sort(byEarliestDate)
 }

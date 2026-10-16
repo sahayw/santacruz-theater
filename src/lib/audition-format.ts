@@ -2,6 +2,52 @@ import type { ActivityDate, AuditionRole } from '../types.ts'
 
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 
+/**
+ * An activity's title. A linked audition's title is its production's, looked up by
+ * `productionId` each time (never stored), so renaming the show renames the audition.
+ */
+export function activityTitle(
+  a: { title?: string; productionId?: string },
+  runs: { id: string; show: string }[]
+) {
+  const run = a.productionId ? runs.find((r) => r.id === a.productionId) : undefined
+  return run ? run.show : (a.title ?? '')
+}
+
+/** The production fields an audition can take from its run. */
+interface RunLike {
+  id: string
+  show: string
+  genre?: unknown
+  infoUrl?: string
+  performances?: { date: string; perfType?: string }[]
+}
+
+/** A production's opening: the performance marked Opening, else the first performance. */
+export function runOpeningDate(run: RunLike): string | undefined {
+  const perfs = (run.performances || [])
+    .filter((p) => p.date)
+    .sort((a, b) => a.date.localeCompare(b.date))
+  return (perfs.find((p) => p.perfType === 'Opening') ?? perfs[0])?.date
+}
+
+/**
+ * An audition's genre, opening date and production link. A linked audition's come from
+ * its production (looked up by id, never stored); an unlinked one's are its own.
+ */
+export function auditionDetails(
+  a: { productionId?: string; genre?: unknown; openingDate?: string; productionUrl?: string },
+  runs: RunLike[]
+) {
+  const run = a.productionId ? runs.find((r) => r.id === a.productionId) : undefined
+  const genre = (run ? run.genre : a.genre) as string[] | string | undefined
+  return {
+    genre: Array.isArray(genre) ? genre : genre ? [genre] : [],
+    openingDate: run ? runOpeningDate(run) : a.openingDate,
+    productionUrl: run ? run.infoUrl || undefined : a.productionUrl
+  }
+}
+
 export function fmt12(t: string) {
   if (!t) return ''
   const [hStr, mStr] = t.replace('.', ':').split(':')
@@ -10,13 +56,16 @@ export function fmt12(t: string) {
   return m === 0 ? String(h % 12 || 12) : `${h % 12 || 12}:${String(m).padStart(2, '0')}`
 }
 
+/** "7–9 pm", "11 am–1 pm"; a lone start (or end) time still gets its am/pm: "7 pm". */
 export function fmtTimeRange(start: string, end: string) {
   if (!start && !end) return ''
-  if (!start || !end) return fmt12(start || end)
-  const sh = Number(start.split(':')[0]),
-    eh = Number(end.split(':')[0])
-  const sp = sh < 12 ? 'am' : 'pm',
-    ep = eh < 12 ? 'am' : 'pm'
+  const suffix = (t: string) => (Number(t.replace('.', ':').split(':')[0]) < 12 ? 'am' : 'pm')
+  if (!start || !end) {
+    const t = start || end
+    return `${fmt12(t)} ${suffix(t)}`
+  }
+  const sp = suffix(start),
+    ep = suffix(end)
   return sp === ep
     ? `${fmt12(start)}–${fmt12(end)} ${ep}`
     : `${fmt12(start)} ${sp}–${fmt12(end)} ${ep}`

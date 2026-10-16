@@ -42,9 +42,7 @@ async function localHandler(event) {
   if (dirParam === 'shows' || dirParam === 'activities') {
     const baseDir = join(DATA_ROOT, dirParam)
     const nameRe =
-      dirParam === 'activities'
-        ? /^(.+)-activities-(\d{4})\.json$/
-        : /^(.+)-(\d{4})\.json$/
+      dirParam === 'activities' ? /^(.+)-activities-(\d{4})\.json$/ : /^(.+)-(\d{4})\.json$/
     let yearDirs
     try {
       yearDirs = await fs.readdir(baseDir, { withFileTypes: true })
@@ -126,8 +124,8 @@ export const handler = async (event, context) => {
   }
 
   const ghHeaders = {
-    'Authorization': `Bearer ${GITHUB_TOKEN}`,
-    'Accept': 'application/vnd.github+json',
+    Authorization: `Bearer ${GITHUB_TOKEN}`,
+    Accept: 'application/vnd.github+json',
     'X-GitHub-Api-Version': '2022-11-28'
   }
 
@@ -142,9 +140,8 @@ export const handler = async (event, context) => {
       const yearDirs = await yearListResp.json()
       const result = []
       // activities files: <company>-activities-<year>.json; shows files: <company>-<year>.json
-      const fileRe = dirParam === 'activities'
-        ? /^(.+)-activities-(\d{4})\.json$/
-        : /^(.+)-(\d{4})\.json$/
+      const fileRe =
+        dirParam === 'activities' ? /^(.+)-activities-(\d{4})\.json$/ : /^(.+)-(\d{4})\.json$/
       for (const d of yearDirs.filter((x) => x.type === 'dir')) {
         const fileListResp = await fetch(d.url, { headers: ghHeaders })
         if (!fileListResp.ok) continue

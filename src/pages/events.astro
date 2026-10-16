@@ -1,10 +1,12 @@
 ---
+// Auditions and events — /events lists them, /events?id=<bare id> shows one, and
+// /events?company=<organizer id> one organizer's. See docs/notifications-spec.md.
 import BaseHead from '../components/BaseHead.astro'
 import SiteNav from '../components/SiteNav.astro'
 import AddToCalendar from '../components/AddToCalendar.astro'
-import companiesData from '../../data/sc-theater-companies.json'
 import { FEED_NAMES, bareId } from '../lib/calendar-model.ts'
-import { getActivities } from '../lib/data.ts'
+import { companies, getActivities } from '../lib/data.ts'
+import { allOrganizers } from '../lib/organizers.ts'
 import type { ActivityEvent } from '../lib/data.ts'
 import {
   fmtShortDate,
@@ -17,24 +19,31 @@ import {
 
 const activities = getActivities()
 
-const companyNameMap: Record<string, string> = Object.fromEntries(
-  companiesData.companies.map((c) => [c.id, c.name])
+// Company filter: every organizer with a listing, by name. ?company= can name any
+// organizer; the names let the filter show one without a listing here.
+const filterCompanies = allOrganizers(companies).filter((c) =>
+  activities.some((a) => a.organizerIds.includes(c.id))
 )
-
-const actCompanyCodes = new Set<string>(activities.map((a) => a.company))
-const filterCompanies = companiesData.companies.filter(
-  (c) => !c.adminOnly && actCompanyCodes.has(c.id)
+const organizerNames = JSON.stringify(
+  Object.fromEntries(allOrganizers(companies).map((c) => [c.id, c.name]))
 )
 function latestDate(act: ActivityEvent): string {
   return [...act.dates].sort((a, b) => b.date.localeCompare(a.date))[0]?.date ?? ''
 }
 
 function displayName(act: ActivityEvent): string {
-  if (act.company === 'other' && act.organizerName) return act.organizerName
-  return companyNameMap[act.company] ?? act.company
+  return act.organizerName
 }
 
-// Calendar feed picker for the subscribe banner
+/**
+ * Organizers to list in an expanded card: shown when the record names them (filed under
+ * Other, or with co-producers). A company's own record is already headed by its name.
+ */
+function namedOrganizers(act: ActivityEvent) {
+  return act.organizers?.length ? act.organizerEntries : []
+}
+
+// Add to my calendar (filter bar): which feed
 const feedChoices = JSON.stringify([
   { label: 'All auditions & events', feed: 'activities', name: FEED_NAMES.activities },
   { label: 'Auditions only', feed: 'auditions', name: FEED_NAMES.auditions }
@@ -66,7 +75,7 @@ function roleTypeLabel(type: string): string {
     />
   </head>
   <body>
-    <SiteNav currentPage="events" />
+    <SiteNav currentPage="events" subscribe={{ list: 'auditions-events', from: 'events' }} />
 
     <main class="aud-page">
       <header class="page-header">
@@ -75,32 +84,6 @@ function roleTypeLabel(type: string): string {
           Upcoming auditions, workshops, and other events for theater creators
         </p>
       </header>
-
-      <div class="aud-subscribe" id="aud-subscribe">
-        <div class="subscribe-inner">
-          <p class="subscribe-prompt">Get notified when new auditions and events are posted.</p>
-          <form id="subscribe-form" class="subscribe-form" novalidate>
-            <input
-              type="email"
-              id="subscribe-email"
-              class="subscribe-input"
-              placeholder="your@email.com"
-              autocomplete="email"
-              required
-            />
-            <button type="submit" id="subscribe-btn" class="subscribe-btn">Notify me</button>
-          </form>
-          <button
-            type="button"
-            class="subscribe-cal-btn"
-            data-ics-choices={feedChoices}
-            data-ics-choice-label="Include"
-          >
-            Add to my calendar
-          </button>
-          <div id="subscribe-status" class="subscribe-status" hidden aria-live="polite"></div>
-        </div>
-      </div>
 
       <div class="filter-bar">
         <div class="filter-controls">
@@ -115,13 +98,36 @@ function roleTypeLabel(type: string): string {
           </div>
           <div class="filter-group">
             <label for="filter-company">Company</label>
-            <select id="filter-company">
+            <select id="filter-company" data-names={organizerNames}>
               <option value="">All</option>
               {filterCompanies.map((c) => <option value={c.id}>{c.name}</option>)}
             </select>
           </div>
         </div>
-        <div class="filter-count" id="filter-count" aria-live="polite"></div>
+        <div class="filter-end">
+          <div class="filter-count" id="filter-count" aria-live="polite"></div>
+          <button
+            type="button"
+            class="filter-cal-btn"
+            data-ics-choices={feedChoices}
+            data-ics-choice-label="Include"
+          >
+            <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"
+              ><rect
+                x="1.5"
+                y="2.5"
+                width="13"
+                height="12"
+                rx="1.5"
+                fill="none"
+                stroke="currentColor"></rect><path
+                d="M1.5 6h13M5 1v3M11 1v3M8 8v5M5.5 10.5h5"
+                stroke="currentColor"
+                fill="none"></path></svg
+            >
+            Add to my calendar
+          </button>
+        </div>
       </div>
 
       {
@@ -137,7 +143,7 @@ function roleTypeLabel(type: string): string {
                 <div
                   class="aud-card"
                   data-id={act.id}
-                  data-company={act.company}
+                  data-organizers={act.organizerIds.join(' ')}
                   data-genre={act.genre.join(',')}
                   data-latest-date={latest}
                   data-type={act.type}
@@ -216,10 +222,10 @@ function roleTypeLabel(type: string): string {
                               </p>
                             )}
                             {(() => {
-                              const _locs = act.dates.map((d) => d.location?.name).filter(Boolean)
+                              const _locs = act.dates.map((d) => d.place?.name).filter(Boolean)
                               const _shared =
                                 _locs.length > 0 && _locs.every((n) => n === _locs[0])
-                                  ? act.dates.find((d) => d.location)?.location
+                                  ? act.dates.find((d) => d.place)?.place
                                   : null
                               return act.dates.map((ad, i) => {
                                 const locationSeenBefore =
@@ -227,7 +233,7 @@ function roleTypeLabel(type: string): string {
                                   i > 0 &&
                                   act.dates
                                     .slice(0, i)
-                                    .some((prev) => prev.location?.name === ad.location?.name)
+                                    .some((prev) => prev.place?.name === ad.place?.name)
                                 return (
                                   <div class="detail-date-row" data-date={ad.date}>
                                     <span class="detail-date-label">{fmtFullDate(ad.date)}</span>
@@ -244,11 +250,11 @@ function roleTypeLabel(type: string): string {
                                         Add to my calendar
                                       </button>
                                     )}
-                                    {!_shared && ad.location && (
+                                    {!_shared && ad.place && (
                                       <div class="detail-date-location">
-                                        <span class="detail-location-name">{ad.location.name}</span>
-                                        {!locationSeenBefore && ad.location.address && (
-                                          <span class="detail-sub"> · {ad.location.address}</span>
+                                        <span class="detail-location-name">{ad.place.name}</span>
+                                        {!locationSeenBefore && ad.place.address && (
+                                          <span class="detail-sub"> · {ad.place.address}</span>
                                         )}
                                       </div>
                                     )}
@@ -257,9 +263,9 @@ function roleTypeLabel(type: string): string {
                               })
                             })()}
                             {(() => {
-                              const _locs = act.dates.map((d) => d.location?.name).filter(Boolean)
+                              const _locs = act.dates.map((d) => d.place?.name).filter(Boolean)
                               if (_locs.length > 0 && _locs.every((n) => n === _locs[0])) {
-                                const _loc = act.dates.find((d) => d.location)?.location
+                                const _loc = act.dates.find((d) => d.place)?.place
                                 if (_loc)
                                   return (
                                     <div class="detail-date-location" style="margin-top:4px">
@@ -304,26 +310,28 @@ function roleTypeLabel(type: string): string {
                             </section>
                           )}
 
-                          {(act.organizerName || act.organizerUrl) && (
+                          {namedOrganizers(act).length > 0 && (
                             <section class="detail-section">
                               <h4 class="detail-section-head">Organizer</h4>
-                              {act.organizerName && (
-                                <div class="detail-sub" style="font-size:13px;color:var(--ink)">
-                                  {act.organizerName}
-                                </div>
-                              )}
-                              {act.organizerUrl && (
-                                <div class="detail-sub" style="overflow-wrap:anywhere">
-                                  <a
-                                    href={act.organizerUrl}
-                                    class="detail-link-inline"
-                                    target="_blank"
-                                    rel="noopener"
-                                  >
-                                    {act.organizerUrl}
-                                  </a>
-                                </div>
-                              )}
+                              {namedOrganizers(act).map((o) => (
+                                <>
+                                  <div class="detail-sub" style="font-size:13px;color:var(--ink)">
+                                    {o.name}
+                                  </div>
+                                  {o.website && (
+                                    <div class="detail-sub" style="overflow-wrap:anywhere">
+                                      <a
+                                        href={o.website}
+                                        class="detail-link-inline"
+                                        target="_blank"
+                                        rel="noopener"
+                                      >
+                                        {o.website}
+                                      </a>
+                                    </div>
+                                  )}
+                                </>
+                              ))}
                             </section>
                           )}
 
@@ -403,10 +411,10 @@ function roleTypeLabel(type: string): string {
                               <p class="detail-virtual-note">On request</p>
                             )}
                             {(() => {
-                              const _locs = act.dates.map((d) => d.location?.name).filter(Boolean)
+                              const _locs = act.dates.map((d) => d.place?.name).filter(Boolean)
                               const _shared =
                                 _locs.length > 0 && _locs.every((n) => n === _locs[0])
-                                  ? act.dates.find((d) => d.location)?.location
+                                  ? act.dates.find((d) => d.place)?.place
                                   : null
                               return act.dates.map((ad, i) => {
                                 const locationSeenBefore =
@@ -414,7 +422,7 @@ function roleTypeLabel(type: string): string {
                                   i > 0 &&
                                   act.dates
                                     .slice(0, i)
-                                    .some((prev) => prev.location?.name === ad.location?.name)
+                                    .some((prev) => prev.place?.name === ad.place?.name)
                                 return (
                                   <div class="detail-date-row" data-date={ad.date}>
                                     <span class="detail-date-label">{fmtFullDate(ad.date)}</span>
@@ -431,11 +439,11 @@ function roleTypeLabel(type: string): string {
                                         Add to my calendar
                                       </button>
                                     )}
-                                    {!_shared && ad.location && (
+                                    {!_shared && ad.place && (
                                       <div class="detail-date-location">
-                                        <span class="detail-location-name">{ad.location.name}</span>
-                                        {!locationSeenBefore && ad.location.address && (
-                                          <span class="detail-sub"> · {ad.location.address}</span>
+                                        <span class="detail-location-name">{ad.place.name}</span>
+                                        {!locationSeenBefore && ad.place.address && (
+                                          <span class="detail-sub"> · {ad.place.address}</span>
                                         )}
                                       </div>
                                     )}
@@ -444,9 +452,9 @@ function roleTypeLabel(type: string): string {
                               })
                             })()}
                             {(() => {
-                              const _locs = act.dates.map((d) => d.location?.name).filter(Boolean)
+                              const _locs = act.dates.map((d) => d.place?.name).filter(Boolean)
                               if (_locs.length > 0 && _locs.every((n) => n === _locs[0])) {
-                                const _loc = act.dates.find((d) => d.location)?.location
+                                const _loc = act.dates.find((d) => d.place)?.place
                                 if (_loc)
                                   return (
                                     <div class="detail-date-location" style="margin-top:4px">
@@ -510,28 +518,30 @@ function roleTypeLabel(type: string): string {
                             )}
                         </div>
 
-                        {(act.description || act.organizerName || act.organizerUrl) && (
+                        {(act.description || namedOrganizers(act).length > 0) && (
                           <div class="detail-right">
-                            {(act.organizerName || act.organizerUrl) && (
+                            {namedOrganizers(act).length > 0 && (
                               <section class="detail-section">
                                 <h4 class="detail-section-head">Organizer</h4>
-                                {act.organizerName && (
-                                  <div class="detail-sub" style="font-size:13px;color:var(--ink)">
-                                    {act.organizerName}
-                                  </div>
-                                )}
-                                {act.organizerUrl && (
-                                  <div class="detail-sub" style="overflow-wrap:anywhere">
-                                    <a
-                                      href={act.organizerUrl}
-                                      class="detail-link-inline"
-                                      target="_blank"
-                                      rel="noopener"
-                                    >
-                                      {act.organizerUrl}
-                                    </a>
-                                  </div>
-                                )}
+                                {namedOrganizers(act).map((o) => (
+                                  <>
+                                    <div class="detail-sub" style="font-size:13px;color:var(--ink)">
+                                      {o.name}
+                                    </div>
+                                    {o.website && (
+                                      <div class="detail-sub" style="overflow-wrap:anywhere">
+                                        <a
+                                          href={o.website}
+                                          class="detail-link-inline"
+                                          target="_blank"
+                                          rel="noopener"
+                                        >
+                                          {o.website}
+                                        </a>
+                                      </div>
+                                    )}
+                                  </>
+                                ))}
                               </section>
                             )}
                             {act.description && (
@@ -626,15 +636,6 @@ function roleTypeLabel(type: string): string {
     --border: #e0d9d0;
     --border-primary: #c8a96e;
     --radius: 6px;
-
-    /* Company dot colours — match calendar.astro */
-    --dot-scs: #ce8481;
-    --dot-at: #7b8bc4;
-    --dot-mct: #71c75f;
-    --dot-renegade: #5dadbe;
-    --dot-cabrillo: #c8a96e;
-    --dot-abt: #a57bc4;
-    --dot-other: #cbcbcb;
   }
 
   body {
@@ -738,111 +739,37 @@ function roleTypeLabel(type: string): string {
     flex-shrink: 0;
   }
 
-  /* ── SUBSCRIBE WIDGET ── */
-  .aud-subscribe {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 8px 14px;
-    margin-bottom: 10px;
-  }
-
-  .subscribe-inner {
+  .filter-end {
     display: flex;
     align-items: center;
-    gap: 10px;
-    flex-wrap: wrap;
+    gap: 12px;
   }
 
-  .subscribe-prompt {
-    font-size: 13px;
-    color: var(--ink-muted);
-    flex-shrink: 0;
-    margin: 0;
-  }
-
-  .subscribe-form {
-    display: flex;
-    gap: 6px;
-    flex: 1;
-    min-width: 200px;
-  }
-
-  .subscribe-input {
+  /* Same shape as the calendar and /productions bar buttons, in light colours */
+  .filter-cal-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
     font-family: inherit;
-    font-size: 13px;
-    border: 1px solid var(--border);
-    border-radius: 4px;
-    padding: 6px 10px;
-    flex: 1;
-    color: var(--ink);
-    background: var(--bg);
-    min-width: 0;
-  }
-
-  .subscribe-input:focus {
-    outline: none;
-    border-color: var(--border-primary);
-  }
-
-  .subscribe-btn {
-    font-family: inherit;
-    font-size: 13px;
-    font-weight: 500;
-    background: var(--ink);
-    color: #fff;
-    border: none;
-    border-radius: 4px;
-    padding: 6px 14px;
-    cursor: pointer;
-    white-space: nowrap;
-    flex-shrink: 0;
-    transition: background 0.15s;
-  }
-
-  .subscribe-btn:hover:not(:disabled) {
-    background: #333;
-  }
-
-  .subscribe-btn:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-  }
-
-  .subscribe-cal-btn {
-    font-family: inherit;
-    font-size: 13px;
-    font-weight: 500;
+    font-size: 12px;
     background: var(--surface);
-    color: var(--ink);
+    color: var(--ink-muted);
     border: 1px solid var(--border);
     border-radius: 4px;
-    padding: 6px 12px;
+    padding: 4px 8px;
     cursor: pointer;
     white-space: nowrap;
-    flex-shrink: 0;
+    -webkit-tap-highlight-color: transparent;
+    transition:
+      color 0.14s,
+      border-color 0.14s;
   }
 
-  .subscribe-cal-btn:hover {
-    border-color: var(--border-primary);
-  }
-
-  .subscribe-status {
-    font-size: 13px;
-    width: 100%;
-    margin-top: 4px;
-  }
-
-  .subscribe-status.ok {
-    color: #2d6020;
-  }
-
-  .subscribe-status.err {
-    color: #8c3a2e;
-  }
-
-  .subscribe-status.pending {
-    color: #6b6259;
+  @media (hover: hover) {
+    .filter-cal-btn:hover {
+      color: var(--ink);
+      border-color: var(--border-primary);
+    }
   }
 
   /* ── EMPTY STATES ── */
@@ -1385,12 +1312,14 @@ function roleTypeLabel(type: string): string {
 </style>
 
 <script is:inline>
-  const TODAY = new Date().toISOString().slice(0, 10)
+  // Today in Santa Cruz — the same date as todayIso() in src/lib/data-rules.ts
+  const TODAY = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Los_Angeles' })
 
   const cards = Array.from(document.querySelectorAll('.aud-card'))
   const countEl = document.getElementById('filter-count')
   const filterCompany = document.getElementById('filter-company')
   const filterShow = document.getElementById('filter-show')
+  const NAMES = JSON.parse(filterCompany.dataset.names)
   const emptyEl = document.getElementById('aud-empty')
 
   // Date-free virtual auditions and by-request events stay upcoming until closed.
@@ -1428,7 +1357,7 @@ function roleTypeLabel(type: string): string {
     })
 
     cards.forEach((card) => {
-      const matchCo = !co || card.dataset.company === co
+      const matchCo = !co || card.dataset.organizers.split(' ').includes(co)
       const isPast = notUpcoming(card)
       const isAud = card.dataset.type === 'audition'
 
@@ -1473,8 +1402,24 @@ function roleTypeLabel(type: string): string {
     btn.setAttribute('aria-expanded', 'true')
   }
 
+  // ?company=<organizer id>: picks that organizer in the Company filter, adding it if it
+  // has no listing here. The address follows later changes, so it can be shared.
+  const params = new URLSearchParams(location.search)
+  const company = params.get('company')
+  if (company && NAMES[company]) {
+    if (!filterCompany.querySelector(`option[value="${company}"]`))
+      filterCompany.add(new Option(NAMES[company], company))
+    filterCompany.value = company
+  }
+  function syncAddress() {
+    if (filterCompany.value) params.set('company', filterCompany.value)
+    else params.delete('company')
+    const q = params.toString()
+    history.replaceState(null, '', q ? `?${q}` : location.pathname)
+  }
+
   // Deep-link: ?id=<timestamp> (prefix "activity-" stripped from URL for brevity)
-  const deepId = new URLSearchParams(location.search).get('id')
+  const deepId = params.get('id')
   const deepCard = deepId
     ? (cards.find((c) => c.dataset.id === 'activity-' + deepId) ?? null)
     : null
@@ -1486,7 +1431,6 @@ function roleTypeLabel(type: string): string {
     titleEl.style.fontSize = '18px'
     document.querySelector('.page-subtitle').style.display = 'none'
     document.querySelector('.filter-bar').style.display = 'none'
-    document.getElementById('aud-subscribe').style.display = 'none'
     cards.forEach((c) => {
       if (c !== deepCard) c.style.display = 'none'
     })
@@ -1497,7 +1441,6 @@ function roleTypeLabel(type: string): string {
   } else if (deepId) {
     // Unrecognised id — show error, suppress list and filters
     document.querySelector('.filter-bar').style.display = 'none'
-    document.getElementById('aud-subscribe').style.display = 'none'
     document.getElementById('aud-list')?.style.setProperty('display', 'none')
     const notFound = document.getElementById('aud-not-found')
     notFound.textContent = `activity-${deepId} not found`
@@ -1508,7 +1451,10 @@ function roleTypeLabel(type: string): string {
     // Normal list mode
     filterShow.value = 'upcoming'
     updateFilters()
-    filterCompany?.addEventListener('change', updateFilters)
+    filterCompany.addEventListener('change', () => {
+      syncAddress()
+      updateFilters()
+    })
     filterShow?.addEventListener('change', updateFilters)
   }
 
@@ -1522,50 +1468,5 @@ function roleTypeLabel(type: string): string {
       detail.hidden = !isOpen
       btn.setAttribute('aria-expanded', String(isOpen))
     })
-  })
-
-  // Subscribe form
-  const subscribeForm = document.getElementById('subscribe-form')
-  const subscribeEmail = document.getElementById('subscribe-email')
-  const subscribeBtn = document.getElementById('subscribe-btn')
-  const subscribeStatus = document.getElementById('subscribe-status')
-
-  subscribeForm?.addEventListener('submit', async (e) => {
-    e.preventDefault()
-    const email = subscribeEmail.value.trim()
-    if (!email) return
-    subscribeBtn.disabled = true
-    subscribeBtn.textContent = 'Sending…'
-    subscribeStatus.textContent = 'Subscribing…'
-    subscribeStatus.className = 'subscribe-status pending'
-    subscribeStatus.hidden = false
-    try {
-      const resp = await fetch('/.netlify/functions/subscribe', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email })
-      })
-      let data = {}
-      try {
-        data = await resp.json()
-      } catch {}
-      const msg =
-        data.message ||
-        (resp.ok ? 'Subscribed!' : 'Something went wrong — please try again shortly.')
-      subscribeStatus.textContent = resp.ok ? msg : `${msg} [${resp.status}]`
-      subscribeStatus.className = `subscribe-status ${resp.ok ? 'ok' : 'err'}`
-      subscribeStatus.hidden = false
-      if (resp.ok) {
-        subscribeEmail.value = ''
-        subscribeForm.style.display = 'none'
-      }
-    } catch {
-      subscribeStatus.textContent = 'Network error — please try again shortly.'
-      subscribeStatus.className = 'subscribe-status err'
-      subscribeStatus.hidden = false
-    } finally {
-      subscribeBtn.disabled = false
-      subscribeBtn.textContent = 'Notify me'
-    }
   })
 </script>

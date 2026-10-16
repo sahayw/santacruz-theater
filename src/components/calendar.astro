@@ -1,8 +1,8 @@
 ---
 import type { PerformanceEvent } from '../types.ts'
-import companiesData from '../../data/sc-theater-companies.json'
 import AddToCalendar from './AddToCalendar.astro'
-import { FEED_NAMES } from '../lib/calendar-model.ts'
+import { companies } from '../lib/data.ts'
+import { majors as majorsOf } from '../lib/organizers.ts'
 
 interface Props {
   performances: PerformanceEvent[]
@@ -10,65 +10,33 @@ interface Props {
 
 const { performances } = Astro.props
 
-const activeCompanyCodes = new Set<string>(performances.map((p) => p.company).filter(Boolean))
-const filterCompanies = companiesData.companies.filter((c) => activeCompanyCodes.has(c.id))
-
-// Calendar subscriptions offered from the bar (list view only): everything, or one company
-const feedChoices = JSON.stringify([
-  { label: 'All companies', feed: 'runs', name: FEED_NAMES.runs },
-  ...filterCompanies.map((c) => ({
-    label: c.name,
-    feed: `runs/company/${c.id}`,
-    name: FEED_NAMES.company(c.name)
-  }))
-])
+// The majors in majorCode order: their colours mark the calendar; everyone else is grey.
+// Add to my calendar offers them as checkboxes (numbered selection feeds).
+const majors = majorsOf(companies).map((c) => ({
+  id: c.id,
+  label: c.abvName,
+  name: c.name,
+  colour: c.colour!,
+  code: c.majorCode!
+}))
+const icsMajors = JSON.stringify(majors.map(({ code, label, name }) => ({ code, label, name })))
 ---
 
 <div class="cal-bar">
-  <!-- Left: view switch + page filters. Right: calendar subscription — kept apart so the
-       filters don't look like they shape the subscription. -->
+  <!-- Left: switch between the year view and the drill-down (month, or week on phones).
+       Middle: step through years / months / weeks. Right: calendar subscription. -->
   <div class="bar-left">
-    <button class="back-annual-btn" id="backBtn">← Annual</button>
-    <button class="list-view-btn" id="listViewBtn">List view →</button>
-    <div class="filter-area">
-      <button class="filter-toggle-btn" id="filterToggleBtn" aria-label="Filters" title="Filters">
-        <svg class="filter-icon" viewBox="0 0 16 16" width="13" height="13" aria-hidden="true"
-          ><path d="M2 3h12l-4.5 5.5V13l-3 1.5v-6z" fill="none" stroke="currentColor"
-          ></path></svg
-        ><span id="filterLabel">Filters</span>
-      </button>
-      <div class="filter-dropdown" id="filterDropdown">
-        <div class="filter-row">
-          <label>Company</label>
-          <select id="filterCompany">
-            <option value="">All</option>
-            {filterCompanies.map((c) => <option value={c.id}>{c.name}</option>)}
-          </select>
-        </div>
-        <div class="filter-row">
-          <label>Genre</label>
-          <select id="filterGenre">
-            <option value="">All</option>
-            <option value="Drama">Drama</option>
-            <option value="Musical">Musical</option>
-            <option value="Comedy">Comedy</option>
-          </select>
-        </div>
-        <div class="filter-row">
-          <label>Time</label>
-          <select id="filterTime">
-            <option value="">All</option>
-            <option value="Mat">Matinee</option>
-            <option value="Eve">Evening</option>
-          </select>
-        </div>
-      </div>
-    </div>
+    <button class="back-annual-btn" id="backBtn">← Year</button>
+    <button class="list-view-btn" id="drillBtn"
+      ><span class="drill-label-month">Month view →</span><span class="drill-label-week"
+        >Week view →</span
+      ></button
+    >
   </div>
   <div class="year-nav">
-    <button class="year-step" id="yearPrev" aria-label="Previous year">‹</button>
-    <span class="year-display" id="yearDisplay">2026</span>
-    <button class="year-step" id="yearNext" aria-label="Next year">›</button>
+    <button class="year-step" id="navPrev" aria-label="Previous">‹</button>
+    <span class="year-display" id="navLabel"></span>
+    <button class="year-step" id="navNext" aria-label="Next">›</button>
   </div>
   <div class="bar-right">
     <button
@@ -76,8 +44,7 @@ const feedChoices = JSON.stringify([
       type="button"
       aria-label="Add to my calendar"
       title="Add to my calendar"
-      data-ics-choices={feedChoices}
-      data-ics-choice-label="Company"
+      data-ics-majors={icsMajors}
     >
       <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"
         ><rect x="1.5" y="2.5" width="13" height="12" rx="1.5" fill="none" stroke="currentColor"
@@ -89,19 +56,6 @@ const feedChoices = JSON.stringify([
   </div>
 </div>
 
-<div class="scroll-col-header" id="scrollColHeader">
-  <div class="scroll-col-header-inner">
-    <div class="col-head-cell">Shows this week</div>
-    <div class="col-head-cell">Mon</div>
-    <div class="col-head-cell">Tue</div>
-    <div class="col-head-cell">Wed</div>
-    <div class="col-head-cell">Thu</div>
-    <div class="col-head-cell">Fri</div>
-    <div class="col-head-cell">Sat</div>
-    <div class="col-head-cell">Sun</div>
-  </div>
-</div>
-
 <div id="annual-view">
   <div style="padding:12px">
     <div class="months-grid" id="monthsGrid"></div>
@@ -109,14 +63,10 @@ const feedChoices = JSON.stringify([
   </div>
 </div>
 
-<div id="scroll-view">
-  <div id="scroll-weeks"></div>
-  <div style="height:24px"></div>
-</div>
+<div id="drill-view"></div>
 
 <div class="fixed-legend-footer" id="fixedLegendFooter"></div>
 <div id="hoverPanel" class="day-hover-panel"></div>
-<div id="showDescPanel" class="show-desc-panel"></div>
 <div class="overlay" id="overlay"></div>
 <div class="bottom-sheet" id="bottomSheet">
   <div class="sheet-date-header">
@@ -139,33 +89,9 @@ const feedChoices = JSON.stringify([
     --border: #e0d9d0;
     --month-header-bg: #fffcf2;
     --card-description-lines: 4;
-    /* day fill colors — flat muted tints */
-    --col-scs: #e9c1be; /* Carnation   7°   SCS      */
-    --col-at: #afbfee; /* Dusk      225°   AT       */
-    --col-mct: #c9e6bf; /* Willow    116°   MCT      */
-    --col-renegade: #b7e8ec; /* Verdigris 188°   Renegade */
-    --col-other: #dadada; /* grey — Other / unknown fallback (drill down only) */
-    --col-multi: #c4b7a8; /* deeper taupe — multi-company days (annual only) */
-    /* legend dot colors — muted accent, provides increased contrast */
-    --dot-scs: #ce8481; /* dusty rose  */
-    --dot-at: #7b8bc4; /* soft indigo */
-    --dot-mct: #71c75f; /* olive sage  */
-    --dot-renegade: #5dadbe; /* sea teal  */
-    --dot-other: #dadada; /* grey - other (drill down only) */
-    --dot-multi: #c4b7a8; /* deeper taupe — multi-company (annual only) */
-    /* fully saturated accent colors — drill-down chip bars and Show-card badge */
-    --acc-scs: #dc4343; /* vivid red-rose */
-    --acc-at: #4f5ce0; /* vivid blue     */
-    --acc-mct: #48ae31; /* vivid leaf green */
-    --acc-renegade: #21a4c8; /* vivid sea teal  */
-    --acc-other: #8f8a85; /* warm grey accent */
     --radius: 6px;
     --bar-h: 32px;
-    --col-header-h: 28px;
     --footer-h: 48px;
-    --shows-col-w: clamp(120px, 21vw, 160px);
-    --daynum-h: 24px;
-    --row-h: 22px;
   }
 
   * {
@@ -231,7 +157,7 @@ const feedChoices = JSON.stringify([
   .list-view-btn:hover {
     color: #fff;
   }
-  body.scroll-mode .back-annual-btn {
+  body.drill-mode .back-annual-btn {
     display: block;
   }
   body.annual-mode .list-view-btn {
@@ -275,202 +201,7 @@ const feedChoices = JSON.stringify([
     visibility: hidden;
   }
 
-  /* Filter toggle button */
-  .filter-area {
-    position: relative;
-  }
-  /* Add to calendar — matches the filter toggle; icon-only on narrow screens */
-  .cal-feed-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 5px;
-    background: rgba(255, 255, 255, 0.1);
-    border: 1px solid rgba(255, 255, 255, 0.18);
-    border-radius: 4px;
-    color: rgba(255, 255, 255, 0.8);
-    font-family: 'DM Sans', sans-serif;
-    font-size: 12px;
-    padding: 4px 8px;
-    cursor: pointer;
-    white-space: nowrap;
-    -webkit-tap-highlight-color: transparent;
-  }
-  @media (hover: hover) {
-    .cal-feed-btn:hover {
-      background: rgba(255, 255, 255, 0.18);
-      border-color: rgba(255, 255, 255, 0.35);
-      color: #fff;
-    }
-  }
-  @media (max-width: 640px) {
-    .cal-feed-label,
-    #filterLabel {
-      display: none;
-    }
-  }
-  .filter-icon {
-    display: none;
-  }
-  @media (max-width: 640px) {
-    .filter-icon {
-      display: block;
-    }
-    .filter-toggle-btn {
-      padding: 4px 8px;
-    }
-  }
-  @media (max-width: 480px) {
-    /* .cal-bar's transform makes it the containing block, so this spans the bar */
-    .cal-bar .filter-dropdown {
-      position: fixed;
-      top: calc(var(--bar-h) + 6px);
-      left: 12px;
-      right: 12px;
-      min-width: 0;
-    }
-  }
-  /* Only in list view — the year view doesn't show what you'd be subscribing to */
-  body:not(.scroll-mode) .cal-feed-btn {
-    display: none;
-  }
-  .filter-toggle-btn {
-    background: rgba(255, 255, 255, 0.1);
-    border: 1px solid rgba(255, 255, 255, 0.18);
-    border-radius: 4px;
-    color: rgba(255, 255, 255, 0.8);
-    font-family: 'DM Sans', sans-serif;
-    font-size: 12px;
-    font-weight: 400;
-    padding: 4px 10px;
-    cursor: pointer;
-    white-space: nowrap;
-    -webkit-tap-highlight-color: transparent;
-    transition:
-      background 0.14s,
-      border-color 0.14s,
-      color 0.14s;
-  }
-  @media (hover: hover) {
-    .filter-toggle-btn:hover {
-      background: rgba(255, 255, 255, 0.18);
-      border-color: rgba(255, 255, 255, 0.35);
-      color: #fff;
-    }
-  }
-  .filter-toggle-btn.active {
-    background: rgba(200, 169, 110, 0.2);
-    border-color: rgba(200, 169, 110, 0.5);
-    color: #c8a96e;
-  }
-
-  /* Filter dropdown panel */
-  .filter-dropdown {
-    position: absolute;
-    top: calc(100% + 6px);
-    left: 0;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.18);
-    padding: 4px 0;
-    z-index: 120;
-    min-width: 210px;
-    opacity: 0;
-    visibility: hidden;
-    pointer-events: none;
-    transform: translateY(-4px);
-    transition:
-      opacity 0.75s ease,
-      transform 0.75s ease,
-      visibility 0s linear 0.75s;
-  }
-  .filter-dropdown.open {
-    opacity: 1;
-    visibility: visible;
-    pointer-events: auto;
-    transform: translateY(0);
-    transition:
-      opacity 0.75s ease,
-      transform 0.75s ease,
-      visibility 0s linear 0s;
-  }
-  .filter-row {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 6px 12px;
-  }
-  .filter-row + .filter-row {
-    border-top: 1px solid var(--border);
-  }
-  .filter-row label {
-    font-size: 12px;
-    color: var(--ink-muted);
-    font-weight: 500;
-    min-width: 58px;
-  }
-  .filter-row select {
-    flex: 1;
-    font-family: inherit;
-    font-size: 12px;
-    border: 1px solid var(--border);
-    border-radius: 4px;
-    padding: 3px 6px;
-    background: var(--bg);
-    color: var(--ink);
-    cursor: pointer;
-  }
-
-  /* ── FIXED SCROLL-VIEW COLUMN HEADER ── */
-  .scroll-col-header {
-    display: none;
-    position: fixed;
-    top: var(--bar-h);
-    left: 0;
-    right: 0;
-    z-index: 108;
-    background: var(--bar-bg);
-    color: #fff;
-    height: var(--col-header-h);
-    -webkit-transform: translateZ(0);
-    transform: translateZ(0);
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-  }
-  .scroll-col-header.visible {
-    display: block;
-  }
-  .scroll-col-header-inner {
-    display: grid;
-    grid-template-columns: var(--shows-col-w) repeat(7, 1fr);
-    min-width: 440px;
-    max-width: 600px;
-    margin: 0 auto;
-    height: 100%;
-  }
-  .col-head-cell {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 12px;
-    font-weight: 500;
-    border-left: 1px solid rgba(255, 255, 255, 0.15);
-    padding: 0 3px;
-  }
-  .col-head-cell:first-child {
-    position: sticky;
-    left: 0;
-    z-index: 1;
-    justify-content: flex-start;
-    padding-left: 8px;
-    border-left: none;
-    font-size: 14px;
-    color: rgba(255, 255, 255, 0.7);
-    background: var(--bar-bg);
-  }
-
-  body.scroll-mode {
-    padding-top: calc(var(--bar-h) + var(--col-header-h));
+  body.drill-mode {
     padding-bottom: calc(var(--footer-h) + 8px);
   }
   body.annual-mode {
@@ -556,14 +287,6 @@ const feedChoices = JSON.stringify([
     font-weight: 600;
     cursor: pointer;
   }
-  .mini-day.has-perf.multi {
-    background: var(--col-multi) !important;
-  }
-  .mini-day.has-perf.pip-active {
-    filter: brightness(0.8);
-    outline: 2px solid rgba(0, 0, 0, 0.2);
-    outline-offset: -1px;
-  }
   @media (hover: hover) {
     .mini-day.has-perf:hover {
       filter: brightness(0.88);
@@ -600,195 +323,6 @@ const feedChoices = JSON.stringify([
     height: 13px;
     border-radius: 3px;
     flex-shrink: 0;
-  }
-
-  /* ── SCROLL VIEW ── */
-  #scroll-view {
-    display: none;
-    max-width: 600px;
-    margin: 0 auto;
-    padding-right: 5px;
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-  }
-
-  .scroll-month-label {
-    position: relative;
-    z-index: 3;
-    padding: 7px 12px 6px;
-    font-family: 'DM Serif Display', serif;
-    font-size: 18px;
-    font-weight: 400;
-    color: #433c36;
-    background: linear-gradient(
-      to bottom,
-      #f1eee8 0%,
-      var(--month-header-bg) 25%,
-      var(--month-header-bg) 85%,
-      #f1eee8 100%
-    );
-    letter-spacing: 0.01em;
-    border-bottom: 1px solid var(--border);
-    will-change: transform;
-  }
-
-  .week-table-wrap {
-  }
-
-  .week-grid {
-    display: grid;
-    grid-template-columns: var(--shows-col-w) repeat(7, 1fr);
-    border-bottom: 2px solid var(--border);
-    border-right: 2px solid var(--border);
-    min-width: 440px;
-    background: var(--surface);
-  }
-
-  .shows-col {
-    position: sticky;
-    left: 0;
-    z-index: 2;
-    background: var(--bg);
-    border-right: 2px solid var(--border);
-    box-shadow: 2px 0 6px rgba(0, 0, 0, 0.06);
-    display: grid;
-    padding: 0;
-  }
-  .shows-col-spacer {
-    height: var(--daynum-h);
-    border-bottom: 1px solid var(--border);
-  }
-  .show-chip {
-    height: calc(var(--row-h) - 2px);
-    margin: 1px 3px;
-    border-radius: 3px;
-    display: flex;
-    align-items: center;
-    gap: 5px;
-    padding: 0 6px;
-    font-size: 12px;
-    font-weight: 400;
-    white-space: nowrap;
-    overflow: hidden;
-  }
-  .show-chip-bar {
-    width: 4px;
-    height: 16px;
-    border-radius: 2px;
-    flex-shrink: 0;
-  }
-  .show-chip-name {
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-
-  .day-col {
-    border-left: 1px solid var(--border);
-    display: flex;
-    flex-direction: column;
-  }
-  .day-col.other-month {
-    background: #e8e4de;
-  }
-  .day-col.has-perf {
-    -webkit-tap-highlight-color: transparent;
-  }
-  .day-col.has-perf .day-num-row {
-    cursor: pointer;
-  }
-  .day-col.has-perf .day-num-row:active {
-    background: rgba(0, 0, 0, 0.06);
-  }
-
-  .day-num-row {
-    height: var(--daynum-h);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-bottom: 1px solid var(--border);
-    flex-shrink: 0;
-    background: var(--bg);
-  }
-  .day-col.other-month .day-num-row {
-    background: #e8e4de;
-  }
-  .day-num {
-    font-size: 13px;
-    font-family: 'DM Serif Display', serif;
-    font-weight: 400;
-    color: #433c36;
-    line-height: 0;
-  }
-  .day-num.today {
-    background: var(--ink-muted);
-    color: #fff;
-    border-radius: 50%;
-    width: 20px;
-    height: 20px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 13px;
-    line-height: 1;
-  }
-
-  .pip-row {
-    height: var(--row-h);
-    position: relative;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-bottom: 1px solid var(--border);
-    flex-shrink: 0;
-  }
-  .pip-row:last-child {
-    border-bottom: none;
-  }
-
-  .perf-bar {
-    position: absolute;
-    top: 1px;
-    bottom: 1px;
-    z-index: 1;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 3px;
-    cursor: pointer;
-    -webkit-tap-highlight-color: transparent;
-    filter: saturate(0.78) brightness(1.02);
-  }
-  .perf-bar.bar-single {
-    left: 3px;
-    right: 3px;
-    border-radius: 3px;
-  }
-  .perf-bar.bar-start {
-    left: 3px;
-    right: 0;
-    border-radius: 3px 0 0 3px;
-    border-right: 1px solid rgba(255, 255, 255, 0.5);
-  }
-  .perf-bar.bar-mid {
-    left: -1px;
-    right: 0;
-    border-radius: 0;
-    border-right: 1px solid rgba(255, 255, 255, 0.5);
-  }
-  .perf-bar.bar-end {
-    left: -1px;
-    right: 3px;
-    border-radius: 0 3px 3px 0;
-  }
-
-  .perf-label {
-    font-size: 10px;
-    font-weight: 700;
-    letter-spacing: 0.02em;
-    color: rgba(0, 0, 0, 0.75);
-    cursor: pointer;
-    -webkit-tap-highlight-color: transparent;
-    line-height: 1;
   }
 
   /* ── FIXED FOOTER LEGEND ── */
@@ -992,7 +526,7 @@ const feedChoices = JSON.stringify([
     font-weight: 400;
   }
   .card-description-more-label {
-    color: var(--acc-at);
+    color: #4f5ce0;
   }
   .card-meta {
     display: grid;
@@ -1097,10 +631,6 @@ const feedChoices = JSON.stringify([
   .day-hover-panel.visible {
     display: block;
   }
-  .day-hover-panel.touch-mode {
-    pointer-events: auto;
-    cursor: pointer;
-  }
   .hover-panel-header {
     font-family: 'DM Serif Display', serif;
     font-size: 13px;
@@ -1136,104 +666,219 @@ const feedChoices = JSON.stringify([
     color: var(--ink-muted);
     padding-left: 14px;
   }
-  .hover-panel-footer {
-    padding: 6px 12px;
-    font-size: 11px;
-    color: var(--ink-muted);
-    border-top: 1px solid var(--border);
-    text-align: right;
+
+  /* ── ADD TO MY CALENDAR (bar) — drill-down only: the year view doesn't show what you'd
+     subscribe to; icon-only on narrow screens ── */
+  .cal-feed-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    border-radius: 4px;
+    color: rgba(255, 255, 255, 0.8);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 12px;
+    padding: 4px 8px;
+    cursor: pointer;
+    white-space: nowrap;
+    -webkit-tap-highlight-color: transparent;
+  }
+  @media (hover: hover) {
+    .cal-feed-btn:hover {
+      background: rgba(255, 255, 255, 0.18);
+      border-color: rgba(255, 255, 255, 0.35);
+      color: #fff;
+    }
+  }
+  body:not(.drill-mode) .cal-feed-btn {
+    display: none;
+  }
+  .drill-label-week {
+    display: none;
+  }
+  @media (max-width: 640px) {
+    .cal-feed-label,
+    .drill-label-month {
+      display: none;
+    }
+    .drill-label-week {
+      display: inline;
+    }
   }
 
-  /* ── SHOW DESCRIPTION PANEL ── */
-  .show-desc-panel {
+  /* ── YEAR VIEW SQUARES: one per major performing, grey for anyone else ── */
+  .mini-day {
+    flex-direction: column;
+    gap: 1px;
+    height: 26px;
+  }
+  .mini-day .sqs {
+    display: flex;
+    gap: 1px;
+    height: 5px;
+  }
+  .mini-day .sqs span {
+    width: 5px;
+    height: 5px;
+    border-radius: 1px;
+  }
+  .mini-day.has-perf {
+    background: #f6f1e8;
+  }
+  .mini-day.today .mini-num {
+    text-decoration: underline;
+  }
+  @media (max-width: 480px) {
+    .mini-day .sqs span {
+      width: 4px;
+      height: 4px;
+    }
+  }
+
+  /* ── DRILL-DOWN: month grid (wider screens) / one week (phones) ── */
+  #drill-view {
     display: none;
-    position: fixed;
-    z-index: 300;
-    width: 290px;
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 10px;
+  }
+  body.drill-mode #drill-view {
+    display: block;
+  }
+  body.drill-mode #annual-view {
+    display: none;
+  }
+  .mv-grid,
+  .wv-grid {
+    display: grid;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
     background: var(--surface);
     border: 1px solid var(--border);
     border-radius: var(--radius);
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
-    pointer-events: none;
+    overflow: hidden;
   }
-  .show-desc-panel.visible {
-    display: block;
-  }
-  .show-desc-panel.touch-mode {
-    pointer-events: auto;
-    cursor: pointer;
-  }
-  .desc-panel-header {
-    padding: 8px 12px 6px;
+  .mv-dow,
+  .wv-dow {
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--ink-muted);
+    padding: 6px;
+    background: var(--month-header-bg);
     border-bottom: 1px solid var(--border);
   }
-  .desc-panel-company {
-    font-size: 10px;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.07em;
-    color: var(--ink-muted);
-    margin-bottom: 2px;
+  .mv-cell,
+  .wv-cell {
+    border-right: 1px solid #f1ece5;
+    border-bottom: 1px solid #f1ece5;
+    padding: 3px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
   }
-  .desc-panel-title {
-    font-family: 'Playfair Display', serif;
-    font-size: 14px;
-    font-weight: 600;
-    line-height: 1.3;
-    color: var(--ink);
+  .mv-cell {
+    min-height: 92px;
   }
-  .desc-panel-body {
-    padding: 8px 12px;
-    font-size: 12px;
-    line-height: 1.65;
-    color: var(--ink);
-    white-space: pre-wrap;
+  .wv-cell {
+    min-height: 60px; /* only as tall as the day with most performances */
+    padding: 3px 1px 12px;
   }
-  .desc-panel-footer {
-    padding: 5px 12px;
+  .mv-cell:nth-child(7n),
+  .wv-cell:nth-child(7n) {
+    border-right: 0;
+  }
+  .mv-cell.focus,
+  .wv-cell.focus {
+    background: #fff6e0;
+  }
+  /* Day number strip across the top of each day; tinted for the neighbouring months' days */
+  .day-strip {
+    margin: -3px -3px 1px;
+    padding: 2px 2px 1px;
+  }
+  .wv-cell .day-strip {
+    margin: -3px -1px 1px;
+  }
+  .mv-cell:not(.in-month) .day-strip {
+    background: #faf4e6;
+    border-bottom: 1px solid #f1ece5;
+  }
+  .day-num-btn {
+    align-self: flex-start;
+    font: inherit;
     font-size: 11px;
     color: var(--ink-muted);
-    border-top: 1px solid var(--border);
-    text-align: right;
+    background: none;
+    border: 0;
+    border-radius: 3px;
+    padding: 0 3px;
+    cursor: pointer;
   }
-
+  .day-num-btn:disabled {
+    cursor: default;
+  }
+  .day-num-btn.today {
+    background: var(--ink);
+    color: #fff;
+  }
+  .cal-entry {
+    display: block;
+    width: 100%;
+    text-align: left;
+    font: inherit;
+    font-size: 11px;
+    line-height: 1.25;
+    color: var(--ink);
+    padding: 2px 5px;
+    border: 0;
+    border-left: 3px solid;
+    border-radius: 2px;
+    background: #faf8f4;
+    cursor: pointer;
+    overflow-wrap: anywhere;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .cal-entry b {
+    font-weight: 600;
+  }
+  .cal-entry .org {
+    font-size: 10px;
+    color: var(--ink-muted);
+  }
   @media (hover: hover) {
-    .show-chip.has-desc:hover {
-      background: rgba(0, 0, 0, 0.05);
-      border-radius: 3px;
-      cursor: default;
+    .cal-entry:hover {
+      background: #f1ebe0;
     }
-  }
-
-  /* ── DRILL-DOWN HOVER HIGHLIGHT ── */
-  @media (hover: hover) {
-    /* Hovering the date cell: highlight it + all bars for that day */
-    .day-col.has-perf .day-num-row:hover {
+    .day-num-btn:not(:disabled):hover {
       background: rgba(180, 120, 40, 0.18);
     }
-    .day-col.has-perf:has(.day-num-row:hover) .perf-bar {
-      filter: saturate(0.6) brightness(0.88);
-    }
-    /* Hovering a specific bar: highlight only that bar */
-    .day-col.has-perf .perf-bar:hover {
-      filter: saturate(0.6) brightness(0.88);
-    }
+  }
+  .wv-grid .cal-entry {
+    font-size: 9px;
+    padding: 2px 2px;
+    border-left-width: 2px;
+  }
+  .wv-grid .cal-entry .org {
+    font-size: 8px;
+  }
+  .wv-dow {
+    padding: 6px 2px;
+    text-align: center;
   }
 </style>
 
-<script define:vars={{ performances, companies: companiesData.companies }} is:inline>
+<script define:vars={{ performances, majors }} is:inline>
+  // Year view: each day shows one square per major performing (in majorCode order), then
+  // a grey square if anyone else is. Drill-down: a month grid on wider screens, one week at
+  // a time on phones. Entries read "time · show · organizer" with the main organizer's
+  // colour (grey for non-majors). See docs/notifications-spec.md.
   const PERFORMANCES = performances
   const renderMdPromise = import('/admin/audition-format.js').then((module) => module.renderMd)
   const CARD_DESCRIPTION_LINES = 4
-  const TODAY = new Date().toISOString().slice(0, 10)
-  const COMPANY_COLORS = {
-    scs: 'var(--col-scs)',
-    at: 'var(--col-at)',
-    mct: 'var(--col-mct)',
-    renegade: 'var(--col-renegade)'
-  }
-  const COMPANY_NAMES = Object.fromEntries(companies.map((c) => [c.id, c.name]))
-  const COMPANY_ABV = Object.fromEntries(companies.map((c) => [c.id, c.abvName]))
+  const OTHER_COLOUR = '#b9b0a4'
+  const MAJOR_IDS = new Set(majors.map((m) => m.id))
+  const MAJOR_COLOUR = Object.fromEntries(majors.map((m) => [m.id, m.colour]))
   const MONTHS = [
     'January',
     'February',
@@ -1249,69 +894,39 @@ const feedChoices = JSON.stringify([
     'December'
   ]
   const DOW = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
-
-  let filteredPerfs = [...PERFORMANCES]
   const EARLIEST_YEAR = 2026
-  const FILTER_AUTO_CLOSE_DELAY = 500
-  let displayYear = EARLIEST_YEAR
-  let filterCloseTimer = null
+  const PHONE = window.matchMedia('(max-width: 640px)')
 
-  function updateYearNav() {
-    document.getElementById('yearDisplay').textContent = displayYear
-    const prevBtn = document.getElementById('yearPrev')
-    const nextBtn = document.getElementById('yearNext')
-    prevBtn.classList.toggle('hidden', displayYear <= EARLIEST_YEAR)
-    const hasNextYear = PERFORMANCES.some((p) => p.date.startsWith(String(displayYear + 1)))
-    nextBtn.classList.toggle('dimmed', !hasNextYear)
-  }
+  // Today in Santa Cruz — the same date as todayIso() in src/lib/data-rules.ts
+  const TODAY = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Los_Angeles' })
+  const today = parseDate(TODAY)
+  let displayYear = Math.max(EARLIEST_YEAR, today.getFullYear())
+  let mode = 'annual' // 'annual' | 'drill'
+  let drillAnchor = new Date(today) // the drill-down shows the month/week containing this
+  let focusDate = null // day picked in the year view, highlighted in the drill-down
 
-  function updateFilterBadge() {
-    const co = document.getElementById('filterCompany').value
-    const ge = document.getElementById('filterGenre').value
-    const ti = document.getElementById('filterTime').value
-    const hasFilter = [co, ge, ti].some(Boolean)
-    document.getElementById('filterLabel').textContent = hasFilter ? 'Filters ✓' : 'Filters'
-    document.getElementById('filterToggleBtn').classList.toggle('active', hasFilter)
-  }
+  const byDate = {}
+  PERFORMANCES.forEach((p) => (byDate[p.date] = byDate[p.date] || []).push(p))
+  Object.values(byDate).forEach((list) => list.sort((a, b) => a.time.localeCompare(b.time)))
 
-  function companyColor(co) {
-    return COMPANY_COLORS[co] || 'var(--col-other)'
-  }
-  const COMPANY_DOTS = {
-    scs: 'var(--dot-scs)',
-    at: 'var(--dot-at)',
-    mct: 'var(--dot-mct)',
-    renegade: 'var(--dot-renegade)'
-  }
-  function dotColor(co) {
-    return COMPANY_DOTS[co] || 'var(--dot-other)'
-  }
-  const COMPANY_ACCS = {
-    scs: 'var(--acc-scs)',
-    at: 'var(--acc-at)',
-    mct: 'var(--acc-mct)',
-    renegade: 'var(--acc-renegade)'
-  }
-  function accentColor(co) {
-    return COMPANY_ACCS[co] || 'var(--acc-other)'
-  }
+  // ── Helpers ──
   function dowMon(d) {
     return (d.getDay() + 6) % 7
   }
   function fmtDate(d) {
     return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
   }
-  function isMat(t) {
-    return parseInt(t) < 17
+  function parseDate(ds) {
+    const [y, m, d] = ds.split('-').map(Number)
+    return new Date(y, m - 1, d)
   }
-  function getBarPos(flags, idx) {
-    if (!flags || !flags[idx]) return 'none'
-    const prev = idx > 0 && flags[idx - 1]
-    const next = idx < 6 && flags[idx + 1]
-    if (!prev && !next) return 'single'
-    if (!prev) return 'start'
-    if (!next) return 'end'
-    return 'mid'
+  function addDays(d, n) {
+    const r = new Date(d)
+    r.setDate(r.getDate() + n)
+    return r
+  }
+  function mondayOf(d) {
+    return addDays(d, -dowMon(d))
   }
   function fmtTime(t) {
     const [hStr, mStr] = (t || '').replace('.', ':').split(':')
@@ -1321,105 +936,248 @@ const feedChoices = JSON.stringify([
     const h12 = h % 12 || 12
     return m === 0 ? `${h12}${period}` : `${h12}:${String(m).padStart(2, '0')}${period}`
   }
-  let activePanelDate = null
-  let activePanelCell = null
-  let panelShownAt = 0
-  let lastTouchTime = 0
-  document.addEventListener(
-    'touchstart',
-    () => {
-      lastTouchTime = Date.now()
-    },
-    { passive: true, capture: true }
-  )
+  function esc(s) {
+    return String(s ?? '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/"/g, '&quot;')
+  }
+  /** The main organizer's colour if it's a major, else grey. */
+  function entryColour(p) {
+    return MAJOR_COLOUR[p.organizers[0]] || OTHER_COLOUR
+  }
+  /** Squares for a day: each major involved (majorCode order), then grey for anyone else. */
+  function daySquares(perfs) {
+    const colours = majors
+      .filter((m) => perfs.some((p) => p.organizers.includes(m.id)))
+      .map((m) => m.colour)
+    if (perfs.some((p) => p.organizers.some((o) => !MAJOR_IDS.has(o)))) colours.push(OTHER_COLOUR)
+    return colours
+  }
 
-  function showHoverPanel(ds, perfs, cellEl, month, isTouch = false) {
+  // ── Bar ──
+  function updateNav() {
+    const label = document.getElementById('navLabel')
+    const prev = document.getElementById('navPrev')
+    const next = document.getElementById('navNext')
+    prev.classList.remove('hidden')
+    next.classList.remove('dimmed')
+    if (mode === 'annual') {
+      label.textContent = displayYear
+      prev.classList.toggle('hidden', displayYear <= EARLIEST_YEAR)
+      const hasNext = PERFORMANCES.some((p) => p.date.startsWith(String(displayYear + 1)))
+      next.classList.toggle('dimmed', !hasNext)
+    } else if (PHONE.matches) {
+      const start = mondayOf(drillAnchor)
+      const end = addDays(start, 6)
+      const fmt = (d) => d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+      label.textContent =
+        start.getMonth() === end.getMonth()
+          ? `${fmt(start)} – ${end.getDate()}`
+          : `${fmt(start)} – ${fmt(end)}`
+    } else {
+      label.textContent = `${MONTHS[drillAnchor.getMonth()]} ${drillAnchor.getFullYear()}`
+    }
+  }
+
+  // ── Hover panel (year view, mouse only) ──
+  function showHoverPanel(ds, perfs, cellEl) {
     const panel = document.getElementById('hoverPanel')
-    const [y, mo, d] = ds.split('-').map(Number)
-    const dateLabel = new Date(y, mo - 1, d).toLocaleDateString('en-US', {
+    const dateLabel = parseDate(ds).toLocaleDateString('en-US', {
       weekday: 'long',
       month: 'long',
       day: 'numeric'
     })
     let html = `<div class="hover-panel-header">${dateLabel}</div>`
-    const sorted = [...perfs].sort((a, b) => a.time.localeCompare(b.time))
-    sorted.forEach((p) => {
-      const venue = p.venue
+    perfs.forEach((p) => {
       html += `<div class="hover-panel-row">
         <div class="hover-panel-show">
-          <div class="hover-panel-dot" style="background:${dotColor(p.company)}"></div>
-          <span>${COMPANY_ABV[p.company] || p.company} · ${p.showAbv}</span>
+          <div class="hover-panel-dot" style="background:${entryColour(p)}"></div>
+          <span>${esc(p.organizerLabel)} · ${esc(p.showAbv)}</span>
         </div>
-        <div class="hover-panel-meta">${fmtTime(p.time)} · ${venue}</div>
+        <div class="hover-panel-meta">${fmtTime(p.time)} · ${esc(p.venue)}</div>
       </div>`
     })
-    if (isTouch) html += `<div class="hover-panel-footer">Tap for list view →</div>`
     panel.innerHTML = html
     const rect = cellEl.getBoundingClientRect()
     const pw = 240
-    const ph = 34 + sorted.length * 46 + (isTouch ? 30 : 0)
+    const ph = 34 + perfs.length * 46
     let left = rect.left
     let top = rect.bottom + 6
     if (left + pw > window.innerWidth - 8) left = Math.max(8, rect.right - pw)
     if (top + ph > window.innerHeight - 8) top = rect.top - ph - 6
     panel.style.left = Math.max(8, left) + 'px'
     panel.style.top = Math.max(8, top) + 'px'
-    activePanelDate = ds
-    if (activePanelCell) activePanelCell.classList.remove('pip-active')
-    activePanelCell = isTouch ? cellEl : null
-    if (isTouch) cellEl.classList.add('pip-active')
-    panel.dataset.month = month ?? ''
-    panelShownAt = Date.now()
     panel.classList.add('visible')
-    if (isTouch) panel.classList.add('touch-mode')
   }
   function hideHoverPanel() {
-    const panel = document.getElementById('hoverPanel')
-    panel.classList.remove('visible', 'touch-mode')
-    activePanelDate = null
-    if (activePanelCell) {
-      activePanelCell.classList.remove('pip-active')
-      activePanelCell = null
+    document.getElementById('hoverPanel').classList.remove('visible')
+  }
+
+  // ── Legend ──
+  function buildFooter() {
+    const footer = document.getElementById('fixedLegendFooter')
+    footer.innerHTML =
+      '<span class="legend-title">COMPANIES</span>' +
+      [...majors.map((m) => [m.colour, m.name]), [OTHER_COLOUR, 'Other']]
+        .map(
+          ([colour, label]) =>
+            `<div class="legend-item"><div class="legend-dot" style="background:${colour}"></div><span>${esc(label)}</span></div>`
+        )
+        .join('')
+  }
+
+  // ── Year view ──
+  function renderAnnual() {
+    const grid = document.getElementById('monthsGrid')
+    grid.innerHTML = ''
+    for (let m = 0; m < 12; m++) {
+      const block = document.createElement('div')
+      block.className = 'month-block'
+      block.dataset.month = String(m)
+      block.innerHTML = `<div class="month-name">${MONTHS[m]}</div>`
+      const cal = document.createElement('div')
+      cal.className = 'mini-cal'
+      cal.innerHTML = `<div class="mini-cal-head">${DOW.map((d) => `<span>${d[0]}</span>`).join('')}</div>`
+      const body = document.createElement('div')
+      body.className = 'mini-cal-body'
+      const startDow = dowMon(new Date(displayYear, m, 1))
+      const daysInMonth = new Date(displayYear, m + 1, 0).getDate()
+      for (let i = 0; i < startDow; i++)
+        body.insertAdjacentHTML('beforeend', '<div class="mini-day empty"></div>')
+      for (let d = 1; d <= daysInMonth; d++) {
+        const ds = fmtDate(new Date(displayYear, m, d))
+        const perfs = byDate[ds] || []
+        const el = document.createElement('div')
+        el.className = 'mini-day' + (ds === TODAY ? ' today' : '')
+        el.innerHTML = `<span class="mini-num">${d}</span>`
+        if (perfs.length) {
+          el.classList.add('has-perf')
+          el.insertAdjacentHTML(
+            'beforeend',
+            `<span class="sqs">${daySquares(perfs)
+              .map((c) => `<span style="background:${c}"></span>`)
+              .join('')}</span>`
+          )
+          el.addEventListener('pointerenter', (e) => {
+            if (e.pointerType === 'mouse') showHoverPanel(ds, perfs, el)
+          })
+          el.addEventListener('pointerleave', (e) => {
+            if (e.pointerType === 'mouse') hideHoverPanel()
+          })
+          el.addEventListener('click', (e) => {
+            e.stopPropagation()
+            openDrill(parseDate(ds), ds)
+          })
+        }
+        body.appendChild(el)
+      }
+      cal.appendChild(body)
+      block.appendChild(cal)
+      block.addEventListener('click', () => openDrill(new Date(displayYear, m, 1)))
+      grid.appendChild(block)
     }
   }
-  let activeDescRunId = null
-  let descPanelShownAt = 0
 
-  async function showDescPanel(s, chipEl, isTouch = false) {
-    const renderMd = await renderMdPromise
-    const panel = document.getElementById('showDescPanel')
-    const description = (s.description || '').trimEnd()
-    let html = `<div class="desc-panel-header">
-      <div class="desc-panel-company">${COMPANY_NAMES[s.company] || s.company}</div>
-      <div class="desc-panel-title">${s.show}</div>
-    </div>
-    <div class="desc-panel-body">${renderMd(description)}</div>`
-    if (isTouch) html += `<div class="desc-panel-footer">Tap to dismiss</div>`
-    panel.innerHTML = html
-    const rect = chipEl.getBoundingClientRect()
-    const pw = 290
-    const ph = 80 + Math.ceil(s.description.length / 50) * 20
-    let left = rect.right + 8
-    let top = Math.round(rect.top + (rect.height - ph) / 2)
-    if (left + pw > window.innerWidth - 8) left = Math.max(8, rect.left - pw - 8)
-    if (top + ph > window.innerHeight - 8) top = Math.max(8, window.innerHeight - ph - 8)
-    if (top < 8) top = 8
-    panel.style.left = left + 'px'
-    panel.style.top = top + 'px'
-    activeDescRunId = s.runId
-    panel.classList.add('visible')
-    if (isTouch) {
-      panel.classList.add('touch-mode')
-      descPanelShownAt = Date.now()
+  /** On phones the year view opens at the current month, not January. */
+  function scrollYearToCurrentMonth() {
+    if (!PHONE.matches || displayYear !== today.getFullYear()) return
+    const block = document.querySelector(`.month-block[data-month="${today.getMonth()}"]`)
+    if (!block) return
+    const chrome =
+      (parseInt(getComputedStyle(document.documentElement).getPropertyValue('--nav-h')) || 0) +
+      (parseInt(getComputedStyle(document.documentElement).getPropertyValue('--bar-h')) || 32)
+    window.scrollTo(0, Math.max(0, block.getBoundingClientRect().top + window.scrollY - chrome - 8))
+  }
+
+  // ── Drill-down ──
+  function entryHtml(p) {
+    return `<button type="button" class="cal-entry" style="border-left-color:${entryColour(p)}" data-date="${p.date}" data-run="${esc(p.runId)}" title="${esc(p.show)} — ${esc(p.organizerName)}">
+      <b>${fmtTime(p.time)}</b> ${esc(p.showAbv)} <span class="org">· ${esc(p.organizerLabel)}</span>
+    </button>`
+  }
+
+  function dayCellHtml(day, cls, label) {
+    const ds = fmtDate(day)
+    const perfs = byDate[ds] || []
+    const classes = [cls]
+    if (ds === focusDate) classes.push('focus')
+    if (perfs.length) classes.push('has-perf')
+    const num = `<div class="day-strip"><button type="button" class="day-num-btn${ds === TODAY ? ' today' : ''}" data-day="${ds}" ${perfs.length ? '' : 'disabled'}>${label}</button></div>`
+    return `<div class="${classes.join(' ')}">${num}${perfs.map(entryHtml).join('')}</div>`
+  }
+
+  /** Wider screens: the month as a grid, with days from the months either side filled in (shown the same; their 1st is labelled with its month). */
+  function renderMonth() {
+    const y = drillAnchor.getFullYear()
+    const m = drillAnchor.getMonth()
+    const first = new Date(y, m, 1)
+    const start = mondayOf(first)
+    const last = new Date(y, m + 1, 0)
+    const end = addDays(mondayOf(last), 6)
+    let html = DOW.map((d) => `<div class="mv-dow">${d}</div>`).join('')
+    for (let d = start; d <= end; d = addDays(d, 1)) {
+      const label = d.getDate() === 1 ? `${MONTHS[d.getMonth()].slice(0, 3)} 1` : d.getDate()
+      // The neighbouring months' days get a tinted number strip; the month's own don't
+      html += dayCellHtml(d, d.getMonth() === m ? 'mv-cell in-month' : 'mv-cell', label)
     }
+    return `<div class="mv-grid">${html}</div>`
   }
 
-  function hideDescPanel() {
-    const panel = document.getElementById('showDescPanel')
-    panel.classList.remove('visible', 'touch-mode')
-    activeDescRunId = null
+  /** Phones: one week at a time, a column per day. */
+  function renderWeek() {
+    const start = mondayOf(drillAnchor)
+    let head = ''
+    let cells = ''
+    for (let i = 0; i < 7; i++) {
+      const d = addDays(start, i)
+      head += `<div class="wv-dow">${DOW[i]}</div>`
+      cells += dayCellHtml(d, 'wv-cell', d.getDate())
+    }
+    return `<div class="wv-grid">${head}${cells}</div>`
   }
 
+  function renderDrill() {
+    document.getElementById('drill-view').innerHTML = PHONE.matches ? renderWeek() : renderMonth()
+    updateNav()
+  }
+
+  function openDrill(anchor, ds = null) {
+    hideHoverPanel()
+    drillAnchor = anchor
+    focusDate = ds
+    mode = 'drill'
+    document.body.classList.remove('annual-mode')
+    document.body.classList.add('drill-mode')
+    renderDrill()
+    window.scrollTo(0, 0)
+  }
+
+  function showAnnual() {
+    mode = 'annual'
+    displayYear = Math.max(EARLIEST_YEAR, drillAnchor.getFullYear())
+    document.body.classList.remove('drill-mode')
+    document.body.classList.add('annual-mode')
+    renderAnnual()
+    updateNav()
+    window.scrollTo(0, 0)
+  }
+
+  function step(dir) {
+    if (mode === 'annual') {
+      if (dir < 0 && displayYear <= EARLIEST_YEAR) return
+      displayYear += dir
+      renderAnnual()
+      updateNav()
+      return
+    }
+    focusDate = null
+    if (PHONE.matches) drillAnchor = addDays(drillAnchor, 7 * dir)
+    else drillAnchor = new Date(drillAnchor.getFullYear(), drillAnchor.getMonth() + dir, 1)
+    renderDrill()
+  }
+
+  // ── Performance card (bottom sheet) ──
   function updateCardDescriptionButtons(root) {
     root.querySelectorAll('.card-description').forEach((descEl) => {
       const wrapper = descEl.parentElement
@@ -1439,433 +1197,53 @@ const feedChoices = JSON.stringify([
     })
   }
 
-  function perfsByDate(perfs) {
-    const m = {}
-    perfs.forEach((p) => {
-      ;(m[p.date] = m[p.date] || []).push(p)
-    })
-    return m
-  }
-
-  function orderedShows(perfs) {
-    const seen = new Set()
-    const result = []
-    ;[...perfs]
-      .sort((a, b) => a.date.localeCompare(b.date))
-      .forEach((p) => {
-        if (!seen.has(p.runId)) {
-          seen.add(p.runId)
-          result.push({
-            runId: p.runId,
-            showAbv: p.showAbv,
-            company: p.company,
-            show: p.show,
-            description: p.description || ''
-          })
-        }
-      })
-    return result
-  }
-
-  function applyFilters() {
-    const co = document.getElementById('filterCompany').value
-    const ge = document.getElementById('filterGenre').value
-    const ti = document.getElementById('filterTime').value
-    filteredPerfs = PERFORMANCES.filter((p) => {
-      if (co && p.company !== co) return false
-      if (ge && !p.genre.includes(ge)) return false
-      if (ti === 'Mat' && !isMat(p.time)) return false
-      if (ti === 'Eve' && isMat(p.time)) return false
-      return true
-    })
-    updateFilterBadge()
-    renderAnnual()
-    buildScrollView()
-    scheduleFilterDropdownClose()
-  }
-
-  const LEGEND_ENTRIES = [
-    ...Object.keys(COMPANY_COLORS).map((code) => ({
-      color: `var(--dot-${code.toLowerCase()})`,
-      label: COMPANY_NAMES[code] || code
-    })),
-    { color: 'var(--dot-other)', label: 'Other' },
-    { color: 'var(--dot-multi)', label: 'Multiple companies', view: 'annual' }
-  ]
-
-  function buildFixedFooter(view = 'annual') {
-    const footer = document.getElementById('fixedLegendFooter')
-    footer.innerHTML = ''
-    const title = document.createElement('span')
-    title.className = 'legend-title'
-    title.textContent = 'COMPANIES'
-    footer.appendChild(title)
-    LEGEND_ENTRIES.forEach((e) => {
-      if (e.view && e.view !== view) return
-      const item = document.createElement('div')
-      item.className = 'legend-item'
-      item.style.cssText =
-        'display:flex;align-items:center;gap:4px;font-size:11px;white-space:nowrap;'
-      item.innerHTML = `<div class="legend-dot" style="background:${e.color};width:11px;height:11px;border-radius:2px;flex-shrink:0"></div><span>${e.label}</span>`
-      footer.appendChild(item)
-    })
-  }
-
-  function renderAnnual() {
-    const byDate = perfsByDate(filteredPerfs)
-    const grid = document.getElementById('monthsGrid')
-    grid.innerHTML = ''
-    for (let m = 0; m < 12; m++) {
-      const block = document.createElement('div')
-      block.className = 'month-block'
-      block.onclick = () => goToMonth(m)
-      const nameEl = document.createElement('div')
-      nameEl.className = 'month-name'
-      nameEl.textContent = MONTHS[m]
-      block.appendChild(nameEl)
-      const cal = document.createElement('div')
-      cal.className = 'mini-cal'
-      const head = document.createElement('div')
-      head.className = 'mini-cal-head'
-      DOW.forEach((d) => {
-        const s = document.createElement('span')
-        s.textContent = d[0]
-        head.appendChild(s)
-      })
-      cal.appendChild(head)
-      const body = document.createElement('div')
-      body.className = 'mini-cal-body'
-      const firstDay = new Date(displayYear, m, 1)
-      const daysInMonth = new Date(displayYear, m + 1, 0).getDate()
-      const startDow = dowMon(firstDay)
-      for (let i = 0; i < startDow; i++) {
-        const e = document.createElement('div')
-        e.className = 'mini-day empty'
-        body.appendChild(e)
-      }
-      for (let d = 1; d <= daysInMonth; d++) {
-        const ds = `${displayYear}-${String(m + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`
-        const perfs = byDate[ds] || []
-        const el = document.createElement('div')
-        el.className = 'mini-day'
-        el.textContent = d
-        if (perfs.length) {
-          el.classList.add('has-perf')
-          const cos = [...new Set(perfs.map((p) => p.company))]
-          if (cos.length > 1) el.classList.add('multi')
-          else el.style.background = companyColor(cos[0])
-          el.addEventListener('pointerenter', (e) => {
-            if (e.pointerType === 'mouse') showHoverPanel(ds, perfs, el, m, false)
-          })
-          el.addEventListener('pointerleave', (e) => {
-            if (e.pointerType === 'mouse') hideHoverPanel()
-          })
-          el.addEventListener('click', (e) => {
-            e.stopPropagation()
-            if (Date.now() - lastTouchTime < 500) {
-              if (activePanelDate === ds) {
-                hideHoverPanel()
-                goToMonth(m)
-              } else {
-                showHoverPanel(ds, perfs, el, m, true)
-              }
-            } else {
-              goToMonth(m)
-            }
-          })
-        }
-        body.appendChild(el)
-      }
-      cal.appendChild(body)
-      block.appendChild(cal)
-      grid.appendChild(block)
-    }
-  }
-
-  const monthAnchorIds = {}
-
-  function buildScrollView() {
-    const container = document.getElementById('scroll-weeks')
-    container.innerHTML = ''
-    const byDate = perfsByDate(filteredPerfs)
-    const allShows = orderedShows(filteredPerfs)
-
-    // Span all years present in the full dataset (not just filtered)
-    const dataYears = PERFORMANCES.map((p) => parseInt(p.date.slice(0, 4)))
-    const firstYear = EARLIEST_YEAR
-    const maxDataYear = Math.max(EARLIEST_YEAR, ...dataYears)
-    const lastYear = Math.max(maxDataYear + 1, displayYear)
-
-    // Reset anchor map
-    Object.keys(monthAnchorIds).forEach((k) => delete monthAnchorIds[k])
-
-    let cursor = new Date(firstYear, 0, 1)
-    cursor.setDate(cursor.getDate() - dowMon(cursor))
-    const end = new Date(lastYear, 11, 31)
-    let currentMonth = -1
-    let currentYear = -1
-
-    while (cursor <= end) {
-      const weekDays = Array.from({ length: 7 }, (_, i) => {
-        const d = new Date(cursor)
-        d.setDate(cursor.getDate() + i)
-        return d
-      })
-      const weekMonth = weekDays[3].getMonth()
-      const weekYear = weekDays[3].getFullYear()
-
-      if (weekYear !== currentYear || weekMonth !== currentMonth) {
-        currentMonth = weekMonth
-        currentYear = weekYear
-        if (!monthAnchorIds[currentYear]) monthAnchorIds[currentYear] = {}
-        const anchorId = `month-anchor-${currentYear}-${currentMonth}`
-        monthAnchorIds[currentYear][currentMonth] = anchorId
-        const label = document.createElement('div')
-        label.className = 'scroll-month-label'
-        label.id = anchorId
-        label.dataset.year = String(currentYear)
-        label.textContent = `${MONTHS[currentMonth]} ${currentYear}`
-        container.appendChild(label)
-      }
-
-      const weekShowIds = new Set()
-      weekDays.forEach((day) => {
-        ;(byDate[fmtDate(day)] || []).forEach((p) => weekShowIds.add(p.runId))
-      })
-      const weekShows = allShows.filter((s) => weekShowIds.has(s.runId))
-      const nRows = Math.max(weekShows.length, 1)
-
-      const showDayCoverage = {}
-      weekShows.forEach((s) => {
-        showDayCoverage[s.runId] = weekDays.map((day) => {
-          const ds = fmtDate(day)
-          return (byDate[ds] || []).some((p) => p.runId === s.runId)
-        })
-      })
-
-      const wrap = document.createElement('div')
-      wrap.className = 'week-table-wrap'
-
-      const grid = document.createElement('div')
-      grid.className = 'week-grid'
-      grid.style.gridTemplateRows = `var(--daynum-h) repeat(${nRows}, var(--row-h))`
-
-      const showsCol = document.createElement('div')
-      showsCol.className = 'shows-col'
-      showsCol.style.gridRow = `1 / span ${nRows + 1}`
-      const spacer = document.createElement('div')
-      spacer.className = 'shows-col-spacer'
-      showsCol.appendChild(spacer)
-      if (weekShows.length === 0) {
-        const empty = document.createElement('div')
-        empty.className = 'show-chip'
-        empty.innerHTML = '<span style="color:var(--ink-muted);font-size:11px">—</span>'
-        showsCol.appendChild(empty)
-      } else {
-        weekShows.forEach((s) => {
-          const chip = document.createElement('div')
-          chip.className = 'show-chip' + (s.description ? ' has-desc' : '')
-          chip.innerHTML = `<span class="show-chip-bar" style="background:${accentColor(s.company)}"></span><span class="show-chip-name" title="${s.show}">${s.showAbv}</span>`
-          if (s.description) {
-            chip.addEventListener('pointerenter', (e) => {
-              if (e.pointerType === 'mouse') showDescPanel(s, chip, false)
-            })
-            chip.addEventListener('pointerleave', (e) => {
-              if (e.pointerType === 'mouse') hideDescPanel()
-            })
-            chip.addEventListener('click', (e) => {
-              if (Date.now() - lastTouchTime < 500) {
-                e.stopPropagation()
-                if (activeDescRunId === s.runId) {
-                  hideDescPanel()
-                } else {
-                  showDescPanel(s, chip, true)
-                }
-              }
-            })
-          }
-          showsCol.appendChild(chip)
-        })
-      }
-      grid.appendChild(showsCol)
-
-      weekDays.forEach((day, dayIdx) => {
-        const ds = fmtDate(day)
-        const dayPerfs = byDate[ds] || []
-        const inMonth = day.getMonth() === weekMonth
-
-        const col = document.createElement('div')
-        col.className =
-          'day-col' + (!inMonth ? ' other-month' : '') + (dayPerfs.length ? ' has-perf' : '')
-        col.style.gridRow = `1 / span ${nRows + 1}`
-
-        const numRow = document.createElement('div')
-        numRow.className = 'day-num-row'
-        if (dayPerfs.length) numRow.onclick = () => openSheet(ds)
-        const num = document.createElement('div')
-        num.className = 'day-num' + (ds === TODAY ? ' today' : '')
-        num.textContent = day.getDate()
-        numRow.appendChild(num)
-        col.appendChild(numRow)
-
-        const dayPipData = {}
-        dayPerfs.forEach((p) => {
-          if (!dayPipData[p.runId]) dayPipData[p.runId] = { mat: false, eve: false }
-          if (isMat(p.time)) dayPipData[p.runId].mat = true
-          else dayPipData[p.runId].eve = true
-        })
-
-        const rowsToRender = weekShows.length > 0 ? weekShows : [null]
-        rowsToRender.forEach((s) => {
-          const pipRow = document.createElement('div')
-          pipRow.className = 'pip-row'
-          if (s) {
-            const pips = dayPipData[s.runId]
-            const barPos = getBarPos(showDayCoverage[s.runId], dayIdx)
-            if (pips && barPos !== 'none') {
-              const bar = document.createElement('div')
-              bar.className = 'perf-bar bar-' + barPos
-              bar.style.background = companyColor(s.company)
-              const labelText = pips.mat && pips.eve ? 'Mat / Eve' : pips.mat ? 'Mat' : 'Eve'
-              const label = document.createElement('span')
-              label.className = 'perf-label'
-              label.textContent = labelText
-              bar.onclick = (e) => {
-                e.stopPropagation()
-                openSheet(ds, s.runId)
-              }
-              bar.appendChild(label)
-              pipRow.appendChild(bar)
-            }
-          }
-          col.appendChild(pipRow)
-        })
-
-        grid.appendChild(col)
-      })
-
-      wrap.appendChild(grid)
-      container.appendChild(wrap)
-      cursor.setDate(cursor.getDate() + 7)
-    }
-  }
-
-  function fixedChromeHeight() {
-    const cs = getComputedStyle(document.documentElement)
-    return (
-      (parseInt(cs.getPropertyValue('--nav-h')) || 0) +
-      (parseInt(cs.getPropertyValue('--bar-h')) || 44) +
-      (parseInt(cs.getPropertyValue('--col-header-h')) || 28)
-    )
-  }
-
-  function scrollToAnchorEl(el) {
-    if (!el) return
-    let target = 0
-    let node = el
-    while (node) {
-      target += node.offsetTop
-      node = node.offsetParent
-    }
-    window.scrollTo({ top: Math.max(0, target - fixedChromeHeight()), behavior: 'smooth' })
-  }
-
-  function updateYearFromScroll() {
-    const labels = document.querySelectorAll('.scroll-month-label')
-    const threshold = fixedChromeHeight() + 10
-    let detected = EARLIEST_YEAR
-    for (const label of labels) {
-      if (label.getBoundingClientRect().top <= threshold) {
-        detected = parseInt(label.dataset.year) || EARLIEST_YEAR
-      } else {
-        break
-      }
-    }
-    if (detected !== displayYear) {
-      displayYear = detected
-      updateYearNav()
-    }
-  }
-
-  function goToMonth(m) {
-    hideHoverPanel()
-    const rebuilt = !monthAnchorIds[displayYear]
-    if (rebuilt) buildScrollView()
-    document.getElementById('annual-view').style.display = 'none'
-    document.getElementById('scroll-view').style.display = 'block'
-    document.getElementById('scrollColHeader').classList.add('visible')
-    document.getElementById('fixedLegendFooter').classList.add('visible')
-    document.body.classList.remove('annual-mode')
-    document.body.classList.add('scroll-mode')
-    buildFixedFooter('drill')
-    const doScroll = () =>
-      scrollToAnchorEl(document.getElementById(monthAnchorIds[displayYear]?.[m]))
-    if (rebuilt) {
-      requestAnimationFrame(() => requestAnimationFrame(doScroll))
-    } else {
-      requestAnimationFrame(doScroll)
-    }
-  }
-
-  function showAnnual() {
-    document.getElementById('scroll-view').style.display = 'none'
-    document.getElementById('annual-view').style.display = 'block'
-    document.getElementById('scrollColHeader').classList.remove('visible')
-    document.body.classList.remove('scroll-mode')
-    document.body.classList.add('annual-mode')
-    buildFixedFooter('annual')
-    window.scrollTo(0, 0)
-  }
-
   async function openSheet(dateStr, runId = null) {
     const renderMd = await renderMdPromise
-    let perfs = perfsByDate(filteredPerfs)[dateStr] || []
+    let perfs = byDate[dateStr] || []
     if (runId) perfs = perfs.filter((p) => p.runId === runId)
     if (!perfs.length) return
-    document.getElementById('sheetDateHeader').textContent = new Date(
-      dateStr + 'T12:00:00'
-    ).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })
+    document.getElementById('sheetDateHeader').textContent = parseDate(dateStr).toLocaleDateString(
+      'en-US',
+      { weekday: 'long', month: 'long', day: 'numeric' }
+    )
     const cards = document.getElementById('sheetCards')
     cards.innerHTML = ''
     let previousRunId = null
     perfs.forEach((p) => {
       const card = document.createElement('div')
       card.className = 'perf-card'
-      const [hStr, mStr] = (p.time || '').replace('.', ':').split(':')
-      const h = Number(hStr),
-        min = mStr !== undefined ? Number(mStr) : 0
-      const timeStr = `${h > 12 ? h - 12 : h || 12}:${String(min).padStart(2, '0')}${h >= 12 ? 'pm' : 'am'}`
+      // The production's description lives here (once per production in the list)
       const description = (p.description || '').trimEnd()
       const showDescription = description && previousRunId !== p.runId
       card.innerHTML = `
       <div class="perf-card-company">
-        <div class="company-badge" style="background:${accentColor(p.company)}"></div>
-        <span class="company-name">${COMPANY_NAMES[p.company] || p.company}</span>
+        <div class="company-badge" style="background:${entryColour(p)}"></div>
+        <span class="company-name">${esc(p.organizerName)}</span>
         ${p.perfType ? `<span class="perf-type-tag" data-type="${p.perfType}">${p.perfType}</span>` : ''}
       </div>
-      <div class="card-show-title">${p.show}</div>
+      <div class="card-show-title">${esc(p.show)}</div>
       ${showDescription ? `<div class="card-description-wrap"><div class="card-description">${renderMd(description)}</div><button type="button" class="card-description-more"><span class="card-description-more-ellipsis">...</span><span class="card-description-more-label">More</span></button></div>` : ''}
       <div class="card-meta">
-        <div class="card-meta-item"><span class="card-meta-label">Time&nbsp;</span>${timeStr}</div>
-        <div class="card-meta-item"><span class="card-meta-label">Venue&nbsp;</span>${p.venue}</div>
-        <div class="card-meta-item"><span class="card-meta-label">Price&nbsp;</span>${p.price}</div>
+        <div class="card-meta-item"><span class="card-meta-label">Time&nbsp;</span>${fmtTime(p.time)}</div>
+        <div class="card-meta-item"><span class="card-meta-label">Venue&nbsp;</span>${esc(p.venue)}</div>
+        ${p.price ? `<div class="card-meta-item"><span class="card-meta-label">Price&nbsp;</span>${esc(p.price)}</div>` : ''}
         ${p.genre.length ? `<div class="card-meta-item"><span class="card-meta-label">Genre&nbsp;</span>${p.genre.join(' / ')}</div>` : ''}
       </div>
-      ${p.discounts ? `<div class="card-discounts">Discounts: ${p.discounts}</div>` : ''}
+      ${p.discounts ? `<div class="card-discounts">Discounts: ${esc(p.discounts)}</div>` : ''}
       <div class="card-buttons">
         ${
           p.infoUrl
-            ? `<a class="btn-info" href="${p.infoUrl}" target="_blank" rel="noopener">More info</a>`
+            ? `<a class="btn-info" href="${esc(p.infoUrl)}" target="_blank" rel="noopener">More info</a>`
             : `<a class="btn-info" aria-disabled="true">More info</a>`
         }
         ${
           p.ticketsUrl
-            ? `<a class="btn-tickets" href="${p.ticketsUrl}" target="_blank" rel="noopener">Get tickets</a>`
+            ? `<a class="btn-tickets" href="${esc(p.ticketsUrl)}" target="_blank" rel="noopener">Get tickets</a>`
             : `<a class="btn-tickets" aria-disabled="true">Get tickets</a>`
         }
       </div>
       <div class="card-run-links">
-        <a href="/runs?id=${p.runId.replace(/^run-/, '')}">All dates →</a>
+        <a href="/productions?id=${p.runId.replace(/^run-/, '')}">All dates →</a>
         <button type="button" data-ics-event="performances/${p.id.replace(/^perf-/, '')}">Add to my calendar</button>
       </div>`
       cards.appendChild(card)
@@ -1892,143 +1270,37 @@ const feedChoices = JSON.stringify([
     document.documentElement.style.overflow = ''
   }
 
+  // ── Wiring ──
   document.getElementById('backBtn').addEventListener('click', showAnnual)
-  document.getElementById('listViewBtn').addEventListener('click', () => goToMonth(0))
+  document
+    .getElementById('drillBtn')
+    .addEventListener('click', () =>
+      openDrill(displayYear === today.getFullYear() ? new Date(today) : new Date(displayYear, 0, 1))
+    )
+  document.getElementById('navPrev').addEventListener('click', () => step(-1))
+  document.getElementById('navNext').addEventListener('click', () => step(1))
   document.getElementById('sheetCloseBtn').addEventListener('click', closeSheet)
-  document.getElementById('filterCompany').addEventListener('change', applyFilters)
-  document.getElementById('filterGenre').addEventListener('change', applyFilters)
-  document.getElementById('filterTime').addEventListener('change', applyFilters)
   document.getElementById('overlay').addEventListener('click', closeSheet)
-
-  const filterToggleBtn = document.getElementById('filterToggleBtn')
-  const filterDropdown = document.getElementById('filterDropdown')
-  function clearFilterDropdownCloseTimer() {
-    if (filterCloseTimer !== null) {
-      window.clearTimeout(filterCloseTimer)
-      filterCloseTimer = null
-    }
-  }
-
-  function closeFilterDropdown() {
-    clearFilterDropdownCloseTimer()
-    filterDropdown.classList.remove('open')
-  }
-
-  function openFilterDropdown() {
-    clearFilterDropdownCloseTimer()
-    filterDropdown.classList.add('open')
-  }
-
-  function scheduleFilterDropdownClose() {
-    if (!filterDropdown.classList.contains('open')) return
-    clearFilterDropdownCloseTimer()
-    filterCloseTimer = window.setTimeout(() => {
-      closeFilterDropdown()
-    }, FILTER_AUTO_CLOSE_DELAY)
-  }
-
-  filterToggleBtn.addEventListener('click', (e) => {
-    e.stopPropagation()
-    if (filterDropdown.classList.contains('open')) {
-      closeFilterDropdown()
-      return
-    }
-    openFilterDropdown()
+  document.getElementById('drill-view').addEventListener('click', (e) => {
+    const entry = e.target.closest('.cal-entry')
+    if (entry) return openSheet(entry.dataset.date, entry.dataset.run)
+    const num = e.target.closest('.day-num-btn')
+    if (num && !num.disabled) openSheet(num.dataset.day)
   })
-
-  document.getElementById('yearPrev').addEventListener('click', () => {
-    if (displayYear <= EARLIEST_YEAR) return
-    displayYear--
-    updateYearNav()
-    if (document.body.classList.contains('scroll-mode')) {
-      requestAnimationFrame(() =>
-        scrollToAnchorEl(document.getElementById(monthAnchorIds[displayYear]?.[0]))
-      )
-    } else {
-      renderAnnual()
-    }
+  // Crossing the phone/desktop width switches between the week and month drill-downs
+  PHONE.addEventListener('change', () => {
+    if (mode === 'drill') renderDrill()
   })
-
-  document.getElementById('yearNext').addEventListener('click', () => {
-    displayYear++
-    updateYearNav()
-    if (document.body.classList.contains('scroll-mode')) {
-      if (!monthAnchorIds[displayYear]) buildScrollView()
-      requestAnimationFrame(() =>
-        scrollToAnchorEl(document.getElementById(monthAnchorIds[displayYear]?.[0]))
-      )
-    } else {
-      renderAnnual()
-      if (!monthAnchorIds[displayYear]) buildScrollView()
-    }
-  })
+  document.addEventListener('scroll', hideHoverPanel, { passive: true })
 
   renderAnnual()
-  buildScrollView()
-  buildFixedFooter()
-  updateYearNav()
-  document.getElementById('fixedLegendFooter').classList.add('visible')
+  buildFooter()
+  updateNav()
   document.body.classList.add('annual-mode')
-
+  document.getElementById('fixedLegendFooter').classList.add('visible')
   const footerEl = document.getElementById('fixedLegendFooter')
   new ResizeObserver(() => {
     document.body.style.paddingBottom = footerEl.offsetHeight + 8 + 'px'
   }).observe(footerEl)
-
-  document.addEventListener(
-    'scroll',
-    () => {
-      hideHoverPanel()
-      hideDescPanel()
-      if (document.body.classList.contains('scroll-mode')) updateYearFromScroll()
-    },
-    { passive: true }
-  )
-
-  document.getElementById('scroll-view').addEventListener(
-    'scroll',
-    function () {
-      const x = this.scrollLeft
-      document.querySelectorAll('.scroll-month-label').forEach((el) => {
-        el.style.transform = `translateX(${x}px)`
-      })
-    },
-    { passive: true }
-  )
-
-  document.getElementById('hoverPanel').addEventListener('touchend', (e) => {
-    if (Date.now() - panelShownAt < 300) return // ghost touchend from the tap that showed the panel
-    const m = parseInt(e.currentTarget.dataset.month, 10)
-    if (!isNaN(m)) {
-      e.preventDefault()
-      hideHoverPanel()
-      goToMonth(m)
-    }
-  })
-
-  document.addEventListener('click', (e) => {
-    if (!e.target.closest('.filter-area')) {
-      closeFilterDropdown()
-    }
-    if (activePanelDate && !e.target.closest('#hoverPanel') && !e.target.closest('.mini-day')) {
-      hideHoverPanel()
-    }
-    if (
-      activeDescRunId &&
-      !e.target.closest('#showDescPanel') &&
-      !e.target.closest('.show-chip.has-desc')
-    ) {
-      hideDescPanel()
-    }
-  })
-
-  document.getElementById('showDescPanel').addEventListener('touchend', (e) => {
-    if (Date.now() - descPanelShownAt < 300) return
-    e.preventDefault()
-    hideDescPanel()
-  })
-
-  document.getElementById('scroll-view').addEventListener('scroll', function () {
-    document.getElementById('scrollColHeader').scrollLeft = this.scrollLeft
-  })
+  requestAnimationFrame(scrollYearToCurrentMonth)
 </script>

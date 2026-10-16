@@ -7,8 +7,8 @@
 import { readdirSync, readFileSync } from 'fs'
 import { resolve, join } from 'path'
 import { fileURLToPath } from 'url'
-import type { Genre, PerfType, Run, ShowsFile, PerformanceEvent } from '../src/types.ts'
-import { MAX_GENRES, runIssues, todayIso } from '../src/lib/data-rules.ts'
+import type { CompanyEntry, Genre, PerfType, Run, ShowsFile, Venue } from '../src/types.ts'
+import { MAX_GENRES, runIssues, todayIso, type RuleRefs } from '../src/lib/data-rules.ts'
 import { PERF_ID_RE } from '../src/lib/occurrence-ids.ts'
 
 const __dirname = resolve(fileURLToPath(import.meta.url), '..')
@@ -19,7 +19,12 @@ const companiesJson = JSON.parse(
   readFileSync(resolve(root, 'data/sc-theater-companies.json'), 'utf8')
 )
 
-const VALID_COMPANIES = new Set<string>(companiesJson.companies.map((c: { id: string }) => c.id))
+const refs: RuleRefs = {
+  companies: companiesJson.companies as CompanyEntry[],
+  venues: JSON.parse(readFileSync(resolve(root, 'data/sc-theater-venues.json'), 'utf8'))
+    .venues as Venue[]
+}
+const VALID_COMPANIES = new Set<string>(refs.companies.map((c) => c.id))
 const VALID_GENRES = new Set<Genre>(['Drama', 'Musical', 'Comedy', 'Other'])
 const VALID_PERF_TYPES = new Set<PerfType>(['', 'Preview', 'Opening', 'Closing', 'Talk-back'])
 const today = todayIso()
@@ -90,6 +95,17 @@ function validateShowsFile(
     expectString(runValue.discounts, `${loc}.discounts`)
     expectString(runValue.infoUrl, `${loc}.infoUrl`)
     expectString(runValue.ticketsUrl, `${loc}.ticketsUrl`)
+    if (runValue.room !== undefined) expectString(runValue.room, `${loc}.room`)
+    if (runValue.organizers !== undefined)
+      assert(
+        Array.isArray(runValue.organizers) &&
+          runValue.organizers.every((o) => typeof o === 'string'),
+        `${loc}.organizers must be an array of organizer ids`
+      )
+    assert(
+      company === value.company,
+      `${loc}.company must match the file's company "${value.company}"`
+    )
     if (runValue.updatedAt !== undefined)
       assert(
         typeof runValue.updatedAt === 'string' && ISO_RE.test(runValue.updatedAt),
@@ -132,7 +148,7 @@ function validateShowsFile(
 
     // Content rules shared with the /admin editor
     const label = `${loc} (${runValue.showAbv || runValue.show || runValue.id})`
-    const issues = runIssues(runValue as unknown as Run, value.year as number)
+    const issues = runIssues(runValue as unknown as Run, value.year as number, refs)
     issues.errors.forEach((m) => ruleErrors.push(`${label}: ${m}`))
     issues.warnings.forEach((m) => ruleWarnings.push(`${label}: ${m}`))
   })
@@ -140,32 +156,13 @@ function validateShowsFile(
   return Object.assign(value as unknown as ShowsFile, { __orderingWarnings: orderingWarnings })
 }
 
-function flattenAndSort(runs: Run[]): PerformanceEvent[] {
-  const events: PerformanceEvent[] = []
-  for (const run of runs) {
-    for (const perf of run.performances) {
-      events.push({
-        id: perf.id,
-        runId: run.id,
-        company: run.company,
-        showAbv: run.showAbv,
-        show: run.show,
-        description: run.description || '',
-        genre: run.genre,
-        venue: run.venue,
-        price: run.price,
-        discounts: perf.discounts || run.discounts,
-        infoUrl: run.infoUrl,
-        ticketsUrl: perf.ticketsUrl || run.ticketsUrl,
-        date: perf.date,
-        time: perf.time,
-        perfType: perf.perfType
-      })
-    }
-  }
-  return events.sort((a, b) =>
-    a.date !== b.date ? a.date.localeCompare(b.date) : a.time.localeCompare(b.time)
-  )
+/** Every performance's date and time, sorted — mirroring getPerformances() in src/lib/data.ts. */
+function flattenAndSort(runs: Run[]) {
+  return runs
+    .flatMap((run) => run.performances.map((p) => ({ date: p.date, time: p.time })))
+    .sort((a, b) =>
+      a.date !== b.date ? a.date.localeCompare(b.date) : a.time.localeCompare(b.time)
+    )
 }
 
 // Read and validate all ShowsFiles

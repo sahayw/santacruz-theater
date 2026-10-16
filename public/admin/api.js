@@ -31,6 +31,19 @@ export async function apiPut(file, payload) {
   }
 }
 
+/**
+ * Deletes one record from a data file straight away: re-reads the file as saved,
+ * removes the record with `id` from `data[key]`, and writes it back. Other unsaved
+ * edits in the editor are untouched (they're saved, or not, by the next Save).
+ */
+export async function deleteRecordFromFile(file, key, id) {
+  const data = await apiFetch(file)
+  const records = data[key] || []
+  const kept = records.filter((r) => r.id !== id)
+  if (kept.length === records.length) return // not in the saved file — nothing to do
+  await apiPut(file, { ...data, [key]: kept })
+}
+
 export async function apiUploadImage(filename, base64) {
   const hdrs = { 'Content-Type': 'application/json' }
   if (_identityUser) {
@@ -52,11 +65,12 @@ export async function loadCompanies() {
   return data.companies || []
 }
 
-// Returns sorted <option> HTML for a company <select>, excluding the admin sentinel.
-// 'Other' is always last. Used by both calendar and auditions editors.
+// Returns sorted <option> HTML for a company <select>: the companies with data files of
+// their own, then 'Other' (the shared file for organizers without their own). Excludes
+// the admin sentinel and the organizers filed under Other. Used by both editors.
 export function buildCompanyOptions(allCompanies) {
   const sorted = (allCompanies || [])
-    .filter((c) => c.id !== 'admin')
+    .filter((c) => c.id !== 'admin' && !c.filedUnderOther)
     .sort((a, b) => {
       if (a.id === 'other') return 1
       if (b.id === 'other') return -1

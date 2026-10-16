@@ -28,6 +28,9 @@
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
+/* Hint text: light and italic so it can't be mistaken for an entered value */
+input::placeholder, textarea::placeholder { color: #cbc4b8; font-style: italic; opacity: 1; }
+
 body {
   font-family: 'IBM Plex Sans', sans-serif;
   background: var(--bg);
@@ -232,18 +235,18 @@ body {
 
 <script type="module">
 import { IS_DEV, setIdentityUser, getIdentityUser, loadCompanies, resolveUserAccess } from './api.js';
-import { mount as mountCalendar,    unmount as unmountCalendar    } from './calendar.js';
-import { mount as mountActivities,  unmount as unmountActivities  } from './activities.js';
-import { mount as mountServices,    unmount as unmountServices    } from './services.js';
+import { mount as mountCalendar,    unmount as unmountCalendar,    hasUnsavedChanges as calendarUnsaved   } from './calendar.js';
+import { mount as mountActivities,  unmount as unmountActivities,  hasUnsavedChanges as activitiesUnsaved } from './activities.js';
+import { mount as mountServices,    unmount as unmountServices,    hasUnsavedChanges as servicesUnsaved   } from './services.js';
 
 let allCompanies = [];
 let userAccess   = null;
 let currentEditor = null;
 
 const EDITORS = {
-  calendar:   { label: 'Calendar Editor',   headerTitle: 'Edit Performances', displayUrl: '/calendar',  desc: 'Manage show runs and performances',     icon: '📅', mount: mountCalendar,   unmount: unmountCalendar   },
-  activities: { label: 'Activities Editor', headerTitle: 'Edit Activities',   displayUrl: '/events',    desc: 'Manage auditions and events',            icon: '🎭', mount: mountActivities, unmount: unmountActivities },
-  services:   { label: 'Services Editor',   headerTitle: 'Edit Services',     displayUrl: '/services',  desc: 'Manage production resource listings',    icon: '🔧', mount: mountServices,   unmount: unmountServices   },
+  calendar:   { label: 'Calendar Editor',   headerTitle: 'Edit Performances', displayUrl: '/calendar',  desc: 'Manage show runs and performances',     icon: '📅', mount: mountCalendar,   unmount: unmountCalendar,   unsaved: calendarUnsaved   },
+  activities: { label: 'Activities Editor', headerTitle: 'Edit Activities',   displayUrl: '/events',    desc: 'Manage auditions and events',            icon: '🎭', mount: mountActivities, unmount: unmountActivities, unsaved: activitiesUnsaved },
+  services:   { label: 'Services Editor',   headerTitle: 'Edit Services',     displayUrl: '/services',  desc: 'Manage production resource listings',    icon: '🔧', mount: mountServices,   unmount: unmountServices,   unsaved: servicesUnsaved   },
 };
 
 async function init() {
@@ -301,9 +304,23 @@ function renderTiles() {
   }).join('');
 }
 
-window.openEditor = function(key) {
+// `intent` lets one editor hand off to another, e.g. the Activities editor's "Add
+// production" opens the Calendar editor with { addRun: { company, year, show, organizers } }.
+/** Unsaved edits are lost when an editor unmounts; ask first. */
+function okToLeaveEditor() {
+  return !currentEditor || !EDITORS[currentEditor]?.unsaved?.() ||
+    confirm('You have unsaved changes, which will be lost. Leave without saving?');
+}
+window.addEventListener('beforeunload', (e) => {
+  if (currentEditor && EDITORS[currentEditor]?.unsaved?.()) e.preventDefault();
+});
+
+window.openEditor = function(key, intent) {
   const ed = EDITORS[key];
   if (!ed) return;
+  // A hand-off with an intent has already settled unsaved changes with the user
+  if (!intent && !okToLeaveEditor()) return;
+  if (currentEditor) EDITORS[currentEditor]?.unmount();
   document.getElementById('hubView').style.display = 'none';
   document.getElementById('topbarSubtitle').textContent = ed.headerTitle || ed.label;
   document.getElementById('topbarBrandLink').href = ed.displayUrl || '/';
@@ -311,10 +328,10 @@ window.openEditor = function(key) {
   container.style.display = '';
   document.getElementById('hubBtn').style.display = '';
   currentEditor = key;
-  ed.mount(container, { ...userAccess, allCompanies });
+  ed.mount(container, { ...userAccess, allCompanies, intent });
 };
 
-window.goHub    = function() { showHub(); };
+window.goHub    = function() { if (okToLeaveEditor()) showHub(); };
 window.openLogin = function() { document.getElementById('loginError').style.display = 'none'; window.netlifyIdentity?.open(); };
 window.signOut  = function() {
   if (IS_DEV) return;

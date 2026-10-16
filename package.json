@@ -7,7 +7,7 @@
   },
   "scripts": {
     "dev": "netlify dev",
-    "check": "tsx scripts/check-json.ts && tsx scripts/check-shows.ts && tsx scripts/check-activities.ts && tsx scripts/check-services.ts && tsx scripts/check-markdown.ts && vitest run",
+    "check": "tsx scripts/check-json.ts && tsx scripts/check-reference.ts && tsx scripts/check-shows.ts && tsx scripts/check-activities.ts && tsx scripts/check-services.ts && tsx scripts/check-markdown.ts && vitest run",
     "build": "npm run check && astro build && tsx scripts/check-feeds.ts",
     "sync": "bash scripts/sync-branches.sh",
     "release": "bash scripts/release.sh"
@@ -22,6 +22,8 @@
     "@types/node": "^25.9.1",
     "ical.js": "^2.2.1",
     "netlify-cli": "^26.1.0",
+    "prettier": "3.8.3",
+    "prettier-plugin-astro": "0.14.1",
     "tsx": "^4.19.4",
     "typescript": "^6.0.3",
     "vitest": "^3.2.7"

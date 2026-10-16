@@ -1,0 +1,10 @@
+# Written by the /admin editors and the migration scripts, not by hand
+data/
+# Lock file, images, and anything already in .gitignore (dist, .netlify, node_modules)
+package-lock.json
+public/images/
+# Local tool settings
+.claude/
+.vscode/
+# Hand-laid-out HTML: reflowing it can change rendered whitespace
+*.html

@@ -4,20 +4,15 @@
   "activities": [
     {
       "id": "activity-1781438400001",
-      "genre": [
-        "Musical"
-      ],
       "rolesAvailable": [],
       "prep": {
         "singing": "Prepare a 1-minute song that shows your vocal range; bring a backing track ready to connect to a Bluetooth speaker"
       },
-      "openingDate": "2026-09-18",
-      "productionUrl": "https://www.svpashows.org/",
       "notes": "Annie is an ideal show for a largely female cast. Callbacks go out Sunday June 21st evening — keep that date open if auditioning.",
       "createdAt": "2026-06-14T12:00:00.000Z",
       "updatedAt": "2026-06-14T12:00:00.000Z",
       "type": "audition",
-      "title": "Annie",
+      "productionId": "run-1789227400865",
       "dates": [
         {
           "id": "session-1791991837989",

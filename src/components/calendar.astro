@@ -187,12 +187,19 @@ const icsMajors = JSON.stringify(majors.map(({ code, label, name }) => ({ code, 
     font-size: 20px;
     line-height: 1;
     cursor: pointer;
-    padding: 4px 6px;
+    /* A finger-sized target (the full bar height); the negative margin keeps the arrows
+       as close to the label as before */
+    min-width: 44px;
+    height: var(--bar-h);
+    margin: 0 -8px;
+    padding: 0;
     -webkit-tap-highlight-color: transparent;
     transition: color 0.14s;
   }
-  .year-step:hover {
-    color: #fff;
+  @media (hover: hover) {
+    .year-step:hover {
+      color: #fff;
+    }
   }
   .year-step.dimmed {
     opacity: 0.3;
@@ -387,6 +394,7 @@ const icsMajors = JSON.stringify(majors.map(({ code, label, name }) => ({ code, 
     z-index: 201;
     max-height: 80vh;
     overflow-y: auto;
+    overscroll-behavior: contain;
     -webkit-overflow-scrolling: touch;
     transform: translateX(-50%) translateY(100%);
     -webkit-transform: translateX(-50%) translateY(100%);
@@ -419,9 +427,11 @@ const icsMajors = JSON.stringify(majors.map(({ code, label, name }) => ({ code, 
     padding: 4px 8px;
     border-radius: 4px;
   }
-  .sheet-close-btn:hover {
-    color: var(--ink);
-    background: rgba(0, 0, 0, 0.05);
+  @media (hover: hover) {
+    .sheet-close-btn:hover {
+      color: var(--ink);
+      background: rgba(0, 0, 0, 0.05);
+    }
   }
   .perf-card {
     padding: 14px 20px;
@@ -1330,6 +1340,51 @@ const icsMajors = JSON.stringify(majors.map(({ code, label, name }) => ({ code, 
     { passive: true }
   )
   document.addEventListener('touchcancel', () => (swipe = null), { passive: true })
+
+  // Touch: dragging the card sheet down from its top closes it (past 80px or a flick);
+  // a shorter drag springs back. Once the sheet is scrolled, a downward drag scrolls it.
+  const sheet = document.getElementById('bottomSheet')
+  let drag = null
+  function endDrag() {
+    sheet.style.transition = ''
+    sheet.style.transform = ''
+    drag = null
+  }
+  sheet.addEventListener(
+    'touchstart',
+    (e) => {
+      drag = null
+      if (e.touches.length !== 1 || sheet.scrollTop > 0) return
+      drag = { y: e.touches[0].clientY, at: e.timeStamp, dy: 0, active: false }
+    },
+    { passive: true }
+  )
+  sheet.addEventListener(
+    'touchmove',
+    (e) => {
+      if (!drag) return
+      if (e.touches.length !== 1) return endDrag()
+      const dy = e.touches[0].clientY - drag.y
+      if (!drag.active) {
+        // An upward first move is a scroll; hand it back to the browser
+        if (dy <= 0 || sheet.scrollTop > 0) return endDrag()
+        drag.active = true
+        sheet.style.transition = 'none'
+      }
+      e.preventDefault()
+      drag.dy = Math.max(0, dy)
+      sheet.style.transform = `translateX(-50%) translateY(${drag.dy}px)`
+    },
+    { passive: false }
+  )
+  sheet.addEventListener('touchend', (e) => {
+    if (!drag?.active) return endDrag()
+    const flick = drag.dy > 30 && e.timeStamp - drag.at < 250
+    const close = drag.dy > 80 || flick
+    endDrag()
+    if (close) closeSheet()
+  })
+  sheet.addEventListener('touchcancel', endDrag)
 
   renderAnnual()
   buildFooter()

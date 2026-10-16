@@ -61,7 +61,9 @@ What the site does, for visitors and for editors. For how it's built, see
     or right; **← Year** goes back.
   - Clicking a performance opens its card: organizer, title, the production's
     description, time, venue, price, genre, discounts, and info/ticket links.
-    Clicking a day's number shows all of that day's performances.
+    Clicking a day's number shows all of that day's performances. The card
+    slides up from the bottom; × or tapping outside closes it, and on a touch
+    screen so does dragging it down.
 - There are no filters: the calendar always shows everything. A footer
   legend maps the colours to the majors, plus grey for Other.
 - **Add to my calendar** (top bar, drill-down only): subscribe to

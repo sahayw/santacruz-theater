@@ -1087,50 +1087,9 @@
           "perfType": "Closing",
           "discounts": "",
           "ticketsUrl": ""
-        },
-        {
-          "id": "perf-1792200000050",
-          "date": "2026-12-26",
-          "time": "19:30",
-          "perfType": "Closing",
-          "discounts": "",
-          "ticketsUrl": ""
         }
       ],
       "description": "Dickens' beloved tale returns as a theatrical and music-filled family tradition in the heart of Santa Cruz. A night of ghostly visits transforms the miserly Ebenezer Scrooge — and reminds audiences what the season is really about."
-    },
-    {
-      "id": "run-1792200000200",
-      "company": "scs",
-      "showAbv": "DTest SCS",
-      "show": "DIGEST TEST — Shakespeare production",
-      "genre": [
-        "Comedy"
-      ],
-      "venue": "VMB",
-      "price": "",
-      "discounts": "",
-      "infoUrl": "",
-      "ticketsUrl": "",
-      "performances": [
-        {
-          "id": "perf-1792200000010",
-          "date": "2026-11-20",
-          "time": "19:30",
-          "perfType": "",
-          "discounts": "",
-          "ticketsUrl": ""
-        },
-        {
-          "id": "perf-1792200000011",
-          "date": "2026-11-21",
-          "time": "19:30",
-          "perfType": "",
-          "discounts": "",
-          "ticketsUrl": ""
-        }
-      ],
-      "description": "Test record for the email digest — will be removed."
     }
   ]
 }

@@ -316,39 +316,6 @@
           "ticketsUrl": ""
         }
       ]
-    },
-    {
-      "id": "run-1792200000100",
-      "company": "at",
-      "showAbv": "DTest AT",
-      "show": "DIGEST TEST — Actors' Theatre production",
-      "genre": [
-        "Comedy"
-      ],
-      "venue": "AT",
-      "price": "",
-      "discounts": "",
-      "infoUrl": "",
-      "ticketsUrl": "",
-      "performances": [
-        {
-          "id": "perf-1792200000000",
-          "date": "2027-02-19",
-          "time": "19:30",
-          "perfType": "",
-          "discounts": "",
-          "ticketsUrl": ""
-        },
-        {
-          "id": "perf-1792200000001",
-          "date": "2027-02-20",
-          "time": "19:30",
-          "perfType": "",
-          "discounts": "",
-          "ticketsUrl": ""
-        }
-      ],
-      "description": "Test record for the email digest — will be removed."
     }
   ]
 }

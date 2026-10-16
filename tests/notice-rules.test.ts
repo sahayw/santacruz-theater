@@ -31,7 +31,12 @@ describe('productions', () => {
   })
 
   it('reports nothing when only insignificant fields change', () => {
-    const changed = run({ price: '$99', description: 'typo fixed', show: 'Much Ado!', discounts: '' })
+    const changed = run({
+      price: '$99',
+      description: 'typo fixed',
+      show: 'Much Ado!',
+      discounts: ''
+    })
     expect(classifyProductions([changed], snap([run()]), TODAY).notices).toEqual([])
   })
 
@@ -40,7 +45,14 @@ describe('productions', () => {
     const after = run({
       performances: [
         { ...before.performances[0], time: '20:00' }, // moved
-        { id: 'perf-9', date: '2026-11-08', time: '14:00', perfType: '', discounts: '', ticketsUrl: '' }
+        {
+          id: 'perf-9',
+          date: '2026-11-08',
+          time: '14:00',
+          perfType: '',
+          discounts: '',
+          ticketsUrl: ''
+        }
         // perf-1700000000002 cancelled
       ]
     })
@@ -132,9 +144,9 @@ describe('auditions & events', () => {
   })
 
   it('sends nothing when a listed activity closes', () => {
-    expect(classifyActivities([activity({ closed: true })], prevOf(activity()), TODAY).notices).toEqual(
-      []
-    )
+    expect(
+      classifyActivities([activity({ closed: true })], prevOf(activity()), TODAY).notices
+    ).toEqual([])
   })
 
   it('keeps a virtual audition with no dates listable', () => {

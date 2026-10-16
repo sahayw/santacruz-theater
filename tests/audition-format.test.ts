@@ -38,12 +38,19 @@ describe('linked auditions', () => {
 
   it('opens on the performance marked Opening, else the first', () => {
     expect(runOpeningDate(run)).toBe('2026-07-17')
-    expect(runOpeningDate({ ...run, performances: run.performances.slice(0, 2) })).toBe('2026-07-12')
+    expect(runOpeningDate({ ...run, performances: run.performances.slice(0, 2) })).toBe(
+      '2026-07-12'
+    )
     expect(runOpeningDate({ ...run, performances: [] })).toBeUndefined()
   })
 
   it('takes title, genre, opening and link from the production', () => {
-    const a = { productionId: 'run-1', title: 'stale', genre: ['Comedy'], openingDate: '2026-01-01' }
+    const a = {
+      productionId: 'run-1',
+      title: 'stale',
+      genre: ['Comedy'],
+      openingDate: '2026-01-01'
+    }
     expect(activityTitle(a, [run])).toBe('Macbeth')
     expect(auditionDetails(a, [run])).toEqual({
       genre: ['Drama'],

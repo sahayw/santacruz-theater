@@ -6,13 +6,18 @@ export interface FormChoices {
   excluded: string[] // majors left out of Performance updates
 }
 
-const inputs = (root: ParentNode, name: string) =>
-  [...root.querySelectorAll<HTMLInputElement>(`[data-choices] input[name="${name}"]`)]
+const inputs = (root: ParentNode, name: string) => [
+  ...root.querySelectorAll<HTMLInputElement>(`[data-choices] input[name="${name}"]`)
+]
 
 export function readFormChoices(root: ParentNode = document): FormChoices {
-  const lists = inputs(root, 'list').filter((i) => i.checked).map((i) => i.value)
+  const lists = inputs(root, 'list')
+    .filter((i) => i.checked)
+    .map((i) => i.value)
   const excluded = lists.includes('performances')
-    ? inputs(root, 'major').filter((i) => !i.checked).map((i) => i.value)
+    ? inputs(root, 'major')
+        .filter((i) => !i.checked)
+        .map((i) => i.value)
     : []
   return { lists, excluded }
 }

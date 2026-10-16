@@ -25,7 +25,9 @@ interface RunLike {
 
 /** A production's opening: the performance marked Opening, else the first performance. */
 export function runOpeningDate(run: RunLike): string | undefined {
-  const perfs = (run.performances || []).filter((p) => p.date).sort((a, b) => a.date.localeCompare(b.date))
+  const perfs = (run.performances || [])
+    .filter((p) => p.date)
+    .sort((a, b) => a.date.localeCompare(b.date))
   return (perfs.find((p) => p.perfType === 'Opening') ?? perfs[0])?.date
 }
 

@@ -32,7 +32,8 @@ const CARD =
   'background:#ffffff;border:1px solid #e0d9d0;border-radius:6px;padding:16px 20px;margin-bottom:12px'
 const TITLE = `font-family:${SERIF};font-size:18px;font-weight:600;color:#1a1612;margin-bottom:3px`
 const META = 'font-size:13px;color:#6b6259;margin-bottom:10px'
-const LINK = 'display:inline-block;font-size:13px;font-weight:500;color:#4f5ce0;text-decoration:none'
+const LINK =
+  'display:inline-block;font-size:13px;font-weight:500;color:#4f5ce0;text-decoration:none'
 const BUTTON =
   'display:inline-block;font-size:13px;font-weight:600;color:#ffffff;background:#1a1612;text-decoration:none;padding:7px 14px;border-radius:4px;margin-right:14px'
 
@@ -259,9 +260,18 @@ export function buildActivityDigest(
   const section = (title: string, items: string[]) => {
     if (items.length) parts.push(heading(title, parts.length > 0) + items.join(''))
   }
-  section('New auditions', fresh.filter((a) => a.type === 'audition').map((a) => activityCard(a, siteUrl)))
-  section('New events', fresh.filter((a) => a.type === 'event').map((a) => activityCard(a, siteUrl)))
-  section('Updates', updated.map((u) => activityCard(u.item, siteUrl, u.changes)))
+  section(
+    'New auditions',
+    fresh.filter((a) => a.type === 'audition').map((a) => activityCard(a, siteUrl))
+  )
+  section(
+    'New events',
+    fresh.filter((a) => a.type === 'event').map((a) => activityCard(a, siteUrl))
+  )
+  section(
+    'Updates',
+    updated.map((u) => activityCard(u.item, siteUrl, u.changes))
+  )
   const total = fresh.length + updated.length
   return {
     subject:
@@ -316,11 +326,15 @@ export function buildWelcomeEmail(
       heading('Upcoming auditions') +
         (auditions.length
           ? auditions.map((a) => activityCard(a, siteUrl)).join('')
-          : quiet("No upcoming auditions right now &mdash; you'll be notified when new ones are posted.")),
+          : quiet(
+              "No upcoming auditions right now &mdash; you'll be notified when new ones are posted."
+            )),
       heading('Upcoming events') +
         (events.length
           ? events.map((a) => activityCard(a, siteUrl)).join('')
-          : quiet("No upcoming events right now &mdash; you'll be notified when new ones are posted."))
+          : quiet(
+              "No upcoming events right now &mdash; you'll be notified when new ones are posted."
+            ))
     )
   }
   return {

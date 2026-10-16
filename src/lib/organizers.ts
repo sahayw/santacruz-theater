@@ -47,16 +47,12 @@ export function majors(companies: CompanyEntry[]) {
 
 /** Organizers whose records are filed under Other (they have no data files of their own). */
 export function otherOrganizers(companies: CompanyEntry[]) {
-  return companies
-    .filter((c) => c.filedUnderOther)
-    .sort((a, b) => a.name.localeCompare(b.name))
+  return companies.filter((c) => c.filedUnderOther).sort((a, b) => a.name.localeCompare(b.name))
 }
 
 /** Every real organizer (sentinels excluded), for co-producer pickers. */
 export function allOrganizers(companies: CompanyEntry[]) {
-  return companies
-    .filter((c) => !SENTINELS.has(c.id))
-    .sort((a, b) => a.name.localeCompare(b.name))
+  return companies.filter((c) => !SENTINELS.has(c.id)).sort((a, b) => a.name.localeCompare(b.name))
 }
 
 /**

@@ -85,7 +85,12 @@ describe('performanceEvents', () => {
 
   it('names the organizer of a production filed under Other, never "Other"', () => {
     const [e] = performanceEvents(
-      run({ company: 'other', organizers: ['fight'], venue: 'Somebody’s Barn', updatedAt: undefined }),
+      run({
+        company: 'other',
+        organizers: ['fight'],
+        venue: 'Somebody’s Barn',
+        updatedAt: undefined
+      }),
       ctx
     )
     expect(e.summary).toBe('Much Ado — Fight Club SC')

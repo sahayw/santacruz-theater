@@ -32,7 +32,11 @@ import { EMAIL_LISTS, EXCLUDED_KEY, SELECTED_TAG } from '../../../src/lib/email-
 import { loadAllActivities } from './activities-data.mts'
 import { allOf, buttondown, type Buttondown, type Subscriber } from './buttondown.mts'
 import { loadCompanies, loadVenues } from './company-data.mts'
-import { buildActivityDigest, buildPerformanceDigest, templateFooterLinks } from './email-template.mts'
+import {
+  buildActivityDigest,
+  buildPerformanceDigest,
+  templateFooterLinks
+} from './email-template.mts'
 import { digestProduction, includesProduction, loadRuns } from './shows-data.mts'
 import { todayIso } from '../../../src/lib/data-rules.ts'
 
@@ -89,7 +93,10 @@ interface Ctx {
 
 /** Reads a list's snapshot; seeds it (and returns null) on the first run. */
 async function snapshot<P>(ctx: Ctx, list: string, next: Record<string, P>) {
-  const prev = (await ctx.store.get(snapshotKey(list), { type: 'json' })) as Record<string, P> | null
+  const prev = (await ctx.store.get(snapshotKey(list), { type: 'json' })) as Record<
+    string,
+    P
+  > | null
   if (prev) return prev
   // Seeding sends nothing, so a dry run seeds too
   ctx.log(`${list}: no snapshot yet — seeding ${Object.keys(next).length} records, sending nothing`)
@@ -122,7 +129,10 @@ async function performancesDigest(ctx: Ctx) {
     digestProduction(byId.get(id)!, companies, venues, ctx.today, ctx.siteUrl)
   const byFirstDate = (a: { perfs: { date: string }[] }, b: { perfs: { date: string }[] }) =>
     (a.perfs[0]?.date ?? '').localeCompare(b.perfs[0]?.date ?? '')
-  const fresh = result.notices.filter((n) => n.isNew).map((n) => prod(n.id)).sort(byFirstDate)
+  const fresh = result.notices
+    .filter((n) => n.isNew)
+    .map((n) => prod(n.id))
+    .sort(byFirstDate)
   const updated = result.notices
     .filter((n) => !n.isNew)
     .map((n) => ({ item: prod(n.id), changes: n.changes }))
@@ -131,7 +141,9 @@ async function performancesDigest(ctx: Ctx) {
   ctx.log(`${list}: ${fresh.length} new, ${updated.length} updated`)
   for (const p of fresh) ctx.log(`  NEW   ${p.title} (${p.organizerName})`)
   for (const u of updated)
-    ctx.log(`  UPDT  ${u.item.title} (${u.item.organizerName}): ${u.changes.map((c) => c.kind).join(', ')}`)
+    ctx.log(
+      `  UPDT  ${u.item.title} (${u.item.organizerName}): ${u.changes.map((c) => c.kind).join(', ')}`
+    )
   if (!fresh.length && !updated.length) return finish(ctx, list, result.next)
 
   const rec = (ctx.record[list] ??= {})
@@ -184,12 +196,17 @@ async function performancesDigest(ctx: Ctx) {
     const names = excluded.map((id) => companies.find((c) => c.id === id)?.name ?? id)
     const { subject, html } = buildPerformanceDigest(f, u, names, ctx.siteUrl, links)
     if (ctx.dryRun) {
-      const who = todo.slice(0, 20).map((s) => s.email_address).join(', ')
+      const who = todo
+        .slice(0, 20)
+        .map((s) => s.email_address)
+        .join(', ')
       ctx.log(`${list}: would send "${subject}" to ${todo.length} excluding [${key}]: ${who}`)
       continue
     }
     if (!rec.groups[key]) {
-      rec.groups[key] = (await ctx.bd.createEmail({ subject, body: html, status: 'transactional' })).id
+      rec.groups[key] = (
+        await ctx.bd.createEmail({ subject, body: html, status: 'transactional' })
+      ).id
       await ctx.save()
     }
     // Progress is saved after every send, so a retry repeats at most the one send whose
@@ -219,7 +236,10 @@ async function activitiesDigest(ctx: Ctx) {
   const byId = new Map(activities.map((a) => [a.id, a]))
   const byFirstDate = (a: { dates: { date: string }[] }, b: { dates: { date: string }[] }) =>
     (a.dates[0]?.date ?? '').localeCompare(b.dates[0]?.date ?? '')
-  const fresh = notices.filter((n) => n.isNew).map((n) => byId.get(n.id)!).sort(byFirstDate)
+  const fresh = notices
+    .filter((n) => n.isNew)
+    .map((n) => byId.get(n.id)!)
+    .sort(byFirstDate)
   const updated = notices
     .filter((n) => !n.isNew)
     .map((n) => ({ item: byId.get(n.id)!, changes: n.changes }))
@@ -246,7 +266,8 @@ async function activitiesDigest(ctx: Ctx) {
       status: ctx.dryRun ? 'draft' : 'about_to_send',
       filters: allOf({ field: 'subscriber.tags', operator: 'contains', value: tags[listTag(list)] })
     })
-    if (ctx.dryRun) return ctx.log(`${list}: would broadcast "${subject}" — saved as draft ${email.id}`)
+    if (ctx.dryRun)
+      return ctx.log(`${list}: would broadcast "${subject}" — saved as draft ${email.id}`)
     rec.broadcast = email.id
     await ctx.save()
     ctx.log(`${list}: broadcast "${subject}"`)

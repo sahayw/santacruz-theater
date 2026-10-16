@@ -102,7 +102,10 @@ function validateShowsFile(
           runValue.organizers.every((o) => typeof o === 'string'),
         `${loc}.organizers must be an array of organizer ids`
       )
-    assert(company === value.company, `${loc}.company must match the file's company "${value.company}"`)
+    assert(
+      company === value.company,
+      `${loc}.company must match the file's company "${value.company}"`
+    )
     if (runValue.updatedAt !== undefined)
       assert(
         typeof runValue.updatedAt === 'string' && ISO_RE.test(runValue.updatedAt),
@@ -157,7 +160,9 @@ function validateShowsFile(
 function flattenAndSort(runs: Run[]) {
   return runs
     .flatMap((run) => run.performances.map((p) => ({ date: p.date, time: p.time })))
-    .sort((a, b) => (a.date !== b.date ? a.date.localeCompare(b.date) : a.time.localeCompare(b.time)))
+    .sort((a, b) =>
+      a.date !== b.date ? a.date.localeCompare(b.date) : a.time.localeCompare(b.time)
+    )
 }
 
 // Read and validate all ShowsFiles

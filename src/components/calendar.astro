@@ -667,7 +667,6 @@ const icsMajors = JSON.stringify(majors.map(({ code, label, name }) => ({ code, 
     padding-left: 14px;
   }
 
-
   /* ── ADD TO MY CALENDAR (bar) — drill-down only: the year view doesn't show what you'd
      subscribe to; icon-only on narrow screens ── */
   .cal-feed-btn {
@@ -1044,7 +1043,8 @@ const icsMajors = JSON.stringify(majors.map(({ code, label, name }) => ({ code, 
       body.className = 'mini-cal-body'
       const startDow = dowMon(new Date(displayYear, m, 1))
       const daysInMonth = new Date(displayYear, m + 1, 0).getDate()
-      for (let i = 0; i < startDow; i++) body.insertAdjacentHTML('beforeend', '<div class="mini-day empty"></div>')
+      for (let i = 0; i < startDow; i++)
+        body.insertAdjacentHTML('beforeend', '<div class="mini-day empty"></div>')
       for (let d = 1; d <= daysInMonth; d++) {
         const ds = fmtDate(new Date(displayYear, m, d))
         const perfs = byDate[ds] || []
@@ -1272,9 +1272,11 @@ const icsMajors = JSON.stringify(majors.map(({ code, label, name }) => ({ code, 
 
   // ── Wiring ──
   document.getElementById('backBtn').addEventListener('click', showAnnual)
-  document.getElementById('drillBtn').addEventListener('click', () =>
-    openDrill(displayYear === today.getFullYear() ? new Date(today) : new Date(displayYear, 0, 1))
-  )
+  document
+    .getElementById('drillBtn')
+    .addEventListener('click', () =>
+      openDrill(displayYear === today.getFullYear() ? new Date(today) : new Date(displayYear, 0, 1))
+    )
   document.getElementById('navPrev').addEventListener('click', () => step(-1))
   document.getElementById('navNext').addEventListener('click', () => step(1))
   document.getElementById('sheetCloseBtn').addEventListener('click', closeSheet)

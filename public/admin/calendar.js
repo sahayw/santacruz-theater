@@ -905,7 +905,10 @@ async function saveFile() {
     alert('Cannot save — fix these issues:\n\n' + errors.join('\n'))
     return
   }
-  if (warnings.length && !confirm('Missing details:\n\n' + warnings.join('\n') + '\n\nSave anyway?'))
+  if (
+    warnings.length &&
+    !confirm('Missing details:\n\n' + warnings.join('\n') + '\n\nSave anyway?')
+  )
     return
   const btn = document.getElementById('saveBtn')
   btn.disabled = true
@@ -1021,9 +1024,16 @@ function isUntouchedNewRun(r) {
     !r.organizers &&
     !r.room &&
     !(r.genre || []).length &&
-    ![r.show, r.showAbv, r.venue, r.price, r.discounts, r.infoUrl, r.ticketsUrl, r.description].some(
-      (v) => v?.trim()
-    )
+    ![
+      r.show,
+      r.showAbv,
+      r.venue,
+      r.price,
+      r.discounts,
+      r.infoUrl,
+      r.ticketsUrl,
+      r.description
+    ].some((v) => v?.trim())
   )
 }
 
@@ -1789,9 +1799,9 @@ const CAL_GENRE_STYLES = {
   Other: 'background:#f0ece6;color:#6b6259'
 }
 const CAL_PERF_TYPE_STYLES = {
-  'Preview': 'background:#fff0cc;color:#7a5200',
-  'Opening': 'background:#c8f0da;color:#1a5c35',
-  'Closing': 'background:#ffd4d4;color:#8c1e1e',
+  Preview: 'background:#fff0cc;color:#7a5200',
+  Opening: 'background:#c8f0da;color:#1a5c35',
+  Closing: 'background:#ffd4d4;color:#8c1e1e',
   'Talk-back': 'background:#d4ddff;color:#2035a0'
 }
 

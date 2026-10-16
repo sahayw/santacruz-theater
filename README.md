@@ -4,13 +4,13 @@ A resource for theater-goers and theater companies in Santa Cruz County — buil
 
 Five areas, reachable from a persistent top nav and a hub landing page:
 
-| Section   | URL          | What it is                                                           |
-| --------- | ------------ | -------------------------------------------------------------------- |
-| Calendar  | `/calendar`  | Performances calendar — year view, month / week drill-down           |
-| Companies | `/companies` | Santa Cruz County theater company directory                          |
-| Events    | `/events`    | Upcoming auditions and other events                                  |
-| Services  | `/services`  | Production resources — crew, equipment, spaces, coaching             |
-| About     | `/about`     | Site info + contact form                                             |
+| Section   | URL          | What it is                                                 |
+| --------- | ------------ | ---------------------------------------------------------- |
+| Calendar  | `/calendar`  | Performances calendar — year view, month / week drill-down |
+| Companies | `/companies` | Santa Cruz County theater company directory                |
+| Events    | `/events`    | Upcoming auditions and other events                        |
+| Services  | `/services`  | Production resources — crew, equipment, spaces, coaching   |
+| About     | `/about`     | Site info + contact form                                   |
 
 Visitors can sign up at `/subscribe` for two email lists — Performance updates and Audition & event notices (Buttondown).
 

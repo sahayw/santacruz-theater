@@ -20,10 +20,15 @@ interface MissingDetails {
   missing: Gap[]
 }
 
-const shows = import.meta.glob<{ default: ShowsFile }>('../../data/shows/**/*.json', { eager: true })
-const activities = import.meta.glob<{ default: ActivitiesFile }>('../../data/activities/**/*.json', {
+const shows = import.meta.glob<{ default: ShowsFile }>('../../data/shows/**/*.json', {
   eager: true
 })
+const activities = import.meta.glob<{ default: ActivitiesFile }>(
+  '../../data/activities/**/*.json',
+  {
+    eager: true
+  }
+)
 const dataPath = (globKey: string) => globKey.replace(/^(\.\.\/)+/, '')
 
 export const GET: APIRoute = () => {
@@ -61,7 +66,10 @@ export const GET: APIRoute = () => {
         ),
         organizers,
         file: dataPath(key),
-        firstDate: a.dates.map((d) => d.date).filter(Boolean).sort()[0],
+        firstDate: a.dates
+          .map((d) => d.date)
+          .filter(Boolean)
+          .sort()[0],
         missing
       })
     }

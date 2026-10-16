@@ -178,7 +178,12 @@ for (const year of yearDirs) {
 
       // Content rules shared with the /admin editor
       if (Array.isArray(a.dates)) {
-        const issues = activityIssues(a as unknown as Activity, Number(year), String(f.company), refs)
+        const issues = activityIssues(
+          a as unknown as Activity,
+          Number(year),
+          String(f.company),
+          refs
+        )
         issues.errors.forEach((m) => err(al, m))
         issues.warnings.forEach((m) => warnings.push(`${al}: ${m}`))
       }

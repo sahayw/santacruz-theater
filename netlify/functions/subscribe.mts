@@ -57,7 +57,9 @@ export default async (req: Request, context: Context) => {
     const { tags, metadata } = subscriberFields(choices)
     const created = await bd.createSubscriber(email, tags, metadata)
     if (created) {
-      console.log(`subscribe: created ${created.id} lists=${choices.lists} excluded=${choices.excluded}`)
+      console.log(
+        `subscribe: created ${created.id} lists=${choices.lists} excluded=${choices.excluded}`
+      )
       context.waitUntil(
         sendWelcome(bd, created, choices, siteUrl(req, context)).then(
           () => pingHealthcheck(),

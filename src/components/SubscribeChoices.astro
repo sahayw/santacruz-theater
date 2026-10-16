@@ -162,12 +162,16 @@ const [performances, auditionsEvents] = ['performances', 'auditions-events'].map
     const majors = [...root.querySelectorAll<HTMLInputElement>('input[name="major"]')]
     const sum = root.querySelector<HTMLElement>('[data-co-sum]')!
     const ticked = () => new Set(majors.filter((m) => m.checked).map((m) => m.value))
-    const tick = (ids: Set<string> | null) => majors.forEach((m) => (m.checked = !ids || ids.has(m.value)))
+    const tick = (ids: Set<string> | null) =>
+      majors.forEach((m) => (m.checked = !ids || ids.has(m.value)))
     let chosen: Set<string> | null = null // null = all (the default)
 
     const refresh = () => {
       for (const opt of root.querySelectorAll('.list-opt'))
-        opt.classList.toggle('on', !!opt.querySelector<HTMLInputElement>('input[name="list"]')?.checked)
+        opt.classList.toggle(
+          'on',
+          !!opt.querySelector<HTMLInputElement>('input[name="list"]')?.checked
+        )
       sum.textContent =
         perf.checked && !majors.some((m) => m.checked)
           ? "You'll get productions by other companies and organizers only."

@@ -134,18 +134,18 @@ use, so they can be unit-tested directly.
 
 ```ts
 interface CalendarEvent {
-  uid: string; // `${occurrenceId}@santacruz.theater`
-  kind: "performance" | "audition" | "event";
-  sourceId: string; // the occurrence id
-  parentId: string; // Run.id / Activity.id
-  company: string;
-  summary: string;
-  description: string; // plain text
-  location: string;
-  url: string;
-  start: { date: string; time: string }; // wall-clock, America/Los_Angeles
-  end: { date: string; time: string };
-  lastModified?: string; // ISO instant
+  uid: string // `${occurrenceId}@santacruz.theater`
+  kind: 'performance' | 'audition' | 'event'
+  sourceId: string // the occurrence id
+  parentId: string // Run.id / Activity.id
+  company: string
+  summary: string
+  description: string // plain text
+  location: string
+  url: string
+  start: { date: string; time: string } // wall-clock, America/Los_Angeles
+  end: { date: string; time: string }
+  lastModified?: string // ISO instant
 }
 ```
 

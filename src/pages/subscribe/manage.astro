@@ -26,7 +26,9 @@ import SubscribeChoices from '../../components/SubscribeChoices.astro'
         <div class="sub-status info" id="manage-confirm" hidden>
           <b>Nothing selected.</b> Do you want to unsubscribe?
           <div class="sub-btn-row">
-            <button type="button" class="sub-btn sub-btn--warn" id="manage-unsub">Unsubscribe</button>
+            <button type="button" class="sub-btn sub-btn--warn" id="manage-unsub"
+              >Unsubscribe</button
+            >
             <button type="button" class="sub-btn sub-btn--ghost" id="manage-keep">
               Keep my subscription
             </button>
@@ -82,7 +84,10 @@ import SubscribeChoices from '../../components/SubscribeChoices.astro'
       body: JSON.stringify(body)
     })
     const data = await resp.json().catch(() => ({}))
-    return { ok: resp.ok, message: (data.message as string) || 'Something went wrong — please try again shortly.' }
+    return {
+      ok: resp.ok,
+      message: (data.message as string) || 'Something went wrong — please try again shortly.'
+    }
   }
 
   // ── Lost link ──
@@ -166,7 +171,10 @@ import SubscribeChoices from '../../components/SubscribeChoices.astro'
     try {
       const { ok, message } = await post({ action: 'update', s, ...choices })
       if (ok) setUnsubscribed(false)
-      showStatus(ok ? 'ok' : 'err', ok ? 'Saved. Your next email will follow these choices.' : message)
+      showStatus(
+        ok ? 'ok' : 'err',
+        ok ? 'Saved. Your next email will follow these choices.' : message
+      )
     } catch {
       showStatus('err', 'Network error — please try again shortly.')
     } finally {

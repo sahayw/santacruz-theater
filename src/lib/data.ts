@@ -1,7 +1,26 @@
-import type { Run, ShowsFile, PerformanceEvent, Activity, ActivitiesFile, ActivityDate, CompanyEntry, Genre, ServiceListing, ServicesFile, ServiceCategory, ServiceCategoriesFile, Venue } from '../types.ts'
+import type {
+  Run,
+  ShowsFile,
+  PerformanceEvent,
+  Activity,
+  ActivitiesFile,
+  ActivityDate,
+  CompanyEntry,
+  Genre,
+  ServiceListing,
+  ServicesFile,
+  ServiceCategory,
+  ServiceCategoriesFile,
+  Venue
+} from '../types.ts'
 import companiesData from '../../data/sc-theater-companies.json'
 import venuesData from '../../data/sc-theater-venues.json'
-import { organizerEntries, organizerLabel, organizerName, recordOrganizerIds } from './organizers.ts'
+import {
+  organizerEntries,
+  organizerLabel,
+  organizerName,
+  recordOrganizerIds
+} from './organizers.ts'
 import { runPlace, sessionPlace, type Place } from './venues.ts'
 import { activityTitle, auditionDetails } from './audition-format.ts'
 
@@ -17,7 +36,10 @@ const modules = import.meta.glob<{ default: ShowsFile }>('../../data/shows/**/*.
   eager: true
 })
 const allRuns: Run[] = Object.values(modules).flatMap((m) =>
-  m.default.runs.map((r) => ({ ...r, genre: coerceGenre((r as unknown as Record<string, unknown>).genre) }))
+  m.default.runs.map((r) => ({
+    ...r,
+    genre: coerceGenre((r as unknown as Record<string, unknown>).genre)
+  }))
 )
 
 /** Raw run-based data. Use for run/show card views. */
@@ -85,16 +107,17 @@ export interface ActivityEvent extends Activity {
 }
 
 export function getServices(): ServiceListing[] {
-  const file = (
-    import.meta.glob<{ default: ServicesFile }>('../../data/sc-theater-services.json', { eager: true })
-  )
+  const file = import.meta.glob<{ default: ServicesFile }>('../../data/sc-theater-services.json', {
+    eager: true
+  })
   const data = Object.values(file)[0]?.default
   return (data?.listings ?? []).filter((l) => l.active)
 }
 
 export function getServiceCategories(): ServiceCategory[] {
-  const file = (
-    import.meta.glob<{ default: ServiceCategoriesFile }>('../../data/sc-theater-service-categories.json', { eager: true })
+  const file = import.meta.glob<{ default: ServiceCategoriesFile }>(
+    '../../data/sc-theater-service-categories.json',
+    { eager: true }
   )
   const data = Object.values(file)[0]?.default
   return data?.categories ?? []
@@ -112,7 +135,11 @@ export function getActivities(): ActivityEvent[] {
       events.push({
         ...a,
         title: activityTitle(a, allRuns),
-        ...auditionDetails(a, allRuns) as { genre: Genre[]; openingDate?: string; productionUrl?: string },
+        ...(auditionDetails(a, allRuns) as {
+          genre: Genre[]
+          openingDate?: string
+          productionUrl?: string
+        }),
         company: file.company,
         year: file.year,
         dates: a.dates.map((d) => ({ ...d, place: sessionPlace(d, venues) })),

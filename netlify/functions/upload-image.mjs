@@ -103,8 +103,8 @@ export const handler = async (event, context) => {
   }
 
   const ghHeaders = {
-    'Authorization': `Bearer ${GITHUB_TOKEN}`,
-    'Accept': 'application/vnd.github+json',
+    Authorization: `Bearer ${GITHUB_TOKEN}`,
+    Accept: 'application/vnd.github+json',
     'X-GitHub-Api-Version': '2022-11-28'
   }
 

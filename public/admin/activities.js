@@ -833,7 +833,10 @@ function firstRunDate(r) {
   return r.performances.map((p) => p.date).sort()[0]
 }
 function lastRunDate(r) {
-  return r.performances.map((p) => p.date).sort().at(-1)
+  return r.performances
+    .map((p) => p.date)
+    .sort()
+    .at(-1)
 }
 
 /** An activity's title as shown: a linked audition's is its production's. */
@@ -1172,7 +1175,10 @@ async function saveFile() {
     alert('Cannot save — fix these issues:\n\n' + errors.join('\n'))
     return
   }
-  if (warnings.length && !confirm('Missing details:\n\n' + warnings.join('\n') + '\n\nSave anyway?'))
+  if (
+    warnings.length &&
+    !confirm('Missing details:\n\n' + warnings.join('\n') + '\n\nSave anyway?')
+  )
     return
   const btn = document.getElementById('actSaveBtn')
   btn.disabled = true
@@ -1273,8 +1279,8 @@ function isUntouchedNew(a) {
     !a.organizers &&
     !a.contact &&
     !a.prep &&
-    ![a.description, a.notes, a.noticeUrl, a.registerUrl, a.briefDescription, a.cost].some(
-      (v) => v?.trim()
+    ![a.description, a.notes, a.noticeUrl, a.registerUrl, a.briefDescription, a.cost].some((v) =>
+      v?.trim()
     )
   )
 }
@@ -1883,7 +1889,7 @@ function locNameOf(d) {
   return venueByCode(d.venue, venuesList)?.name ?? d.venue ?? d.location?.name ?? ''
 }
 function locAddrOf(d) {
-  return d.venue ? venueByCode(d.venue, venuesList)?.address ?? '' : d.location?.address ?? ''
+  return d.venue ? (venueByCode(d.venue, venuesList)?.address ?? '') : (d.location?.address ?? '')
 }
 
 function refreshLocationCells(idx) {

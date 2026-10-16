@@ -44,7 +44,7 @@ export function buttondown(apiKey = process.env.BUTTONDOWN_API_KEY) {
       const resp = await fetch(path.startsWith('http') ? path : `${API}${path}`, {
         method,
         headers: {
-          'Authorization': `Token ${apiKey}`,
+          Authorization: `Token ${apiKey}`,
           'Content-Type': 'application/json',
           'X-Buttondown-Live-Dangerously': 'true'
         },
@@ -92,10 +92,7 @@ export function buttondown(apiKey = process.env.BUTTONDOWN_API_KEY) {
     },
 
     /** Replaces the given fields (tags replace the whole tag list). */
-    updateSubscriber(
-      id: string,
-      fields: Partial<Pick<Subscriber, 'tags' | 'metadata' | 'type'>>
-    ) {
+    updateSubscriber(id: string, fields: Partial<Pick<Subscriber, 'tags' | 'metadata' | 'type'>>) {
       return call<Subscriber>('PATCH', sub(id), fields)
     },
 
@@ -117,8 +114,10 @@ export function buttondown(apiKey = process.env.BUTTONDOWN_API_KEY) {
       const ids: Record<string, string> = {}
       let next: string | null = '/tags'
       while (next) {
-        const page: { results: { id: string; name: string }[]; next: string | null } =
-          await call('GET', next)
+        const page: { results: { id: string; name: string }[]; next: string | null } = await call(
+          'GET',
+          next
+        )
         for (const t of page.results) ids[t.name] = t.id
         next = page.next
       }

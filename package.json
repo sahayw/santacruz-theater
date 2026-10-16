@@ -22,6 +22,8 @@
     "@types/node": "^25.9.1",
     "ical.js": "^2.2.1",
     "netlify-cli": "^26.1.0",
+    "prettier": "3.8.3",
+    "prettier-plugin-astro": "0.14.1",
     "tsx": "^4.19.4",
     "typescript": "^6.0.3",
     "vitest": "^3.2.7"

@@ -1,6 +1,12 @@
 // Organizers, venues, and the record rules that check against them — fixture data only.
 import { describe, expect, it } from 'vitest'
-import { activityGaps, activityIssues, runGaps, runIssues, type RuleRefs } from '../src/lib/data-rules.ts'
+import {
+  activityGaps,
+  activityIssues,
+  runGaps,
+  runIssues,
+  type RuleRefs
+} from '../src/lib/data-rules.ts'
 import {
   allOrganizers,
   majors,
@@ -16,10 +22,23 @@ import { activity, ctx, run } from './fixtures/calendar.ts'
 
 const companies: CompanyEntry[] = [
   { id: 'admin', abvName: 'Admin', name: 'Data Admin', adminOnly: true },
-  { id: 'tst', abvName: 'TST', name: 'Test Theatre', major: true, majorCode: 2, website: 'https://tst.example' },
+  {
+    id: 'tst',
+    abvName: 'TST',
+    name: 'Test Theatre',
+    major: true,
+    majorCode: 2,
+    website: 'https://tst.example'
+  },
   { id: 'big', abvName: 'BIG', name: 'Big Company', major: true, majorCode: 1 },
   { id: 'oth', abvName: 'OTH', name: 'Other Players' },
-  { id: 'fight', abvName: 'Fight', name: 'Fight Club SC', filedUnderOther: true, website: 'https://fight.example' },
+  {
+    id: 'fight',
+    abvName: 'Fight',
+    name: 'Fight Club SC',
+    filedUnderOther: true,
+    website: 'https://fight.example'
+  },
   { id: 'other', abvName: 'Other', name: 'Other Companies', adminOnly: true }
 ]
 const refs: RuleRefs = { companies, venues: ctx.venues, runIds: new Set(['run-1700000000000']) }
@@ -57,7 +76,9 @@ describe('organizers', () => {
 
   it('allows co-producers only on productions', () => {
     const rule = 'auditions and events have one organizer — co-producers are for productions only'
-    expect(organizerErrors('other', ['fight', 'oth'], companies, { coProducers: false })).toEqual([rule])
+    expect(organizerErrors('other', ['fight', 'oth'], companies, { coProducers: false })).toEqual([
+      rule
+    ])
     expect(organizerErrors('tst', ['oth'], companies, { coProducers: false })).toEqual([rule])
     expect(organizerErrors('other', ['fight'], companies, { coProducers: false })).toEqual([])
   })
@@ -71,7 +92,9 @@ describe('organizers', () => {
       'organizer "nobody" isn\'t in the companies list'
     ])
     expect(organizerErrors('tst', ['other'], companies)[0]).toMatch(/isn't in the companies list/)
-    expect(organizerErrors('tst', ['oth', 'oth'], companies)).toContain('organizer "oth" is listed twice')
+    expect(organizerErrors('tst', ['oth', 'oth'], companies)).toContain(
+      'organizer "oth" is listed twice'
+    )
     expect(organizerErrors('tst', ['tst'], companies)).toEqual([
       'a co-producer repeats the company this record is filed under'
     ])
@@ -84,15 +107,24 @@ describe('venues', () => {
       name: 'Test Hall',
       address: '1 Main St, Santa Cruz, CA 95060'
     })
-    expect(runPlace({ venue: 'BB', room: ' Studio 2 ' }, ctx.venues)?.name).toBe('Black Box, Studio 2')
+    expect(runPlace({ venue: 'BB', room: ' Studio 2 ' }, ctx.venues)?.name).toBe(
+      'Black Box, Studio 2'
+    )
     expect(runPlace({ venue: 'Nowhere' }, ctx.venues)).toBeUndefined()
   })
 
   it('resolves a session’s venue, else its one-off location', () => {
     const base = { id: 'session-1', date: '2026-11-01', startTime: '18:00' }
-    expect(sessionPlace({ ...base, venue: 'BB' }, ctx.venues)).toEqual({ name: 'Black Box', address: undefined })
-    expect(sessionPlace({ ...base, location: { name: 'Church Hall', address: '2 Elm St' }, room: 'Annex' }, ctx.venues))
-      .toEqual({ name: 'Church Hall, Annex', address: '2 Elm St' })
+    expect(sessionPlace({ ...base, venue: 'BB' }, ctx.venues)).toEqual({
+      name: 'Black Box',
+      address: undefined
+    })
+    expect(
+      sessionPlace(
+        { ...base, location: { name: 'Church Hall', address: '2 Elm St' }, room: 'Annex' },
+        ctx.venues
+      )
+    ).toEqual({ name: 'Church Hall, Annex', address: '2 Elm St' })
     expect(sessionPlace(base, ctx.venues)).toBeUndefined()
   })
 })
@@ -109,11 +141,15 @@ describe('record rules', () => {
     expect(runIssues(run({ company: 'other' }), 2026, refs, TODAY).errors).toEqual([
       'Organizer is required'
     ])
-    expect(activityIssues(activity({ organizers: ['fight'] }), 2026, 'other', refs).errors).toEqual([])
+    expect(activityIssues(activity({ organizers: ['fight'] }), 2026, 'other', refs).errors).toEqual(
+      []
+    )
   })
 
   it('checks session venue codes', () => {
-    const a = activity({ dates: [{ id: 'session-9', date: '2026-11-05', startTime: '18:00', venue: 'XX' }] })
+    const a = activity({
+      dates: [{ id: 'session-9', date: '2026-11-05', startTime: '18:00', venue: 'XX' }]
+    })
     expect(activityIssues(a, 2026, 'tst', refs).errors).toEqual([
       'date row 1 has venue "XX", which isn\'t in the venue list'
     ])
@@ -123,21 +159,27 @@ describe('record rules', () => {
     const ok = activity({ productionId: 'run-1700000000000' })
     const missing = activity({ productionId: 'run-1' })
     expect(activityIssues(ok, 2026, 'tst', refs).errors).toEqual([])
-    expect(activityIssues(missing, 2026, 'tst', refs).errors).toEqual(['Production "run-1" doesn\'t exist'])
+    expect(activityIssues(missing, 2026, 'tst', refs).errors).toEqual([
+      'Production "run-1" doesn\'t exist'
+    ])
     expect(activityIssues(missing, 2026, 'tst', { ...refs, runIds: undefined }).errors).toEqual([])
   })
 
   it('warns when an audition isn’t linked to a production', () => {
     const warn = 'not linked to a production'
     expect(activityIssues(activity(), 2026, 'tst', refs).warnings).toEqual([warn])
-    expect(activityIssues(activity({ productionId: 'run-1700000000000' }), 2026, 'tst', refs).warnings).toEqual([])
+    expect(
+      activityIssues(activity({ productionId: 'run-1700000000000' }), 2026, 'tst', refs).warnings
+    ).toEqual([])
     expect(activityIssues(activity({ type: 'event' }), 2026, 'tst', refs).warnings).toEqual([])
   })
 
   it('accepts a named organizer’s website as an event’s contact', () => {
     const bare = activity({ type: 'event', rolesAvailable: undefined, contact: undefined })
     expect(activityIssues(bare, 2026, 'tst', refs).errors[0]).toMatch(/an event needs a contact/)
-    expect(activityIssues({ ...bare, organizers: ['fight'] }, 2026, 'other', refs).errors).toEqual([])
+    expect(activityIssues({ ...bare, organizers: ['fight'] }, 2026, 'other', refs).errors).toEqual(
+      []
+    )
   })
 })
 
@@ -145,7 +187,10 @@ describe('missing details', () => {
   it('lists what an upcoming production lacks', () => {
     expect(runGaps(run(), TODAY)).toEqual([])
     expect(
-      runGaps(run({ ticketsUrl: '', price: '', infoUrl: '', description: '', performances: [] }), TODAY)
+      runGaps(
+        run({ ticketsUrl: '', price: '', infoUrl: '', description: '', performances: [] }),
+        TODAY
+      )
     ).toEqual(['dates', 'tickets', 'price', 'info', 'description'])
   })
 

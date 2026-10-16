@@ -52,6 +52,8 @@ const ogImage = `${siteUrl}/og-image.jpg`
   rel="stylesheet"
 />
 
-{import.meta.env.PROD && (
-  <script defer data-domain="santacruz.theater" src="https://plausible.io/js/script.js"></script>
-)}
+{
+  import.meta.env.PROD && (
+    <script defer data-domain="santacruz.theater" src="https://plausible.io/js/script.js" />
+  )
+}

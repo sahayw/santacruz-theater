@@ -93,7 +93,8 @@ import SubscribeChoices from '../components/SubscribeChoices.astro'
         body: JSON.stringify({ email, ...choices })
       })
       const data = await resp.json().catch(() => ({}))
-      if (!resp.ok) return showError(data.message || 'Something went wrong — please try again shortly.')
+      if (!resp.ok)
+        return showError(data.message || 'Something went wrong — please try again shortly.')
       status.textContent = data.message
       status.hidden = false
       form.hidden = true

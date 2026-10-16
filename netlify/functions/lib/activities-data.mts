@@ -62,12 +62,12 @@ export function loadAllActivities(): DigestActivity[] {
           activities.push({
             ...a,
             title: activityTitle(a, runs),
-            ...(auditionDetails(a, runs) as Pick<Activity, 'genre' | 'openingDate' | 'productionUrl'>),
+            ...(auditionDetails(a, runs) as Pick<
+              Activity,
+              'genre' | 'openingDate' | 'productionUrl'
+            >),
             company: parsed.company,
-            companyName: organizerName(
-              recordOrganizerIds(parsed.company, a.organizers),
-              companies
-            ),
+            companyName: organizerName(recordOrganizerIds(parsed.company, a.organizers), companies),
             year: parsed.year,
             dates: a.dates.map((d) => ({ ...d, place: sessionPlace(d, venues) }))
           })
@@ -89,7 +89,9 @@ function byEarliestDate(a: DigestActivity, b: DigestActivity) {
 }
 
 export function getUpcomingAuditions(activities: DigestActivity[], today?: string) {
-  return activities.filter((a) => a.type === 'audition' && isUpcoming(a, today)).sort(byEarliestDate)
+  return activities
+    .filter((a) => a.type === 'audition' && isUpcoming(a, today))
+    .sort(byEarliestDate)
 }
 
 export function getUpcomingEvents(activities: DigestActivity[], today?: string) {

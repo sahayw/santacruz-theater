@@ -70,8 +70,7 @@ companies.forEach((c, i) => {
     errors.push(`${at}: a sentinel entry can't be a major, filed under Other, or on /companies`)
 
   if (c.filedUnderOther) {
-    if (withFiles.has(c.id))
-      errors.push(`${at}: filedUnderOther, but it has data files of its own`)
+    if (withFiles.has(c.id)) errors.push(`${at}: filedUnderOther, but it has data files of its own`)
     if (c.editors?.length) errors.push(`${at}: filedUnderOther organizers can't have editors`)
     if (c.major) errors.push(`${at}: a major can't be filed under Other`)
   }

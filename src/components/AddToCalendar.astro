@@ -38,8 +38,8 @@
   <!-- Subscribe: the big feeds -->
   <section class="ics-section" id="icsSubscribe" hidden>
     <p class="ics-note">
-      Subscribing adds a calendar that stays up to date as listings change. Your calendar app
-      checks for changes on its own schedule — Google Calendar can take up to a day.
+      Subscribing adds a calendar that stays up to date as listings change. Your calendar app checks
+      for changes on its own schedule — Google Calendar can take up to a day.
     </p>
     <div class="ics-actions">
       <a class="ics-btn ics-btn--primary" id="icsWebcal">Apple Calendar / Outlook</a>
@@ -149,8 +149,7 @@
   // ── Reading our own .ics output (fixed, known format) ──
   function parseEvents(text: string): IcsEvent[] {
     const lines = text.replace(/\r\n[ \t]/g, '').split(/\r\n/)
-    const unescape = (v: string) =>
-      v.replace(/\\n/gi, '\n').replace(/\\([,;\\])/g, '$1')
+    const unescape = (v: string) => v.replace(/\\n/gi, '\n').replace(/\\([,;\\])/g, '$1')
     const events: IcsEvent[] = []
     let cur: Partial<IcsEvent> | null = null
     for (const line of lines) {

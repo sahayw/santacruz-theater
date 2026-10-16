@@ -2,7 +2,11 @@
 import { describe, expect, it } from 'vitest'
 import { tagsFor, listsFromTags, SELECTED_TAG } from '../src/lib/email-lists.ts'
 import { excludedOf } from '../netlify/functions/lib/digest.mts'
-import { choicesOf, readChoices, subscriberFields } from '../netlify/functions/lib/subscriptions.mts'
+import {
+  choicesOf,
+  readChoices,
+  subscriberFields
+} from '../netlify/functions/lib/subscriptions.mts'
 import { includesProduction } from '../netlify/functions/lib/shows-data.mts'
 import { ctx } from './fixtures/calendar.ts'
 
@@ -23,7 +27,9 @@ describe('email lists', () => {
 
 describe('choices', () => {
   it('keeps only known lists and majors, and drops exclusions without Performance updates', () => {
-    expect(readChoices({ lists: ['performances', 'spam'], excluded: ['oth', 'fight', 'x'] }, companies)).toEqual({
+    expect(
+      readChoices({ lists: ['performances', 'spam'], excluded: ['oth', 'fight', 'x'] }, companies)
+    ).toEqual({
       lists: ['performances'],
       excluded: ['oth']
     })
@@ -54,7 +60,10 @@ describe('choices', () => {
     }
     expect(choicesOf(s, companies)).toEqual({ lists: ['performances'], excluded: ['oth', 'tst'] })
     expect(excludedOf({ metadata: { excluded_majors: ['tst'] } }, companies)).toEqual(['tst'])
-    expect(choicesOf({ ...s, type: 'unsubscribed' }, companies)).toEqual({ lists: [], excluded: [] })
+    expect(choicesOf({ ...s, type: 'unsubscribed' }, companies)).toEqual({
+      lists: [],
+      excluded: []
+    })
   })
 
   it('keeps a co-production when any organizer is still wanted', () => {

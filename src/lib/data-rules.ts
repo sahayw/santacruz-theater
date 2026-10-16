@@ -178,9 +178,7 @@ export function activityIssues(
 
   const linked = a.type === 'audition' && !!a.productionId
   if (!linked && isBlank(a.title)) errors.push('Title is required')
-  errors.push(
-    ...organizerErrors(fileCompany, a.organizers, refs.companies, { coProducers: false })
-  )
+  errors.push(...organizerErrors(fileCompany, a.organizers, refs.companies, { coProducers: false }))
 
   const dates = a.dates || []
   const noDatesAllowed =
@@ -213,8 +211,7 @@ export function activityIssues(
       errors.push(`Production "${a.productionId}" doesn't exist`)
     // Normally an audition is for one production; a season-wide audition can't be, so
     // this is a warning (Save anyway?), not an error
-    if (a.productionId === undefined)
-      warnings.push('not linked to a production')
+    if (a.productionId === undefined) warnings.push('not linked to a production')
   }
 
   // An organizer named on the record (Other or co-producer) counts as a contact via its website

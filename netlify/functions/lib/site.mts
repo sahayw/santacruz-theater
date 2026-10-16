@@ -23,4 +23,3 @@ export function digestStoreName(context: Context) {
     ? 'email-digests'
     : `email-digests-${context.deploy?.context || 'unknown'}`
 }
-

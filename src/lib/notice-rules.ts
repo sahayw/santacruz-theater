@@ -46,7 +46,9 @@ export function productionChanges(
   const removed = Object.entries(prev.perfs).filter(
     ([id, when]) => !(id in cur.perfs) && when.slice(0, 10) >= today
   )
-  const moved = Object.keys(cur.perfs).filter((id) => id in prev.perfs && prev.perfs[id] !== cur.perfs[id])
+  const moved = Object.keys(cur.perfs).filter(
+    (id) => id in prev.perfs && prev.perfs[id] !== cur.perfs[id]
+  )
   if (added.length) changes.push({ kind: 'dates-added', perfIds: added })
   if (removed.length)
     changes.push({

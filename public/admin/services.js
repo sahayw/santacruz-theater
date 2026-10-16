@@ -897,7 +897,10 @@ async function saveFile() {
     alert('Cannot save — fix these issues:\n\n' + errors.join('\n'))
     return
   }
-  if (warnings.length && !confirm('Missing details:\n\n' + warnings.join('\n') + '\n\nSave anyway?'))
+  if (
+    warnings.length &&
+    !confirm('Missing details:\n\n' + warnings.join('\n') + '\n\nSave anyway?')
+  )
     return
   const btn = document.getElementById('svcSaveBtn')
   btn.disabled = true

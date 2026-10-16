@@ -24,7 +24,8 @@ import {
   subscriberFields
 } from './lib/subscriptions.mts'
 
-const NOT_FOUND = "That link doesn't work any more. Enter your email address and we'll send a new one."
+const NOT_FOUND =
+  "That link doesn't work any more. Enter your email address and we'll send a new one."
 const FAILED = 'Something went wrong — please try again shortly.'
 
 export default async (req: Request, context: Context) => {
@@ -49,7 +50,8 @@ export default async (req: Request, context: Context) => {
 
     if (body.action === 'send-link') {
       const email = typeof body.email === 'string' ? body.email.trim() : ''
-      if (!isEmailAddress(email)) return json(400, { message: 'Please enter a valid email address.' })
+      if (!isEmailAddress(email))
+        return json(400, { message: 'Please enter a valid email address.' })
       context.waitUntil(
         bd
           .getSubscriber(email)

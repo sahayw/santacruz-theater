@@ -20,7 +20,10 @@ function withRoom(name: string, room?: string) {
 }
 
 /** A production's venue, or undefined when its code isn't listed. */
-export function runPlace(run: { venue: string; room?: string }, venues: Venue[]): Place | undefined {
+export function runPlace(
+  run: { venue: string; room?: string },
+  venues: Venue[]
+): Place | undefined {
   const v = venueByCode(run.venue, venues)
   return v ? { name: withRoom(v.name, run.room), address: v.address } : undefined
 }

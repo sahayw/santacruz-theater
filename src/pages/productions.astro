@@ -143,9 +143,16 @@ function summaryMeta(r: Run) {
                             {p.perfType}
                           </span>
                         )}
-                        {p.discounts && <span class="perf-discounts">Discounts: {p.discounts}</span>}
+                        {p.discounts && (
+                          <span class="perf-discounts">Discounts: {p.discounts}</span>
+                        )}
                         {p.ticketsUrl && (
-                          <a href={p.ticketsUrl} class="detail-link-inline" target="_blank" rel="noopener">
+                          <a
+                            href={p.ticketsUrl}
+                            class="detail-link-inline"
+                            target="_blank"
+                            rel="noopener"
+                          >
                             Tickets →
                           </a>
                         )}
@@ -165,18 +172,28 @@ function summaryMeta(r: Run) {
                     </div>
                   )}
                   {(r.infoUrl || r.ticketsUrl) && (
-                  <div class="detail-links-row">
-                    {r.infoUrl && (
-                      <a href={r.infoUrl} class="detail-action-link" target="_blank" rel="noopener">
-                        More info →
-                      </a>
-                    )}
-                    {r.ticketsUrl && (
-                      <a href={r.ticketsUrl} class="detail-action-link" target="_blank" rel="noopener">
-                        Get tickets →
-                      </a>
-                    )}
-                  </div>
+                    <div class="detail-links-row">
+                      {r.infoUrl && (
+                        <a
+                          href={r.infoUrl}
+                          class="detail-action-link"
+                          target="_blank"
+                          rel="noopener"
+                        >
+                          More info →
+                        </a>
+                      )}
+                      {r.ticketsUrl && (
+                        <a
+                          href={r.ticketsUrl}
+                          class="detail-action-link"
+                          target="_blank"
+                          rel="noopener"
+                        >
+                          Get tickets →
+                        </a>
+                      )}
+                    </div>
                   )}
                 </div>
               </div>

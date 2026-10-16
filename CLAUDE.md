@@ -8,26 +8,26 @@ The site is a hub (`/`) linking to four sections: **Calendar** (`/calendar`), **
 
 ## Documentation map
 
-| Doc                                                            | What it's for                                                                                                                                                                                                                                        |
-| -------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `CLAUDE.md` (this file)                                        | Agent orientation: where things are, conventions, gotchas                                                                                                                                                                                            |
-| [`docs/feature-guide.md`](docs/feature-guide.md)               | **Canonical description of what the system does** — every public-facing and editorial capability, written for anyone (not just editors) who wants the full picture without exploring the site. Read this to understand a feature before changing it. |
-| [`docs/implementation.md`](docs/implementation.md)             | **Canonical technical reference** — data schemas, data flow, the `/admin` SPA, shared modules, functions, email, env vars, build/deploy. Read this before touching code.                                                                             |
-| [`docs/ics-spec.md`](docs/ics-spec.md)                         | Calendar feeds design record — why feeds are static, subscribe-vs-single-event rules, occurrence ids, history window. Read before changing feed content or the Add to my calendar dialog. Both specs describe the current design; build and release history is in a History section at the end.                                                           |
-| [`docs/notifications-spec.md`](docs/notifications-spec.md)     | Email updates, organizers & calendar redesign design record — two email lists, majors vs Other, organizers and venues as references, change detection, `/subscribe`, `/productions`, year/month/week views. Read before working on any of these. |
-| `README.md`                                                    | GitHub-facing intro + quick start; points here for depth                                                                                                                                                                                             |
+| Doc                                                        | What it's for                                                                                                                                                                                                                                                                                   |
+| ---------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `CLAUDE.md` (this file)                                    | Agent orientation: where things are, conventions, gotchas                                                                                                                                                                                                                                       |
+| [`docs/feature-guide.md`](docs/feature-guide.md)           | **Canonical description of what the system does** — every public-facing and editorial capability, written for anyone (not just editors) who wants the full picture without exploring the site. Read this to understand a feature before changing it.                                            |
+| [`docs/implementation.md`](docs/implementation.md)         | **Canonical technical reference** — data schemas, data flow, the `/admin` SPA, shared modules, functions, email, env vars, build/deploy. Read this before touching code.                                                                                                                        |
+| [`docs/ics-spec.md`](docs/ics-spec.md)                     | Calendar feeds design record — why feeds are static, subscribe-vs-single-event rules, occurrence ids, history window. Read before changing feed content or the Add to my calendar dialog. Both specs describe the current design; build and release history is in a History section at the end. |
+| [`docs/notifications-spec.md`](docs/notifications-spec.md) | Email updates, organizers & calendar redesign design record — two email lists, majors vs Other, organizers and venues as references, change detection, `/subscribe`, `/productions`, year/month/week views. Read before working on any of these.                                                |
+| `README.md`                                                | GitHub-facing intro + quick start; points here for depth                                                                                                                                                                                                                                        |
 
 **When you change a feature or its data shape, update `docs/implementation.md` (schema/mechanics) and `docs/feature-guide.md` (user-visible behavior) in the same change — don't let them drift from the code or each other.**
 
 ## Key commands
 
-| Command           | Action                                                                                                       |
-| ----------------- | ------------------------------------------------------------------------------------------------------------ |
-| `npm run dev`     | `netlify dev` at localhost:8888 — the whole system: public pages, functions, and the `/admin` editor         |
-| `npm run check`   | Validate all data JSON (syntax + show, activity, service schemas), then run the vitest unit tests            |
-| `npm run build`   | `npm run check`, Astro build to `dist/`, then validate the generated `.ics` feeds — Netlify's build command   |
-| `npm run sync`    | Pull live `/admin` data edits into local `main` + `dev`. Run at the start of a feature branch.               |
-| `npm run release` | Sync, then promote `dev` → `main` (deploy) and back-merge. Prompts, listing the commits it will ship.        |
+| Command           | Action                                                                                                      |
+| ----------------- | ----------------------------------------------------------------------------------------------------------- |
+| `npm run dev`     | `netlify dev` at localhost:8888 — the whole system: public pages, functions, and the `/admin` editor        |
+| `npm run check`   | Validate all data JSON (syntax + show, activity, service schemas), then run the vitest unit tests           |
+| `npm run build`   | `npm run check`, Astro build to `dist/`, then validate the generated `.ics` feeds — Netlify's build command |
+| `npm run sync`    | Pull live `/admin` data edits into local `main` + `dev`. Run at the start of a feature branch.              |
+| `npm run release` | Sync, then promote `dev` → `main` (deploy) and back-merge. Prompts, listing the commits it will ship.       |
 
 There is no bare `astro dev` / `astro preview` script — `npm run dev` (netlify dev) covers both. Use `npx astro dev` directly if you ever want the lighter server without functions (the `/admin` editor won't load data there).
 
@@ -55,6 +55,10 @@ There is no bare `astro dev` / `astro preview` script — `npm run dev` (netlify
 - **Validation rules live only in `src/lib/data-rules.ts`**, used by both the editors (on Save) and `scripts/check-*.ts` (at build) so they can't disagree. Never add a required-field or date rule directly to an editor or check script.
 - **Data schema changes** need updating `docs/implementation.md` §3, the relevant `check-*.ts` validator, and usually `docs/feature-guide.md`.
 - **`data.mjs` / `upload-image.mjs` have two modes** (GitHub API in prod, local filesystem under `netlify dev`) — see `docs/implementation.md` §4/§10 before changing either.
+
+## Formatting
+
+Prettier is pinned in `devDependencies` and configured in `.prettierrc.json` (single quotes, no semicolons, 100 columns, no trailing commas; `.astro` via `prettier-plugin-astro`). Run `npx prettier --write <files>` on the files you change; never run it with command-line style options, which override the config. `.prettierignore` skips `data/` (editor-written), HTML files, and local tool settings. It isn't part of `npm run check`, so formatting never blocks a deploy; `npx prettier --check .` shows any drift.
 
 ## Git workflow
 

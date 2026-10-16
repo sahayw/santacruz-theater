@@ -27,7 +27,10 @@ export interface Choices {
 }
 
 /** Choices from a request body, keeping only known lists and majors. */
-export function readChoices(body: { lists?: unknown; excluded?: unknown }, companies: CompanyEntry[]) {
+export function readChoices(
+  body: { lists?: unknown; excluded?: unknown },
+  companies: CompanyEntry[]
+) {
   const lists = Array.isArray(body.lists) ? [...new Set(body.lists.filter(isListId))] : []
   const majors = new Set(companies.filter((c) => c.major).map((c) => c.id))
   const excluded = Array.isArray(body.excluded)
@@ -44,7 +47,10 @@ export function choicesOf(s: Subscriber, companies: CompanyEntry[]): Choices {
 }
 
 /** Buttondown fields for `choices`, keeping tags and metadata this system doesn't manage. */
-export function subscriberFields(choices: Choices, current?: Pick<Subscriber, 'tags' | 'metadata'>) {
+export function subscriberFields(
+  choices: Choices,
+  current?: Pick<Subscriber, 'tags' | 'metadata'>
+) {
   return {
     tags: [
       ...(current?.tags ?? []).filter((t) => !MANAGED_TAGS.includes(t)),
@@ -58,8 +64,16 @@ export const manageUrl = (siteUrl: string, subscriberId: string) =>
   `${siteUrl}/subscribe/manage?s=${encodeURIComponent(subscriberId)}`
 
 /** Creates a one-off email and sends it to one subscriber. */
-async function sendOne(bd: Buttondown, subscriberId: string, email: { subject: string; html: string }) {
-  const { id } = await bd.createEmail({ subject: email.subject, body: email.html, status: 'transactional' })
+async function sendOne(
+  bd: Buttondown,
+  subscriberId: string,
+  email: { subject: string; html: string }
+) {
+  const { id } = await bd.createEmail({
+    subject: email.subject,
+    body: email.html,
+    status: 'transactional'
+  })
   await bd.sendTo(subscriberId, id)
 }
 

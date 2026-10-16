@@ -31,13 +31,16 @@ How the system is built. For what it does, see
   local dev — [§4](#4-data-flow)). Each write triggers a rebuild, the site's
   only publish mechanism.
 - Routes: `/` hub → `/calendar`, `/companies`, `/events`, `/services`,
-  `/about`, `/subscribe`. `SiteNav.astro` is shared.
+  `/about`. `SiteNav.astro` is shared; its `subscribe` prop adds
+  **Subscribe for updates** (to `/subscribe?list=…&from=…`) on `/calendar`,
+  `/events` and `/productions`.
 
 ## 2. Repository layout
 
 ```
 src/
   components/     calendar.astro (calendar UI), SiteNav.astro,
+                  PageBar.astro (/events and /productions bar, §6),
                   AddToCalendar.astro (feed dialog, §6),
                   SubscribeShell.astro, SubscribeChoices.astro (/subscribe pages, §8)
   layouts/        page layout wrappers
@@ -398,6 +401,29 @@ Pure functions shared by pages, feeds, functions and `/admin`
   one-off location as `{ name, address }`, room included.
 - `public/admin/organizer-picker.js` is the editors' shared picker: the main
   organizer for records filed under Other, co-producer chips for all.
+- **Public cards** on `/events` and `/productions` carry
+  `data-organizers="<id> <id>…"` (from `recordOrganizerIds()`), never the
+  data file's company. The client filters match on it:
+  - `?company=<organizer id>` keeps cards naming that organizer, for any id
+    in `allOrganizers()` (the page embeds their names as `data-names` on
+    the Company select). An unknown id is ignored. On `/productions` an
+    organizer outside the dropdown gets its own option; on `/events` it
+    reveals the otherwise hidden Company row. Changing the select rewrites
+    the address with `history.replaceState`.
+  - `/productions`' **Other** keeps cards with any organizer who isn't a
+    major (`data-majors` on the select).
+
+### Page bar — `src/components/PageBar.astro`
+
+The dark bar under the nav on `/events` and `/productions`, styled like the
+calendar's: a **Filters** button whose dropdown holds the page's
+`.filter-row`s (default slot), the title (`#page-bar-title`, the page's
+`h1`), and **Add to my calendar**, whose `data-ics-*` attributes come from
+the `calendar` prop. The Filters badge counts selects in visible rows that
+aren't on their first option, so a page's default must be its first option.
+It also styles `.page-intro` (description and `.page-count`) under the bar.
+Pages offset their content by `--nav-h` + `--page-bar-h`. The `?id=` deep
+link hides both buttons and the intro and retitles the bar.
 
 ### Missing details — `/missing-details.json`
 
@@ -579,18 +605,19 @@ organizers is included, so non-majors are always in.
     - per-card **All dates** / **Add to my calendar** links. These need
       `PerformanceEvent.id`.
   - **`events.astro`**:
-    - the banner picker;
+    - the bar button's Include picker;
     - a per-session-row button for open activities, which the client script
       hides for past dates;
     - **Download all dates** in the links row for open activities with two
       or more dated sessions.
-  - **`productions.astro`**: a per-performance-row button, hidden for past
-    rows.
+  - **`productions.astro`**: the bar button with the majors' checkboxes (as
+    on `/calendar`), and a per-performance-row button, hidden for past rows.
 - **`/productions` (`src/pages/productions.astro`)**: lists runs that have
   performances
-  (index / filter / `?id=` deep link, like `/events`) with the full schedule.
-  It's deliberately not in `SiteNav`. It is the page link in performance
-  events, and the calendar's **All dates** link.
+  (index / filter / `?id=` deep link / `?company=`, like `/events`) with the
+  full schedule. It's deliberately not in `SiteNav`'s links. It is the page
+  link in performance events, the calendar's **All dates** link, and the
+  link on email cards.
 - **Checks**:
   - Unit tests (`tests/calendar-model.test.ts`, `tests/ics.test.ts`) run on
     fixtures and parse the output with `ical.js`, including daylight-saving

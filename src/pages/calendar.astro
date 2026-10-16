@@ -16,7 +16,7 @@ const performances = await getPerformances()
     />
   </head>
   <body>
-    <SiteNav currentPage="calendar" />
+    <SiteNav currentPage="calendar" subscribe={{ list: 'performances', from: 'calendar' }} />
     <CalendarView performances={performances} />
   </body>
 </html>

@@ -1,10 +1,13 @@
 ---
+// Auditions and events — /events lists them, /events?id=<bare id> shows one, and
+// /events?company=<organizer id> one organizer's. See docs/notifications-spec.md.
 import BaseHead from '../components/BaseHead.astro'
 import SiteNav from '../components/SiteNav.astro'
+import PageBar from '../components/PageBar.astro'
 import AddToCalendar from '../components/AddToCalendar.astro'
-import companiesData from '../../data/sc-theater-companies.json'
 import { FEED_NAMES, bareId } from '../lib/calendar-model.ts'
-import { getActivities } from '../lib/data.ts'
+import { companies, getActivities } from '../lib/data.ts'
+import { allOrganizers } from '../lib/organizers.ts'
 import type { ActivityEvent } from '../lib/data.ts'
 import {
   fmtShortDate,
@@ -17,9 +20,10 @@ import {
 
 const activities = getActivities()
 
-const actCompanyCodes = new Set<string>(activities.map((a) => a.company))
-const filterCompanies = companiesData.companies.filter(
-  (c) => !c.adminOnly && actCompanyCodes.has(c.id)
+// ?company=<organizer id> filters to one organizer; the names label the Company filter
+// row it reveals.
+const organizerNames = JSON.stringify(
+  Object.fromEntries(allOrganizers(companies).map((c) => [c.id, c.name]))
 )
 function latestDate(act: ActivityEvent): string {
   return [...act.dates].sort((a, b) => b.date.localeCompare(a.date))[0]?.date ?? ''
@@ -37,7 +41,7 @@ function namedOrganizers(act: ActivityEvent) {
   return act.organizers?.length ? act.organizerEntries : []
 }
 
-// Calendar feed picker for the subscribe banner
+// Add to my calendar (bar): which feed
 const feedChoices = JSON.stringify([
   { label: 'All auditions & events', feed: 'activities', name: FEED_NAMES.activities },
   { label: 'Auditions only', feed: 'auditions', name: FEED_NAMES.auditions }
@@ -69,62 +73,34 @@ function roleTypeLabel(type: string): string {
     />
   </head>
   <body>
-    <SiteNav currentPage="events" />
+    <SiteNav currentPage="events" subscribe={{ list: 'auditions-events', from: 'events' }} />
+    <PageBar
+      title="Auditions & Events"
+      calendar={{ 'data-ics-choices': feedChoices, 'data-ics-choice-label': 'Include' }}
+    >
+      <div class="filter-row">
+        <label for="filter-show">Show</label>
+        <select id="filter-show">
+          <option value="upcoming">All upcoming</option>
+          <option value="auditions">Upcoming auditions</option>
+          <option value="events">Upcoming events</option>
+          <option value="all">All</option>
+        </select>
+      </div>
+      <div class="filter-row" id="filter-company-row" hidden>
+        <label for="filter-company">Company</label>
+        <select id="filter-company" data-names={organizerNames}>
+          <option value="">All</option>
+        </select>
+      </div>
+    </PageBar>
 
     <main class="aud-page">
-      <header class="page-header">
-        <h1 class="page-title">Auditions & Events</h1>
+      <div class="page-intro">
         <p class="page-subtitle">
           Upcoming auditions, workshops, and other events for theater creators
         </p>
-      </header>
-
-      <div class="aud-subscribe" id="aud-subscribe">
-        <div class="subscribe-inner">
-          <p class="subscribe-prompt">Get notified when new auditions and events are posted.</p>
-          <form id="subscribe-form" class="subscribe-form" novalidate>
-            <input
-              type="email"
-              id="subscribe-email"
-              class="subscribe-input"
-              placeholder="your@email.com"
-              autocomplete="email"
-              required
-            />
-            <button type="submit" id="subscribe-btn" class="subscribe-btn">Notify me</button>
-          </form>
-          <button
-            type="button"
-            class="subscribe-cal-btn"
-            data-ics-choices={feedChoices}
-            data-ics-choice-label="Include"
-          >
-            Add to my calendar
-          </button>
-          <div id="subscribe-status" class="subscribe-status" hidden aria-live="polite"></div>
-        </div>
-      </div>
-
-      <div class="filter-bar">
-        <div class="filter-controls">
-          <div class="filter-group">
-            <label for="filter-show">Show</label>
-            <select id="filter-show">
-              <option value="upcoming">All Upcoming</option>
-              <option value="auditions">Upcoming Auditions</option>
-              <option value="events">Upcoming Events</option>
-              <option value="all">All</option>
-            </select>
-          </div>
-          <div class="filter-group">
-            <label for="filter-company">Company</label>
-            <select id="filter-company">
-              <option value="">All</option>
-              {filterCompanies.map((c) => <option value={c.id}>{c.name}</option>)}
-            </select>
-          </div>
-        </div>
-        <div class="filter-count" id="filter-count" aria-live="polite"></div>
+        <span class="page-count" id="filter-count" aria-live="polite"></span>
       </div>
 
       {
@@ -140,7 +116,7 @@ function roleTypeLabel(type: string): string {
                 <div
                   class="aud-card"
                   data-id={act.id}
-                  data-company={act.company}
+                  data-organizers={act.organizerIds.join(' ')}
                   data-genre={act.genre.join(',')}
                   data-latest-date={latest}
                   data-type={act.type}
@@ -645,202 +621,11 @@ function roleTypeLabel(type: string): string {
 
   /* ── PAGE LAYOUT ── */
   .aud-page {
-    margin-top: var(--nav-h);
-    padding: 32px 32px 80px;
+    margin-top: calc(var(--nav-h) + var(--page-bar-h));
+    padding: 16px 32px 80px;
     max-width: 960px;
     margin-left: auto;
     margin-right: auto;
-  }
-
-  /* ── PAGE HEADER ── */
-  .page-header {
-    margin-bottom: 16px;
-  }
-
-  .page-title {
-    font-family: 'Playfair Display', serif;
-    font-size: clamp(22px, 3vw, 32px);
-    font-weight: 600;
-    color: var(--ink);
-    line-height: 1.15;
-    margin-bottom: 6px;
-  }
-
-  .page-subtitle {
-    font-size: 14px;
-    font-weight: 300;
-    color: var(--ink-muted);
-    letter-spacing: 0.01em;
-  }
-
-  /* ── FILTER BAR ── */
-  .filter-bar {
-    position: sticky;
-    top: var(--nav-h);
-    z-index: 50;
-    background: var(--page-bg);
-    border-bottom: 1px solid var(--border);
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-    padding: 10px 0 10px;
-    margin: 0 -32px;
-    padding-left: 32px;
-    padding-right: 32px;
-    margin-bottom: 20px;
-    flex-wrap: wrap;
-  }
-
-  .filter-controls {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    flex-wrap: wrap;
-  }
-
-  .filter-group {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-  }
-
-  .filter-group label {
-    font-size: 12px;
-    font-weight: 500;
-    color: var(--ink-muted);
-    white-space: nowrap;
-  }
-
-  .filter-group select {
-    font-family: inherit;
-    font-size: 12px;
-    border: 1px solid var(--border);
-    border-radius: 4px;
-    padding: 4px 8px;
-    background: var(--surface);
-    color: var(--ink);
-    cursor: pointer;
-    -webkit-appearance: none;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%236b6259'/%3E%3C/svg%3E");
-    background-repeat: no-repeat;
-    background-position: right 8px center;
-    padding-right: 24px;
-  }
-
-  .filter-count {
-    font-size: 12px;
-    font-weight: 500;
-    color: var(--ink-muted);
-    white-space: nowrap;
-    flex-shrink: 0;
-  }
-
-  /* ── SUBSCRIBE WIDGET ── */
-  .aud-subscribe {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 8px 14px;
-    margin-bottom: 10px;
-  }
-
-  .subscribe-inner {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    flex-wrap: wrap;
-  }
-
-  .subscribe-prompt {
-    font-size: 13px;
-    color: var(--ink-muted);
-    flex-shrink: 0;
-    margin: 0;
-  }
-
-  .subscribe-form {
-    display: flex;
-    gap: 6px;
-    flex: 1;
-    min-width: 200px;
-  }
-
-  .subscribe-input {
-    font-family: inherit;
-    font-size: 13px;
-    border: 1px solid var(--border);
-    border-radius: 4px;
-    padding: 6px 10px;
-    flex: 1;
-    color: var(--ink);
-    background: var(--bg);
-    min-width: 0;
-  }
-
-  .subscribe-input:focus {
-    outline: none;
-    border-color: var(--border-primary);
-  }
-
-  .subscribe-btn {
-    font-family: inherit;
-    font-size: 13px;
-    font-weight: 500;
-    background: var(--ink);
-    color: #fff;
-    border: none;
-    border-radius: 4px;
-    padding: 6px 14px;
-    cursor: pointer;
-    white-space: nowrap;
-    flex-shrink: 0;
-    transition: background 0.15s;
-  }
-
-  .subscribe-btn:hover:not(:disabled) {
-    background: #333;
-  }
-
-  .subscribe-btn:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-  }
-
-  .subscribe-cal-btn {
-    font-family: inherit;
-    font-size: 13px;
-    font-weight: 500;
-    background: var(--surface);
-    color: var(--ink);
-    border: 1px solid var(--border);
-    border-radius: 4px;
-    padding: 6px 12px;
-    cursor: pointer;
-    white-space: nowrap;
-    flex-shrink: 0;
-  }
-
-  .subscribe-cal-btn:hover {
-    border-color: var(--border-primary);
-  }
-
-  .subscribe-status {
-    font-size: 13px;
-    width: 100%;
-    margin-top: 4px;
-  }
-
-  .subscribe-status.ok {
-    color: #2d6020;
-  }
-
-  .subscribe-status.err {
-    color: #8c3a2e;
-  }
-
-  .subscribe-status.pending {
-    color: #6b6259;
   }
 
   /* ── EMPTY STATES ── */
@@ -1339,26 +1124,13 @@ function roleTypeLabel(type: string): string {
   /* ── RESPONSIVE ── */
   @media (max-width: 860px) {
     .aud-page {
-      padding: 28px 24px 64px;
-    }
-    .filter-bar {
-      margin: 0 -24px;
-      padding-left: 24px;
-      padding-right: 24px;
+      padding: 16px 24px 64px;
     }
   }
 
   @media (max-width: 600px) {
     .aud-page {
-      padding: 20px 16px 56px;
-    }
-    .filter-bar {
-      margin: 0 -16px;
-      padding-left: 16px;
-      padding-right: 16px;
-    }
-    .filter-controls {
-      gap: 8px;
+      padding: 12px 16px 56px;
     }
     .detail-grid {
       grid-template-columns: 1fr;
@@ -1373,13 +1145,6 @@ function roleTypeLabel(type: string): string {
       white-space: normal;
     }
   }
-
-  @media (max-width: 420px) {
-    .filter-controls {
-      flex-direction: column;
-      align-items: flex-start;
-    }
-  }
 </style>
 
 <script is:inline>
@@ -1389,6 +1154,7 @@ function roleTypeLabel(type: string): string {
   const countEl = document.getElementById('filter-count')
   const filterCompany = document.getElementById('filter-company')
   const filterShow = document.getElementById('filter-show')
+  const NAMES = JSON.parse(filterCompany.dataset.names)
   const emptyEl = document.getElementById('aud-empty')
 
   // Date-free virtual auditions and by-request events stay upcoming until closed.
@@ -1410,7 +1176,7 @@ function roleTypeLabel(type: string): string {
   })
 
   function updateFilters() {
-    const co = filterCompany?.value ?? ''
+    const co = filterCompany.value
     const sh = filterShow?.value ?? 'upcoming'
     let visible = 0
 
@@ -1426,7 +1192,7 @@ function roleTypeLabel(type: string): string {
     })
 
     cards.forEach((card) => {
-      const matchCo = !co || card.dataset.company === co
+      const matchCo = !co || card.dataset.organizers.split(' ').includes(co)
       const isPast = notUpcoming(card)
       const isAud = card.dataset.type === 'audition'
 
@@ -1471,20 +1237,39 @@ function roleTypeLabel(type: string): string {
     btn.setAttribute('aria-expanded', 'true')
   }
 
+  // ?company=<organizer id>: reveals the Company filter row with that organizer chosen.
+  // Choosing All drops it from the address.
+  const params = new URLSearchParams(location.search)
+  const company = params.get('company')
+  if (company && NAMES[company]) {
+    filterCompany.add(new Option(NAMES[company], company))
+    filterCompany.value = company
+    document.getElementById('filter-company-row').hidden = false
+  }
+  function syncAddress() {
+    if (filterCompany.value) params.set('company', filterCompany.value)
+    else params.delete('company')
+    const q = params.toString()
+    history.replaceState(null, '', q ? `?${q}` : location.pathname)
+  }
+
+  function hideListChrome() {
+    document.querySelector('.page-bar-left').style.visibility = 'hidden'
+    document.querySelector('.page-bar-right').style.visibility = 'hidden'
+    document.querySelector('.page-intro').style.display = 'none'
+  }
+
   // Deep-link: ?id=<timestamp> (prefix "activity-" stripped from URL for brevity)
-  const deepId = new URLSearchParams(location.search).get('id')
+  const deepId = params.get('id')
   const deepCard = deepId
     ? (cards.find((c) => c.dataset.id === 'activity-' + deepId) ?? null)
     : null
 
   if (deepId && deepCard) {
     // Single-card mode: show only the linked record, no filters
-    const titleEl = document.querySelector('.page-title')
-    titleEl.textContent = deepCard.dataset.type === 'event' ? 'Event' : 'Audition'
-    titleEl.style.fontSize = '18px'
-    document.querySelector('.page-subtitle').style.display = 'none'
-    document.querySelector('.filter-bar').style.display = 'none'
-    document.getElementById('aud-subscribe').style.display = 'none'
+    document.getElementById('page-bar-title').textContent =
+      deepCard.dataset.type === 'event' ? 'Event' : 'Audition'
+    hideListChrome()
     cards.forEach((c) => {
       if (c !== deepCard) c.style.display = 'none'
     })
@@ -1494,8 +1279,7 @@ function roleTypeLabel(type: string): string {
     if (evNav) evNav.style.pointerEvents = 'auto'
   } else if (deepId) {
     // Unrecognised id — show error, suppress list and filters
-    document.querySelector('.filter-bar').style.display = 'none'
-    document.getElementById('aud-subscribe').style.display = 'none'
+    hideListChrome()
     document.getElementById('aud-list')?.style.setProperty('display', 'none')
     const notFound = document.getElementById('aud-not-found')
     notFound.textContent = `activity-${deepId} not found`
@@ -1506,8 +1290,11 @@ function roleTypeLabel(type: string): string {
     // Normal list mode
     filterShow.value = 'upcoming'
     updateFilters()
-    filterCompany?.addEventListener('change', updateFilters)
-    filterShow?.addEventListener('change', updateFilters)
+    filterCompany.addEventListener('change', () => {
+      syncAddress()
+      updateFilters()
+    })
+    filterShow.addEventListener('change', updateFilters)
   }
 
   // Expand / collapse
@@ -1520,50 +1307,5 @@ function roleTypeLabel(type: string): string {
       detail.hidden = !isOpen
       btn.setAttribute('aria-expanded', String(isOpen))
     })
-  })
-
-  // Subscribe form
-  const subscribeForm = document.getElementById('subscribe-form')
-  const subscribeEmail = document.getElementById('subscribe-email')
-  const subscribeBtn = document.getElementById('subscribe-btn')
-  const subscribeStatus = document.getElementById('subscribe-status')
-
-  subscribeForm?.addEventListener('submit', async (e) => {
-    e.preventDefault()
-    const email = subscribeEmail.value.trim()
-    if (!email) return
-    subscribeBtn.disabled = true
-    subscribeBtn.textContent = 'Sending…'
-    subscribeStatus.textContent = 'Subscribing…'
-    subscribeStatus.className = 'subscribe-status pending'
-    subscribeStatus.hidden = false
-    try {
-      const resp = await fetch('/.netlify/functions/subscribe', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email })
-      })
-      let data = {}
-      try {
-        data = await resp.json()
-      } catch {}
-      const msg =
-        data.message ||
-        (resp.ok ? 'Subscribed!' : 'Something went wrong — please try again shortly.')
-      subscribeStatus.textContent = resp.ok ? msg : `${msg} [${resp.status}]`
-      subscribeStatus.className = `subscribe-status ${resp.ok ? 'ok' : 'err'}`
-      subscribeStatus.hidden = false
-      if (resp.ok) {
-        subscribeEmail.value = ''
-        subscribeForm.style.display = 'none'
-      }
-    } catch {
-      subscribeStatus.textContent = 'Network error — please try again shortly.'
-      subscribeStatus.className = 'subscribe-status err'
-      subscribeStatus.hidden = false
-    } finally {
-      subscribeBtn.disabled = false
-      subscribeBtn.textContent = 'Notify me'
-    }
   })
 </script>

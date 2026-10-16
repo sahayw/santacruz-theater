@@ -1,0 +1,254 @@
+---
+// The dark bar under the nav on /events and /productions, styled like the calendar's:
+// Filters on the left (the page's filter rows go in the default slot and open as a
+// dropdown), the page title in the middle, Add to my calendar on the right (`calendar`
+// holds the button's data-ics-* attributes — see AddToCalendar.astro).
+// The Filters badge counts the filter selects not on their first option.
+interface Props {
+  title: string
+  calendar: Record<string, string>
+}
+const { title, calendar } = Astro.props
+---
+
+<div class="page-bar">
+  <div class="page-bar-left">
+    <button
+      type="button"
+      class="page-bar-btn"
+      id="filters-btn"
+      aria-expanded="false"
+      aria-controls="filters-drop"
+    >
+      <svg viewBox="0 0 16 16" width="13" height="13" aria-hidden="true"
+        ><path d="M2 3h12l-4.5 5.5V13l-3 1.5v-6z" fill="none" stroke="currentColor"></path></svg
+      >
+      <span class="page-bar-label">Filters</span>
+      <span class="filters-badge" id="filters-badge" hidden></span>
+    </button>
+    <div class="filters-drop" id="filters-drop" hidden>
+      <slot />
+    </div>
+  </div>
+  <h1 class="page-bar-title" id="page-bar-title">{title}</h1>
+  <div class="page-bar-right">
+    <button
+      type="button"
+      class="page-bar-btn"
+      id="page-bar-cal"
+      aria-label="Add to my calendar"
+      title="Add to my calendar"
+      {...calendar}
+    >
+      <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"
+        ><rect x="1.5" y="2.5" width="13" height="12" rx="1.5" fill="none" stroke="currentColor"
+        ></rect><path d="M1.5 6h13M5 1v3M11 1v3M8 8v5M5.5 10.5h5" stroke="currentColor" fill="none"
+        ></path></svg
+      >
+      <span class="page-bar-label">Add to my calendar</span>
+    </button>
+  </div>
+</div>
+
+<script>
+  const btn = document.getElementById('filters-btn')!
+  const drop = document.getElementById('filters-drop')!
+  const badge = document.getElementById('filters-badge')!
+
+  const setOpen = (open: boolean) => {
+    drop.hidden = !open
+    btn.setAttribute('aria-expanded', String(open))
+  }
+  const refreshBadge = () => {
+    const active = [...drop.querySelectorAll('select')].filter(
+      (s) => !s.closest('[hidden]:not(#filters-drop)') && s.selectedIndex > 0
+    ).length
+    badge.textContent = String(active)
+    badge.hidden = !active
+  }
+
+  btn.addEventListener('click', () => setOpen(!!drop.hidden))
+  drop.addEventListener('change', refreshBadge)
+  document.addEventListener('click', (e) => {
+    const t = e.target as Node
+    if (!drop.hidden && !drop.contains(t) && !btn.contains(t)) setOpen(false)
+  })
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && !drop.hidden) {
+      setOpen(false)
+      btn.focus()
+    }
+  })
+  refreshBadge()
+</script>
+
+<style is:global>
+  :root {
+    --page-bar-h: 36px;
+  }
+
+  .page-bar {
+    position: fixed;
+    top: var(--nav-h, 44px);
+    left: 0;
+    right: 0;
+    z-index: 110;
+    height: var(--page-bar-h);
+    background: #2e2a26;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    padding: 0 20px;
+  }
+
+  .page-bar-left {
+    justify-self: start;
+    position: relative;
+  }
+
+  .page-bar-right {
+    justify-self: end;
+  }
+
+  .page-bar-title {
+    font-family: 'DM Serif Display', serif;
+    font-size: 18px;
+    font-weight: 400;
+    color: #fff;
+    letter-spacing: 0.01em;
+    white-space: nowrap;
+    margin: 0;
+  }
+
+  .page-bar-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    border-radius: 4px;
+    color: rgba(255, 255, 255, 0.85);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 12px;
+    padding: 4px 8px;
+    cursor: pointer;
+    white-space: nowrap;
+    -webkit-tap-highlight-color: transparent;
+  }
+  @media (hover: hover) {
+    .page-bar-btn:hover {
+      background: rgba(255, 255, 255, 0.18);
+      border-color: rgba(255, 255, 255, 0.35);
+      color: #fff;
+    }
+  }
+  .page-bar-btn:focus-visible {
+    outline: 2px solid #c8a96e;
+    outline-offset: 1px;
+  }
+
+  .filters-badge {
+    background: #c8a96e;
+    color: #1a1612;
+    border-radius: 8px;
+    font-size: 10px;
+    font-weight: 600;
+    padding: 0 5px;
+  }
+
+  .filters-drop {
+    position: absolute;
+    top: calc(100% + 8px);
+    left: 0;
+    min-width: 240px;
+    background: #fff;
+    border: 1px solid #e0d9d0;
+    border-radius: 6px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+    padding: 10px 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .filters-drop[hidden] {
+    display: none;
+  }
+
+  /* A filter row: label, then a select */
+  .filter-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+  }
+  .filter-row[hidden] {
+    display: none;
+  }
+  .filter-row label {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 12px;
+    font-weight: 500;
+    color: #6b6259;
+    white-space: nowrap;
+  }
+  .filter-row select {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 12px;
+    border: 1px solid #e0d9d0;
+    border-radius: 4px;
+    padding: 4px 24px 4px 8px;
+    background: #fff
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%236b6259'/%3E%3C/svg%3E")
+      no-repeat right 8px center;
+    color: #1a1612;
+    cursor: pointer;
+    width: 170px;
+    max-width: 100%;
+    -webkit-appearance: none;
+    appearance: none;
+  }
+
+  /* Under the bar: the page's description, and the count on the right */
+  .page-intro {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 4px 16px;
+    flex-wrap: wrap;
+    margin-bottom: 14px;
+  }
+  .page-intro p {
+    font-size: 13px;
+    font-weight: 300;
+    color: #6b6259;
+  }
+  .page-intro p a {
+    color: #4f5ce0;
+  }
+  .page-count {
+    font-size: 12px;
+    font-weight: 500;
+    color: #6b6259;
+    white-space: nowrap;
+  }
+
+  @media (max-width: 640px) {
+    .page-bar {
+      padding: 0 12px;
+    }
+    .page-bar-label {
+      display: none;
+    }
+    .page-bar-title {
+      font-size: 16px;
+    }
+    .filters-drop {
+      position: fixed;
+      top: calc(var(--nav-h, 44px) + var(--page-bar-h) + 6px);
+      left: 12px;
+      right: 12px;
+      min-width: 0;
+    }
+  }
+</style>

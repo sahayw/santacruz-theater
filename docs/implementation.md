@@ -179,30 +179,30 @@ Auditions and events share one schema.
 
 #### `Activity`
 
-| Field                            | Type                    | Applies to | Notes                                                                                                            |
-| -------------------------------- | ----------------------- | ---------- | ---------------------------------------------------------------------------------------------------------------- |
-| `id`                             | `string`                | both       | `"activity-<timestamp>"`, editor-assigned                                                                        |
-| `type`                           | `'audition' \| 'event'` | both       | set at creation; immutable                                                                                       |
-| `title`                          | `string?`               | both       | required, except a linked audition: its title is looked up from `productionId` (`activityTitle()`), never stored |
-| `dates`                          | `ActivityDate[]`        | both       | ordered sessions                                                                                                 |
-| `contact`                        | `ActivityContact?`      | both       | `{ name?, email?, phone? }`                                                                                      |
-| `noticeUrl`                      | `string?`               | both       | primary info link                                                                                                |
-| `organizers`                     | `string[]?`             | both       | organizer ids, main first — see [Organizers](#run)                                                               |
-| `closed`                         | `boolean?`              | both       | excluded from upcoming; reversible                                                                               |
-| `createdAt` / `updatedAt`        | `string`                | both       | ISO 8601 — drive the digest ([§8](#8-email-notifications))                                                       |
-| `genre`                          | `Genre[]`               | audition   |                                                                                                                  |
-| `rehearsalStart` / `openingDate` | `string?`               | audition   | `YYYY-MM-DD`                                                                                                     |
-| `productionUrl`                  | `string?`               | audition   |                                                                                                                  |
-| `rolesAvailable`                 | `AuditionRole[]?`       | audition   | hidden publicly when empty                                                                                       |
-| `prep`                           | `AuditionPrep?`         | audition   | `{ acting?, singing?, dance?, bring? }`                                                                          |
-| `notes`                          | `string?`               | audition   | Markdown                                                                                                         |
-| `virtualSubmission`              | `boolean?`              | audition   | dates optional; always upcoming until closed                                                                     |
-| `productionId`                   | `string?`               | audition   | a `Run.id` (any year); validated; Production picker                                                              |
-| `briefDescription`               | `string?`               | event      | collapsed-card blurb                                                                                             |
-| `description`                    | `string?`               | event      | Markdown, expanded card                                                                                          |
-| `cost`                           | `string?`               | event      |                                                                                                                  |
-| `registerUrl`                    | `string?`               | event      |                                                                                                                  |
-| `datesByRequest`                 | `boolean?`              | event      | dates optional; shows "On request"; upcoming until closed                                                        |
+| Field                            | Type                    | Applies to | Notes                                                                                                                                 |
+| -------------------------------- | ----------------------- | ---------- | ------------------------------------------------------------------------------------------------------------------------------------- |
+| `id`                             | `string`                | both       | `"activity-<timestamp>"`, editor-assigned                                                                                             |
+| `type`                           | `'audition' \| 'event'` | both       | set at creation; immutable                                                                                                            |
+| `title`                          | `string?`               | both       | required, except a linked audition: its title is looked up from `productionId` (`activityTitle()`), never stored                      |
+| `dates`                          | `ActivityDate[]`        | both       | ordered sessions                                                                                                                      |
+| `contact`                        | `ActivityContact?`      | both       | `{ name?, email?, phone? }`                                                                                                           |
+| `noticeUrl`                      | `string?`               | both       | primary info link                                                                                                                     |
+| `organizers`                     | `string[]?`             | both       | organizer ids, main first — see [Organizers](#run)                                                                                    |
+| `closed`                         | `boolean?`              | both       | excluded from upcoming; reversible                                                                                                    |
+| `createdAt` / `updatedAt`        | `string`                | both       | ISO 8601 — drive the digest ([§8](#8-email-notifications))                                                                            |
+| `genre`                          | `Genre[]?`              | audition   | not stored when linked: taken from the production (`auditionDetails()`)                                                               |
+| `rehearsalStart` / `openingDate` | `string?`               | audition   | `YYYY-MM-DD`; when linked, `openingDate` isn't stored: it's the production's Opening performance, else its first (`runOpeningDate()`) |
+| `productionUrl`                  | `string?`               | audition   | not stored when linked: the production's `infoUrl`                                                                                    |
+| `rolesAvailable`                 | `AuditionRole[]?`       | audition   | hidden publicly when empty                                                                                                            |
+| `prep`                           | `AuditionPrep?`         | audition   | `{ acting?, singing?, dance?, bring? }`                                                                                               |
+| `notes`                          | `string?`               | audition   | Markdown                                                                                                                              |
+| `virtualSubmission`              | `boolean?`              | audition   | dates optional; always upcoming until closed                                                                                          |
+| `productionId`                   | `string?`               | audition   | a `Run.id` (any year); validated; Production picker                                                                                   |
+| `briefDescription`               | `string?`               | event      | collapsed-card blurb                                                                                                                  |
+| `description`                    | `string?`               | event      | Markdown, expanded card                                                                                                               |
+| `cost`                           | `string?`               | event      |                                                                                                                                       |
+| `registerUrl`                    | `string?`               | event      |                                                                                                                                       |
+| `datesByRequest`                 | `boolean?`              | event      | dates optional; shows "On request"; upcoming until closed                                                                             |
 
 Validation rules (required dates, event contact route, etc.) are in the
 [rule reference](#rule-reference); the upcoming rule is in
@@ -744,7 +744,7 @@ records only) / printed.
 | Run      | earliest performance in the file's year                                                                                                                                                                 | error   |
 | Run      | `price`, `infoUrl`, `description` non-blank; a tickets link (run or performance)                                                                                                                        | warning |
 | Run      | at least one performance                                                                                                                                                                                | warning |
-| Activity | `title` non-blank, unless an audition with a `productionId` (which must not store one)                                                                                                                  | error   |
+| Activity | `title` non-blank, unless an audition with a `productionId` (which must not store one, nor `genre`, `openingDate` or `productionUrl`)                                                                   | error   |
 | Activity | at least one date, unless audition + `virtualSubmission` or event + `datesByRequest`                                                                                                                    | error   |
 | Activity | each date row: `date` as above; `startTime` valid; `endTime` valid if present                                                                                                                           | error   |
 | Activity | each date row's `venue`, if set, is a listed venue code                                                                                                                                                 | error   |

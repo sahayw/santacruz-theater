@@ -12,7 +12,9 @@
  * - Auditions without a productionId are linked to the production whose title matches
  *   (same company — under Other, same organizer). Their stored title is dropped: it's
  *   looked up from the production. Ones that match nothing, or more than one
- *   production, are listed for linking by hand.
+ *   production, are listed for linking by hand. Genre, opening date and production
+ *   link are dropped the same way; a link its production lacks becomes the
+ *   production's info link.
  *
  * `updatedAt` is never touched. Files keep the editor's 2-space JSON and their existing
  * trailing-newline style. A second run changes nothing. Anything it can't map is listed,
@@ -94,6 +96,7 @@ export interface MigrationResult {
   organizers: number
   titles: number
   productions: number
+  infoUrls: number
   filesChanged: string[]
   unmapped: string[]
 }
@@ -158,6 +161,7 @@ export function migrateOrganizersVenues(dataRoot: string): MigrationResult {
     organizers: 0,
     titles: 0,
     productions: 0,
+    infoUrls: 0,
     filesChanged: [],
     unmapped: []
   }
@@ -201,7 +205,10 @@ export function migrateOrganizersVenues(dataRoot: string): MigrationResult {
   }
 
   // Every run, by data-file company, for linking auditions to their productions
-  const runsByCompany = new Map<string, { id: string; show: string; showAbv: string; organizers?: string[] }[]>()
+  const runsByCompany = new Map<
+    string,
+    { id: string; show: string; showAbv: string; infoUrl?: string; organizers?: string[] }[]
+  >()
   for (const file of jsonFiles(join(dataRoot, 'shows'))) {
     const d = JSON.parse(readFileSync(file, 'utf8'))
     for (const r of d.runs ?? []) {
@@ -209,6 +216,9 @@ export function migrateOrganizersVenues(dataRoot: string): MigrationResult {
       runsByCompany.get(d.company)!.push(r)
     }
   }
+
+  const runsById = new Map([...runsByCompany.values()].flat().map((r) => [r.id, r]))
+  const infoUrlFills = new Map<string, string>() // run id → link taken from its audition
 
   for (const file of jsonFiles(join(dataRoot, 'activities'))) {
     rewrite(
@@ -256,13 +266,39 @@ export function migrateOrganizersVenues(dataRoot: string): MigrationResult {
                 `${a.id} (${a.title}): ${matches.length ? 'several productions match' : 'no matching production'}`
               )
           }
-          if (a.type === 'audition' && a.productionId && 'title' in a) {
-            delete a.title // linked earlier, when the title was still copied
-            n++
+          // A linked audition's title, genre, opening and link come from its production.
+          // A link the production lacks is moved onto it rather than lost.
+          if (a.type === 'audition' && a.productionId) {
+            const run = runsById.get(a.productionId)
+            if (a.productionUrl && run && !run.infoUrl?.trim())
+              infoUrlFills.set(a.productionId, a.productionUrl)
+            for (const k of ['title', 'genre', 'openingDate', 'productionUrl'])
+              if (k in a) {
+                delete a[k]
+                n++
+              }
           }
           if ('organizerName' in a || 'organizerUrl' in a) {
             delete a.organizerName
             delete a.organizerUrl
+            n++
+          }
+        }
+        return n
+      },
+      result.filesChanged
+    )
+  }
+  for (const file of jsonFiles(join(dataRoot, 'shows'))) {
+    rewrite(
+      file,
+      (d) => {
+        let n = 0
+        for (const r of d.runs ?? []) {
+          const url = infoUrlFills.get(r.id)
+          if (url && !r.infoUrl?.trim()) {
+            r.infoUrl = url
+            result.infoUrls++
             n++
           }
         }
@@ -282,6 +318,7 @@ if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.ur
   console.log(`Organizers assigned     : ${r.organizers}`)
   console.log(`Titles corrected        : ${r.titles}`)
   console.log(`Auditions linked        : ${r.productions}`)
+  console.log(`Show info links filled  : ${r.infoUrls}`)
   console.log(`Files changed           : ${r.filesChanged.length}`)
   r.filesChanged.forEach((f) => console.log(`  - ${f.slice(root.length + 1)}`))
   if (r.unmapped.length) {

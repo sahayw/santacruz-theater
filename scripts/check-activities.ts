@@ -93,11 +93,12 @@ for (const year of yearDirs) {
       if (!VALID_TYPES.has(a.type as string))
         err(al, `type must be "audition" or "event", got: ${a.type}`)
       const linked = a.type === 'audition' && typeof a.productionId === 'string'
-      if (linked && a.title !== undefined)
-        err(al, "a linked audition's title comes from its production — don't store one")
+      for (const k of ['title', 'genre', 'openingDate', 'productionUrl'])
+        if (linked && a[k] !== undefined)
+          err(al, `a linked audition's ${k} comes from its production — don't store one`)
       if (!linked && typeof a.title !== 'string') err(al, 'title must be a string')
-      if (!Array.isArray(a.genre)) err(al, 'genre must be an array')
-      else
+      if (!linked && !Array.isArray(a.genre)) err(al, 'genre must be an array')
+      else if (Array.isArray(a.genre))
         (a.genre as unknown[]).forEach((g, gi) => {
           if (!VALID_GENRES.has(g as string)) err(al, `genre[${gi}] invalid: ${g}`)
         })

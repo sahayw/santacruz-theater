@@ -14,6 +14,38 @@ export function activityTitle(
   return run ? run.show : (a.title ?? '')
 }
 
+/** The production fields an audition can take from its run. */
+interface RunLike {
+  id: string
+  show: string
+  genre?: unknown
+  infoUrl?: string
+  performances?: { date: string; perfType?: string }[]
+}
+
+/** A production's opening: the performance marked Opening, else the first performance. */
+export function runOpeningDate(run: RunLike): string | undefined {
+  const perfs = (run.performances || []).filter((p) => p.date).sort((a, b) => a.date.localeCompare(b.date))
+  return (perfs.find((p) => p.perfType === 'Opening') ?? perfs[0])?.date
+}
+
+/**
+ * An audition's genre, opening date and production link. A linked audition's come from
+ * its production (looked up by id, never stored); an unlinked one's are its own.
+ */
+export function auditionDetails(
+  a: { productionId?: string; genre?: unknown; openingDate?: string; productionUrl?: string },
+  runs: RunLike[]
+) {
+  const run = a.productionId ? runs.find((r) => r.id === a.productionId) : undefined
+  const genre = (run ? run.genre : a.genre) as string[] | string | undefined
+  return {
+    genre: Array.isArray(genre) ? genre : genre ? [genre] : [],
+    openingDate: run ? runOpeningDate(run) : a.openingDate,
+    productionUrl: run ? run.infoUrl || undefined : a.productionUrl
+  }
+}
+
 export function fmt12(t: string) {
   if (!t) return ''
   const [hStr, mStr] = t.replace('.', ':').split(':')

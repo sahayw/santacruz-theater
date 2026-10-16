@@ -7,7 +7,8 @@ import {
   fmtAudDateRange,
   rolesSum,
   renderMd,
-  activityTitle
+  activityTitle,
+  auditionDetails
 } from '/admin/audition-format.js'
 import {
   MAX_GENRES,
@@ -547,7 +548,7 @@ const ACT_HTML = `
         <!-- Audition-only fields -->
         <div class="act-fields-conditional" id="actAuditionFields">
           <div class="act-hdr-row">
-            <div class="act-field-group" style="flex:0 0 auto">
+            <div class="act-field-group" id="afGenreGroup" style="flex:0 0 auto">
               <label class="act-field-label">Genre (up to ${MAX_GENRES})</label>
               ${genreBoxesHtml('af-genre', 'act.genreChanged(this)')}
             </div>
@@ -555,7 +556,7 @@ const ACT_HTML = `
               <label class="act-field-label">Rehearsal Start</label>
               <input type="date" class="act-field-input" id="af-rehearsal" onchange="act.fieldChanged()">
             </div>
-            <div class="act-field-group" style="flex:0 0 140px">
+            <div class="act-field-group" id="afOpeningGroup" style="flex:0 0 140px">
               <label class="act-field-label">Opening Date</label>
               <input type="date" class="act-field-input" id="af-opening" onchange="act.fieldChanged()">
             </div>
@@ -565,7 +566,7 @@ const ACT_HTML = `
               <label class="act-field-label">Notice URL</label>
               <input class="act-field-input mono" id="af-notice-url" placeholder="https://…" oninput="act.fieldChanged()">
             </div>
-            <div class="act-field-group" style="flex:1 1 260px">
+            <div class="act-field-group" id="afProdUrlGroup" style="flex:1 1 260px">
               <label class="act-field-label">Production URL</label>
               <input class="act-field-input mono" id="af-prod-url" placeholder="https://…" oninput="act.fieldChanged()">
             </div>
@@ -744,6 +745,8 @@ function esc(v) {
   return (v || '').replace(/&/g, '&amp;').replace(/"/g, '&quot;')
 }
 function isMusical() {
+  const a = activeActIdx >= 0 ? activities[activeActIdx] : null
+  if (a && a.type !== 'event' && a.productionId) return detailsOf(a).genre.includes('Musical')
   return getGenres('af-genre').includes('Musical')
 }
 function currentType() {
@@ -838,6 +841,11 @@ function titleOf(a) {
   return activityTitle(a, companyRuns)
 }
 
+/** Genre, opening date and production link as shown: a linked audition's are its production's. */
+function detailsOf(a) {
+  return auditionDetails(a, companyRuns)
+}
+
 function renderProductionOptions(a) {
   const sel = document.getElementById('af-production')
   const runs = productionChoices(a)
@@ -869,6 +877,11 @@ function syncTitleField(a) {
   const titleEl = document.getElementById('af-title')
   const several = document.getElementById('af-production').value === '__several__'
   titleEl.style.display = a.type === 'event' || several ? '' : 'none'
+  // A linked audition's genre, opening date and link come from its production
+  const linked = a.type !== 'event' && !!a.productionId
+  for (const id of ['afGenreGroup', 'afOpeningGroup', 'afProdUrlGroup'])
+    document.getElementById(id).style.display = linked ? 'none' : ''
+  updateMusicLayout()
   titleEl.placeholder = a.type === 'event' ? 'Event title' : 'Title, e.g. 2027 season auditions'
 }
 
@@ -1341,7 +1354,7 @@ function loadActEditor() {
 function updateEditorTitle() {
   const a = activities[activeActIdx]
   document.getElementById('actTitleText').textContent = titleOf(a) || 'Untitled'
-  const genreLabel = (Array.isArray(a.genre) ? a.genre : a.genre ? [a.genre] : []).join(' / ')
+  const genreLabel = a.type === 'event' ? '' : detailsOf(a).genre.join(' / ')
   const typeLabel = a.type === 'event' ? 'Event' : 'Audition'
   document.getElementById('actSubtitle').textContent =
     ` · ${typeLabel}${genreLabel ? ' · ' + genreLabel : ''}${a.closed ? ' · closed' : ''}`
@@ -1476,8 +1489,9 @@ function fieldChanged() {
     a.productionUrl = document.getElementById('af-prod-url').value || undefined
     const production = document.getElementById('af-production').value
     a.productionId = production && !production.startsWith('__') ? production : undefined
-    // A linked audition's title is looked up from its production, never stored
-    if (a.productionId) delete a.title
+    // A linked audition's title, genre, opening and link come from its production
+    if (a.productionId)
+      for (const k of ['title', 'genre', 'openingDate', 'productionUrl']) delete a[k]
     a.virtualSubmission = document.getElementById('af-virtual').checked || undefined
     a.briefDescription = undefined
     a.cost = undefined
@@ -1488,7 +1502,7 @@ function fieldChanged() {
       .value.split('\n')
       .map((s) => s.trim())
       .filter(Boolean)
-    const musical = a.genre.includes('Musical')
+    const musical = isMusical()
     const prep = {
       acting: document.getElementById('af-prep-acting').value.trim() || undefined,
       singing: musical ? document.getElementById('af-prep-singing').value || undefined : undefined,
@@ -2158,7 +2172,8 @@ function openPreview() {
   const a = activities[activeActIdx]
   const companyName = allCompanies.find((c) => c.id === currentCompanyId)?.name || currentCompanyAbv
   const dotColor = PV_DOT_COLORS[currentCompanyId] || '#cbcbcb'
-  const genreArr = Array.isArray(a.genre) ? a.genre : a.genre ? [a.genre] : []
+  const details = detailsOf(a) // a linked audition's genre, opening and link are its production's
+  const genreArr = details.genre
   const TODAY = new Date().toISOString().slice(0, 10)
   const latestD = [...(a.dates || [])].sort((x, y) => y.date.localeCompare(x.date))[0]?.date ?? ''
   const isEvent = a.type === 'event'
@@ -2289,7 +2304,7 @@ function openPreview() {
     rightColHtml += `<section class="pv-section"><h4 class="pv-section-head">About</h4><div class="pv-sub" style="font-size:13px;line-height:1.55;white-space:pre-wrap">${renderMd(a.description)}</div></section>`
   }
 
-  const metaRow = `${esc(displayName)}${!isEvent && a.openingDate ? ` · Opens ${fmtShortDate(a.openingDate)}` : ''}${!isEvent && a.rehearsalStart ? ` · Rehearsals start ${fmtShortDate(a.rehearsalStart)}` : ''}`
+  const metaRow = `${esc(displayName)}${!isEvent && details.openingDate ? ` · Opens ${fmtShortDate(details.openingDate)}` : ''}${!isEvent && a.rehearsalStart ? ` · Rehearsals start ${fmtShortDate(a.rehearsalStart)}` : ''}`
   const rolesRow = isEvent
     ? a.briefDescription
       ? esc(a.briefDescription)
@@ -2297,10 +2312,10 @@ function openPreview() {
     : rolesSum(a.rolesAvailable)
 
   const linksHtml =
-    a.noticeUrl || a.productionUrl
+    a.noticeUrl || details.productionUrl
       ? `<div class="pv-links-row">
     ${a.noticeUrl ? `<a href="${esc(a.noticeUrl)}" class="pv-action-link" target="_blank" rel="noopener">${isEvent ? 'More info →' : 'Audition notice →'}</a>` : ''}
-    ${!isEvent && a.productionUrl ? `<a href="${esc(a.productionUrl)}" class="pv-action-link" target="_blank" rel="noopener">Production info →</a>` : ''}
+    ${!isEvent && details.productionUrl ? `<a href="${esc(details.productionUrl)}" class="pv-action-link" target="_blank" rel="noopener">Production info →</a>` : ''}
   </div>`
       : ''
 

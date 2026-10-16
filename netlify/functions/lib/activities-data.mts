@@ -9,10 +9,10 @@
 
 import { readFileSync, readdirSync } from 'node:fs'
 import { join } from 'node:path'
-import type { Activity, ActivitiesFile, ActivityDate } from '../../../src/types.ts'
+import type { Activity, ActivitiesFile, ActivityDate, Run } from '../../../src/types.ts'
 import { organizerName, recordOrganizerIds } from '../../../src/lib/organizers.ts'
 import { sessionPlace, type Place } from '../../../src/lib/venues.ts'
-import { activityTitle } from '../../../src/lib/audition-format.ts'
+import { activityTitle, auditionDetails } from '../../../src/lib/audition-format.ts'
 import { loadCompanies, loadVenues } from './company-data.mts'
 
 export interface DigestActivity extends Activity {
@@ -60,6 +60,7 @@ export function loadAllActivities(): DigestActivity[] {
           activities.push({
             ...a,
             title: activityTitle(a, runs),
+            ...(auditionDetails(a, runs) as Pick<Activity, 'genre' | 'openingDate' | 'productionUrl'>),
             company: parsed.company,
             companyName: organizerName(
               recordOrganizerIds(parsed.company, a.organizers),
@@ -78,10 +79,10 @@ export function loadAllActivities(): DigestActivity[] {
   return activities
 }
 
-/** Every run's id and title, for resolving linked auditions' titles. */
-function loadRuns(): { id: string; show: string }[] {
+/** Every run, for resolving linked auditions' title, genre, opening and link. */
+function loadRuns(): Run[] {
   const root = join(DATA_ROOT, 'shows')
-  const runs: { id: string; show: string }[] = []
+  const runs: Run[] = []
   try {
     for (const year of readdirSync(root))
       for (const f of readdirSync(join(root, year)).filter((n) => n.endsWith('.json')))

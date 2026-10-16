@@ -232,8 +232,10 @@ A new record is an **Audition** or an **Event**; this can't change later.
   shows (e.g. a season audition) chooses **Several productions…** and gets
   its own title; saving then warns "not linked to a production", and you can
   save anyway.
-- Genre (up to two); rehearsal-start and opening dates; notice URL;
-  production-info URL.
+- Rehearsal start; notice URL. Genre (up to two), opening date and
+  production-info URL only for an audition not linked to a production — a
+  linked one shows its production's genre, opening (the performance marked
+  Opening, else the first) and info link, and follows them if they change.
 - **Roles table**: name, type, gender, age range, casting note, and voice
   part (Musical only). Omitted from the public card if empty.
 - **Prepare**: acting and what to bring (multi-line — each line displays

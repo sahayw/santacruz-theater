@@ -120,7 +120,7 @@ export interface Activity {
   title?: string // event name, or a season-wide audition's; a linked audition's comes from its production
   briefDescription?: string // event only: short blurb for collapsed card header
   description?: string // full description; supports bold, italic, links, and bullet lists
-  genre: Genre[]
+  genre?: Genre[] // not stored on a linked audition: auditionDetails() reads its production's
   dates: ActivityDate[]
   organizers?: string[] // filed under Other only: its one organizer's id (no co-producers)
   rolesAvailable?: AuditionRole[] // audition only; suppressed when empty
@@ -129,13 +129,13 @@ export interface Activity {
   datesByRequest?: boolean // event only; no scheduled dates — always "upcoming" until closed
   closed?: boolean // either type; retained but excluded from "upcoming" (retire without deleting)
   rehearsalStart?: string // audition only; YYYY-MM-DD
-  openingDate?: string // audition only; YYYY-MM-DD
+  openingDate?: string // audition only; YYYY-MM-DD; a linked audition's comes from its production
   productionId?: string // audition only; a Run id (validated; the run may not have dates yet)
   cost?: string // event only; free text e.g. "Free", "$20"
   registerUrl?: string // event only; registration link
   contact?: ActivityContact
   noticeUrl?: string // primary info/notice URL
-  productionUrl?: string // audition only; production page URL
+  productionUrl?: string // audition only; a linked audition's is its production's infoUrl
   notes?: string
   createdAt: string
   updatedAt: string

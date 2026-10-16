@@ -741,7 +741,10 @@ the selection feeds). Don't duplicate these or reintroduce GitHub API reads.
 
 Subscribers (create — `null` when the address exists — get, update, list by
 tag), tag ids by name (email filters take ids, not names), create email,
-send an email to one subscriber. Buttondown documents only one per-endpoint
+send an email to one subscriber. Creating or updating a subscriber first
+creates any of its tags that don't exist yet, with a colour — Buttondown
+requires one, and a tag it auto-creates from an unseen name on a subscriber
+is colourless and missing from the dashboard's tag list. Buttondown documents only one per-endpoint
 limit (creating subscribers, 100 an hour) and no rate-limit headers; a 429
 is retried after a pause.
 

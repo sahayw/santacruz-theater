@@ -179,6 +179,26 @@
       "contact": {
         "email": "sccactorstheatre@gmail.com"
       }
+    },
+    {
+      "id": "activity-1792200000300",
+      "type": "audition",
+      "productionId": "run-1792200000100",
+      "dates": [
+        {
+          "id": "session-1792200000060",
+          "date": "2026-11-15",
+          "startTime": "10:00",
+          "endTime": "13:00",
+          "venue": "AT"
+        }
+      ],
+      "createdAt": "2026-10-16T19:00:00.000Z",
+      "updatedAt": "2026-10-16T19:00:00.000Z",
+      "description": "Test record for the email digest — will be removed.",
+      "contact": {
+        "email": "sccactorstheatre@gmail.com"
+      }
     }
   ]
 }

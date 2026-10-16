@@ -1,7 +1,8 @@
 ---
 // The two email lists, with the majors' "Select companies" ticks under Performance
 // updates — shared by /subscribe and /subscribe/manage. Pages read and set it through
-// the inputs: name="list" (ticked = on the list) and name="major" (unticked = left out).
+// src/lib/subscribe-choices.ts: name="list" (ticked = on the list) and name="major"
+// (unticked = left out). The company ticks follow Performance updates — see the script.
 // See docs/notifications-spec.md ("Subscribe and manage").
 import { companies } from '../lib/data.ts'
 import { majors } from '../lib/organizers.ts'
@@ -27,7 +28,7 @@ const [performances, auditionsEvents] = ['performances', 'auditions-events'].map
         {
           majors(companies).map((c) => (
             <label>
-              <input type="checkbox" name="major" value={c.id} checked />
+              <input type="checkbox" name="major" value={c.id} />
               {c.name}
             </label>
           ))
@@ -146,22 +147,53 @@ const [performances, auditionsEvents] = ['performances', 'auditions-events'].map
 </style>
 
 <script>
-  // Highlights ticked lists; changing a company tick also ticks Performance updates.
+  // Company ticks follow Performance updates:
+  // - Performance updates ticked: the companies chosen so far — all of them until someone
+  //   (or the saved choices on /subscribe/manage) says otherwise.
+  // - Not ticked: no companies ticked. Unticking keeps the choice, so ticking Performance
+  //   updates again brings it back.
+  // - Ticking or unticking a company also ticks Performance updates. If nothing was chosen
+  //   yet, only that company is ticked; otherwise the earlier choice comes back, plus it.
+  // Pages set the form with setFormChoices(), which fires an untrusted change: that
+  // resets the remembered choice to what was set.
   for (const root of document.querySelectorAll<HTMLElement>('[data-choices]')) {
     const perf = root.querySelector<HTMLInputElement>('input[name="list"][value="performances"]')!
     const majors = [...root.querySelectorAll<HTMLInputElement>('input[name="major"]')]
     const sum = root.querySelector<HTMLElement>('[data-co-sum]')!
+    const ticked = () => new Set(majors.filter((m) => m.checked).map((m) => m.value))
+    const tick = (ids: Set<string> | null) => majors.forEach((m) => (m.checked = !ids || ids.has(m.value)))
+    let chosen: Set<string> | null = null // null = all (the default)
+
     const refresh = () => {
       for (const opt of root.querySelectorAll('.list-opt'))
         opt.classList.toggle('on', !!opt.querySelector<HTMLInputElement>('input[name="list"]')?.checked)
-      sum.textContent = majors.some((m) => m.checked)
-        ? 'Productions by all other companies and organizers are always included.'
-        : "You'll get productions by other companies and organizers only."
+      sum.textContent =
+        perf.checked && !majors.some((m) => m.checked)
+          ? "You'll get productions by other companies and organizers only."
+          : 'Productions by all other companies and organizers are always included.'
     }
+
     root.addEventListener('change', (e) => {
-      if ((e.target as HTMLInputElement).name === 'major' && e.isTrusted) perf.checked = true
+      const target = e.target as HTMLInputElement
+      if (!e.isTrusted) {
+        // Set by the page: remember it if Performance updates is on
+        chosen = perf.checked ? ticked() : null
+      } else if (target === perf) {
+        if (perf.checked) tick(chosen)
+        else majors.forEach((m) => (m.checked = false))
+      } else if (target.name === 'major') {
+        // A company ticked while Performance updates is off: bring back any earlier choice,
+        // plus this tick
+        if (!perf.checked && chosen) {
+          tick(chosen)
+          target.checked = true
+        }
+        perf.checked = true
+        chosen = ticked()
+      }
       refresh()
     })
+    if (perf.checked) tick(chosen)
     refresh()
   }
 </script>

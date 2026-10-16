@@ -251,6 +251,10 @@ everything. Release just after the 02:00 UTC run.
     companies and organizers are always included."
   - Unticking all four is allowed.
   - Changing a company tick also ticks Performance updates.
+  - With Performance updates unticked, no companies are ticked. A company
+    choice the visitor made is kept and comes back when they tick it again.
+    (Added 2026-10-16: the form opened from `/events` showed all companies
+    ticked under an unticked Performance updates.)
 - **The nav link** "Subscribe for updates" sits beside the site name, only on
   `/calendar`, `/events` and `/productions`. It pre-ticks the list that suits
   the page and gives a back link. It's hidden on `/subscribe`. The hub's

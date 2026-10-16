@@ -423,9 +423,15 @@ Two lists, for two audiences. Visitors pick either or both on `/subscribe`:
 - **Performance updates** — new productions, added or cancelled dates,
   venue changes, and when tickets go on sale. Under it, **Select companies**
   lists Santa Cruz Shakespeare, Actors' Theatre, Mountain Community Theater
-  and Renegade Theater, all ticked; untick any you don't want. Productions by
-  every other company and organizer are always included. A co-production is
-  included if any of its organizers is.
+  and Renegade Theater; untick any you don't want. Productions by every other
+  company and organizer are always included. A co-production is included if
+  any of its organizers is. The company ticks follow Performance updates:
+  - Performance updates ticked: all four companies are ticked, unless the
+    visitor (or their saved choices) has said otherwise.
+  - Not ticked: no companies are ticked. The visitor's own company choice is
+    kept, and comes back when they tick Performance updates again.
+  - Ticking or unticking a company also ticks Performance updates. If no
+    company choice was made yet, only that company is ticked.
 - **Audition & event notices** — new auditions and events, added or
   cancelled sessions, location changes, registration opening, and reopened
   notices. All companies.

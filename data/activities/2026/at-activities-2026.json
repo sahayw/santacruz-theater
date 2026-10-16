@@ -4,9 +4,6 @@
   "activities": [
     {
       "id": "activity-1781438400002",
-      "genre": [
-        "Drama"
-      ],
       "rolesAvailable": [
         {
           "role": "Carol",
@@ -41,11 +38,9 @@
         "acting": "One-minute memorized monologue"
       },
       "rehearsalStart": "2026-07-01",
-      "openingDate": "2026-10-16",
       "contact": {
         "phone": "831-431-8666"
       },
-      "productionUrl": "https://www.santacruzactorstheatre.org/",
       "notes": "Dark comedy with supernatural elements. Performances run Thursday–Sunday, October 16–31.\nRehearsals begin late July.",
       "createdAt": "2026-06-14T12:00:00.000Z",
       "updatedAt": "2026-06-22T07:26:05.180Z",
@@ -72,10 +67,6 @@
     },
     {
       "id": "activity-1735000000006",
-      "genre": [
-        "Drama",
-        "Comedy"
-      ],
       "rolesAvailable": [
         {
           "role": "All ages and types needed (over 14 years of age)",
@@ -94,11 +85,9 @@
       "contact": {
         "email": "sccactorstheatre@gmail.com"
       },
-      "productionUrl": "https://www.santacruzactorstheatre.org/8-tens-at-8-festival",
       "notes": "Scripts will be available at the Santa Cruz main library, 224 Church St. in downtown Santa Cruz two weeks before auditions. Ask at the Reference Desk.\nPerformance dates: January 16 - February 15, 2026\nEach play is performed 14 times\nActors may be cast in up to two plays, and will also be considered for the Best of the Rest staged readings in March 2027\nFor a list of plays and their directors, see the audition form. (Coming as soon as the plays have been selected.)",
       "createdAt": "2026-06-02T00:00:00Z",
       "updatedAt": "2026-08-17T15:55:52.856Z",
-      "openingDate": "2027-01-16",
       "type": "audition",
       "productionId": "run-1780128058553",
       "dates": [

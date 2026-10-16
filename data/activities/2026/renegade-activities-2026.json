@@ -4,9 +4,6 @@
   "activities": [
     {
       "id": "activity-1735000000005",
-      "genre": [
-        "Musical"
-      ],
       "rolesAvailable": [
         {
           "role": "Dr. Frank N. Furter",
@@ -88,12 +85,10 @@
         "acting": "Cold reading from script may be requested",
         "singing": "Prepare a song showcasing your vocal range"
       },
-      "openingDate": "2026-07-31",
       "contact": {
         "email": "renegadetheaterco@gmail.com",
         "phone": "831-713-9392"
       },
-      "productionUrl": "https://renegadetheaterco.org/2026/rocky-horror-show.html",
       "notes": "Rated R. All roles open to all gender identities. All body types welcome. 18+ only. Over 20 cast members and a live band. Directed by Izzy Pedego, Music Director Jorge Torres.",
       "createdAt": "2026-06-02T00:00:00Z",
       "updatedAt": "2026-06-02T00:00:00Z",
@@ -128,9 +123,6 @@
       "id": "activity-1787191714843",
       "type": "audition",
       "productionId": "run-1785895538901",
-      "genre": [
-        "Musical"
-      ],
       "dates": [
         {
           "id": "session-1791991837964",
@@ -288,7 +280,6 @@
       "createdAt": "2026-08-20T02:08:34.843Z",
       "updatedAt": "2026-08-22T01:57:29.091Z",
       "rehearsalStart": "2026-09-14",
-      "openingDate": "2026-12-04",
       "prep": {
         "acting": "One-minute monologue",
         "singing": "One-minute cut of song with backing track"

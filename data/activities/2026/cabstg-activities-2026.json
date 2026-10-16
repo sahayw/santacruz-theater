@@ -4,9 +4,6 @@
   "activities": [
     {
       "id": "activity-1735000000002",
-      "genre": [
-        "Musical"
-      ],
       "rolesAvailable": [
         {
           "role": "All roles",
@@ -21,11 +18,9 @@
         "dance": "Movement audition component expected"
       },
       "rehearsalStart": "2026-05-23",
-      "openingDate": "2026-07-09",
       "contact": {
         "email": "info@cabrillostage.com"
       },
-      "productionUrl": "https://www.cabrillostage.com/",
       "notes": "Rehearsals run May 23 through July 3, 2026. Cabrillo Stage does not provide housing or travel for out-of-town talent. Full orchestra under conductor Dan Goldsmith. Directed by Rebecca Haley Clark, choreography by Babe Payne.",
       "createdAt": "2026-06-02T00:00:00Z",
       "updatedAt": "2026-06-02T00:00:00Z",

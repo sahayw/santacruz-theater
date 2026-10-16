@@ -1303,14 +1303,16 @@ const icsMajors = JSON.stringify(majors.map(({ code, label, name }) => ({ code, 
   })
   document.addEventListener('scroll', hideHoverPanel, { passive: true })
 
-  // Touch: a horizontal swipe in the drill-down steps to the next/previous month (week on
-  // phones), like ‹ ›. Mostly-vertical drags stay scrolls; pinch-zoomed drags stay pans.
+  // Touch: a horizontal swipe steps like ‹ › — the month (week on phones) in the drill-down,
+  // and the year in the year view on wider screens (on phones the year view is one long
+  // column of months, where a sideways swipe would be unexpected). Mostly-vertical drags
+  // stay scrolls; pinch-zoomed drags stay pans.
   let swipe = null
   document.addEventListener(
     'touchstart',
     (e) => {
       swipe = null
-      if (mode !== 'drill' || e.touches.length !== 1) return
+      if (e.touches.length !== 1 || (mode === 'annual' && PHONE.matches)) return
       if (document.getElementById('bottomSheet').classList.contains('open')) return
       if (e.target.closest('dialog, .site-nav')) return
       if (window.visualViewport && window.visualViewport.scale > 1.01) return

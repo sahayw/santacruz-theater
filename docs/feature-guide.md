@@ -51,7 +51,8 @@ What the site does, for visitors and for editors. For how it's built, see
   AT, MCT, Renegade — always in that order), then a grey square if any other
   company or organizer is. On a computer, hovering a day lists its
   performances. Clicking or tapping a day opens the drill-down at that day.
-  On a phone the year view opens scrolled to the current month.
+  On a phone the year view opens scrolled to the current month. ‹ › step a
+  year; on a tablet, so does swiping left or right.
 - **Drill-down** — **Month view** on wider screens, **Week view** on phones
   (one week at a time; the switch follows the screen width):
   - Each day lists its performances as "time · show · organizer", with the

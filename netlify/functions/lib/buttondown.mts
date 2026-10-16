@@ -30,9 +30,14 @@ export class ButtondownError extends Error {
   }
 }
 
-/** Buttondown subscriber ids are UUIDs — checked before one goes into a URL. */
+/**
+ * Buttondown subscriber ids — checked before one goes into a URL. Older subscribers have
+ * UUIDs; newer ones have `sub_` plus lowercase letters and digits.
+ */
 export const isSubscriberId = (s: unknown): s is string =>
-  typeof s === 'string' && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(s)
+  typeof s === 'string' &&
+  (/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(s) ||
+    /^sub_[0-9a-z]{10,40}$/.test(s))
 
 export const isEmailAddress = (s: unknown): s is string =>
   typeof s === 'string' && s.length <= 254 && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s)

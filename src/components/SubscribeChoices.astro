@@ -1,0 +1,167 @@
+---
+// The two email lists, with the majors' "Select companies" ticks under Performance
+// updates — shared by /subscribe and /subscribe/manage. Pages read and set it through
+// the inputs: name="list" (ticked = on the list) and name="major" (unticked = left out).
+// See docs/notifications-spec.md ("Subscribe and manage").
+import { companies } from '../lib/data.ts'
+import { majors } from '../lib/organizers.ts'
+import { EMAIL_LISTS } from '../lib/email-lists.ts'
+
+const [performances, auditionsEvents] = ['performances', 'auditions-events'].map(
+  (id) => EMAIL_LISTS.find((l) => l.id === id)!
+)
+---
+
+<div class="choices" data-choices>
+  <div class="list-opt">
+    <label class="list-head">
+      <input type="checkbox" name="list" value={performances.id} />
+      <span>
+        <span class="list-name">{performances.label}</span>
+        <span class="list-desc">{performances.description}</span>
+      </span>
+    </label>
+    <div class="co-block">
+      <div class="co-label">Select companies</div>
+      <div class="co-grid">
+        {
+          majors(companies).map((c) => (
+            <label>
+              <input type="checkbox" name="major" value={c.id} checked />
+              {c.name}
+            </label>
+          ))
+        }
+      </div>
+      <div class="co-sum" data-co-sum>
+        Productions by all other companies and organizers are always included.
+      </div>
+    </div>
+  </div>
+  <div class="list-opt">
+    <label class="list-head">
+      <input type="checkbox" name="list" value={auditionsEvents.id} />
+      <span>
+        <span class="list-name">{auditionsEvents.label}</span>
+        <span class="list-desc">{auditionsEvents.description}</span>
+      </span>
+    </label>
+  </div>
+</div>
+
+<style>
+  .choices {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .list-opt {
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 10px 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .list-opt.on {
+    border-color: var(--gold);
+    background: #fffdf8;
+  }
+
+  .list-head {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    cursor: pointer;
+  }
+
+  .list-head input {
+    margin-top: 3px;
+    accent-color: #2e2a26;
+    width: 15px;
+    height: 15px;
+    flex: none;
+  }
+
+  .list-name {
+    display: block;
+    font-weight: 600;
+    font-size: 14px;
+  }
+
+  .list-desc {
+    display: block;
+    font-size: 12px;
+    color: var(--ink-muted);
+    line-height: 1.45;
+  }
+
+  .co-block {
+    margin-left: 25px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .co-label {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--ink-muted);
+  }
+
+  .co-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4px 12px;
+    font-size: 12px;
+    padding: 6px 8px;
+    background: var(--field-bg);
+    border-radius: 4px;
+  }
+
+  .co-grid label {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+    cursor: pointer;
+    min-width: 0;
+  }
+
+  .co-grid input {
+    accent-color: #2e2a26;
+  }
+
+  .co-sum {
+    font-size: 11px;
+    color: var(--ink-subtle);
+  }
+
+  @media (max-width: 460px) {
+    .co-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
+
+<script>
+  // Highlights ticked lists; changing a company tick also ticks Performance updates.
+  for (const root of document.querySelectorAll<HTMLElement>('[data-choices]')) {
+    const perf = root.querySelector<HTMLInputElement>('input[name="list"][value="performances"]')!
+    const majors = [...root.querySelectorAll<HTMLInputElement>('input[name="major"]')]
+    const sum = root.querySelector<HTMLElement>('[data-co-sum]')!
+    const refresh = () => {
+      for (const opt of root.querySelectorAll('.list-opt'))
+        opt.classList.toggle('on', !!opt.querySelector<HTMLInputElement>('input[name="list"]')?.checked)
+      sum.textContent = majors.some((m) => m.checked)
+        ? 'Productions by all other companies and organizers are always included.'
+        : "You'll get productions by other companies and organizers only."
+    }
+    root.addEventListener('change', (e) => {
+      if ((e.target as HTMLInputElement).name === 'major' && e.isTrusted) perf.checked = true
+      refresh()
+    })
+    refresh()
+  }
+</script>

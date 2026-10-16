@@ -1,7 +1,7 @@
 # Email Updates, Organizers & Calendar Redesign — Spec
 
-Status: **agreed 2026-10-15; stages 1–2 built on `email-updates`, stages 3–4
-to come.** This is the design record. Once each stage ships, `implementation.md`
+Status: **agreed 2026-10-15; stages 1–3 built on `email-updates`, stage 4 to
+come.** This is the design record. Once each stage ships, `implementation.md`
 and `feature-guide.md` describe how the system works. Clickable mockups of the
 agreed UI: <https://claude.ai/artifact/RZBHrgQFbHg8ehSkXVjuyH>. They are a
 guide, not pixel-exact, and predate the `/runs` → `/productions` rename.

@@ -109,6 +109,23 @@ export function activityGaps(a: Activity, primaryVenue?: string, today = todayIs
   return gaps
 }
 
+/**
+ * The "upcoming" rule for activities (CLAUDE.md): closed is never upcoming; a virtual
+ * audition or a "dates by request" event with no dates stays upcoming; otherwise the
+ * latest date must be `today` or later. Used by the digests and change rules; the
+ * /events client filter and the editor Preview implement the same rule.
+ */
+export function isUpcomingActivity(
+  a: Pick<Activity, 'closed' | 'virtualSubmission' | 'type' | 'datesByRequest' | 'dates'>,
+  today = todayIso()
+): boolean {
+  if (a.closed) return false
+  if (a.virtualSubmission) return true // no scheduled dates needed — current until closed
+  const dates = (a.dates || []).map((d) => d.date).filter(Boolean)
+  if (a.type === 'event' && a.datesByRequest && !dates.length) return true
+  return (dates.sort().pop() ?? '') >= today
+}
+
 /** Warnings are skipped for a historic run — one whose last performance is before `today`. */
 export function runIssues(
   run: Run,

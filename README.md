@@ -8,9 +8,11 @@ Five areas, reachable from a persistent top nav and a hub landing page:
 | --------- | ------------ | -------------------------------------------------------------------- |
 | Calendar  | `/calendar`  | Performances calendar — year view, month / week drill-down           |
 | Companies | `/companies` | Santa Cruz County theater company directory                          |
-| Events    | `/events`    | Upcoming auditions and other events, with email digest subscriptions |
+| Events    | `/events`    | Upcoming auditions and other events                                  |
 | Services  | `/services`  | Production resources — crew, equipment, spaces, coaching             |
 | About     | `/about`     | Site info + contact form                                             |
+
+Visitors can sign up at `/subscribe` for two email lists — Performance updates and Audition & event notices (Buttondown).
 
 Content is maintained through a data editor at `/admin` — no local build or deploy needed. Saved changes commit directly and trigger a Netlify rebuild.
 

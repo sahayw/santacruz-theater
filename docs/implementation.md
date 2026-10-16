@@ -38,9 +38,11 @@ How the system is built. For what it does, see
 ```
 src/
   components/     calendar.astro (calendar UI), SiteNav.astro,
-                  AddToCalendar.astro (feed dialog, §6)
+                  AddToCalendar.astro (feed dialog, §6),
+                  SubscribeShell.astro, SubscribeChoices.astro (/subscribe pages, §8)
   layouts/        page layout wrappers
-  pages/          routes — index, calendar, companies, events, productions, subscribe,
+  pages/          routes — index, calendar, companies, events, productions,
+                  subscribe, subscribe/manage,
                   services, about, admin/*.js.ts (shared modules for /admin, §6),
                   [...feed].ics.ts (calendar feeds, §6),
                   missing-details.json.ts (§6)
@@ -54,6 +56,9 @@ src/
     calendar-model.ts   runs/activities → calendar events + feeds (§6)
     ics.ts              RFC 5545 serializer for the feeds (§6)
     browser-module.ts   serves a src/lib module to /admin (§6)
+    email-lists.ts      the email lists and their Buttondown tags (§8)
+    notice-rules.ts     digest change detection (§8)
+    subscribe-choices.ts  browser helpers for the subscribe forms (§8)
   types.ts        shared TypeScript interfaces
   styles/         global CSS
 data/             canonical data files (§3)
@@ -64,7 +69,8 @@ netlify/functions/  serverless functions (§7)
 scripts/          check-json.ts, check-reference.ts, check-shows.ts,
                   check-activities.ts, check-services.ts, check-markdown.ts,
                   check-feeds.ts (post-build),
-                  migrate-occurrence-ids.ts, migrate-organizers-venues.ts (one-off),
+                  migrate-occurrence-ids.ts, migrate-organizers-venues.ts,
+                  migrate-subscribers.ts (one-off),
                   sync-branches.sh, release.sh
 tests/            vitest unit tests + fixtures/ (§9)
 docs/             feature-guide.md, implementation.md, ics-spec.md,
@@ -189,7 +195,7 @@ Auditions and events share one schema.
 | `noticeUrl`                      | `string?`               | both       | primary info link                                                                                                                     |
 | `organizers`                     | `string[]?`             | both       | organizer ids, main first — see [Organizers](#run)                                                                                    |
 | `closed`                         | `boolean?`              | both       | excluded from upcoming; reversible                                                                                                    |
-| `createdAt` / `updatedAt`        | `string`                | both       | ISO 8601 — drive the digest ([§8](#8-email-notifications))                                                                            |
+| `createdAt` / `updatedAt`        | `string`                | both       | ISO 8601 — record history; the digests don't use them ([§8](#8-email-notifications))                                                  |
 | `genre`                          | `Genre[]?`              | audition   | not stored when linked: taken from the production (`auditionDetails()`)                                                               |
 | `rehearsalStart` / `openingDate` | `string?`               | audition   | `YYYY-MM-DD`; when linked, `openingDate` isn't stored: it's the production's Opening performance, else its first (`runOpeningDate()`) |
 | `productionUrl`                  | `string?`               | audition   | not stored when linked: the production's `infoUrl`                                                                                    |
@@ -418,8 +424,8 @@ array position.
 - `ensurePerformanceIds()` / `ensureSessionIds()` add ids only to rows
   without one, placing `id` first in the object.
   - The editors call them on load, **before** taking snapshots, so backfilled
-    ids don't mark the file dirty or bump `updatedAt`. That matters because
-    the digest reads `updatedAt`. The ids are written on the next real save.
+    ids don't mark the file dirty or bump `updatedAt` (the calendar feeds'
+    `LAST-MODIFIED`). The ids are written on the next real save.
   - `scripts/migrate-occurrence-ids.ts` (`npx tsx …`) applies the same helpers
     to every data file. It never touches `updatedAt`, keeps each file's
     trailing-newline style, and is idempotent.
@@ -440,7 +446,7 @@ text (calendar apps would show raw URLs in full), and writes bullets as
 | Consumer                                                           | How it gets the module                                                         |
 | ------------------------------------------------------------------ | ------------------------------------------------------------------------------ |
 | `events.astro`, `services.astro`, `calendar.astro` (client script) | direct import                                                                  |
-| `send-digest.mts`                                                  | esbuild bundle                                                                 |
+| email functions (`netlify/functions/`)                             | esbuild bundle                                                                 |
 | `activities.js`, `calendar.js`, `services.js` (Preview)            | `/admin/audition-format.js`, served by `src/pages/admin/audition-format.js.ts` |
 
 ### The "upcoming" rule
@@ -450,8 +456,8 @@ text (calendar apps would show raw URLs in full), and writes bullets as
 - Otherwise → latest `dates[].date` ≥ today.
 
 Implemented in **three places that must agree**: the `/events` client filter
-(`src/pages/events.astro`), `isUpcoming()` in
-`netlify/functions/lib/activities-data.mts` (emails), and the editor Preview.
+(`src/pages/events.astro`), `isUpcomingActivity()` in `src/lib/data-rules.ts`
+(emails and the digests' change detection), and the editor Preview.
 
 ### Activity card rendering paths
 
@@ -595,118 +601,197 @@ organizers is included, so non-majors are always in.
 ## 7. Netlify functions
 
 New functions use the **v2 interface** (`export default async (req: Request)
-=> …` + `export const config`). `data.mjs` and `send-digest.mts` are legacy
-style and aren't being migrated proactively.
+=> …` + `export const config`). `data.mjs` is legacy style and isn't being
+migrated proactively.
 
-| Function                  | Purpose                                                             |
-| ------------------------- | ------------------------------------------------------------------- |
-| `data.mjs`                | data read/write — two modes ([§4](#4-data-flow))                    |
-| `upload-image.mjs`        | service photo upload — same two modes                               |
-| `fetch-page.mjs`          | page-fetch proxy (unused by current editors)                        |
-| `subscribe.mts`           | Buttondown subscribe + welcome email ([§8](#8-email-notifications)) |
-| `send-digest.mts`         | daily digest ([§8](#8-email-notifications))                         |
-| `lib/email-template.mts`  | inline-styled welcome + digest HTML                                 |
-| `lib/activities-data.mts` | fs-based activity loading and classification                        |
-| `lib/company-data.mts`    | fs-based company/organizer and venue lists                          |
+| Function                     | Purpose                                                  |
+| ---------------------------- | -------------------------------------------------------- |
+| `data.mjs`                   | data read/write — two modes ([§4](#4-data-flow))         |
+| `upload-image.mjs`           | service photo upload — same two modes                    |
+| `fetch-page.mjs`             | page-fetch proxy (unused by current editors)             |
+| `subscribe.mts`              | subscribe + welcome email ([§8](#8-email-notifications)) |
+| `preferences.mts`            | read/change a subscriber's choices; send a manage link   |
+| `send-digest.mts`            | scheduled trigger for the nightly digest                 |
+| `send-digest-background.mts` | the nightly digests for both lists                       |
+| `lib/digest.mts`             | digest logic: snapshots, broadcasts, individual sends    |
+| `lib/subscriptions.mts`      | choices ↔ tags/metadata; welcome and manage-link emails  |
+| `lib/buttondown.mts`         | Buttondown API client                                    |
+| `lib/email-template.mts`     | inline-styled digest, welcome and manage-link HTML       |
+| `lib/activities-data.mts`    | fs-based activity loading                                |
+| `lib/shows-data.mts`         | fs-based production loading; email card shape            |
+| `lib/company-data.mts`       | fs-based company/organizer and venue lists               |
+| `lib/site.mts`               | site URL; Santa Cruz "today"                             |
 
 ## 8. Email notifications
 
-Welcome email on signup, then a daily digest. Delivered by **Buttondown**
-(subscribers, unsubscribe, delivery); subscribers are added as
-`type: "regular"` — no double opt-in.
+Two lists, delivered by **Buttondown** (subscribers, unsubscribe, delivery):
+**Performance updates** and **Audition & event notices**. A list is a
+Buttondown tag. Subscribers are added as `type: "regular"` — no double
+opt-in. The design record is `docs/notifications-spec.md`.
 
-### Data access — `lib/activities-data.mts`
+### Lists — `src/lib/email-lists.ts`
 
-The only place functions read activity data (via `fs` — [§4](#4-data-flow)).
-Exports `loadAllActivities()`, `isUpcoming()`, `getUpcomingActivities()` /
-`getUpcomingAuditions()` / `getUpcomingEvents()`, and
-`classifyForDigest(activities, lastSent)`. Don't duplicate it or reintroduce
-GitHub API reads.
+The one definition of the lists (id, tag, label, description), read by the
+pages, functions, digests and migration. Two more pieces of subscriber
+state:
+
+- tag `performances-selected` — on Performance updates subscribers who left
+  out any majors; they get individual copies instead of the broadcast.
+- metadata `excluded_majors` — those majors' company ids, comma-separated.
+
+`tagsFor()` / `listsFromTags()` convert between lists and tags. Tags the
+system doesn't manage (`MANAGED_TAGS`) are kept when choices change.
+
+### Change detection — `src/lib/notice-rules.ts`
+
+Pure functions, unit-tested (`tests/notice-rules.test.ts`). Each record gets
+a **print** of its significant fields:
+
+| List               | Print                                                                                    |
+| ------------------ | ---------------------------------------------------------------------------------------- |
+| Productions        | upcoming performances (id → date time), venue code + room, whether a tickets link exists |
+| Auditions & events | upcoming sessions (id → date time), each session's place, closed, registration link      |
+
+`classify()` compares tonight's prints with the snapshot of what was last
+emailed:
+
+- **New**: listable now (upcoming; for activities, `isUpcomingActivity()`)
+  and not listable or unknown before — so a production saved before its
+  dates is announced when its dates arrive.
+- **Changed**: dates added / cancelled / moved (by occurrence id), venue or
+  location changed, tickets link appeared ("Tickets on sale"), registration
+  link appeared ("Registration open"), reopened.
+- A past date dropping off, and every other field (description, price,
+  contact, wording), never sends email. `createdAt` / `updatedAt` aren't
+  used.
+
+### Data access — `lib/activities-data.mts`, `lib/shows-data.mts`, `lib/company-data.mts`
+
+The only places functions read data (via `fs` — [§4](#4-data-flow)).
+`loadAllActivities()` resolves titles, organizer names and places;
+`isUpcoming()` is `isUpcomingActivity()` from `src/lib/data-rules.ts`.
+`loadRuns()` reads every shows file; `digestProduction()` shapes a run for an
+email card (upcoming performances only); `includesProduction()` keeps a
+production for a subscriber when any of its organizers isn't excluded (as
+the selection feeds). Don't duplicate these or reintroduce GitHub API reads.
+
+### Buttondown client — `lib/buttondown.mts`
+
+Subscribers (create — `null` when the address exists — get, update, list by
+tag), tag ids by name (email filters take ids, not names), create email,
+send an email to one subscriber. Buttondown documents only one per-endpoint
+limit (creating subscribers, 100 an hour) and no rate-limit headers; a 429
+is retried after a pause.
 
 ### Subscribe — `subscribe.mts`
 
-- Accepts `{ email }` and POSTs to Buttondown. Responses: 201 new; 409/422
-  already subscribed; 400/5xx error.
-- On 201, `context.waitUntil()` sends the welcome email after responding, so
-  the visitor waits only for the subscribe call (~2.5s).
-- Widget on `/events` (hidden in deep-link/not-found modes) and `/subscribe`.
+- Accepts `{ email, lists, excluded }`; `lists` defaults to
+  `["auditions-events"]`.
+- New address: creates the subscriber with its tags and metadata, then
+  `context.waitUntil()` sends the **welcome email** (`sendWelcome()` in
+  `lib/subscriptions.mts`) — one email with a section per list chosen:
+  upcoming productions as a compact list (less any excluded majors), and
+  upcoming auditions and events as cards. Result pings
+  `SUBSCRIBE_HEALTHCHECK_URL` (or `/fail`).
+- Existing address (subscribed or not): emails it a link to its choices.
+- The reply is the same in both cases, so it never says whether an address
+  is subscribed.
 
-### Welcome email
+One-off emails are created with `status: "transactional"` and sent with
+`POST /v1/subscribers/{id}/emails/{email_id}`.
 
-1. `POST /v1/emails` (`status: "transactional"`) creates a one-off email.
-2. `POST /v1/subscribers/{id_or_email}/emails/{email_id}` sends it to the new
-   subscriber only — avoids draft-preview headers and the per-draft
-   recipient limit.
+### Preferences — `preferences.mts`
 
-Step 2 is skipped if step 1 fails. Each call has an 8s timeout. Result pings
-`SUBSCRIBE_HEALTHCHECK_URL` (or `/fail`, with the response body logged);
-the visitor's response is unaffected. Template: `buildWelcomeHtml(auditions,
-events, baseUrl)` — Upcoming Auditions and Upcoming Events sections, each
-with an empty-state line.
+Backs `/subscribe/manage`. The subscriber id (`?s=`) is the bearer token —
+the same one Buttondown's unsubscribe link carries.
 
-### Daily digest — `send-digest.mts`
+- `GET ?s=` → `{ email, lists, excluded }` (no lists when unsubscribed).
+- `POST { action: "update", s, lists, excluded }` — `lists` must not be
+  empty; resubscribes an unsubscribed address.
+- `POST { action: "unsubscribe", s }`.
+- `POST { action: "send-link", email }` — emails the address its link if
+  it's on file; same reply either way.
 
-Runs `0 2 * * *` (02:00 UTC), set in the `schedule()` call.
+### Nightly digest — `send-digest.mts` → `send-digest-background.mts`
 
-1. Read `last-sent` from Blob store `audition-notifications` (missing →
-   everything is new).
-2. `classifyForDigest()` → new/updated auditions and events. **New**:
-   `createdAt` > last-sent. **Updated**: `updatedAt` > last-sent and
-   `createdAt` ≤ last-sent.
-3. Nothing to send → stop (timestamp unchanged; healthcheck still pinged).
-4. `EMAIL_DIGEST_DRY_RUN=true` → log only.
-5. POST to Buttondown (`status: "about_to_send"`).
-6. On success, write the new timestamp.
-7. Ping `DIGEST_HEALTHCHECK_URL`.
+`send-digest.mts` is scheduled (`0 2 * * *`, 02:00 UTC — the previous
+evening in Santa Cruz) and only POSTs to `send-digest-background` with the
+`DIGEST_SECRET` header: scheduled functions are limited to 30 seconds. The
+background function (15 minutes; Netlify retries twice on error) runs
+`runDigest()` in `lib/digest.mts`. "Today" is the Santa Cruz date
+(`localToday()`).
 
-**Why JSON timestamps, not file mtime**: git and Netlify deploys don't
-preserve mtime. The editor sets `createdAt` on create and advances
-`updatedAt` only when a record actually changed (dirty-check against a load
-snapshot), so re-saving unchanged doesn't produce a spurious "Updated".
+For each list:
 
-**Why Blob credentials are explicit**: Netlify doesn't inject a Blobs token
-into scheduled functions, so `getStore()` needs `NETLIFY_SITE_ID` +
-`NETLIFY_TOKEN`.
+1. Read `snapshot/<list>` from Blob store `email-digests`. **Missing** →
+   save tonight's prints and send nothing (no burst at go-live).
+2. Classify against it. Nothing new or changed → save the snapshot.
+3. **Audition & event notices**: one broadcast to the `auditions-events`
+   tag. Sections: New auditions, New events, Updates.
+4. **Performance updates**: one broadcast to `performances` and not
+   `performances-selected`. Then each `performances-selected` subscriber is
+   grouped by their exclusions; each group with anything left gets one
+   created email, sent to each member individually. Sections: New
+   productions, Updates; "1 date added" shows only the added dates; "Tickets
+   on sale" adds a Get tickets button.
+5. Save the snapshot.
+
+**Retries**: `run/<date>` records each list's broadcast id, each group's
+email id, the subscribers sent to, and `done`. A retry skips all of them;
+the snapshot is saved only once a list's sends are complete.
+
+**Footer**: "Change your choices" (`/subscribe/manage?s={{ subscriber.id }}`)
+and "Unsubscribe from everything" (`{{ unsubscribe_url }}`) — Buttondown
+template variables, filled per recipient. A copy leaving out majors names
+them.
+
+`EMAIL_DIGEST_DRY_RUN=true` logs what would be sent and writes nothing (no
+sends, no snapshots, no run record). `DIGEST_HEALTHCHECK_URL` is pinged
+after each successful run.
+
+**Why Blob credentials are explicit**: `getStore()` is given
+`NETLIFY_SITE_ID` + `NETLIFY_TOKEN` rather than relying on injected context.
+The store is site-wide, shared by every deploy — so the `dev` branch deploy
+must keep `EMAIL_DIGEST_DRY_RUN=true`.
+
+### Go-live
+
+1. Set `DIGEST_SECRET` (any long random string).
+2. Tag existing subscribers with `scripts/migrate-subscribers.ts` (needs
+   `BUTTONDOWN_API_KEY`). On its own it reports; with `--apply` it tags
+   everyone not on a list `auditions-events`. Safe to re-run.
+3. Run the background function once by hand (below) to seed both
+   snapshots.
 
 ### Testing the digest
 
-Requires `netlify login` and `netlify link`.
-
 ```bash
-# Negative test — should find nothing after a recent successful run
-netlify functions:invoke send-digest --live
+# Run it now (dry run if EMAIL_DIGEST_DRY_RUN=true on that deploy)
+curl -X POST -H "x-digest-secret: $DIGEST_SECRET" \
+  https://santacruz.theater/.netlify/functions/send-digest-background
 
-# Dry run — preview without sending or advancing the timestamp
-netlify env:set EMAIL_DIGEST_DRY_RUN true
-netlify deploy --trigger
-netlify functions:invoke send-digest --live
-
-# Real send — reset the timestamp, then invoke live
-netlify env:unset EMAIL_DIGEST_DRY_RUN
-netlify blobs:set audition-notifications last-sent "1970-01-01T00:00:00.000Z"
-netlify deploy --trigger
-netlify functions:invoke send-digest --live
-
-# Inspect / manipulate the stored timestamp
-netlify blobs:get audition-notifications last-sent
-netlify blobs:set audition-notifications last-sent "2026-06-01T00:00:00.000Z"
-netlify blobs:delete audition-notifications last-sent   # next run treats everything as new
+# Inspect / reset stored state
+netlify blobs:list email-digests
+netlify blobs:get email-digests snapshot/performances
+netlify blobs:delete email-digests snapshot/performances   # next run re-seeds, sends nothing
+netlify blobs:delete email-digests run/2026-10-20          # let today's run send again
 
 # Logs
-netlify functions:log send-digest --live
+netlify functions:log send-digest-background --live
 ```
 
 Healthcheck: 24h period, ~2h grace. It pings on every successful run, so a
 missing ping always means a problem.
 
-| Symptom                           | Likely cause                                |
-| --------------------------------- | ------------------------------------------- |
-| `MissingBlobsEnvironmentError`    | `NETLIFY_SITE_ID` / `NETLIFY_TOKEN` not set |
-| `missing BUTTONDOWN_API_KEY`      | key not set or not yet deployed             |
-| Buttondown 401                    | API key invalid/revoked                     |
-| Buttondown 429                    | rate limited; retries next run              |
-| No healthcheck ping on success    | `DIGEST_HEALTHCHECK_URL` not set            |
-| Same records reappear next digest | Blob write failed after send — check logs   |
+| Symptom                           | Likely cause                                         |
+| --------------------------------- | ---------------------------------------------------- |
+| `missing or wrong secret` in logs | `DIGEST_SECRET` not set, or differs between deploys  |
+| `MissingBlobsEnvironmentError`    | `NETLIFY_SITE_ID` / `NETLIFY_TOKEN` not set          |
+| `missing BUTTONDOWN_API_KEY`      | key not set or not yet deployed                      |
+| Buttondown 401                    | API key invalid/revoked                              |
+| Buttondown 429 after retries      | rate limited; the next run resumes from `run/<date>` |
+| No healthcheck ping on success    | `DIGEST_HEALTHCHECK_URL` not set                     |
+| Same notices in two digests       | snapshot write failed after sending — check logs     |
 
 ## 9. Validation scripts
 
@@ -812,18 +897,19 @@ construction):
 
 Set in Netlify → Site configuration → Environment variables.
 
-| Variable                    | Req. | Used by                            | Purpose                                                |
-| --------------------------- | ---- | ---------------------------------- | ------------------------------------------------------ |
-| `GITHUB_TOKEN`              | yes  | `data.mjs`, `upload-image.mjs`     | fine-grained PAT, Contents read/write                  |
-| `GITHUB_OWNER`              | yes  | same                               | repo owner                                             |
-| `GITHUB_REPO`               | yes  | same                               | repo name                                              |
-| `GITHUB_BRANCH`             | no   | same                               | commit branch (default `main`)                         |
-| `BUTTONDOWN_API_KEY`        | yes  | `subscribe.mts`, `send-digest.mts` | Buttondown API key                                     |
-| `NETLIFY_SITE_ID`           | yes  | `send-digest.mts`                  | Blobs access (not injected for scheduled functions)    |
-| `NETLIFY_TOKEN`             | yes  | `send-digest.mts`                  | Blobs access                                           |
-| `EMAIL_DIGEST_DRY_RUN`      | no   | `send-digest.mts`                  | `true` → log only; don't send or advance timestamp     |
-| `DIGEST_HEALTHCHECK_URL`    | no   | `send-digest.mts`                  | pinged on every successful run                         |
-| `SUBSCRIBE_HEALTHCHECK_URL` | no   | `subscribe.mts`                    | welcome email: base URL on success, `/fail` on failure |
+| Variable                    | Req. | Used by                        | Purpose                                                |
+| --------------------------- | ---- | ------------------------------ | ------------------------------------------------------ |
+| `GITHUB_TOKEN`              | yes  | `data.mjs`, `upload-image.mjs` | fine-grained PAT, Contents read/write                  |
+| `GITHUB_OWNER`              | yes  | same                           | repo owner                                             |
+| `GITHUB_REPO`               | yes  | same                           | repo name                                              |
+| `GITHUB_BRANCH`             | no   | same                           | commit branch (default `main`)                         |
+| `BUTTONDOWN_API_KEY`        | yes  | email functions                | Buttondown API key                                     |
+| `DIGEST_SECRET`             | yes  | `send-digest*.mts`             | shared secret: trigger → background digest             |
+| `NETLIFY_SITE_ID`           | yes  | `send-digest-background.mts`   | Blobs access                                           |
+| `NETLIFY_TOKEN`             | yes  | `send-digest-background.mts`   | Blobs access                                           |
+| `EMAIL_DIGEST_DRY_RUN`      | no   | `send-digest-background.mts`   | `true` → log only; send and save nothing               |
+| `DIGEST_HEALTHCHECK_URL`    | no   | `send-digest-background.mts`   | pinged on every successful run                         |
+| `SUBSCRIBE_HEALTHCHECK_URL` | no   | `subscribe.mts`                | welcome email: base URL on success, `/fail` on failure |
 
 ## 12. Build, deploy & branch workflow
 

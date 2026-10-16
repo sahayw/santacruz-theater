@@ -404,14 +404,42 @@ Completely blank date rows are ignored.
 
 ## 8. Email updates
 
-Visitors subscribe on `/events` or `/subscribe`.
+Two lists, for two audiences. Visitors pick either or both on `/subscribe`:
 
-- **Welcome email**, sent immediately: everything currently upcoming,
-  auditions and events in separate sections.
-- **Daily digest**: new and updated auditions and events since the last
-  digest. No changes, no email.
-- Every email has an unsubscribe link. Nothing to configure — it follows
-  from edits to activity records.
+- **Performance updates** — new productions, added or cancelled dates,
+  venue changes, and when tickets go on sale. Under it, **Select companies**
+  lists Santa Cruz Shakespeare, Actors' Theatre, Mountain Community Theater
+  and Renegade Theater, all ticked; untick any you don't want. Productions by
+  every other company and organizer are always included. A co-production is
+  included if any of its organizers is.
+- **Audition & event notices** — new auditions and events, added or
+  cancelled sessions, location changes, registration opening, and reopened
+  notices. All companies.
+
+What gets emailed:
+
+- **Welcome email**, sent immediately: one email with what's coming up for
+  each list chosen.
+- **Nightly digest**, one per list, only when there's news. **New** covers
+  records that have just become upcoming — a production saved before its
+  dates is announced when the dates are added. **Updates** carry labels
+  saying what changed ("2 dates added", "Tickets on sale", "Venue changed",
+  "Registration open"…). Description, price, contact and wording edits never
+  send email, so fixing a typo is safe. A performance that has happened just
+  drops off.
+- Every email ends with **Change your choices** and **Unsubscribe from
+  everything**.
+
+Changing choices:
+
+- **Change your choices** opens `/subscribe/manage` with the subscriber's
+  lists and companies. Unticking both lists and saving asks whether to
+  unsubscribe. An unsubscribed visitor can tick a list and save to come back.
+- Without the link, `/subscribe/manage` asks for the address and emails it a
+  fresh link. Subscribing an address that's already on file does the same.
+  Neither ever says whether an address is subscribed.
+
+Nothing for editors to configure — it all follows from their edits.
 
 ---
 

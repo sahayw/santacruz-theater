@@ -1,0 +1,201 @@
+---
+// /subscribe/manage?s=<subscriber id> — a subscriber's choices, from the "Change your
+// choices" link in every email. Without `?s=` (or with a dead link) it asks for the
+// address and emails a fresh link, never saying whether the address is subscribed.
+// See docs/notifications-spec.md ("Subscribe and manage").
+import SubscribeShell from '../../components/SubscribeShell.astro'
+import SubscribeChoices from '../../components/SubscribeChoices.astro'
+---
+
+<SubscribeShell
+  title="Your email updates — Santa Cruz Theater"
+  description="Change which Santa Cruz Theater emails you get."
+  canonicalPath="/subscribe/manage"
+  noindex
+>
+  <!-- Choices, for ?s= -->
+  <section id="manage" hidden>
+    <h1 class="sub-title">Your email updates</h1>
+    <span class="sub-who" id="manage-who"></span>
+    <div class="sub-card">
+      <form id="manage-form" class="sub-form" novalidate>
+        <div class="sub-status ok" id="manage-unsubscribed" hidden>
+          You're unsubscribed. Tick a list and save to subscribe again.
+        </div>
+        <SubscribeChoices />
+        <div class="sub-status info" id="manage-confirm" hidden>
+          <b>Nothing selected.</b> Do you want to unsubscribe?
+          <div class="sub-btn-row">
+            <button type="button" class="sub-btn sub-btn--warn" id="manage-unsub">Unsubscribe</button>
+            <button type="button" class="sub-btn sub-btn--ghost" id="manage-keep">
+              Keep my subscription
+            </button>
+          </div>
+        </div>
+        <div class="sub-status" id="manage-status" hidden aria-live="polite"></div>
+        <button type="submit" class="sub-btn" id="manage-save">Save changes</button>
+      </form>
+    </div>
+  </section>
+
+  <!-- Lost link -->
+  <section id="lost" hidden>
+    <a href="/subscribe" class="back-link">&#8592; Email updates</a>
+    <h1 class="sub-title">Change your email updates</h1>
+    <p class="sub-desc" id="lost-desc">
+      Enter the address you subscribed with. We'll email it a link to change your choices.
+    </p>
+    <div class="sub-card">
+      <form id="lost-form" class="sub-form" novalidate>
+        <div>
+          <label for="lost-email" class="sub-label">Email address</label>
+          <input
+            type="email"
+            id="lost-email"
+            class="sub-input"
+            placeholder="you@example.com"
+            autocomplete="email"
+            required
+          />
+        </div>
+        <div class="sub-err" id="lost-err" hidden aria-live="polite"></div>
+        <div class="sub-status info" id="lost-status" hidden aria-live="polite"></div>
+        <button type="submit" class="sub-btn" id="lost-btn">Email me a link</button>
+      </form>
+    </div>
+  </section>
+
+  <p class="sub-status" id="loading">Loading your choices…</p>
+</SubscribeShell>
+
+<script>
+  import { readFormChoices, setFormChoices } from '../../lib/subscribe-choices.ts'
+
+  const API = '/.netlify/functions/preferences'
+  const $ = <T extends HTMLElement = HTMLElement>(id: string) => document.getElementById(id) as T
+  const s = new URLSearchParams(location.search).get('s')
+
+  const post = async (body: Record<string, unknown>) => {
+    const resp = await fetch(API, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    })
+    const data = await resp.json().catch(() => ({}))
+    return { ok: resp.ok, message: (data.message as string) || 'Something went wrong — please try again shortly.' }
+  }
+
+  // ── Lost link ──
+  function showLost(message?: string) {
+    $('loading').hidden = true
+    $('manage').hidden = true
+    $('lost').hidden = false
+    if (message) $('lost-desc').textContent = message
+  }
+
+  $('lost-form').addEventListener('submit', async (e) => {
+    e.preventDefault()
+    const email = $<HTMLInputElement>('lost-email').value.trim()
+    const err = $('lost-err')
+    err.hidden = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
+    err.textContent = 'Enter your email address.'
+    if (!err.hidden) return
+    const btn = $<HTMLButtonElement>('lost-btn')
+    btn.disabled = true
+    try {
+      const { ok, message } = await post({ action: 'send-link', email })
+      const status = $('lost-status')
+      status.textContent = message
+      status.className = `sub-status ${ok ? 'info' : 'err'}`
+      status.hidden = false
+    } catch {
+      err.textContent = 'Network error — please try again shortly.'
+      err.hidden = false
+    } finally {
+      btn.disabled = false
+    }
+  })
+
+  // ── Choices ──
+  const form = $<HTMLFormElement>('manage-form')
+  const confirmBox = $('manage-confirm')
+  const status = $('manage-status')
+  const saveBtn = $<HTMLButtonElement>('manage-save')
+
+  function showStatus(kind: 'ok' | 'err', message: string) {
+    status.textContent = message
+    status.className = `sub-status ${kind}`
+    status.hidden = false
+  }
+
+  function setUnsubscribed(on: boolean) {
+    $('manage-unsubscribed').hidden = !on
+    if (on) setFormChoices({ lists: [], excluded: [] })
+  }
+
+  async function load() {
+    try {
+      const resp = await fetch(`${API}?s=${encodeURIComponent(s!)}`)
+      const data = await resp.json().catch(() => ({}))
+      if (!resp.ok) return showLost(data.message)
+      $('manage-who').textContent = data.email
+      setFormChoices(data)
+      setUnsubscribed(!data.lists.length)
+      $('loading').hidden = true
+      $('manage').hidden = false
+    } catch {
+      $('loading').textContent = 'Network error — please reload the page.'
+    }
+  }
+
+  form.addEventListener('change', () => {
+    status.hidden = true
+    confirmBox.hidden = true
+    saveBtn.hidden = false
+  })
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault()
+    const choices = readFormChoices(form)
+    if (!choices.lists.length) {
+      confirmBox.hidden = false
+      saveBtn.hidden = true
+      return
+    }
+    saveBtn.disabled = true
+    try {
+      const { ok, message } = await post({ action: 'update', s, ...choices })
+      if (ok) setUnsubscribed(false)
+      showStatus(ok ? 'ok' : 'err', ok ? 'Saved. Your next email will follow these choices.' : message)
+    } catch {
+      showStatus('err', 'Network error — please try again shortly.')
+    } finally {
+      saveBtn.disabled = false
+    }
+  })
+
+  $('manage-keep').addEventListener('click', () => {
+    confirmBox.hidden = true
+    saveBtn.hidden = false
+    load()
+  })
+
+  $('manage-unsub').addEventListener('click', async () => {
+    const btn = $<HTMLButtonElement>('manage-unsub')
+    btn.disabled = true
+    try {
+      const { ok, message } = await post({ action: 'unsubscribe', s })
+      confirmBox.hidden = true
+      saveBtn.hidden = false
+      if (ok) setUnsubscribed(true)
+      else showStatus('err', message)
+    } catch {
+      showStatus('err', 'Network error — please try again shortly.')
+    } finally {
+      btn.disabled = false
+    }
+  })
+
+  if (s) load()
+  else showLost()
+</script>

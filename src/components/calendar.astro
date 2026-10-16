@@ -793,7 +793,7 @@ const icsMajors = JSON.stringify(majors.map(({ code, label, name }) => ({ code, 
   .wv-cell.focus {
     background: #fff6e0;
   }
-  /* Day number strip across the top of each day; tinted for the month being shown */
+  /* Day number strip across the top of each day; tinted for the neighbouring months' days */
   .day-strip {
     margin: -3px -3px 1px;
     padding: 2px 2px 1px;
@@ -801,8 +801,8 @@ const icsMajors = JSON.stringify(majors.map(({ code, label, name }) => ({ code, 
   .wv-cell .day-strip {
     margin: -3px -1px 1px;
   }
-  .mv-cell.in-month .day-strip {
-    background: #f8f0dc;
+  .mv-cell:not(.in-month) .day-strip {
+    background: #faf4e6;
     border-bottom: 1px solid #f1ece5;
   }
   .day-num-btn {
@@ -1117,7 +1117,7 @@ const icsMajors = JSON.stringify(majors.map(({ code, label, name }) => ({ code, 
     let html = DOW.map((d) => `<div class="mv-dow">${d}</div>`).join('')
     for (let d = start; d <= end; d = addDays(d, 1)) {
       const label = d.getDate() === 1 ? `${MONTHS[d.getMonth()].slice(0, 3)} 1` : d.getDate()
-      // The month's own days get a tinted number strip; its neighbours' don't
+      // The neighbouring months' days get a tinted number strip; the month's own don't
       html += dayCellHtml(d, d.getMonth() === m ? 'mv-cell in-month' : 'mv-cell', label)
     }
     return `<div class="mv-grid">${html}</div>`

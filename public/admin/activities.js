@@ -1606,7 +1606,8 @@ function restoreActivity() {
 function deleteActivity() {
   if (activeActIdx < 0) return
   const a = activities[activeActIdx]
-  if (!confirm(`Delete "${a.title || 'this activity'}"? This cannot be undone.`)) return
+  if (!confirm(`Delete "${a.title || 'this activity'}"? It's removed from the file when you Save.`))
+    return
   activities.splice(activeActIdx, 1)
   activeActIdx = Math.min(activeActIdx, activities.length - 1)
   renderSidebar()
@@ -2286,6 +2287,11 @@ function closePreviewOutside(e) {
 }
 
 // ── MODULE API ──
+/** For the /admin shell: warn before leaving with unsaved changes. */
+export function hasUnsavedChanges() {
+  return !!currentCompanyId && computeIsDirty()
+}
+
 export function mount(container, context) {
   injectStyles()
   container.innerHTML = ACT_HTML

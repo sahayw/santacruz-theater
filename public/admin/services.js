@@ -795,7 +795,8 @@ function newListing() {
 function deleteListing() {
   if (activeIdx < 0) return
   const l = listings[activeIdx]
-  if (!confirm(`Delete "${l.name || 'this listing'}"? This cannot be undone.`)) return
+  if (!confirm(`Delete "${l.name || 'this listing'}"? It's removed from the file when you Save.`))
+    return
   listings.splice(activeIdx, 1)
   snapshots.delete(l.id)
   pendingUpload = null
@@ -1007,6 +1008,11 @@ function closePreviewOutside(e) {
 }
 
 // ── MODULE API ──
+/** For the /admin shell: warn before leaving with unsaved changes. */
+export function hasUnsavedChanges() {
+  return computeIsDirty()
+}
+
 export function mount(container, context) {
   injectStyles()
   container.innerHTML = SVC_HTML

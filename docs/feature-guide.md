@@ -382,6 +382,10 @@ Completely blank date rows are ignored.
 - **Restore** — appears only with unsaved changes; reverts to the last save.
 - **Save** — publishes the whole file (every record for that company and
   year).
+- **Delete** — removes the record from the editor; it's gone from the file
+  only when you **Save**.
+- Leaving an editor (Home, another editor, or closing the tab) with unsaved
+  changes asks before discarding them.
 
 ---
 

@@ -556,14 +556,14 @@ const CAL_HTML = `
           </div>
         </div>
         <div class="hdr-row">
-          <div class="field-group" style="flex:1 1 220px">
+          <div class="field-group" style="flex:0 1 200px">
             <label class="field-label">Venue</label>
             <input class="field-input" id="f-venue" placeholder="Venue name" autocomplete="off"
               oninput="cal.onVenueInput(this); cal.runFieldChanged()" onfocus="cal.onVenueInput(this)"
               onblur="setTimeout(()=>cal.hideCalVenueDropdown(),150)"
               onkeydown="cal.venueKeyDown(event,this)">
           </div>
-          <div class="field-group" style="flex:0 1 170px">
+          <div class="field-group" style="flex:0 1 150px">
             <label class="field-label">Location</label>
             <input class="field-input" id="f-room" placeholder="e.g. Second Stage" oninput="cal.runFieldChanged()">
           </div>
@@ -571,9 +571,13 @@ const CAL_HTML = `
             <label class="field-label">Price</label>
             <input class="field-input" id="f-price" placeholder="e.g. $xx-$yy" oninput="cal.runFieldChanged()">
           </div>
-          <div class="field-group" style="flex:1 1 220px">
+          <div class="field-group" style="flex:0 1 230px">
             <label class="field-label">Discounts</label>
             <input class="field-input" id="f-discounts" placeholder="e.g. Senior $aa, Student $bb" oninput="cal.runFieldChanged()">
+          </div>
+          <div class="field-group" style="flex:0 1 auto">
+            <label class="field-label">Co-producers</label>
+            <div id="f-coproducers"></div>
           </div>
         </div>
         <div class="hdr-row">
@@ -588,10 +592,6 @@ const CAL_HTML = `
           <div class="field-group" style="flex:0 0 auto">
             <label class="field-label">Genre (up to ${MAX_GENRES})</label>
             ${genreBoxesHtml('f-genre', 'cal.genreChanged(this)')}
-          </div>
-          <div class="field-group" style="flex:0 1 auto">
-            <label class="field-label">Co-producers</label>
-            <div id="f-coproducers"></div>
           </div>
         </div>
       </div>
@@ -1173,7 +1173,8 @@ function newRun() {
 function deleteRun() {
   if (activeRunIdx < 0) return
   const r = runs[activeRunIdx]
-  if (!confirm(`Delete "${r.showAbv || 'this run'}"? This cannot be undone.`)) return
+  if (!confirm(`Delete "${r.showAbv || r.show || 'this show'}"? It's removed from the file when you Save.`))
+    return
   runs.splice(activeRunIdx, 1)
   activeRunIdx = Math.min(activeRunIdx, runs.length - 1)
   renderSidebar()
@@ -1819,6 +1820,11 @@ function closePreviewOutside(e) {
 }
 
 // ── MODULE API ──
+/** For the /admin shell: warn before leaving with unsaved changes. */
+export function hasUnsavedChanges() {
+  return !!currentCompanyId && computeRunsDirty()
+}
+
 export function mount(container, context) {
   injectStyles()
   container.innerHTML = CAL_HTML

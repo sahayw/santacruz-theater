@@ -231,7 +231,8 @@ const ACT_CSS = `
 .act-table thead th.col-locn  { width: 150px; }
 .act-table thead th.col-loca  { width: 160px; }
 .act-table thead th.col-room  { width: 110px; }
-.act-cell-input[readonly] { color: var(--ink-faint); }
+/* A listed venue's address: shown for reference, not focusable or selectable */
+.act-cell-input:disabled { color: var(--ink-faint); background: transparent; cursor: default; user-select: none; -webkit-user-select: none; }
 .act-table thead th.col-type  { width: 100px; }
 .act-table thead th.col-gend  { width: 80px; }
 .act-table thead th.col-age   { width: 90px; }
@@ -1763,7 +1764,7 @@ function renderDatesTable() {
           onblur="setTimeout(()=>act.hideVenueDropdown(),150)"
           onkeydown="act.dateCellKey(event,${i},'locName')" id="dc-${i}-locName"></td>
       <td><input class="act-cell-input" value="${esc(locAddrOf(d))}" placeholder="${d.venue ? '' : '123 Main St, City'}"
-          ${d.venue ? 'readonly title="Listed venue — address comes from the venue list"' : ''}
+          ${d.venue ? 'disabled title="Listed venue — address comes from the venue list"' : ''}
           onchange="act.dateCellChanged(${i},'locAddr',this.value)"
           onkeydown="act.dateCellKey(event,${i},'locAddr')" id="dc-${i}-locAddr"></td>
       <td><input class="act-cell-input" value="${esc(d.room)}" placeholder="e.g. Studio B"
@@ -1861,7 +1862,7 @@ function refreshLocationCells(idx) {
   if (nameEl) nameEl.value = locNameOf(d)
   if (addrEl) {
     addrEl.value = locAddrOf(d)
-    addrEl.readOnly = !!d.venue
+    addrEl.disabled = !!d.venue
     addrEl.placeholder = d.venue ? '' : '123 Main St, City'
   }
 }
@@ -1891,7 +1892,14 @@ function dateCellKey(event, rowIdx, field) {
   if (event.key === 'Tab') {
     event.preventDefault()
     hideVenueDropdown()
-    const next = event.shiftKey ? col - 1 : col + 1
+    // Step over cells that can't take focus (a listed venue's address)
+    let next = event.shiftKey ? col - 1 : col + 1
+    while (
+      next >= 0 &&
+      next < DATE_COLS.length &&
+      document.getElementById(`dc-${rowIdx}-${DATE_COLS[next]}`)?.disabled
+    )
+      next += event.shiftKey ? -1 : 1
     if (next >= 0 && next < DATE_COLS.length) {
       document.getElementById(`dc-${rowIdx}-${DATE_COLS[next]}`)?.focus()
     } else if (!event.shiftKey) {

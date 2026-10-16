@@ -95,7 +95,8 @@ production's. Every card names its organizers.
 
 What the dialog offers depends on what's being added:
 
-- **Whole calendars** are offered only as a **subscription**: **Apple
+- **Whole calendars** are offered only as a **subscription**, under the
+  title **Subscribe to this calendar**: **Apple
   Calendar / Outlook** (a `webcal:` link), **Google Calendar**, or **Copy
   link** for any other app. Edits, new dates and removals show up when the
   app next refreshes. Each app chooses how often to refresh; Google can take

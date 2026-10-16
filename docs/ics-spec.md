@@ -268,8 +268,10 @@ near-identical, so one route does the job with less code.
 ## Website UI (phase C)
 
 **Add to my calendar** opens one dialog, whose content depends on what's
-being added. The dialog's title is followed by the calendar's or event's name
-at a similar size, so it's clear what's being added.
+being added. Its title says what it does: **Subscribe to this calendar** for
+whole calendars, **Add to my calendar** for single items. The title is
+followed by the calendar's or event's name at a similar size, so it's clear
+what's being added.
 
 - **Subscribe** (whole calendars):
   - **Apple / Outlook**: a `webcal://` link.

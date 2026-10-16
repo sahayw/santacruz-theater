@@ -96,6 +96,7 @@
 
   const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as T
   const dialog = $<HTMLDialogElement>('icsDialog')
+  const titleEl = $('icsTitle')
   const nameEl = $('icsName')
   const choiceWrap = $('icsChoiceWrap')
   const choiceLabel = $('icsChoiceLabel')
@@ -270,6 +271,8 @@
     choices = icsChoices ? (JSON.parse(icsChoices) as Choice[]) : []
     majors = icsMajors ? (JSON.parse(icsMajors) as Major[]) : []
     const subscribing = Boolean(icsChoices || icsMajors || icsFeed)
+    // The buttons all read "Add to my calendar"; the title says what this one does
+    titleEl.textContent = subscribing ? 'Subscribe to this calendar' : 'Add to my calendar'
     subscribeSection.hidden = !subscribing
     saveSection.hidden = subscribing
     choiceWrap.hidden = choices.length === 0

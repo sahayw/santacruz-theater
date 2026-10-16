@@ -15,7 +15,63 @@ export async function apiFetch(file) {
   return resp.json()
 }
 
+// ── Out-of-date editor ──
+// /admin/version.json fingerprints the editor's code (src/pages/admin/version.json.ts).
+// If it changes while a tab is open, the tab is running old code: it's asked to reload
+// when it regains focus, and can't save until it does. An unreachable version file
+// never blocks anything; the save function checks every save anyway.
+
+async function fetchVersion() {
+  try {
+    const resp = await fetch('/admin/version.json', { cache: 'no-store' })
+    return resp.ok ? (await resp.json()).version : null
+  } catch {
+    return null
+  }
+}
+
+const loadedVersion = fetchVersion()
+
+async function editorIsCurrent() {
+  const [then, now] = await Promise.all([loadedVersion, fetchVersion()])
+  return !then || !now || then === now
+}
+
+function showReloadBanner() {
+  if (document.getElementById('editor-outdated')) return
+  const bar = document.createElement('div')
+  bar.id = 'editor-outdated'
+  bar.setAttribute('role', 'alert')
+  bar.style.cssText =
+    'position:fixed;top:0;left:0;right:0;z-index:10000;display:flex;gap:12px;align-items:center;' +
+    'justify-content:center;flex-wrap:wrap;padding:10px 16px;background:#8f2f22;color:#fff;' +
+    "font:14px 'DM Sans',sans-serif;box-shadow:0 2px 8px rgba(0,0,0,.25)"
+  bar.textContent = 'The editor has been updated. Reload to use the new version before saving.'
+  const btn = document.createElement('button')
+  btn.textContent = 'Reload'
+  btn.style.cssText =
+    'font:inherit;font-weight:600;padding:4px 14px;border-radius:4px;border:none;cursor:pointer;' +
+    'background:#fff;color:#8f2f22'
+  btn.addEventListener('click', () => location.reload())
+  bar.append(btn)
+  document.body.append(bar)
+}
+
+async function checkForUpdate() {
+  if (!(await editorIsCurrent())) showReloadBanner()
+}
+window.addEventListener('focus', checkForUpdate)
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible') checkForUpdate()
+})
+
 export async function apiPut(file, payload) {
+  if (!(await editorIsCurrent())) {
+    showReloadBanner()
+    throw new Error(
+      'the editor has been updated since this page was opened. Reload the page, then make your changes again.'
+    )
+  }
   const hdrs = { 'Content-Type': 'application/json' }
   if (_identityUser) {
     hdrs['Authorization'] = `Bearer ${await _identityUser.jwt()}`

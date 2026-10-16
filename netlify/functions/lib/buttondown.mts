@@ -3,12 +3,15 @@
  *
  * Buttondown documents only one per-endpoint limit (creating subscribers, 100 an hour) and
  * no rate-limit headers, so a 429 is retried after a pause. Tag filters on emails take tag
- * ids, not names — see tagIds().
+ * ids, not names — see tagIds(). Subscribers take tag names, but a name Buttondown hasn't
+ * seen becomes a colourless tag the dashboard doesn't list, so the subscriber calls create
+ * any missing tag first.
  *
  * Required env var: BUTTONDOWN_API_KEY
  */
 
 const API = 'https://api.buttondown.email/v1'
+const TAG_COLOUR = '#3b82f6'
 
 export interface Subscriber {
   id: string
@@ -63,9 +66,30 @@ export function buttondown(apiKey = process.env.BUTTONDOWN_API_KEY) {
 
   const sub = (idOrEmail: string) => `/subscribers/${encodeURIComponent(idOrEmail)}`
 
+  /** Tag ids by name, creating any tag that doesn't exist yet (Buttondown requires a colour). */
+  async function tagIds(names: string[]) {
+    const ids: Record<string, string> = {}
+    let next: string | null = '/tags'
+    while (next) {
+      const page: { results: { id: string; name: string }[]; next: string | null } = await call(
+        'GET',
+        next
+      )
+      for (const t of page.results) ids[t.name] = t.id
+      next = page.next
+    }
+    for (const name of names)
+      if (!ids[name])
+        ids[name] = (
+          await call<{ id: string }>('POST', '/tags', { name, color: TAG_COLOUR, description: '' })
+        ).id
+    return ids
+  }
+
   return {
     /** Creates a subscriber; `null` when the address already exists (subscribed or not). */
     async createSubscriber(email: string, tags: string[], metadata: Record<string, unknown>) {
+      await tagIds(tags)
       try {
         return await call<Subscriber>('POST', '/subscribers', {
           email_address: email,
@@ -92,7 +116,11 @@ export function buttondown(apiKey = process.env.BUTTONDOWN_API_KEY) {
     },
 
     /** Replaces the given fields (tags replace the whole tag list). */
-    updateSubscriber(id: string, fields: Partial<Pick<Subscriber, 'tags' | 'metadata' | 'type'>>) {
+    async updateSubscriber(
+      id: string,
+      fields: Partial<Pick<Subscriber, 'tags' | 'metadata' | 'type'>>
+    ) {
+      if (fields.tags) await tagIds(fields.tags)
       return call<Subscriber>('PATCH', sub(id), fields)
     },
 
@@ -109,22 +137,7 @@ export function buttondown(apiKey = process.env.BUTTONDOWN_API_KEY) {
       return all
     },
 
-    /** Tag ids by name, creating any tag that doesn't exist yet. */
-    async tagIds(names: string[]) {
-      const ids: Record<string, string> = {}
-      let next: string | null = '/tags'
-      while (next) {
-        const page: { results: { id: string; name: string }[]; next: string | null } = await call(
-          'GET',
-          next
-        )
-        for (const t of page.results) ids[t.name] = t.id
-        next = page.next
-      }
-      for (const name of names)
-        if (!ids[name]) ids[name] = (await call<{ id: string }>('POST', '/tags', { name })).id
-      return ids
-    },
+    tagIds,
 
     /**
      * Creates an email. `about_to_send` broadcasts it (to `filters`' subscribers);

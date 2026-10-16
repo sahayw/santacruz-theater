@@ -415,6 +415,11 @@ Completely blank date rows are ignored.
   elsewhere or deleted.
 - Leaving an editor (Home, another editor, or closing the tab) with unsaved
   changes asks before discarding them.
+- **If the editor is updated while it's open**, a red bar asks you to reload
+  when you come back to the tab, and Save is refused until you do (unsaved
+  changes in that tab are lost, so reload before starting new edits).
+- **A save that would break the site is refused**, with the reasons, and
+  nothing is saved. The site keeps publishing everyone else's edits.
 
 ---
 

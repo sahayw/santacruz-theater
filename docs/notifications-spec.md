@@ -288,7 +288,7 @@ Terminology: the **year view** and the **month view** (larger screens) or
 
 ## Out of scope
 
-- **Server-side edit permissions**: `data.mjs` checks only that the user is
+- **Server-side edit permissions**: `data.mts` checks only that the user is
   signed in, not per-company access. Fix separately.
 - **"n more productions from companies you left out"** line in emails.
 - **The alerting agent itself**: only the missing-details list it reads is in

@@ -85,7 +85,7 @@ export function activityPrint(a: Activity, today: string): ActivityPrint {
   return {
     listable: isUpcomingActivity(a, today),
     closed: !!a.closed,
-    sessions: Object.fromEntries(upcoming.map((d) => [d.id, `${d.date} ${d.startTime}`])),
+    sessions: Object.fromEntries(upcoming.map((d) => [d.id, `${d.date} ${d.startTime ?? ''}`])),
     places: Object.fromEntries(
       upcoming.map((d) => [d.id, `${d.venue ?? d.location?.name ?? ''}|${d.room ?? ''}`])
     ),

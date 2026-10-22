@@ -51,7 +51,7 @@ const feedChoices = JSON.stringify([
 
 /** "Download all dates" — only for an open activity with more than one scheduled session. */
 function hasMultipleSessions(act: ActivityEvent): boolean {
-  return !act.closed && act.dates.filter((d) => d.date && d.startTime).length > 1
+  return !act.closed && act.dates.filter((d) => d.date).length > 1
 }
 
 function genreClass(genre: string): string {
@@ -241,7 +241,7 @@ function roleTypeLabel(type: string): string {
                                       {fmtTimeRange(ad.startTime, ad.endTime ?? '')}
                                     </span>
                                     {ad.notes && <span class="detail-date-note">{ad.notes}</span>}
-                                    {!act.closed && ad.date && ad.startTime && (
+                                    {!act.closed && ad.date && (
                                       <button
                                         type="button"
                                         class="session-add"
@@ -430,7 +430,7 @@ function roleTypeLabel(type: string): string {
                                       {fmtTimeRange(ad.startTime, ad.endTime ?? '')}
                                     </span>
                                     {ad.notes && <span class="detail-date-note">{ad.notes}</span>}
-                                    {!act.closed && ad.date && ad.startTime && (
+                                    {!act.closed && ad.date && (
                                       <button
                                         type="button"
                                         class="session-add"

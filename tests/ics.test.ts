@@ -116,6 +116,16 @@ describe('serializeFeed', () => {
     ])
   })
 
+  it('writes a session with no start time as an all-day event', () => {
+    const untimed = activity({ dates: [{ id: 'session-5', date: '2026-12-01' }] })
+    const feed = buildFeeds([], [untimed], ctx, '2026-10-14').find((f) => f.path === 'activities')!
+    const out = serializeFeed(feed)
+    expect(out).toContain('DTSTART;VALUE=DATE:20261201')
+    expect(out).toContain('DTEND;VALUE=DATE:20261202')
+    expect(feedProblems(out)).toEqual([])
+    expect(parse(out)[0].startDate.isDate).toBe(true)
+  })
+
   it('escapes special characters so they round-trip', () => {
     const tricky = run({ showAbv: 'Rock, Paper; Scissors\\Lizard', show: 'x' })
     const [e] = parse(serializeFeed(feedFor([tricky], [])))

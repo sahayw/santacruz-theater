@@ -163,6 +163,9 @@ Rules:
   - Summary: `Audition: {title} — {org}` or `Event: {title} — {org}`, where
     `{org}` is the organizer name(s). The ` — {org}` part is dropped when
     there's no organizer.
+  - No start time: an all-day entry — `DTSTART;VALUE=DATE` on the session's
+    date, `DTEND;VALUE=DATE` the next day. It sorts ahead of timed sessions
+    that day; an end time is not allowed without a start time.
   - End time: `endTime` if set, otherwise start + 2 hours. An `endTime` at or
     before the start time means the session ends the next day.
   - Location: the session's `venue` code or one-off `location` (plus any
@@ -221,7 +224,8 @@ Rules:
 - One fixed `VTIMEZONE` for America/Los_Angeles, using the US daylight-saving
   rules in force since 2007.
 - `DTSTART;TZID=America/Los_Angeles:YYYYMMDDTHHMMSS`, and the same form for
-  `DTEND`.
+  `DTEND`. An all-day session uses `DTSTART;VALUE=DATE:YYYYMMDD` and a
+  `DTEND;VALUE=DATE` of the following day.
 - Text values: escape `\` `;` `,` and newlines.
 - Lines are folded at 75 **octets**, not characters, without splitting a
   UTF-8 multibyte sequence. Line endings are CRLF.

@@ -226,7 +226,9 @@ A new record is an **Audition** or an **Event**; this can't change later.
 **Both types**
 
 - Title (required). For an audition this is its **Production** — see below.
-- **Dates table**: date, start time, optional end time, venue, address,
+- **Dates table**: date, start time (optional, but saving warns, and the
+  gap is listed in the missing details; a session without one appears as an
+  all-day entry in calendar feeds), optional end time (only with a start time; clearing the start clears it), venue, address,
   location (a space within the venue), session notes. Typing a listed venue's
   name (or picking it from the suggestions) links the session to that venue,
   and its address comes from the venue list. Any other name — or **Other
@@ -312,7 +314,7 @@ regulars can be added.
 
 A build also publishes `/missing-details.json`: every upcoming production or
 open audition/event that lacks dates, a tickets link, a price, an info link,
-a description or a location. An external alerting agent reads it to chase
+a description, a location or a start time on every date. An external alerting agent reads it to chase
 the missing details.
 
 ---
@@ -393,12 +395,12 @@ lists, via toolbar buttons or Ctrl/Cmd+B / Ctrl/Cmd+I.
 - **Recommended** — Save asks "Save anyway?" (only for records you changed,
   and never for a run whose last performance has passed).
 
-| Record            | Required                                                                                                                                                                                                                                                 | Recommended                                                                                       |
-| ----------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
-| Calendar run      | title; abbreviation (≤ 20 chars); a venue from the list; an organizer if filed under Other; valid date and time on every performance                                                                                                                     | price; info URL; tickets link; description; at least one performance (otherwise it never appears) |
-| Audition or event | title; an organizer if filed under Other; at least one date with a valid date and start time (except virtual auditions and "Dates by request" events); valid end time, rehearsal-start and opening dates if entered; a production that exists, if picked | —                                                                                                 |
-| Event (also)      | one of: contact email, contact phone, info link, registration link, a named organizer's website                                                                                                                                                          | —                                                                                                 |
-| Service listing   | name; at least one category; phone or email                                                                                                                                                                                                              | —                                                                                                 |
+| Record            | Required                                                                                                                                                                                                                                                                             | Recommended                                                                                       |
+| ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------- |
+| Calendar run      | title; abbreviation (≤ 20 chars); a venue from the list; an organizer if filed under Other; valid date and time on every performance                                                                                                                                                 | price; info URL; tickets link; description; at least one performance (otherwise it never appears) |
+| Audition or event | title; an organizer if filed under Other; at least one date with a valid date (a start time is optional but warned about; except virtual auditions and "Dates by request" events); valid end time, rehearsal-start and opening dates if entered; a production that exists, if picked | —                                                                                                 |
+| Event (also)      | one of: contact email, contact phone, info link, registration link, a named organizer's website                                                                                                                                                                                      | —                                                                                                 |
+| Service listing   | name; at least one category; phone or email                                                                                                                                                                                                                                          | —                                                                                                 |
 
 Completely blank date rows are ignored.
 

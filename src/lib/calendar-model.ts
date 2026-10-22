@@ -38,6 +38,8 @@ export interface CalendarEvent {
   url: string
   start: LocalDateTime
   end: LocalDateTime
+  /** A session with no start time: a whole-day entry. `start`/`end` are midnight to the next midnight. */
+  allDay?: true
   lastModified: string // ISO 8601 instant
 }
 
@@ -157,7 +159,7 @@ function sessionLocation(d: ActivityDate, organizers: string[], ctx: CalendarCon
   return primary ? formatLocation(primary) : ''
 }
 
-function sessionEnd(d: ActivityDate): LocalDateTime {
+function sessionEnd(d: ActivityDate & { startTime: string }): LocalDateTime {
   const start = { date: d.date, time: d.startTime }
   if (!d.endTime) return addHours(start, DEFAULT_DURATION_HOURS)
   // An end time at or before the start means the session runs past midnight
@@ -166,7 +168,7 @@ function sessionEnd(d: ActivityDate): LocalDateTime {
     : { date: addHours({ date: d.date, time: '00:00' }, 24).date, time: d.endTime }
 }
 
-/** One event per dated session; a closed activity publishes none. */
+/** One event per dated session (all-day if it has no start time); a closed activity publishes none. */
 export function sessionEvents(activity: CompanyActivity, ctx: CalendarContext): CalendarEvent[] {
   if (activity.closed) return []
   const organizers = recordOrganizerIds(activity.company, activity.organizers)
@@ -179,27 +181,37 @@ export function sessionEvents(activity: CompanyActivity, ctx: CalendarContext): 
     activity.type === 'event' ? activity.description || activity.briefDescription : undefined
 
   return activity.dates
-    .filter((d) => d.date && d.startTime)
-    .map((d) => ({
-      uid: `${d.id}@${UID_DOMAIN}`,
-      kind: activity.type,
-      sourceId: d.id,
-      parentId: activity.id,
-      company: activity.company,
-      summary,
-      description: paragraphs(
-        roles && `Roles: ${roles}`,
-        body && mdToPlain(body),
-        d.notes && mdToPlain(d.notes),
-        activity.type === 'event' && activity.cost && `Cost: ${activity.cost}`,
-        `${activity.type === 'event' && activity.registerUrl ? 'Details & registration' : 'Details'}: ${url}`
-      ),
-      location: sessionLocation(d, organizers, ctx),
-      url,
-      start: { date: d.date, time: d.startTime },
-      end: sessionEnd(d),
-      lastModified: activity.updatedAt
-    }))
+    .filter((d) => d.date)
+    .map(
+      (d): CalendarEvent => ({
+        uid: `${d.id}@${UID_DOMAIN}`,
+        kind: activity.type,
+        sourceId: d.id,
+        parentId: activity.id,
+        company: activity.company,
+        summary,
+        description: paragraphs(
+          roles && `Roles: ${roles}`,
+          body && mdToPlain(body),
+          d.notes && mdToPlain(d.notes),
+          activity.type === 'event' && activity.cost && `Cost: ${activity.cost}`,
+          `${activity.type === 'event' && activity.registerUrl ? 'Details & registration' : 'Details'}: ${url}`
+        ),
+        location: sessionLocation(d, organizers, ctx),
+        url,
+        ...(d.startTime
+          ? {
+              start: { date: d.date, time: d.startTime },
+              end: sessionEnd({ ...d, startTime: d.startTime })
+            }
+          : {
+              allDay: true as const,
+              start: { date: d.date, time: '00:00' },
+              end: addHours({ date: d.date, time: '00:00' }, 24)
+            }),
+        lastModified: activity.updatedAt
+      })
+    )
 }
 
 // ── Feeds ────────────────────────────────────────────────────────────────────

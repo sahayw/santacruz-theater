@@ -1791,7 +1791,7 @@ function renderDatesTable() {
       <td><input class="act-cell-input" value="${esc(d.startTime)}" placeholder="7pm"
           onchange="act.dateCellChanged(${i},'startTime',this.value)"
           onkeydown="act.dateCellKey(event,${i},'startTime')" id="dc-${i}-startTime"></td>
-      <td><input class="act-cell-input" value="${esc(d.endTime || '')}" placeholder="9pm"
+      <td><input class="act-cell-input" value="${esc(d.endTime || '')}" placeholder="9pm"${d.startTime ? '' : ' disabled'}
           onchange="act.dateCellChanged(${i},'endTime',this.value)"
           onkeydown="act.dateCellKey(event,${i},'endTime')" id="dc-${i}-endTime"></td>
       <td><input class="act-cell-input" value="${esc(locNameOf(d))}" placeholder="Venue name"
@@ -1870,6 +1870,18 @@ function dateCellChanged(idx, field, value) {
     if (tel && tel.value !== value) tel.value = value
     d[field] = value || undefined
     if (value) setActInvalid(`dc-${idx}-${field}`, !isValidTime(value))
+    if (field === 'startTime') {
+      // An end time needs a start time: no start disables the end cell and deletes its value
+      const eel = document.getElementById(`dc-${idx}-endTime`)
+      if (!value) {
+        delete d.endTime
+        if (eel) {
+          eel.value = ''
+          eel.classList.remove('invalid')
+        }
+      }
+      if (eel) eel.disabled = !value
+    }
   } else if (field === 'date') {
     const del = document.getElementById(`dc-${idx}-date`)
     if (del && del.value !== value) del.value = value
@@ -1968,7 +1980,7 @@ function addDateRow() {
   const prev = dates.length > 0 ? dates[dates.length - 1] : null
   const newRow = { id: nextSessionId(), date: '', startTime: '' }
   if (prev?.startTime) newRow.startTime = prev.startTime
-  if (prev?.endTime) newRow.endTime = prev.endTime
+  if (prev?.startTime && prev?.endTime) newRow.endTime = prev.endTime
   if (prev?.venue) newRow.venue = prev.venue
   if (prev?.location) newRow.location = { ...prev.location }
   if (prev?.room) newRow.room = prev.room

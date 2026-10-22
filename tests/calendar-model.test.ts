@@ -172,13 +172,20 @@ describe('sessionEvents', () => {
     expect(e.location).toBe('Studio · 9 Side St')
   })
 
-  it('publishes nothing for a closed activity, and skips undated rows', () => {
+  it('publishes nothing for a closed activity, and skips undated rows, makes untimed ones all-day', () => {
     expect(sessionEvents(activity({ closed: true }), ctx)).toEqual([])
     const undated = activity({
       dates: [{ id: 'session-3', date: '', startTime: '' }],
       virtualSubmission: true
     })
     expect(sessionEvents(undated, ctx)).toEqual([])
+    const untimed = activity({ dates: [{ id: 'session-4', date: '2026-12-01' }] })
+    const [allDay] = sessionEvents(untimed, ctx)
+    expect(allDay).toMatchObject({
+      allDay: true,
+      start: { date: '2026-12-01', time: '00:00' },
+      end: { date: '2026-12-02', time: '00:00' }
+    })
   })
 })
 

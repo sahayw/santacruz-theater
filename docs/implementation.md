@@ -221,7 +221,7 @@ Validation rules (required dates, event contact route, etc.) are in the
 
 #### `ActivityDate`
 
-`{ id: "session-<timestamp>", date: "YYYY-MM-DD", startTime: "HH:MM",
+`{ id: "session-<timestamp>", date: "YYYY-MM-DD", startTime?: "HH:MM",
 endTime?: "HH:MM", notes?, venue?, location?: { name, address? }, room? }` —
 place is per session: `venue` is a listed venue code; `location` is a one-off
 place not in the list (never both). With neither, feeds fall back to the main
@@ -459,7 +459,8 @@ link hides both buttons and the intro and retitles the bar.
 
 `runGaps(run)` / `activityGaps(activity, primaryVenue)` in `data-rules.ts`
 list what an upcoming production or open activity lacks: `dates`,
-`tickets`, `price`, `info`, `description`, `location`. Production gaps are
+`tickets`, `price`, `info`, `description`, `location`, `time` (an activity date
+without a start time). Production gaps and the `time` gap are
 also the editor's warnings. `src/pages/missing-details.json.ts` publishes
 every record with gaps at build time — `{ generated, records: [{ kind, id,
 title, organizers, file, firstDate?, missing }] }` — for the external
@@ -933,9 +934,10 @@ records only) / printed.
 | Run      | at least one performance                                                                                                                                                                                | warning |
 | Activity | `title` non-blank, unless an audition with a `productionId` (which must not store one, nor `genre`, `openingDate` or `productionUrl`)                                                                   | error   |
 | Activity | at least one date, unless audition + `virtualSubmission` or event + `datesByRequest`                                                                                                                    | error   |
-| Activity | each date row: `date` as above; `startTime` valid; `endTime` valid if present                                                                                                                           | error   |
+| Activity | each date row: `date` as above; `startTime` valid if present; `endTime` valid if present, and only with a `startTime`                                                                                   | error   |
 | Activity | each date row's `venue`, if set, is a listed venue code                                                                                                                                                 | error   |
 | Activity | earliest date in the file's year                                                                                                                                                                        | error   |
+| Activity | every date row has a `startTime` (blank → warning; also the `time` gap)                                                                                                                                 | warning |
 | Audition | `rehearsalStart` / `openingDate` real `YYYY-MM-DD` if present                                                                                                                                           | error   |
 | Audition | `productionId`, if set, is an existing run id                                                                                                                                                           | error   |
 | Audition | has a `productionId` (a season-wide audition may not)                                                                                                                                                   | warning |

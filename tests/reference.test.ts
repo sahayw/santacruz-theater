@@ -208,4 +208,20 @@ describe('missing details', () => {
     expect(activityGaps(activity({ noticeUrl: 'https://x.example' }), 'TH', TODAY)).toEqual([])
     expect(activityGaps(activity({ closed: true }), undefined, TODAY)).toEqual([])
   })
+
+  it('treats a missing start time as a warning and a gap, not an error', () => {
+    const base = activity({ noticeUrl: 'https://x.example' })
+    const untimed = {
+      ...base,
+      dates: [{ ...base.dates[0], startTime: undefined, endTime: undefined }]
+    }
+    expect(activityGaps(untimed, 'TH', TODAY)).toEqual(['time'])
+    const issues = activityIssues(untimed, 2026, 'tst', refs, TODAY)
+    expect(issues.errors).toEqual([])
+    expect(issues.warnings.some((w) => w.includes('no start time'))).toBe(true)
+    const endOnly = { ...base, dates: [{ ...base.dates[0], startTime: '', endTime: '21:00' }] }
+    expect(activityIssues(endOnly, 2026, 'tst', refs, TODAY).errors[0]).toMatch(/no start time/)
+    const bad = { ...base, dates: [{ ...base.dates[0], startTime: '25:00' }] }
+    expect(activityIssues(bad, 2026, 'tst', refs, TODAY).errors[0]).toMatch(/invalid start time/)
+  })
 })

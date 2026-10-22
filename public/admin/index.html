@@ -200,6 +200,19 @@ body {
 ::-webkit-scrollbar { width: 5px; height: 5px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+/* Date fields. Chrome/Brave keep their picker icon (the text stays editable, so copy/paste works);
+   Safari has no icon, and api.js makes a click anywhere on the field open its picker. */
+input[type='date'] { width: 120px !important; min-width: 0; }
+input[type='date'].cell-input, input[type='date'].act-cell-input { width: 110px !important; }
+input[type='date']::-webkit-datetime-edit { flex: none; }
+input[type='date']::-webkit-calendar-picker-indicator { margin-left: -5px; }
+html.date-safari input[type='date'] { width: 95px !important; }
+html.date-safari input[type='date'].cell-input, html.date-safari input[type='date'].act-cell-input { width: 85px !important; }
+/* Tint the focused field as one unit */
+input[type='date']:focus { background: #b9d6fb; color: var(--ink); }
+input[type='date']:focus::-webkit-datetime-edit-month-field,
+input[type='date']:focus::-webkit-datetime-edit-day-field,
+input[type='date']:focus::-webkit-datetime-edit-year-field { background: transparent; color: var(--ink); }
 </style>
 </head>
 <body>

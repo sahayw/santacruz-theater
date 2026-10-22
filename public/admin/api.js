@@ -154,3 +154,128 @@ export function resolveUserAccess(email, companies) {
   }
   return null
 }
+
+// Date pickers can't normally be copied from or pasted into; this adds both for every
+// <input type="date"> (including ones rendered later) without losing the picker.
+const MONTHS = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec']
+
+function parseDateText(text) {
+  const s = text.trim()
+  let y, m, d
+  let match
+  if ((match = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})(?:[T\s].*)?$/))) {
+    ;[, y, m, d] = match
+  } else if ((match = s.match(/^(\d{1,2})[/.-](\d{1,2})[/.-](\d{2}|\d{4})$/))) {
+    ;[, m, d, y] = match
+    if (y.length === 2) y = '20' + y
+  } else if (
+    (match = s.match(
+      /^(?:[a-z]+,?\s+)?([a-z]{3})[a-z]*\.?\s+(\d{1,2})(?:st|nd|rd|th)?,?\s+(\d{4})$/i
+    ))
+  ) {
+    m = MONTHS.indexOf(match[1].toLowerCase()) + 1
+    ;[, , d, y] = match
+  } else {
+    return null
+  }
+  const iso = `${y}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`
+  const dt = new Date(iso + 'T00:00:00Z')
+  return Number(m) >= 1 && !isNaN(dt) && dt.toISOString().slice(0, 10) === iso ? iso : null
+}
+
+if (typeof document !== 'undefined') {
+  const applyPastedDate = (el, text) => {
+    const iso = parseDateText(text)
+    if (!iso) return
+    el.value = iso
+    el.dispatchEvent(new Event('input', { bubbles: true }))
+    el.dispatchEvent(new Event('change', { bubbles: true }))
+  }
+  const isSafari = /^((?!chrome|chromium|android).)*safari/i.test(navigator.userAgent)
+  document.documentElement.classList.toggle('date-safari', isSafari)
+  const isDateInput = (el) => el instanceof HTMLInputElement && el.type === 'date'
+
+  // Chrome has no native undo for date fields, and pasted values bypass it anyway, so keep a
+  // per-field history of values and restore the previous one on Cmd/Ctrl+Z.
+  const dateHistory = new WeakMap()
+  const lastDateValue = new WeakMap()
+  let undoing = false
+  document.addEventListener('focusin', (e) => {
+    if (isDateInput(e.target) && !lastDateValue.has(e.target)) {
+      lastDateValue.set(e.target, e.target.value)
+    }
+  })
+  document.addEventListener(
+    'change',
+    (e) => {
+      const el = e.target
+      if (undoing || !isDateInput(el)) return
+      const stack = dateHistory.get(el) || []
+      stack.push(lastDateValue.get(el) ?? '')
+      dateHistory.set(el, stack)
+      lastDateValue.set(el, el.value)
+    },
+    true
+  )
+  const undoDate = (el) => {
+    const stack = dateHistory.get(el)
+    if (!stack?.length) return
+    el.value = stack.pop()
+    lastDateValue.set(el, el.value)
+    undoing = true
+    el.dispatchEvent(new Event('input', { bubbles: true }))
+    el.dispatchEvent(new Event('change', { bubbles: true }))
+    undoing = false
+  }
+
+  // Date fields don't reliably fire copy/paste events, so the shortcuts are handled on keydown.
+  document.addEventListener('keydown', (e) => {
+    const el = e.target
+    if (!isDateInput(el) || !(e.metaKey || e.ctrlKey) || e.altKey) return
+    const key = e.key.toLowerCase()
+    if (key === 'z' && !e.shiftKey) {
+      e.preventDefault()
+      undoDate(el)
+    } else if (key === 'c' && el.value) {
+      e.preventDefault()
+      navigator.clipboard?.writeText(el.value).catch(() => {})
+    } else if (key === 'v' && navigator.clipboard?.readText) {
+      e.preventDefault()
+      navigator.clipboard
+        .readText()
+        .then((text) => applyPastedDate(el, text))
+        .catch(() => {})
+    }
+  })
+  document.addEventListener('paste', (e) => {
+    if (!isDateInput(e.target)) return
+    e.preventDefault()
+    applyPastedDate(e.target, e.clipboardData.getData('text'))
+  })
+  // A click anywhere on a date field focuses the field as a whole and opens the picker,
+  // instead of landing in the month, day or year segment. Esc closes the picker natively.
+  document.addEventListener('mousedown', (e) => {
+    const el = e.target
+    if (!(el instanceof HTMLInputElement) || el.type !== 'date' || el.disabled || el.readOnly)
+      return
+    if (!isSafari || e.button !== 0) return
+    e.preventDefault()
+    el.focus()
+    try {
+      el.showPicker()
+    } catch {}
+  })
+  // Safari's picker ignores Esc; refocusing the field dismisses it and keeps the field selected.
+  document.addEventListener('keydown', (e) => {
+    const el = e.target
+    if (!isSafari || e.key !== 'Escape' || !isDateInput(el)) return
+    el.blur()
+    el.focus()
+  })
+  document.addEventListener('copy', (e) => {
+    const el = e.target
+    if (!isDateInput(el) || !el.value) return
+    e.preventDefault()
+    e.clipboardData.setData('text/plain', el.value)
+  })
+}

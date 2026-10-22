@@ -398,6 +398,13 @@ and the Calendar paste panel parses text dates with `parseDate()`. Accepted
 formats are documented in
 [feature-guide §7](feature-guide.md#7-editing-conventions).
 
+`public/admin/api.js` adds shared behavior to every date input, including ones
+rendered later (document-level listeners): Cmd/Ctrl+C copies `YYYY-MM-DD`,
+Cmd/Ctrl+V parses pasted text (`parseDateText()`), and Cmd/Ctrl+Z undoes the
+field's last changes from a per-field history (Chrome has no native date undo).
+In Safari only, a click anywhere on the field opens the picker and Esc closes
+it. Date-field widths and the focus tint are CSS in `public/admin/index.html`.
+
 ### Serving `src/lib` modules to `/admin`
 
 `src/pages/admin/*.js.ts` routes import a module with `?raw` and pass it to

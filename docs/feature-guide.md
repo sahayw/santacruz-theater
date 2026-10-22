@@ -357,7 +357,11 @@ These apply in every editor.
 ### Dates
 
 Every date field is a date picker: pick from the calendar, or type the
-month, day and year into it.
+month, day and year into it. Copy and paste also work on a focused date
+field: copying gives `YYYY-MM-DD`, and pasting accepts `2026-10-30`,
+`10/30/2026` or `Oct 30, 2026` (unrecognized text is ignored). Cmd/Ctrl+Z
+undoes the field's last change. In Safari, clicking anywhere on a date field
+opens the picker (Esc closes it); in Chrome and Brave, use the calendar icon.
 
 The Calendar editor's paste parser reads dates written out as text. Month
 names assume the current year:

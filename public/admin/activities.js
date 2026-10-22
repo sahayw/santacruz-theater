@@ -228,7 +228,7 @@ const ACT_CSS = `
   position: sticky; top: 0; z-index: 4; white-space: nowrap;
 }
 .act-table thead th.col-del   { width: 32px; }
-.act-table thead th.col-date  { width: 135px; }
+.act-table thead th.col-date  { width: 112px; }
 .act-table thead th.col-stime { width: 60px; }
 .act-table thead th.col-etime { width: 60px; }
 .act-table thead th.col-locn  { width: 150px; }

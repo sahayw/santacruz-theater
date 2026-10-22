@@ -165,7 +165,7 @@ Rules:
     there's no organizer.
   - No start time: an all-day entry — `DTSTART;VALUE=DATE` on the session's
     date, `DTEND;VALUE=DATE` the next day. It sorts ahead of timed sessions
-    that day; an `endTime` without a start time is ignored.
+    that day; an end time is not allowed without a start time.
   - End time: `endTime` if set, otherwise start + 2 hours. An `endTime` at or
     before the start time means the session ends the next day.
   - Location: the session's `venue` code or one-off `location` (plus any

@@ -197,7 +197,9 @@ export function activityIssues(
     // A start time is optional (a warning below), but if entered it must be valid
     if (!isBlank(d.startTime) && !isValidTime(d.startTime))
       errors.push(`date row ${i + 1} has an invalid start time "${d.startTime}"`)
-    if (d.endTime !== undefined && !isValidTime(d.endTime))
+    if (!isBlank(d.endTime) && isBlank(d.startTime))
+      errors.push(`date row ${i + 1} has an end time but no start time`)
+    else if (d.endTime !== undefined && !isValidTime(d.endTime))
       errors.push(`date row ${i + 1} has an invalid end time "${d.endTime}"`)
     if (d.venue !== undefined && !venueByCode(d.venue, refs.venues))
       errors.push(`date row ${i + 1} has venue "${d.venue}", which isn't in the venue list`)

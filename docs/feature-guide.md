@@ -228,7 +228,7 @@ A new record is an **Audition** or an **Event**; this can't change later.
 - Title (required). For an audition this is its **Production** — see below.
 - **Dates table**: date, start time (optional, but saving warns, and the
   gap is listed in the missing details; a session without one appears as an
-  all-day entry in calendar feeds), optional end time, venue, address,
+  all-day entry in calendar feeds), optional end time (only with a start time; clearing the start clears it), venue, address,
   location (a space within the venue), session notes. Typing a listed venue's
   name (or picking it from the suggestions) links the session to that venue,
   and its address comes from the venue list. Any other name — or **Other

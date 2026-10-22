@@ -172,6 +172,7 @@
   }
 
   function fmtWhen(dt: string) {
+    const allDay = dt.length === 8 // YYYYMMDD: a session with no start time
     const d = new Date(
       +dt.slice(0, 4),
       +dt.slice(4, 6) - 1,
@@ -180,6 +181,7 @@
       +dt.slice(11, 13)
     )
     const date = d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })
+    if (allDay) return `${date} · all day`
     const time = d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })
     return `${date} · ${time.replace(':00', '').toLowerCase()}`
   }

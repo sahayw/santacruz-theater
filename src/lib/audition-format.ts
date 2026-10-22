@@ -62,11 +62,11 @@ export function fmt12(t: string) {
 }
 
 /** "7–9 pm", "11 am–1 pm"; a lone start (or end) time still gets its am/pm: "7 pm". */
-export function fmtTimeRange(start: string, end: string) {
+export function fmtTimeRange(start: string | undefined, end: string | undefined) {
   if (!start && !end) return ''
   const suffix = (t: string) => (Number(t.replace('.', ':').split(':')[0]) < 12 ? 'am' : 'pm')
   if (!start || !end) {
-    const t = start || end
+    const t = (start || end)!
     return `${fmt12(t)} ${suffix(t)}`
   }
   const sp = suffix(start),

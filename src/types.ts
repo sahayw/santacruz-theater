@@ -86,7 +86,7 @@ export interface AuditionRole {
 export interface ActivityDate {
   id: string // "session-<timestamp>", stable identifier (calendar feed UID)
   date: string // YYYY-MM-DD
-  startTime: string // HH:MM 24-hour
+  startTime?: string // HH:MM 24-hour; optional (a missing-details gap when blank)
   endTime?: string // HH:MM 24-hour (optional)
   notes?: string // e.g. "First come, first served"
   venue?: string // venue code from data/sc-theater-venues.json

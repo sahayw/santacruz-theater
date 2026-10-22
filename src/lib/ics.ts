@@ -89,8 +89,16 @@ function eventLines(e: CalendarEvent) {
     // to the source record, never the build time.
     `DTSTAMP:${stamp}`,
     `LAST-MODIFIED:${stamp}`,
-    `DTSTART;TZID=${TZID}:${localDateTime(e.start)}`,
-    `DTEND;TZID=${TZID}:${localDateTime(e.end)}`,
+    // A whole-day event uses date values; DTEND is the (exclusive) next day
+    ...(e.allDay
+      ? [
+          `DTSTART;VALUE=DATE:${e.start.date.replace(/-/g, '')}`,
+          `DTEND;VALUE=DATE:${e.end.date.replace(/-/g, '')}`
+        ]
+      : [
+          `DTSTART;TZID=${TZID}:${localDateTime(e.start)}`,
+          `DTEND;TZID=${TZID}:${localDateTime(e.end)}`
+        ]),
     `SUMMARY:${escapeText(e.summary)}`,
     e.description && `DESCRIPTION:${escapeText(e.description)}`,
     e.location && `LOCATION:${escapeText(e.location)}`,

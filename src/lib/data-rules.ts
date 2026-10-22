@@ -26,7 +26,10 @@ export interface RuleRefs {
  * /missing-details.json for the external alerting agent. Records whose dates are all past
  * have none.
  */
-export type Gap = 'dates' | 'tickets' | 'price' | 'info' | 'description' | 'location'
+export type Gap = 'dates' | 'tickets' | 'price' | 'info' | 'description' | 'location' | 'time'
+
+const ACTIVITY_TIME_WARNING =
+  'a date has no start time yet — it shows as an all-day entry in calendar feeds'
 
 const RUN_GAP_WARNINGS: Record<Gap, string> = {
   dates: 'no performances — it won’t appear on the calendar',
@@ -34,7 +37,8 @@ const RUN_GAP_WARNINGS: Record<Gap, string> = {
   price: 'Price is empty',
   info: 'Info URL is empty',
   description: 'Description is empty',
-  location: 'Venue is empty'
+  location: 'Venue is empty',
+  time: ACTIVITY_TIME_WARNING
 }
 
 /** Genre cap — enforced by the editor's picker and check-shows.ts (after legacy coercion). */
@@ -109,6 +113,7 @@ export function activityGaps(a: Activity, primaryVenue?: string, today = todayIs
   if (isBlank(a.noticeUrl) && isBlank(a.registerUrl)) gaps.push('info')
   if (!primaryVenue && dated.some((d) => isBlank(d.venue) && isBlank(d.location?.name)))
     gaps.push('location')
+  if (dated.some((d) => isBlank(d.startTime))) gaps.push('time')
   return gaps
 }
 
@@ -171,7 +176,8 @@ export function activityIssues(
   a: Activity,
   fileYear: number,
   fileCompany: string,
-  refs: RuleRefs
+  refs: RuleRefs,
+  today = todayIso()
 ): RuleIssues {
   const errors: string[] = []
   const warnings: string[] = []
@@ -188,8 +194,9 @@ export function activityIssues(
   dates.forEach((d, i) => {
     if (!isDateNearYear(d.date, fileYear))
       errors.push(`date row ${i + 1} has an invalid date "${d.date || '(empty)'}"`)
-    if (!isValidTime(d.startTime))
-      errors.push(`date row ${i + 1} has an invalid start time "${d.startTime || '(empty)'}"`)
+    // A start time is optional (a warning below), but if entered it must be valid
+    if (!isBlank(d.startTime) && !isValidTime(d.startTime))
+      errors.push(`date row ${i + 1} has an invalid start time "${d.startTime}"`)
     if (d.endTime !== undefined && !isValidTime(d.endTime))
       errors.push(`date row ${i + 1} has an invalid end time "${d.endTime}"`)
     if (d.venue !== undefined && !venueByCode(d.venue, refs.venues))
@@ -213,6 +220,8 @@ export function activityIssues(
     // this is a warning (Save anyway?), not an error
     if (a.productionId === undefined) warnings.push('not linked to a production')
   }
+
+  if (activityGaps(a, undefined, today).includes('time')) warnings.push(ACTIVITY_TIME_WARNING)
 
   // An organizer named on the record (Other or co-producer) counts as a contact via its website
   const organizerSite = (a.organizers || []).some(

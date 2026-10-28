@@ -221,6 +221,136 @@
         }
       ],
       "updatedAt": "2026-10-28T23:54:27.461Z"
+    },
+    {
+      "id": "run-1793231670848",
+      "company": "mct",
+      "showAbv": "Urinetown",
+      "show": "Urinetown",
+      "description": "Winner of three Tony Awards, three Outer Critics Circle Awards, two Lucille Lortel Awards and two Obie Awards, and inspired by the works of Bertolt Brecht and Kurt Weill, *Urinetown* is a musical satire of the legal system, capitalism, social irresponsibility, populism, environmental collapse, privatization of natural resources, bureaucracy, municipal politics, and musical theater itself. Set in a Gotham-like city, a terrible water shortage, caused by a 20-year drought, has led to a government-enforced ban on private toilets. The citizens must use public amenities, regulated by a single malevolent company that profits by charging admission for one of humanity's most basic needs. Amid the people, a hero decides that he's had enough and plans a revolution to lead them all to freedom!\n\nMusic and Lyrics by Mark Hollmann\nBook and Lyric by Greg Kotis\nDirected by Daria E. Troxell",
+      "genre": [
+        "Musical"
+      ],
+      "venue": "PH",
+      "price": "Season Tickets available: $101 - $125",
+      "discounts": "",
+      "infoUrl": "https://mctshows.org",
+      "ticketsUrl": "https://mctshows.org/2027-season-subscription/",
+      "performances": [
+        {
+          "id": "perf-1793231885522",
+          "date": "2027-09-10",
+          "time": "19:30",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "id": "perf-1793231885523",
+          "date": "2027-09-11",
+          "time": "19:30",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "id": "perf-1793231870922",
+          "date": "2027-09-12",
+          "time": "14:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "id": "perf-1793231885524",
+          "date": "2027-09-17",
+          "time": "19:30",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "id": "perf-1793231885525",
+          "date": "2027-09-18",
+          "time": "19:30",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "id": "perf-1793231870923",
+          "date": "2027-09-19",
+          "time": "14:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "id": "perf-1793231885526",
+          "date": "2027-09-24",
+          "time": "19:30",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "id": "perf-1793231885527",
+          "date": "2027-09-25",
+          "time": "19:30",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "id": "perf-1793231870924",
+          "date": "2027-09-26",
+          "time": "14:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "id": "perf-1793231885528",
+          "date": "2027-10-01",
+          "time": "19:30",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "id": "perf-1793231885529",
+          "date": "2027-10-02",
+          "time": "19:30",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "id": "perf-1793231870925",
+          "date": "2027-10-03",
+          "time": "14:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "id": "perf-1793231885530",
+          "date": "2027-10-08",
+          "time": "19:30",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "id": "perf-1793231885531",
+          "date": "2027-10-09",
+          "time": "19:30",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        }
+      ],
+      "updatedAt": "2026-10-28T23:58:33.756Z"
     }
   ]
 }

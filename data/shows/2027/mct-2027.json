@@ -115,6 +115,112 @@
         }
       ],
       "updatedAt": "2026-10-28T23:48:57.095Z"
+    },
+    {
+      "id": "run-1793231340128",
+      "company": "mct",
+      "showAbv": "Noises Off",
+      "show": "Noises Off",
+      "description": "*Noises Off* by Michael Frayn takes the audience on the rollicking road to a performance of a theatre production with out-of-control egos, memory loss, and passionate affairs that turn every performance into a high-risk adventure. This play-within-a-play captures a touring theatre troupe’s production of *Nothing On* in three stages: dress rehearsal, the opening performance, and a performance towards the end of a torturous run. Frayne’s play gives us a window into the inner workings of theatre behind the scenes, progressing from flubbed lines and missed cues in the dress rehearsal to mounting friction between cast members in the final performance. Brimming with slapstick comedy, *Noises Off* is a delightful backstage farce, complete with slamming doors, falling trousers, and -- of course -- flying sardines!\n\nDirected by Brad Roades",
+      "genre": [
+        "Comedy"
+      ],
+      "venue": "PH",
+      "price": "Season Tickets available: $101 - $125",
+      "discounts": "",
+      "infoUrl": "https://mctshows.org",
+      "ticketsUrl": "https://mctshows.org/2027-season-subscription/",
+      "performances": [
+        {
+          "id": "perf-1793231520725",
+          "date": "2027-05-14",
+          "time": "19:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "id": "perf-1793231520726",
+          "date": "2027-05-15",
+          "time": "19:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "id": "perf-1793231532292",
+          "date": "2027-05-16",
+          "time": "14:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "id": "perf-1793231520727",
+          "date": "2027-05-21",
+          "time": "19:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "id": "perf-1793231520728",
+          "date": "2027-05-22",
+          "time": "19:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "id": "perf-1793231532293",
+          "date": "2027-05-23",
+          "time": "14:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "id": "perf-1793231520729",
+          "date": "2027-05-28",
+          "time": "19:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "id": "perf-1793231520730",
+          "date": "2027-05-29",
+          "time": "19:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "id": "perf-1793231532294",
+          "date": "2027-05-30",
+          "time": "14:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "id": "perf-1793231520731",
+          "date": "2027-06-04",
+          "time": "19:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "id": "perf-1793231520732",
+          "date": "2027-06-05",
+          "time": "19:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        }
+      ],
+      "updatedAt": "2026-10-28T23:54:27.461Z"
     }
   ]
 }

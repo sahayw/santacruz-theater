@@ -1,5 +1,120 @@
 {
   "company": "mct",
   "year": 2027,
-  "runs": []
+  "runs": [
+    {
+      "id": "run-1793230374952",
+      "company": "mct",
+      "showAbv": "Ripcord",
+      "show": "Ripcord",
+      "description": "Written by Pulitzer Prize winner David Lindsay-Abaire, Ripcord is a deeply satisfying and vastly entertaining story of two older women thrown together by a comic cosmic force. A seemingly harmless bet between two senior living residents escalates into a dangerous game of one-upmanship in this wickedly funny play. Friendships become more complex as we get older and there is time to reflect on what’s most important in life, and what we really hold dear.\n\nDirected by Hanna Eckstein.",
+      "genre": [
+        "Comedy"
+      ],
+      "venue": "PH",
+      "price": "Season Tickets available: $101 - $125",
+      "discounts": "",
+      "infoUrl": "https://mctshows.org",
+      "ticketsUrl": "https://mctshows.org/2027-season-subscription/",
+      "performances": [
+        {
+          "id": "perf-1793231007763",
+          "date": "2027-03-12",
+          "time": "19:30",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "id": "perf-1793231007764",
+          "date": "2027-03-13",
+          "time": "19:30",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "id": "perf-1793231026239",
+          "date": "2027-03-14",
+          "time": "14:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "id": "perf-1793231007765",
+          "date": "2027-03-19",
+          "time": "19:30",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "id": "perf-1793231007766",
+          "date": "2027-03-20",
+          "time": "19:30",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "id": "perf-1793231026240",
+          "date": "2027-03-21",
+          "time": "14:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "id": "perf-1793231007767",
+          "date": "2027-03-26",
+          "time": "19:30",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "id": "perf-1793231007768",
+          "date": "2027-03-27",
+          "time": "19:30",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "id": "perf-1793231026241",
+          "date": "2027-03-28",
+          "time": "14:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "id": "perf-1793231007769",
+          "date": "2027-04-02",
+          "time": "19:30",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "id": "perf-1793231007770",
+          "date": "2027-04-03",
+          "time": "19:30",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "id": "perf-1793231026242",
+          "date": "2027-04-04",
+          "time": "14:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        }
+      ],
+      "updatedAt": "2026-10-28T23:48:57.095Z"
+    }
+  ]
 }

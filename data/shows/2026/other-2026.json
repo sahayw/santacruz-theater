@@ -552,10 +552,10 @@
         "Comedy"
       ],
       "venue": "CBB",
-      "price": "",
-      "discounts": "",
+      "price": "Donate $5 for a guaranteed ticket",
+      "discounts": "free",
       "infoUrl": "",
-      "ticketsUrl": "",
+      "ticketsUrl": "https://cabrillovapa.universitytickets.com/w/event.aspx?id=2175",
       "performances": [
         {
           "id": "perf-1791991838133",
@@ -581,7 +581,8 @@
           "discounts": "",
           "ticketsUrl": ""
         }
-      ]
+      ],
+      "updatedAt": "2026-10-29T00:29:58.725Z"
     }
   ]
 }

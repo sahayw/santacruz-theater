@@ -351,6 +351,120 @@
         }
       ],
       "updatedAt": "2026-10-28T23:58:33.756Z"
+    },
+    {
+      "id": "run-1793231923621",
+      "company": "mct",
+      "showAbv": "Blithe Spirit",
+      "show": "Blithe Spirit",
+      "description": "Marriages can be tricky. When mixed up with mediums and ghosts, even more so. Noel Coward’s classic story remains hilarious, but alongside the wit there is a warning (maybe) - don’t imagine you can leave the past behind, your relationships might stay with you. \n\nDirected by Simon Hayward\n",
+      "genre": [
+        "Comedy"
+      ],
+      "venue": "PH",
+      "price": "Season Tickets available: $101 - $125",
+      "discounts": "",
+      "infoUrl": "https://mctshows.org",
+      "ticketsUrl": "https://mctshows.org/2027-season-subscription/",
+      "performances": [
+        {
+          "id": "perf-1793232079489",
+          "date": "2027-11-19",
+          "time": "19:30",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "id": "perf-1793232079490",
+          "date": "2027-11-20",
+          "time": "19:30",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "id": "perf-1793232094054",
+          "date": "2027-11-21",
+          "time": "14:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "id": "perf-1793232079491",
+          "date": "2027-11-26",
+          "time": "19:30",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "id": "perf-1793232079492",
+          "date": "2027-11-27",
+          "time": "19:30",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "id": "perf-1793232094055",
+          "date": "2027-11-28",
+          "time": "14:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "id": "perf-1793232079493",
+          "date": "2027-12-03",
+          "time": "19:30",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "id": "perf-1793232079494",
+          "date": "2027-12-04",
+          "time": "19:30",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "id": "perf-1793232094056",
+          "date": "2027-12-05",
+          "time": "14:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "id": "perf-1793232079495",
+          "date": "2027-12-10",
+          "time": "19:30",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "id": "perf-1793232079496",
+          "date": "2027-12-11",
+          "time": "19:30",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "id": "perf-1793232094057",
+          "date": "2027-12-12",
+          "time": "14:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        }
+      ],
+      "updatedAt": "2026-10-29T00:02:29.759Z"
     }
   ]
 }

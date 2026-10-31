@@ -230,6 +230,93 @@
         "name": "Daria Troxell",
         "email": "slvdaria24@gmail.com"
       }
+    },
+    {
+      "id": "activity-1793232235634",
+      "type": "audition",
+      "dates": [
+        {
+          "id": "session-1793232235634",
+          "date": "2026-12-06",
+          "startTime": "18:30",
+          "endTime": "20:30",
+          "venue": "AT"
+        },
+        {
+          "id": "session-1793232345985",
+          "date": "2026-12-07",
+          "startTime": "18:30",
+          "endTime": "20:30",
+          "venue": "StA"
+        },
+        {
+          "id": "session-1793232399952",
+          "date": "2026-12-08",
+          "startTime": "18:30",
+          "endTime": "20:30",
+          "venue": "StA",
+          "notes": "Callbacks - By invitation only"
+        }
+      ],
+      "rolesAvailable": [
+        {
+          "role": "ABBY BINDER",
+          "type": "lead",
+          "gender": "female",
+          "description": "A resident. Grouchy, yet lovable, intelligent, reads & has plants",
+          "ageRange": "70s-80s"
+        },
+        {
+          "role": "MARILYN DUNNE",
+          "type": "lead",
+          "gender": "female",
+          "ageRange": "70s-80s",
+          "description": "A resident. Upbeat, talks about her family"
+        },
+        {
+          "role": "SCOTTY",
+          "type": "supporting",
+          "gender": "male",
+          "description": "A resident aide. Cheerful and tries to be helpful",
+          "ageRange": "20s-30s"
+        },
+        {
+          "role": "BENJAMIN, LEWIS, and CLOWN",
+          "type": "supporting",
+          "gender": "any",
+          "description": "Played by the same actor.",
+          "ageRange": "40s"
+        },
+        {
+          "role": "COLLEEN and WOMAN IN WHITE",
+          "type": "supporting",
+          "gender": "any",
+          "description": "Played by the same actress. Marilyn’s Daughter",
+          "ageRange": "30s-40s"
+        },
+        {
+          "role": "DEREK, ZOMBIE BUTLER, and MASKED MAN",
+          "type": "supporting",
+          "gender": "any",
+          "description": "Played by the same actor. ",
+          "ageRange": "30s-40s"
+        }
+      ],
+      "createdAt": "2026-10-29T00:03:55.634Z",
+      "updatedAt": "2026-10-29T00:16:53.812Z",
+      "notes": "Attend either Sunday or Monday. Following monologues, we will do readings, which are considered part of the audition process.",
+      "noticeUrl": "https://mctshows.org/auditions/",
+      "productionId": "run-1793230374952",
+      "prep": {
+        "acting": "Those new to MCT or the director should be prepared with a 1-minute comedic monologue.",
+        "bring": [
+          "theatrical resume (if you have one) and a list of your conflicts"
+        ]
+      },
+      "contact": {
+        "name": "Hannah Eckstein",
+        "email": "h_banana98@yahoo.com"
+      }
     }
   ]
 }

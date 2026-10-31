@@ -405,12 +405,14 @@
       "company": "mct",
       "showAbv": "Coney Island C'mas",
       "show": "Coney Island Christmas",
-      "genre": "Comedy",
+      "genre": [
+        "Comedy"
+      ],
       "venue": "PH",
       "price": "$30",
       "discounts": "Senior/Student $25",
       "infoUrl": "https://mctshows.org/season-subscription/",
-      "ticketsUrl": "",
+      "ticketsUrl": "https://mctshows.org/buy-tickets/",
       "performances": [
         {
           "id": "perf-1791991838061",
@@ -509,7 +511,8 @@
           "ticketsUrl": ""
         }
       ],
-      "description": "A coming-of-age story about a young Jewish girl cast as Jesus in her school's Christmas pageant in 1930s Brooklyn. By turns funny and touching, the play explores cultural identity, family traditions, and what it truly means to belong — while celebrating the richness of difference."
+      "description": "A coming-of-age story about a young Jewish girl cast as Jesus in her school's Christmas pageant in 1930s Brooklyn. By turns funny and touching, the play explores cultural identity, family traditions, and what it truly means to belong — while celebrating the richness of difference.",
+      "updatedAt": "2026-10-29T01:04:41.304Z"
     }
   ]
 }

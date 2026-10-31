@@ -1,5 +1,5 @@
 import { IS_DEV, apiFetch, apiPut, buildCompanyOptions, deleteRecordFromFile } from './api.js'
-import { fmt12, fmtFullDate, renderMd } from '/admin/audition-format.js'
+import { fmt12, fmtAudDateRange, fmtFullDate, renderMd } from '/admin/audition-format.js'
 import { MAX_GENRES, isDateNearYear, isValidTime, runIssues } from '/admin/data-rules.js'
 import { createIdGenerator, ensurePerformanceIds } from '/admin/occurrence-ids.js'
 import { organizerLabel, organizerName, recordOrganizerIds } from '/admin/organizers.js'
@@ -471,7 +471,8 @@ tbody td { padding: 2px 4px; vertical-align: middle; }
   background: #fff; border: 1px solid #c8a96e; border-radius: 6px;
   overflow: hidden; box-shadow: 0 2px 12px rgba(0,0,0,0.07);
 }
-.cp-summary { padding: 14px 16px; }
+.cp-summary { padding: 14px 16px; display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+.cp-date-range { font-size: 13px; font-weight: 500; color: #1a1612; white-space: nowrap; flex-shrink: 0; }
 .cp-main { display: flex; flex-direction: column; gap: 4px; }
 .cp-title-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 .cp-title { font-family: 'Playfair Display', Georgia, serif; font-size: 16px; font-weight: 600; color: #1a1612; line-height: 1.25; }
@@ -900,6 +901,9 @@ async function saveFile() {
     loadRunEditor()
   }
   if (!computeRunsDirty()) return // nothing entered — nothing to save
+  // Performances are always stored in date/time order
+  runs.forEach((r) => r.performances.sort(sortPerformances))
+  if (activeRunIdx >= 0) renderPerfTable()
   const { errors, warnings } = collectIssues()
   if (errors.length) {
     alert('Cannot save — fix these issues:\n\n' + errors.join('\n'))
@@ -1820,9 +1824,11 @@ function openPreview() {
   const venueName = runPlace(r, venuesList)?.name || r.venue
   const genreArr = Array.isArray(r.genre) ? r.genre : r.genre ? [r.genre] : []
 
+  const sortedPerfs = [...r.performances].sort((a, b) =>
+    (a.date + a.time).localeCompare(b.date + b.time)
+  )
   const perfsHtml =
-    [...r.performances]
-      .sort((a, b) => (a.date + a.time).localeCompare(b.date + b.time))
+    sortedPerfs
       .map((p) => {
         return `<div class="cp-perf-row">
       <span class="cp-perf-date">${fmtFullDate(p.date)}</span>
@@ -1847,16 +1853,17 @@ function openPreview() {
       <div class="cp-summary">
         <div class="cp-main">
           <div class="cp-title-row">
-            <span class="cp-title">${esc(r.showAbv || r.show || 'Untitled')}</span>
+            <span class="cp-title">${esc(r.show || r.showAbv || 'Untitled')}</span>
             ${genreArr.map((g) => `<span class="cp-genre-badge" style="${CAL_GENRE_STYLES[g] || ''}">${esc(g)}</span>`).join('')}
           </div>
           <div class="cp-meta-row">${esc(companyName)}${venueName ? ` · ${esc(venueName)}` : ''}${r.price ? ` · ${esc(r.price)}` : ''}</div>
         </div>
+        <span class="cp-date-range">${fmtAudDateRange(sortedPerfs)}</span>
       </div>
       <div class="cp-detail">
-        ${r.description ? `<section class="cp-section"><h4 class="cp-section-head">Description</h4><div class="cp-sub" style="font-size:13px;line-height:1.55;white-space:pre-wrap">${renderMd(r.description)}</div></section>` : ''}
-        <section class="cp-section"><h4 class="cp-section-head">Performances</h4>${perfsHtml}</section>
-        ${r.discounts ? `<div class="cp-discounts-default">Default discounts: ${esc(r.discounts)}</div>` : ''}
+        ${r.description ? `<section class="cp-section"><h4 class="cp-section-head">About</h4><div class="cp-sub" style="font-size:13px;line-height:1.55;white-space:pre-wrap">${renderMd(r.description)}</div></section>` : ''}
+        <section class="cp-section"><h4 class="cp-section-head">${r.performances.length === 1 ? 'Performance' : `${r.performances.length} performances`}</h4>${perfsHtml}</section>
+        ${r.discounts ? `<div class="cp-discounts-default">${r.performances.some((p) => p.discounts || p.ticketsUrl) ? 'Default discounts' : 'Discounts'}: ${esc(r.discounts)}</div>` : ''}
         ${linksHtml}
       </div>
     </div>`

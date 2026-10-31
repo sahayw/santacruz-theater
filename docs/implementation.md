@@ -160,7 +160,7 @@ One file per company per year: `{ company, year, runs: [<Run>] }`.
 | `discounts`    | `string`        | default; overridable per performance                                                                           |
 | `infoUrl`      | `string`        | empty → warning                                                                                                |
 | `ticketsUrl`   | `string`        | default; overridable per performance                                                                           |
-| `performances` | `Performance[]` | ordered; empty → warning (run never appears on the calendar)                                                   |
+| `performances` | `Performance[]` | kept in date, then time order (the editor sorts on save); empty → warning (run never appears on the calendar)  |
 | `updatedAt`    | `string?`       | ISO 8601; set by the editor on Save when the run changed                                                       |
 
 #### `Performance`

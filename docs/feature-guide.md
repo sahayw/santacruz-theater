@@ -67,10 +67,9 @@ What the site does, for visitors and for editors. For how it's built, see
     screen so does dragging it down.
 - There are no filters: the calendar always shows everything. A footer
   legend maps the colours to the majors, plus grey for Other.
-- **Add to my calendar** (top bar, drill-down only): subscribe to
+- **Add to my calendar** (top bar, every view): subscribe to
   performances, with a checkbox per major — all ticked; untick the ones you
-  don't want. Everyone else's performances are always included. It isn't
-  offered in the year view.
+  don't want. Everyone else's performances are always included.
 - Each performance card links to **All dates**, the production's page, and
   to **Add to my calendar** for that one performance.
 

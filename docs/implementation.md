@@ -915,6 +915,12 @@ every generated `dist/**/*.ics` with `ical.js` and fails on:
 This validates real data on every deploy, which the fixture-based tests
 can't.
 
+Last, `warn-home-cards.ts` estimates how many lines each home-page card
+description wraps to on a narrow (~320px) phone, from its character count (a
+`<br>` starts a new line), and prints a warning if one could exceed 5. Cards
+grow to fit their text, so this only flags cards getting tall; it never fails
+the build.
+
 Errors fail the build; warnings print.
 
 ### Rule reference

@@ -282,8 +282,8 @@ what's being added.
 
 Placements:
 
-- **`/calendar`**: at the right-hand end of the bar, **drill-down (month /
-  week view) only**. The year view doesn't show what you'd be subscribing to.
+- **`/calendar`**: at the right-hand end of the bar, in every view (year,
+  month, week).
   - On phones it's an icon button.
   - The dialog has a checkbox per major, all ticked. All ticked subscribes to
     `/productions.ics`; unticking picks `/productions/selection/{n}.ics`.

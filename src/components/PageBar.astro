@@ -1,9 +1,7 @@
 ---
 // The dark bar under the nav on /productions, styled like the calendar's:
-// Filters on the left (the page's filter rows go in the default slot and open as a
-// dropdown), the page title in the middle, Add to my calendar on the right (`calendar`
-// holds the button's data-ics-* attributes — see AddToCalendar.astro).
-// The Filters badge counts the filter selects not on their first option.
+// the page title in the middle, Add to my calendar on the right (`calendar` holds the
+// button's data-ics-* attributes — see AddToCalendar.astro).
 interface Props {
   title: string
   calendar: Record<string, string>
@@ -12,24 +10,7 @@ const { title, calendar } = Astro.props
 ---
 
 <div class="page-bar">
-  <div class="page-bar-left">
-    <button
-      type="button"
-      class="page-bar-btn"
-      id="filters-btn"
-      aria-expanded="false"
-      aria-controls="filters-drop"
-    >
-      <svg viewBox="0 0 16 16" width="13" height="13" aria-hidden="true"
-        ><path d="M2 3h12l-4.5 5.5V13l-3 1.5v-6z" fill="none" stroke="currentColor"></path></svg
-      >
-      <span class="page-bar-label">Filters</span>
-      <span class="filters-badge" id="filters-badge" hidden></span>
-    </button>
-    <div class="filters-drop" id="filters-drop" hidden>
-      <slot />
-    </div>
-  </div>
+  <div class="page-bar-left"></div>
   <h1 class="page-bar-title" id="page-bar-title">{title}</h1>
   <div class="page-bar-right">
     <button
@@ -49,38 +30,6 @@ const { title, calendar } = Astro.props
     </button>
   </div>
 </div>
-
-<script>
-  const btn = document.getElementById('filters-btn')!
-  const drop = document.getElementById('filters-drop')!
-  const badge = document.getElementById('filters-badge')!
-
-  const setOpen = (open: boolean) => {
-    drop.hidden = !open
-    btn.setAttribute('aria-expanded', String(open))
-  }
-  const refreshBadge = () => {
-    const active = [...drop.querySelectorAll('select')].filter(
-      (s) => !s.closest('[hidden]:not(#filters-drop)') && s.selectedIndex > 0
-    ).length
-    badge.textContent = String(active)
-    badge.hidden = !active
-  }
-
-  btn.addEventListener('click', () => setOpen(!!drop.hidden))
-  drop.addEventListener('change', refreshBadge)
-  document.addEventListener('click', (e) => {
-    const t = e.target as Node
-    if (!drop.hidden && !drop.contains(t) && !btn.contains(t)) setOpen(false)
-  })
-  document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && !drop.hidden) {
-      setOpen(false)
-      btn.focus()
-    }
-  })
-  refreshBadge()
-</script>
 
 <style is:global>
   :root {
@@ -104,7 +53,6 @@ const { title, calendar } = Astro.props
 
   .page-bar-left {
     justify-self: start;
-    position: relative;
   }
 
   .page-bar-right {
@@ -148,67 +96,6 @@ const { title, calendar } = Astro.props
     outline-offset: 1px;
   }
 
-  .filters-badge {
-    background: #c8a96e;
-    color: #1a1612;
-    border-radius: 8px;
-    font-size: 10px;
-    font-weight: 600;
-    padding: 0 5px;
-  }
-
-  .filters-drop {
-    position: absolute;
-    top: calc(100% + 8px);
-    left: 0;
-    min-width: 240px;
-    background: #fff;
-    border: 1px solid #e0d9d0;
-    border-radius: 6px;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
-    padding: 10px 12px;
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-  }
-  .filters-drop[hidden] {
-    display: none;
-  }
-
-  /* A filter row: label, then a select */
-  .filter-row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 10px;
-  }
-  .filter-row[hidden] {
-    display: none;
-  }
-  .filter-row label {
-    font-family: 'DM Sans', sans-serif;
-    font-size: 12px;
-    font-weight: 500;
-    color: #6b6259;
-    white-space: nowrap;
-  }
-  .filter-row select {
-    font-family: 'DM Sans', sans-serif;
-    font-size: 12px;
-    border: 1px solid #e0d9d0;
-    border-radius: 4px;
-    padding: 4px 24px 4px 8px;
-    background: #fff
-      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%236b6259'/%3E%3C/svg%3E")
-      no-repeat right 8px center;
-    color: #1a1612;
-    cursor: pointer;
-    width: 170px;
-    max-width: 100%;
-    -webkit-appearance: none;
-    appearance: none;
-  }
-
   /* Under the bar: the page's description, and the count on the right */
   .page-intro {
     display: flex;
@@ -242,13 +129,6 @@ const { title, calendar } = Astro.props
     }
     .page-bar-title {
       font-size: 16px;
-    }
-    .filters-drop {
-      position: fixed;
-      top: calc(var(--nav-h, 44px) + var(--page-bar-h) + 6px);
-      left: 12px;
-      right: 12px;
-      min-width: 0;
     }
   }
 </style>

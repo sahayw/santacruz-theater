@@ -24,11 +24,26 @@ const runs = (await getShows())
   .map((r) => ({ ...r, performances: [...r.performances].sort(byDateTime) }))
   .sort((a, b) => byDateTime(a.performances[0], b.performances[0]))
 
-// Company filter: the four majors, plus Other (everyone else). ?company= can name any
-// organizer; the names let the filter show one that isn't in the dropdown.
+// ?company= can name any organizer, or "other" (everyone who isn't a major); the names
+// and logos let the page header show the selected one.
 const majorList = majors(companies)
 const organizerNames = JSON.stringify(
   Object.fromEntries(allOrganizers(companies).map((c) => [c.id, c.name]))
+)
+// Logo and website for the header shown when one organizer is selected
+const organizerSites = JSON.stringify(
+  Object.fromEntries(
+    allOrganizers(companies).map((c) => [
+      c.id,
+      {
+        website: c.website ?? '',
+        logo: c.logo ?? '',
+        logoBg: c.logoBg ?? '',
+        logoDark: !!c.logoDark,
+        logoFill: !!c.logoFill
+      }
+    ])
+  )
 )
 // Add to my calendar: the majors as checkboxes (numbered selection feeds), as on /calendar
 const icsMajors = JSON.stringify(
@@ -60,31 +75,16 @@ function summaryMeta(r: Run) {
   </head>
   <body>
     <SiteNav subscribe={{ list: 'performances', from: 'productions' }} />
-    <PageBar title="Productions" calendar={{ 'data-ics-majors': icsMajors }}>
-      <div class="filter-row">
-        <label for="filter-show">Show</label>
-        <select id="filter-show">
-          <option value="upcoming">Upcoming</option>
-          <option value="all">All</option>
-        </select>
-      </div>
-      <div class="filter-row">
-        <label for="filter-company">Company</label>
-        <select
-          id="filter-company"
-          data-majors={majorList.map((c) => c.id).join(' ')}
-          data-names={organizerNames}
-        >
-          <option value="">All</option>
-          {majorList.map((c) => <option value={c.id}>{c.name}</option>)}
-          <option value="other">Other</option>
-        </select>
-      </div>
-    </PageBar>
+    <PageBar title="Productions" calendar={{ 'data-ics-majors': icsMajors }} />
 
-    <main class="runs-page">
+    <main
+      class="runs-page"
+      data-majors={majorList.map((c) => c.id).join(' ')}
+      data-names={organizerNames}
+      data-sites={organizerSites}
+    >
       <div class="page-intro">
-        <p class="page-subtitle">
+        <p class="page-subtitle" id="page-subtitle">
           Every production on the <a href="/calendar">calendar</a>, with its full schedule
         </p>
         <span class="page-count" id="filter-count" aria-live="polite"></span>
@@ -202,8 +202,15 @@ function summaryMeta(r: Run) {
             )
           })
         }
-        <div class="run-empty" id="run-empty" hidden>No productions match the current filters.</div>
+        <div class="run-empty" id="run-empty" hidden>
+          <span id="run-empty-text"></span>
+          <button type="button" class="empty-past" id="run-empty-past" hidden>
+            Show past productions
+          </button>
+        </div>
       </div>
+
+      <button type="button" class="past-toggle" id="past-toggle" hidden></button>
 
       <div class="run-not-found" id="run-not-found" hidden>
         That production isn't listed. <a href="/productions">See all productions</a> or the
@@ -219,12 +226,24 @@ function summaryMeta(r: Run) {
   // Today in Santa Cruz — the same date as todayIso() in src/lib/data-rules.ts
   const TODAY = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Los_Angeles' })
   const cards = Array.from(document.querySelectorAll('.run-card'))
-  const filterShow = document.getElementById('filter-show')
-  const filterCompany = document.getElementById('filter-company')
-  const MAJORS = filterCompany.dataset.majors.split(' ')
-  const NAMES = JSON.parse(filterCompany.dataset.names)
+  const page = document.querySelector('.runs-page')
+  const MAJORS = page.dataset.majors.split(' ')
+  const NAMES = JSON.parse(page.dataset.names)
+  const SITES = JSON.parse(page.dataset.sites)
   const countEl = document.getElementById('filter-count')
   const emptyEl = document.getElementById('run-empty')
+  const emptyText = document.getElementById('run-empty-text')
+  const emptyPast = document.getElementById('run-empty-past')
+  const pastToggle = document.getElementById('past-toggle')
+  const subtitleEl = document.getElementById('page-subtitle')
+  const DEFAULT_SUBTITLE = subtitleEl.innerHTML
+
+  // ?company=<organizer id> (or "other" for the Other group) and ?show=all (past productions
+  // too) come from the address; the company cards on /companies link here.
+  const params = new URLSearchParams(location.search)
+  const co =
+    params.get('company') === 'other' || NAMES[params.get('company')] ? params.get('company') : ''
+  let showAll = params.get('show') === 'all'
 
   const isPast = (card) => card.dataset.latestDate < TODAY
   cards.forEach((card) => {
@@ -250,43 +269,106 @@ function summaryMeta(r: Run) {
     return orgs.includes(co)
   }
 
-  function updateFilters() {
-    const co = filterCompany.value
-    const upcomingOnly = filterShow.value === 'upcoming'
-    let visible = 0
+  function render() {
+    const mine = cards.filter((c) => matchesCompany(c, co))
+    const shown = showAll ? mine : mine.filter((c) => !isPast(c))
     cards.forEach((card) => {
       setOpen(card, false)
-      const show = matchesCompany(card, co) && (!upcomingOnly || !isPast(card))
-      card.style.display = show ? '' : 'none'
-      if (show) visible++
+      card.style.display = shown.includes(card) ? '' : 'none'
     })
-    countEl.textContent = `${visible} ${visible === 1 ? 'production' : 'productions'}`
-    emptyEl.hidden = visible > 0
+    const hasPast = mine.some(isPast)
+    const message = shown.length
+      ? ''
+      : mine.length
+        ? 'No upcoming productions.'
+        : 'No productions recorded.'
+    const offerPast = !shown.length && hasPast
+    countEl.textContent = shown.length
+      ? `${shown.length} ${shown.length === 1 ? 'production' : 'productions'}`
+      : ''
+    // With one company selected the note sits beside its logo; otherwise it replaces the list
+    const inHeader = showCompanyHeader(message, offerPast)
+    emptyEl.hidden = !message || inHeader
+    emptyText.textContent = message
+    emptyPast.hidden = !offerPast
+    // Past productions toggle under the list, when there is a list
+    pastToggle.hidden = !shown.length || !hasPast
+    pastToggle.textContent = showAll ? 'Hide past productions' : 'Show past productions'
   }
 
-  // ?company=<organizer id>, or ?company=other for the Other group: an organizer outside
-  // the dropdown gets its own option. The address follows later changes, so it can be
-  // shared.
-  const params = new URLSearchParams(location.search)
-  const company = params.get('company')
-  if (company === 'other') filterCompany.value = 'other'
-  else if (company && NAMES[company]) {
-    if (!filterCompany.querySelector(`option[value="${company}"]`))
-      filterCompany.add(new Option(NAMES[company], company))
-    filterCompany.value = company
-  }
-  function syncAddress() {
-    const co = filterCompany.value
-    if (co) params.set('company', co)
-    else params.delete('company')
+  function setShowAll(value) {
+    showAll = value
+    if (value) params.set('show', 'all')
+    else params.delete('show')
     const q = params.toString()
     history.replaceState(null, '', q ? `?${q}` : location.pathname)
+    render()
+  }
+
+  // With one organizer selected the intro shows its logo, linked to its own website (its
+  // name as a link when it has no logo), and the "nothing to list" note beside it. Returns
+  // whether the intro is in company mode.
+  function showCompanyHeader(message, offerPast) {
+    const intro = subtitleEl.parentElement
+    const single = !!co && co !== 'other'
+    intro.classList.toggle('page-intro--company', single)
+    if (!single) {
+      subtitleEl.innerHTML = DEFAULT_SUBTITLE
+      return false
+    }
+    const { website, logo, logoBg, logoDark, logoFill } = SITES[co]
+    subtitleEl.textContent = ''
+    let el
+    if (logo) {
+      // Same treatment as the /companies card: the logo's own background, or dark for a
+      // light logo; a square logo gets less padding so it fills the height
+      el = document.createElement('span')
+      el.className = 'company-logo-tile'
+      if (logoFill) el.classList.add('company-logo-tile--fill')
+      el.style.background = logoBg || (logoDark ? '#1a1612' : '#faf7f2')
+      const img = document.createElement('img')
+      img.src = logo
+      img.alt = NAMES[co]
+      el.append(img)
+    } else {
+      el = document.createElement('strong')
+      el.textContent = NAMES[co]
+    }
+    if (website) {
+      const a = document.createElement('a')
+      a.href = website
+      a.target = '_blank'
+      a.rel = 'noopener noreferrer'
+      a.className = 'company-head-link'
+      a.append(el)
+      // A small "opens elsewhere" mark on the logo's corner
+      const mark = document.createElement('span')
+      mark.className = 'company-head-mark'
+      mark.innerHTML =
+        '<svg viewBox="0 0 12 12" width="15" height="15" aria-hidden="true"><path d="M4 2h6v6M10 2 3 9" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>'
+      a.append(mark)
+      subtitleEl.append(a)
+    } else subtitleEl.append(el)
+    if (message) {
+      const note = document.createElement('span')
+      note.className = 'company-note'
+      note.append(message)
+      if (offerPast) {
+        const btn = document.createElement('button')
+        btn.type = 'button'
+        btn.className = 'empty-past'
+        btn.textContent = 'Show past productions'
+        btn.addEventListener('click', () => setShowAll(true))
+        note.append(btn)
+      }
+      subtitleEl.append(note)
+    }
+    return true
   }
 
   // Deep-link: ?id=<timestamp> ("run-" prefix stripped, as on /events)
   const deepId = params.get('id')
   if (deepId) {
-    document.querySelector('.page-bar-left').style.visibility = 'hidden'
     document.querySelector('.page-bar-right').style.visibility = 'hidden'
     document.querySelector('.page-intro').style.display = 'none'
     document.getElementById('page-bar-title').textContent = 'Production'
@@ -297,12 +379,9 @@ function summaryMeta(r: Run) {
     if (deepCard) setOpen(deepCard, true)
     else document.getElementById('run-not-found').hidden = false
   } else {
-    updateFilters()
-    filterShow.addEventListener('change', updateFilters)
-    filterCompany.addEventListener('change', () => {
-      syncAddress()
-      updateFilters()
-    })
+    render()
+    emptyPast.addEventListener('click', () => setShowAll(true))
+    pastToggle.addEventListener('click', () => setShowAll(!showAll))
   }
 
   document.querySelectorAll('.run-summary').forEach((btn) => {
@@ -625,10 +704,122 @@ function summaryMeta(r: Run) {
     padding: 48px 24px;
     text-align: center;
     font-size: 14px;
-    color: var(--ink-muted);
-    background: var(--surface);
+    font-weight: 500;
+    color: var(--ink);
+    background: var(--page-bg);
     border: 1px solid var(--border);
     border-radius: var(--radius);
+  }
+
+  /* The header is built by the page script, so Astro's scoping can't reach it */
+  /* Company header: equal space above (page padding) and below the logo tile */
+  .page-intro--company {
+    align-items: flex-end;
+    margin-bottom: 0;
+  }
+  .page-intro--company .page-subtitle {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+  :global(.company-note) {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+    margin-bottom: 16px;
+    padding: 12px 16px;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--ink);
+    background: var(--page-bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    line-height: 1.4;
+  }
+  :global(.company-note .empty-past) {
+    margin: 0;
+  }
+  .past-toggle {
+    display: block;
+    margin: 14px auto 0;
+    padding: 8px 16px;
+    font: inherit;
+    font-weight: 600;
+    color: var(--ink);
+    background: var(--page-bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    cursor: pointer;
+  }
+  .past-toggle[hidden] {
+    display: none;
+  }
+  .past-toggle:hover {
+    border-color: var(--border-primary);
+  }
+  :global(.company-head-link) {
+    position: relative;
+    display: block;
+    width: fit-content;
+    margin-bottom: 16px;
+    line-height: 0;
+  }
+  :global(.company-logo-tile) {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    width: 200px;
+    height: 76px;
+    padding: 8px 12px;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+  }
+  :global(.company-logo-tile--fill) {
+    padding: 2px 12px;
+  }
+  :global(.company-logo-tile img) {
+    display: block;
+    max-width: 100%;
+    max-height: 100%;
+    width: auto;
+    height: auto;
+    object-fit: contain;
+  }
+  :global(.company-head-mark) {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: rgba(0, 0, 0, 0.55);
+    color: #fff;
+    line-height: 0;
+  }
+  :global(.empty-past) {
+    display: block;
+    margin: 10px auto 0;
+    padding: 0;
+    font: inherit;
+    font-weight: 600;
+    color: var(--ink);
+    background: none;
+    border: none;
+    text-decoration: underline;
+    text-decoration-color: var(--border-primary);
+    text-underline-offset: 3px;
+    cursor: pointer;
+  }
+  :global(.empty-past[hidden]) {
+    display: none;
+  }
+  :global(.empty-past:hover) {
+    text-decoration-thickness: 2px;
   }
 
   @media (max-width: 860px) {

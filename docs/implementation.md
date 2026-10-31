@@ -447,14 +447,16 @@ Pure functions shared by pages, feeds, functions and `/admin`
 ### Page bar — `src/components/PageBar.astro`
 
 The dark bar under the nav on `/productions`, styled like the
-calendar's: a **Filters** button whose dropdown holds the page's
-`.filter-row`s (default slot), the title (`#page-bar-title`, the page's
-`h1`), and **Add to my calendar**, whose `data-ics-*` attributes come from
-the `calendar` prop. The Filters badge counts selects in visible rows that
-aren't on their first option, so a page's default must be its first option.
-It also styles `.page-intro` (description and `.page-count`) under the bar.
+calendar's: the title (`#page-bar-title`, the page's `h1`) and **Add to my
+calendar**, whose `data-ics-*` attributes come from the `calendar` prop. It
+also styles `.page-intro` (description and `.page-count`) under the bar.
 Pages offset their content by `--nav-h` + `--page-bar-h`. The `?id=` deep
-link hides both buttons and the intro and retitles the bar.
+link hides the button and the intro and retitles the bar.
+
+`/productions` has no filter controls: its script reads `?company=` and
+`?show=all`, and renders the header (a single organizer's logo, built as on
+its `/companies` card, with the nothing-to-list note beside it) from data
+attributes on `.runs-page`.
 
 ### Missing details — `/missing-details.json`
 

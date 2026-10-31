@@ -85,10 +85,10 @@ company fields, each entry may have:
   organizers are added by hand edit only. An audition's title is its
   production: the editor picks the run by title, or adds one ("Add
   production…"); a typed title remains for season-wide auditions.
-- **Planned**: a company card on `/companies` that lists
-  that company's upcoming productions on the site. The infrastructure here
-  supports it: `/productions?company=<organizer id>` works for any organizer.
-  How the card offers "website" vs "productions here" is still open.
+- **Company cards**: a card on `/companies` opens
+  `/productions?company=<organizer id>` (a company with none shows "No
+  productions recorded"). The productions page header shows the company's logo,
+  linking on to its website.
 
 **Majors**: SCS (`majorCode` 1), AT (2), MCT (4), Renegade (8). In 2026
 they produced 24 of 38 productions.
@@ -271,20 +271,19 @@ Terminology: the **year view** and the **month view** (larger screens) or
 
 ## `/events` and `/productions`
 
-- `/productions` has a dark bar like the calendar's: Filters on the left,
-  title in the middle, Add to my calendar on the right.
+- `/productions` has a dark bar like the calendar's: title in the middle, Add
+  to my calendar on the right. It has no filters: `?company=` and `?show=all`
+  in the address, and a Show past productions link.
 - `/events` has a heading, then a filter row with the count and Add to my
   calendar on the right. Subscribing is the nav link, not a form on the
   page.
 - Filters:
   - `/events`: Upcoming/All and Auditions/Events, and Company (every
     organizer with a listing).
-  - `/productions`: Upcoming/All, and Company (the four majors plus Other).
 - Every card names its organizers.
 - Cards carry their organizer ids (`data-organizers`), not the data file's
   company (which is `"other"` for every catch-all record).
-- `?company=<organizer id>` filters to any one organizer, including ones not
-  in the dropdown. The dropdown is just the visible control.
+- `?company=<organizer id>` filters to any one organizer.
 
 ## Out of scope
 

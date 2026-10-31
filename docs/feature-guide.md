@@ -79,20 +79,26 @@ Every production with its complete performance schedule. Each performance
 shows its type, plus any discounts or ticket link that differ from the
 production's. Every card names its organizers.
 
-- A dark bar under the nav, like the calendar's: **Filters** on the left,
-  the title in the middle, **Add to my calendar** on the right (the same
-  majors checkboxes as on `/calendar`).
-- **Filters**: Upcoming (default) / All, and Company: the four majors, or
-  **Other** (everyone else). A co-production shows under each of its
-  organizers. The Filters button shows how many filters are set.
+- A dark bar under the nav, like the calendar's: the title in the middle,
+  **Add to my calendar** on the right (the same majors checkboxes as on
+  `/calendar`). There are no filters.
+- Upcoming productions only, by default. A **Show past productions** link
+  under the list adds the past ones (`?show=all`; **Hide past productions**
+  undoes it).
 - `?company=<organizer id>` shows one organizer's productions, for any
-  organizer, including ones not in the dropdown; `?company=other` shows the
-  Other group. Changing the Company filter
-  updates the address, so it can be shared.
+  organizer; `?company=other` shows everyone who isn't one of the four majors.
+  A co-production shows under each of its organizers. The company cards on
+  `/companies` link here.
+- With one organizer selected the intro shows its logo (its name if it has
+  none), which links to the company's own website. The logo is shown as on its
+  `/companies` card (its own background, or dark for a light logo) with a small
+  link mark on its corner. If there is nothing to list, a box beside the logo
+  says so: "No upcoming productions" with **Show past productions**, or "No
+  productions recorded".
 - Each upcoming performance has its own **Add to my calendar** link.
 - `?id=` shows one production, expanded, on its own.
-- It isn't in the nav. Visitors reach it from a performance card's **All
-  dates** link, from the link on every performance in a subscribed
+- It isn't in the nav. Visitors reach it from a company card on
+  `/companies`, a performance card's **All dates** link, from the link on every performance in a subscribed
   calendar, and from Performance updates emails.
 
 ### Add to my calendar
@@ -285,7 +291,8 @@ A new record is an **Audition** or an **Event**; this can't change later.
 ## 4. Companies
 
 **Visitors** — `/companies`: a card grid of county theater companies with
-logos and website links.
+logos. A card opens that company's productions (`/productions?company=<id>`);
+a company with none shows "No productions recorded."
 
 **Admins** edit the companies file by hand (not through a form). It lists
 every organizer — companies with their own data, and smaller organizers

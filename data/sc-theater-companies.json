@@ -158,7 +158,7 @@
       "id": "scratch",
       "abvName": "Scratch",
       "name": "Scratch Studios",
-      "onCompaniesPage": true,
+      "onCompaniesPage": false,
       "website": "https://scratchsantacruz.com/",
       "logo": "/images/companies/scratch-logo.png",
       "logoBg": "#f6f4f0",

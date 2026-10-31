@@ -72,7 +72,7 @@
       "company": "good-egg",
       "showAbv": "Local Readings",
       "show": "Local Playwrights’ Staged Reading Series",
-      "description": "**Local Playwrights’ Staged Reading Series**\n- *Destiny’s Birthright* by Isaac Ludington - Nov 21, 2026\n- *Harvester* by Andrea L. Hart - Jan 23, 2027\n- Play TBA by Kathy Chetkovich - May 16, 2027",
+      "description": "- *Destiny’s Birthright* by Isaac Ludington - Nov 21, 2026\n- *Harvester* by Andrea L. Hart - Jan 23, 2027\n- Play TBA by Kathy Chetkovich - May 16, 2027",
       "genre": [
         "Drama"
       ],
@@ -107,7 +107,7 @@
           "ticketsUrl": ""
         }
       ],
-      "updatedAt": "2026-10-31T18:22:13.539Z"
+      "updatedAt": "2026-10-31T18:37:14.661Z"
     }
   ]
 }

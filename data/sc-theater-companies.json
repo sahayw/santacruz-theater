@@ -53,7 +53,8 @@
       "colour": "#7b8bc4",
       "onCompaniesPage": true,
       "website": "https://www.santacruzactorstheatre.org/",
-      "logo": "/images/companies/at-logo.jpg"
+      "logo": "/images/companies/at-logo.jpg",
+      "logoBg": "#000000"
     },
     {
       "id": "mct",
@@ -115,21 +116,25 @@
       "logo": "/images/companies/svpa-logo.png"
     },
     {
-      "id": "milo-rep",
-      "abvName": "Milo Rep",
-      "name": "Milo Rep",
-      "onCompaniesPage": true,
-      "website": "https://milorep.org/",
-      "logo": "/images/companies/milo-rep-logo.png"
-    },
-    {
       "id": "good-egg",
       "abvName": "Good Egg",
       "name": "Good Egg Productions",
       "onCompaniesPage": true,
       "website": "https://www.goodeggsantacruz.com/",
       "logo": "/images/companies/good-egg-logo.png",
+      "logoBg": "#0097b2",
       "logoFill": true
+    },
+    {
+      "id": "sh-theatrical",
+      "abvName": "SH Theatre",
+      "name": "SH Theatrical",
+      "onCompaniesPage": true,
+      "website": "https://sh.theater/",
+      "logo": "/images/companies/sh-theatrical-logo-wide.png",
+      "logoBg": "#f3eee8",
+      "logoFill": true,
+      "filedUnderOther": true
     },
     {
       "id": "gih",
@@ -155,6 +160,7 @@
       "onCompaniesPage": true,
       "website": "https://scratchsantacruz.com/",
       "logo": "/images/companies/scratch-logo.png",
+      "logoBg": "#f6f4f0",
       "editors": [
         {
           "email": "josephine.czarnecki@gmail.com",
@@ -163,10 +169,12 @@
       ]
     },
     {
-      "id": "sh-theatrical",
-      "abvName": "SH Theatre",
-      "name": "SH Theatrical",
-      "filedUnderOther": true
+      "id": "milo-rep",
+      "abvName": "Milo Rep",
+      "name": "Milo Rep",
+      "onCompaniesPage": false,
+      "website": "https://milorep.org/",
+      "logo": "/images/companies/milo-rep-logo.png"
     },
     {
       "id": "shadow-city",

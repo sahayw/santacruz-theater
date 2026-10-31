@@ -105,6 +105,7 @@ smaller organizers whose records are filed under Other
 | `logo`            | `string?`             | local path, e.g. `/images/companies/scs-logo.png`                         |
 | `logoDark`        | `boolean?`            | logo needs a dark card background                                         |
 | `logoFill`        | `boolean?`            | logo fills its card                                                       |
+| `logoBg`          | `string?`             | hex; the logo image's own background colour, used to fill the whole card  |
 | `editors`         | `{email,datasets}[]?` | grants each email the listed dataset keys                                 |
 | `adminOnly`       | `boolean?`            | sentinel entries (`admin`, `other`); never organizers                     |
 | `filedUnderOther` | `boolean?`            | no data files of its own; its records live in `other-<year>` files        |

@@ -54,6 +54,7 @@ export interface CompanyEntry {
   logo?: string
   logoDark?: boolean
   logoFill?: boolean
+  logoBg?: string
   editors?: CompanyEditor[]
   adminOnly?: boolean // the "admin" and "other" sentinels
   filedUnderOther?: boolean // an organizer without its own data files; its records live in other-<year> files

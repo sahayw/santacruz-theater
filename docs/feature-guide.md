@@ -294,7 +294,7 @@ whose records are filed under Other:
 
 - Name, short label (≤ 12 characters; shown in calendar entries), primary
   venue, website.
-- Logo, stored locally (light logos get a dark card).
+- Logo, stored locally (light logos get a dark card; a logo with its own background colour fills the whole card with it).
 - **Access grants**: each company lists editor emails and the datasets each
   may edit.
 - **Majors** — the companies with the most productions (SCS, AT, MCT,

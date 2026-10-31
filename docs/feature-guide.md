@@ -163,7 +163,7 @@ the calendar until it has performances, and its title shows in red in the
 early. The warnings also flag a missing tickets link.
 
 Each run has an ordered list of **performances**: date, time, optional type
-(Preview / Opening / Closing / Talk-back), and optional per-performance
+(Preview / Opening / Closing / Talk-back / Staged Reading), and optional per-performance
 discounts or ticket link that override the run's defaults.
 
 Editing a performance's date or time **moves** it in subscribers' calendars

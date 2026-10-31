@@ -36,7 +36,10 @@ const venueNames = Object.fromEntries(venuesData.venues.map((v) => [v.code, v.na
               rel="noopener noreferrer"
               aria-label={company.name}
             >
-              <div class="card-logo-area">
+              <div
+                class="card-logo-area"
+                style={company.logoBg ? `background:${company.logoBg}` : undefined}
+              >
                 {company.logo ? (
                   <img src={company.logo} alt={`${company.name} logo`} class="company-logo" />
                 ) : (

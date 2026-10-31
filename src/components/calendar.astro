@@ -681,8 +681,7 @@ const icsMajors = JSON.stringify(majors.map(({ code, label, name }) => ({ code, 
     padding-left: 14px;
   }
 
-  /* ── ADD TO MY CALENDAR (bar) — drill-down only: the year view doesn't show what you'd
-     subscribe to; icon-only on narrow screens ── */
+  /* ── ADD TO MY CALENDAR (bar) — shown in every view; icon-only on narrow screens ── */
   .cal-feed-btn {
     display: inline-flex;
     align-items: center;
@@ -704,9 +703,6 @@ const icsMajors = JSON.stringify(majors.map(({ code, label, name }) => ({ code, 
       border-color: rgba(255, 255, 255, 0.35);
       color: #fff;
     }
-  }
-  body:not(.drill-mode) .cal-feed-btn {
-    display: none;
   }
   .drill-label-week {
     display: none;

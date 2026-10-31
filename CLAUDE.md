@@ -40,7 +40,7 @@ There is no bare `astro dev` / `astro preview` script — `npm run dev` (netlify
 - `data/` — canonical data files; schemas in `docs/implementation.md` §3
 - `public/admin/` — the editor SPA
 - `public/images/companies/`, `public/images/services/` — locally stored images
-- `scripts/` — `check-*.ts` (`npm run check`; `check-feeds.ts` runs after the build), `sync-branches.sh` / `release.sh` (`npm run sync` / `release`), `migrate-occurrence-ids.ts` / `migrate-organizers-venues.ts` / `migrate-subscribers.ts` (one-off, `npx tsx`)
+- `scripts/` — `check-*.ts` (`npm run check`; `check-feeds.ts` runs after the build, then `warn-home-cards.ts`, which only warns if a home-page card's text could wrap past 5 lines on a narrow phone), `sync-branches.sh` / `release.sh` (`npm run sync` / `release`), `migrate-occurrence-ids.ts` / `migrate-organizers-venues.ts` / `migrate-subscribers.ts` (one-off, `npx tsx`)
 - `tests/` — vitest unit tests (run by `npm run check`); fixture data in `tests/fixtures/`, never live `data/`
 - `docs/` — `feature-guide.md`, `implementation.md`, `ics-spec.md` (calendar feeds design record), `notifications-spec.md` (email updates, organizers & calendar redesign design record)
 - `netlify/functions/` — serverless functions; full list and purpose in `docs/implementation.md` §7. **New functions use the Netlify Functions v2 interface** (`export default async (req: Request) => ...` + `export const config`) rather than the legacy `export const handler = schedule(...)` style — the legacy-style `data.mts` (TypeScript so it can share checks) isn't being migrated proactively. The nightly digest is a scheduled trigger (`send-digest.mts`) plus a background function (`send-digest-background.mts`) — see `docs/implementation.md` §8.

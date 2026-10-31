@@ -32,7 +32,14 @@ export interface ActivitiesFileCheck extends FileCheck {
 }
 
 const VALID_GENRES = new Set<string>(['Drama', 'Musical', 'Comedy', 'Other'])
-const VALID_PERF_TYPES = new Set<PerfType>(['', 'Preview', 'Opening', 'Closing', 'Talk-back'])
+const VALID_PERF_TYPES = new Set<PerfType>([
+  '',
+  'Preview',
+  'Opening',
+  'Closing',
+  'Talk-back',
+  'Staged Reading'
+])
 const VALID_TYPES = new Set(['audition', 'event'])
 const VALID_ROLE_TYPES = new Set(['lead', 'supporting', 'ensemble'])
 const VALID_GENDERS = new Set(['female', 'male', 'any'])

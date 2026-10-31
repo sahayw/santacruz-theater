@@ -8,7 +8,7 @@ import { markdownToolbar } from './markdown-editor.js'
 import { genreBoxesHtml, getGenres, limitGenres, setGenres } from './genre-boxes.js'
 import { renderOrganizerFields } from './organizer-picker.js'
 
-const PERF_TYPES = ['', 'Preview', 'Opening', 'Closing', 'Talk-back']
+const PERF_TYPES = ['', 'Preview', 'Opening', 'Closing', 'Talk-back', 'Staged Reading']
 const MONTH_MAP = {
   jan: 1,
   january: 1,
@@ -1655,6 +1655,7 @@ function extractPerfType(line) {
   if (l.includes('opening')) return 'Opening'
   if (l.includes('closing')) return 'Closing'
   if (l.includes('talk-back') || l.includes('talkback')) return 'Talk-back'
+  if (l.includes('staged reading')) return 'Staged Reading'
   return ''
 }
 
@@ -1802,7 +1803,8 @@ const CAL_PERF_TYPE_STYLES = {
   Preview: 'background:#fff0cc;color:#7a5200',
   Opening: 'background:#c8f0da;color:#1a5c35',
   Closing: 'background:#ffd4d4;color:#8c1e1e',
-  'Talk-back': 'background:#d4ddff;color:#2035a0'
+  'Talk-back': 'background:#d4ddff;color:#2035a0',
+  'Staged Reading': 'background:#ead9f7;color:#5a2a82'
 }
 
 function fmtPerfTime(t) {

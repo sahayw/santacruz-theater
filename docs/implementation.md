@@ -166,7 +166,7 @@ One file per company per year: `{ company, year, runs: [<Run>] }`.
 #### `Performance`
 
 `{ id: "perf-<timestamp>", date: "YYYY-MM-DD", time: "HH:MM" (24h), perfType:
-"" | Preview | Opening | Closing | Talk-back, discounts, ticketsUrl }` —
+"" | Preview | Opening | Closing | Talk-back | Staged Reading, discounts, ticketsUrl }` —
 non-empty `discounts` / `ticketsUrl` override the run's. `id` is a stable
 [occurrence id](#occurrence-ids--srcliboccurrence-idsts).
 

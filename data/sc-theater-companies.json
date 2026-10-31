@@ -133,8 +133,7 @@
       "website": "https://sh.theater/",
       "logo": "/images/companies/sh-theatrical-logo-wide.png",
       "logoBg": "#f3eee8",
-      "logoFill": true,
-      "filedUnderOther": true
+      "logoFill": true
     },
     {
       "id": "gih",

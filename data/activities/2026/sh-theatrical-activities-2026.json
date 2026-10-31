@@ -1,0 +1,93 @@
+{
+  "company": "sh-theatrical",
+  "year": 2026,
+  "activities": [
+    {
+      "id": "activity-1780261748445",
+      "rolesAvailable": [
+        {
+          "role": "Oscar Wilde",
+          "type": "lead",
+          "gender": "male",
+          "ageRange": "35-45",
+          "description": "Casting will be gender blind"
+        },
+        {
+          "role": "Lord Alfred Douglas",
+          "type": "supporting",
+          "gender": "male",
+          "ageRange": "20s",
+          "description": "Casting will be gender blind"
+        },
+        {
+          "role": "Sir Edward Clarke",
+          "type": "supporting",
+          "gender": "male",
+          "ageRange": "50-70"
+        },
+        {
+          "role": "Edward Carlson",
+          "type": "supporting",
+          "gender": "male",
+          "ageRange": "50-70"
+        },
+        {
+          "role": "Marquess of Queensberry",
+          "type": "supporting",
+          "gender": "male",
+          "ageRange": "50-60"
+        },
+        {
+          "role": "Narrators and other characters",
+          "type": "ensemble",
+          "gender": "any",
+          "ageRange": "any",
+          "description": "May double roles above. 9+ total cast size"
+        }
+      ],
+      "createdAt": "2026-05-31T21:09:08.445Z",
+      "updatedAt": "2026-07-06T05:28:13.623Z",
+      "rehearsalStart": "2026-08-26",
+      "notes": "Play by Moises Kaufman (also wrote \"The Laramie Project\"). Directed by Simon Hayward. Performances Oct 9 - 25 Fri-Sun at Vets Hall, Santa Cruz",
+      "contact": {
+        "name": "Simon Hayward",
+        "email": "sh.theater@icloud.com"
+      },
+      "prep": {
+        "acting": "Cold read from sides",
+        "bring": [
+          "Headshot and resume"
+        ]
+      },
+      "type": "audition",
+      "productionId": "run-1781503044353",
+      "dates": [
+        {
+          "id": "session-1791991837958",
+          "date": "2026-07-10",
+          "startTime": "19:00",
+          "endTime": "21:00",
+          "venue": "Scratch",
+          "notes": "Open Call"
+        },
+        {
+          "id": "session-1791991837959",
+          "date": "2026-07-11",
+          "startTime": "12:00",
+          "endTime": "14:00",
+          "venue": "Scratch",
+          "notes": "Open Call"
+        },
+        {
+          "id": "session-1791991837960",
+          "date": "2026-07-12",
+          "startTime": "12:00",
+          "endTime": "15:00",
+          "venue": "Scratch",
+          "notes": "Callbacks"
+        }
+      ],
+      "noticeUrl": "https://three-trials.live/#auditions"
+    }
+  ]
+}

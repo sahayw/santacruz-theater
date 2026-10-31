@@ -482,23 +482,56 @@ import SiteNav from '../components/SiteNav.astro'
       gap: 20px;
     }
 
+    /* Stacked cards: icon and title share a row to save vertical space; the Calendar card's
+       wrapper is dissolved so its title and description lay out like the others */
+    .section-card,
     .card--wide {
-      flex-direction: column;
-      align-items: stretch;
-    }
-
-    .card--wide .card-accent {
-      width: auto;
-      height: 3px;
-    }
-
-    .card--wide .card-icon {
-      padding: 16px 20px 0;
-      align-self: auto;
+      display: grid;
+      grid-template-columns: auto 1fr;
+      align-items: center;
     }
 
     .card--wide .card-main {
-      padding: 8px 20px 0;
+      display: contents;
+    }
+
+    .card-accent,
+    .card--wide .card-accent {
+      grid-column: 1 / -1;
+      width: auto;
+      height: 3px;
+      align-self: auto;
+    }
+
+    .card-icon,
+    .card--wide .card-icon {
+      padding: 14px 10px 0 20px;
+      align-self: auto;
+    }
+
+    .card-title,
+    .card--sub .card-title,
+    .card--wide .card-title {
+      font-size: 15px;
+      padding: 14px 20px 0 0;
+      margin-bottom: 0;
+    }
+
+    .card-desc,
+    .card--wide .card-desc {
+      font-size: 12px;
+    }
+
+    .card-desc,
+    .card--wide .card-desc,
+    .card-cta,
+    .card--wide .card-cta,
+    .card-soon-badge {
+      grid-column: 1 / -1;
+    }
+
+    .card--wide .card-desc {
+      padding: 6px 20px 0;
     }
 
     .card--wide .card-cta {

@@ -161,6 +161,9 @@ function roleTypeLabel(type: string): string {
                       <div class="aud-title-row">
                         <span class="aud-title">{act.title}</span>
                         {act.type === 'event' && <span class="type-badge type-event">Event</span>}
+                        {act.type === 'audition' && (
+                          <span class="type-badge type-audition">Audition</span>
+                        )}
                         {act.type === 'audition' && act.virtualSubmission && (
                           <span class="type-badge type-virtual">Virtual</span>
                         )}
@@ -893,6 +896,19 @@ function roleTypeLabel(type: string): string {
   .type-event {
     background: #e8f4f0;
     color: #1a6b50;
+  }
+
+  .type-audition {
+    background: #fbefd9;
+    color: #8a5a12;
+  }
+
+  .aud-card[data-type='event'] {
+    background: #f6fbf9;
+  }
+
+  .aud-card[data-type='audition'] {
+    background: #fffaf0;
   }
 
   .type-virtual {

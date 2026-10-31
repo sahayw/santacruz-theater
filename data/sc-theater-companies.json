@@ -67,6 +67,8 @@
       "primaryVenue": "PH",
       "website": "https://mctshows.org/",
       "logo": "/images/companies/mct-logo.png",
+      "logoBg": "#3a6760",
+      "logoFill": true,
       "editors": [
         {
           "email": "president@mctshows.org",

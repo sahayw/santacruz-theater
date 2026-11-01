@@ -393,13 +393,13 @@ check).
 
 **Change a rule in `data-rules.ts` only**, then update the
 [rule reference](#rule-reference) and
-[feature-guide §7](feature-guide.md#whats-required).
+[feature-guide §9](feature-guide.md#whats-required).
 
 Date fields are native `<input type="date">` pickers, so they always hold
 `YYYY-MM-DD`. Time _input_ normalization is per-editor (`normalizeTime()`),
 and the Calendar paste panel parses text dates with `parseDate()`. Accepted
 formats are documented in
-[feature-guide §7](feature-guide.md#7-editing-conventions).
+[feature-guide §9](feature-guide.md#9-editing-conventions).
 
 `public/admin/api.js` adds shared behavior to every date input, including ones
 rendered later (document-level listeners): Cmd/Ctrl+C copies `YYYY-MM-DD`,

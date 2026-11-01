@@ -1,34 +1,14 @@
 ---
 // The dark bar under the nav on /productions, styled like the calendar's:
-// the page title in the middle, Add to my calendar on the right (`calendar` holds the
-// button's data-ics-* attributes — see AddToCalendar.astro).
+// just the page title, centred.
 interface Props {
   title: string
-  calendar: Record<string, string>
 }
-const { title, calendar } = Astro.props
+const { title } = Astro.props
 ---
 
 <div class="page-bar">
-  <div class="page-bar-left"></div>
   <h1 class="page-bar-title" id="page-bar-title">{title}</h1>
-  <div class="page-bar-right">
-    <button
-      type="button"
-      class="page-bar-btn"
-      id="page-bar-cal"
-      aria-label="Add to my calendar"
-      title="Add to my calendar"
-      {...calendar}
-    >
-      <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"
-        ><rect x="1.5" y="2.5" width="13" height="12" rx="1.5" fill="none" stroke="currentColor"
-        ></rect><path d="M1.5 6h13M5 1v3M11 1v3M8 8v5M5.5 10.5h5" stroke="currentColor" fill="none"
-        ></path></svg
-      >
-      <span class="page-bar-label">Add to my calendar</span>
-    </button>
-  </div>
 </div>
 
 <style is:global>
@@ -45,18 +25,10 @@ const { title, calendar } = Astro.props
     height: var(--page-bar-h);
     background: #2e2a26;
     border-top: 1px solid rgba(255, 255, 255, 0.08);
-    display: grid;
-    grid-template-columns: 1fr auto 1fr;
+    display: flex;
     align-items: center;
+    justify-content: center;
     padding: 0 20px;
-  }
-
-  .page-bar-left {
-    justify-self: start;
-  }
-
-  .page-bar-right {
-    justify-self: end;
   }
 
   .page-bar-title {
@@ -67,33 +39,6 @@ const { title, calendar } = Astro.props
     letter-spacing: 0.01em;
     white-space: nowrap;
     margin: 0;
-  }
-
-  .page-bar-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 5px;
-    background: rgba(255, 255, 255, 0.1);
-    border: 1px solid rgba(255, 255, 255, 0.18);
-    border-radius: 4px;
-    color: rgba(255, 255, 255, 0.85);
-    font-family: 'DM Sans', sans-serif;
-    font-size: 12px;
-    padding: 4px 8px;
-    cursor: pointer;
-    white-space: nowrap;
-    -webkit-tap-highlight-color: transparent;
-  }
-  @media (hover: hover) {
-    .page-bar-btn:hover {
-      background: rgba(255, 255, 255, 0.18);
-      border-color: rgba(255, 255, 255, 0.35);
-      color: #fff;
-    }
-  }
-  .page-bar-btn:focus-visible {
-    outline: 2px solid #c8a96e;
-    outline-offset: 1px;
   }
 
   /* Under the bar: the page's description, and the count on the right */
@@ -123,9 +68,6 @@ const { title, calendar } = Astro.props
   @media (max-width: 640px) {
     .page-bar {
       padding: 0 12px;
-    }
-    .page-bar-label {
-      display: none;
     }
     .page-bar-title {
       font-size: 16px;

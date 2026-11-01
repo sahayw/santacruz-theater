@@ -233,7 +233,8 @@ doesn't announce everything.
   - With Performance updates unticked, no companies are ticked. A company
     choice the visitor made is kept and comes back when they tick it again.
 - **The nav link** "Subscribe for updates" sits beside the site name, only on
-  `/calendar`, `/events` and `/productions`. It pre-ticks the list that suits
+  `/calendar`, `/events` and `/productions` (not on a `/productions?company=` page, where
+  the page script hides it). It pre-ticks the list that suits
   the page and gives a back link. It's hidden on `/subscribe`. The hub links
   to the sections only; it has no subscribe link.
 - **Managing**:
@@ -271,8 +272,8 @@ Terminology: the **year view** and the **month view** (larger screens) or
 
 ## `/events` and `/productions`
 
-- `/productions` has a dark bar like the calendar's: title in the middle, Add
-  to my calendar on the right. It has no filters: `?company=` and `?show=all`
+- `/productions` has a dark bar like the calendar's: just the title.
+  It has no filters and no subscribe button: `?company=` and `?show=all`
   in the address, and a Show past productions link.
 - `/events` has a heading, then a filter row with the count and Add to my
   calendar on the right. Subscribing is the nav link, not a form on the

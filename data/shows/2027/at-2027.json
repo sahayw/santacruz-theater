@@ -271,7 +271,7 @@
           "id": "perf-1791991838350",
           "date": "2027-03-05",
           "time": "20:00",
-          "perfType": "",
+          "perfType": "Staged Reading",
           "discounts": "",
           "ticketsUrl": ""
         },
@@ -279,7 +279,7 @@
           "id": "perf-1791991838351",
           "date": "2027-03-06",
           "time": "20:00",
-          "perfType": "",
+          "perfType": "Staged Reading",
           "discounts": "",
           "ticketsUrl": ""
         },
@@ -287,7 +287,7 @@
           "id": "perf-1791991838352",
           "date": "2027-03-07",
           "time": "14:00",
-          "perfType": "",
+          "perfType": "Staged Reading",
           "discounts": "",
           "ticketsUrl": ""
         },
@@ -295,7 +295,7 @@
           "id": "perf-1791991838353",
           "date": "2027-03-12",
           "time": "20:00",
-          "perfType": "",
+          "perfType": "Staged Reading",
           "discounts": "",
           "ticketsUrl": ""
         },
@@ -303,7 +303,7 @@
           "id": "perf-1791991838354",
           "date": "2027-03-13",
           "time": "20:00",
-          "perfType": "",
+          "perfType": "Staged Reading",
           "discounts": "",
           "ticketsUrl": ""
         },
@@ -311,11 +311,12 @@
           "id": "perf-1791991838355",
           "date": "2027-03-14",
           "time": "14:00",
-          "perfType": "",
+          "perfType": "Staged Reading",
           "discounts": "",
           "ticketsUrl": ""
         }
-      ]
+      ],
+      "updatedAt": "2026-10-31T23:53:21.062Z"
     }
   ]
 }

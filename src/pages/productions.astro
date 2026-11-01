@@ -45,11 +45,6 @@ const organizerSites = JSON.stringify(
     ])
   )
 )
-// Add to my calendar: the majors as checkboxes (numbered selection feeds), as on /calendar
-const icsMajors = JSON.stringify(
-  majorList.map((c) => ({ code: c.majorCode, label: c.abvName, name: c.name }))
-)
-
 function fmtPerfTime(t: string) {
   return `${fmt12(t)}${Number(t.split(':')[0]) < 12 ? 'am' : 'pm'}`
 }
@@ -75,7 +70,7 @@ function summaryMeta(r: Run) {
   </head>
   <body>
     <SiteNav subscribe={{ list: 'performances', from: 'productions' }} />
-    <PageBar title="Productions" calendar={{ 'data-ics-majors': icsMajors }} />
+    <PageBar title="Productions" />
 
     <main
       class="runs-page"
@@ -244,6 +239,8 @@ function summaryMeta(r: Run) {
   const co =
     params.get('company') === 'other' || NAMES[params.get('company')] ? params.get('company') : ''
   let showAll = params.get('show') === 'all'
+  // A company's page isn't a calendar page: Subscribe for updates is for the calendars
+  if (co) document.querySelector('.nav-cta').style.display = 'none'
 
   const isPast = (card) => card.dataset.latestDate < TODAY
   cards.forEach((card) => {
@@ -350,16 +347,17 @@ function summaryMeta(r: Run) {
       subtitleEl.append(a)
     } else subtitleEl.append(el)
     if (message) {
-      const note = document.createElement('span')
+      // The whole box is the control when there are past productions to show
+      const note = document.createElement(offerPast ? 'button' : 'span')
       note.className = 'company-note'
       note.append(message)
       if (offerPast) {
-        const btn = document.createElement('button')
-        btn.type = 'button'
-        btn.className = 'empty-past'
-        btn.textContent = 'Show past productions'
-        btn.addEventListener('click', () => setShowAll(true))
-        note.append(btn)
+        note.type = 'button'
+        note.addEventListener('click', () => setShowAll(true))
+        const link = document.createElement('span')
+        link.className = 'empty-past'
+        link.textContent = 'Show past productions'
+        note.append(link)
       }
       subtitleEl.append(note)
     }
@@ -369,7 +367,6 @@ function summaryMeta(r: Run) {
   // Deep-link: ?id=<timestamp> ("run-" prefix stripped, as on /events)
   const deepId = params.get('id')
   if (deepId) {
-    document.querySelector('.page-bar-right').style.visibility = 'hidden'
     document.querySelector('.page-intro').style.display = 'none'
     document.getElementById('page-bar-title').textContent = 'Production'
     const deepCard = cards.find((c) => c.dataset.id === deepId)
@@ -380,7 +377,9 @@ function summaryMeta(r: Run) {
     else document.getElementById('run-not-found').hidden = false
   } else {
     render()
-    emptyPast.addEventListener('click', () => setShowAll(true))
+    emptyEl.addEventListener('click', () => {
+      if (!emptyPast.hidden) setShowAll(true)
+    })
     pastToggle.addEventListener('click', () => setShowAll(!showAll))
   }
 
@@ -740,6 +739,20 @@ function summaryMeta(r: Run) {
   :global(.company-note .empty-past) {
     margin: 0;
   }
+  :global(button.company-note) {
+    font-family: inherit;
+    text-align: left;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+  @media (hover: hover) {
+    :global(button.company-note:hover) {
+      border-color: var(--border-primary);
+    }
+    :global(button.company-note:hover .empty-past) {
+      text-decoration-thickness: 2px;
+    }
+  }
   .past-toggle {
     display: block;
     margin: 14px auto 0;
@@ -750,6 +763,9 @@ function summaryMeta(r: Run) {
     background: var(--page-bg);
     border: 1px solid var(--border);
     border-radius: var(--radius);
+    text-decoration: underline;
+    text-decoration-color: var(--border-primary);
+    text-underline-offset: 3px;
     cursor: pointer;
   }
   .past-toggle[hidden] {
@@ -757,6 +773,7 @@ function summaryMeta(r: Run) {
   }
   .past-toggle:hover {
     border-color: var(--border-primary);
+    text-decoration-thickness: 2px;
   }
   :global(.company-head-link) {
     position: relative;

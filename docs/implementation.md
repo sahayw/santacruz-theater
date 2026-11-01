@@ -33,7 +33,8 @@ How the system is built. For what it does, see
 - Routes: `/` hub → `/calendar`, `/companies`, `/events`, `/services`,
   `/about`. `SiteNav.astro` is shared; its `subscribe` prop adds
   **Subscribe for updates** (to `/subscribe?list=…&from=…`) on `/calendar`,
-  `/events` and `/productions`.
+  `/events` and `/productions` (hidden by the page script on
+  `/productions?company=<id>`).
 
 ## 2. Repository layout
 
@@ -447,11 +448,10 @@ Pure functions shared by pages, feeds, functions and `/admin`
 ### Page bar — `src/components/PageBar.astro`
 
 The dark bar under the nav on `/productions`, styled like the
-calendar's: the title (`#page-bar-title`, the page's `h1`) and **Add to my
-calendar**, whose `data-ics-*` attributes come from the `calendar` prop. It
-also styles `.page-intro` (description and `.page-count`) under the bar.
+calendar's: just the title (`#page-bar-title`, the page's `h1`). It also
+styles `.page-intro` (description and `.page-count`) under the bar.
 Pages offset their content by `--nav-h` + `--page-bar-h`. The `?id=` deep
-link hides the button and the intro and retitles the bar.
+link hides the intro and retitles the bar.
 
 `/productions` has no filter controls: its script reads `?company=` and
 `?show=all`, and renders the header (a single organizer's logo, built as on

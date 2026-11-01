@@ -22,8 +22,8 @@ What the site does, for visitors and for editors. For how it's built, see
 - **Public site**: a hub (`/`) linking to **Calendar**, **Companies**,
   **Events**, and **Services**, plus **About**. Every inner page shares a top
   nav. On `/calendar`, `/events` and `/productions` the nav also has
-  **Subscribe for updates** beside the site name ([Email
-  updates](#8-email-updates)).
+  **Subscribe for updates** ([Email
+  updates](#8-email-updates)), on Calendar pages.
 - **Calendar feeds**: visitors can subscribe to all performances (or
   leave out some of the major companies), or to all auditions and events, in Apple Calendar, Google
   Calendar, Outlook or any other calendar app. A subscription stays up to
@@ -79,9 +79,6 @@ Every production with its complete performance schedule. Each performance
 shows its type, plus any discounts or ticket link that differ from the
 production's. Every card names its organizers.
 
-- A dark bar under the nav, like the calendar's: the title in the middle,
-  **Add to my calendar** on the right (the same majors checkboxes as on
-  `/calendar`). There are no filters.
 - Upcoming productions only, by default. A **Show past productions** link
   under the list adds the past ones (`?show=all`; **Hide past productions**
   undoes it).
@@ -120,7 +117,7 @@ What the dialog offers depends on what's being added:
 
 | What                                                       | Offered as                       | Where                                                    |
 | ---------------------------------------------------------- | -------------------------------- | -------------------------------------------------------- |
-| All performances ("Santa Cruz Theater — All Performances") | Subscription                     | `/calendar` (drill-down) or `/productions` bar           |
+| All performances ("Santa Cruz Theater — All Performances") | Subscription                     | `/calendar` (top bar, any view)                          |
 | Performances without some majors                           | Subscription                     | the same, majors unticked                                |
 | All auditions & events                                     | Subscription                     | `/events` filter row                                     |
 | Auditions only                                             | Subscription                     | `/events` filter row, Include picker                     |

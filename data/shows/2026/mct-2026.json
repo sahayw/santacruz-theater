@@ -228,8 +228,10 @@
       "id": "run-1779617218671",
       "company": "mct",
       "showAbv": "Spitfire Grill",
-      "show": "The Spitfire Grill (Valcq/Alley)",
-      "genre": [],
+      "show": "The Spitfire Grill",
+      "genre": [
+        "Musical"
+      ],
       "venue": "PH",
       "price": "$40",
       "discounts": "Senior/Student $30",
@@ -357,7 +359,8 @@
           "ticketsUrl": ""
         }
       ],
-      "description": "The once prosperous town is dying. Percy, a convicted murderer on parole, ends up lodging with Hannah, the longtime owner of The Spitfire Grill. Together they discover that hope and community are worth fighting for, in this musical about redemption and revival."
+      "description": "The once prosperous town is dying. Percy, a convicted murderer on parole, ends up lodging with Hannah, the longtime owner of The Spitfire Grill. Together they discover that hope and community are worth fighting for, in this musical about redemption and revival.",
+      "updatedAt": "2026-10-31T23:50:56.553Z"
     },
     {
       "id": "run-1779617377368",
@@ -377,7 +380,7 @@
           "id": "perf-1791991838058",
           "date": "2026-08-14",
           "time": "20:00",
-          "perfType": "",
+          "perfType": "Staged Reading",
           "discounts": "",
           "ticketsUrl": ""
         },
@@ -385,7 +388,7 @@
           "id": "perf-1791991838059",
           "date": "2026-08-15",
           "time": "20:00",
-          "perfType": "",
+          "perfType": "Staged Reading",
           "discounts": "",
           "ticketsUrl": ""
         },
@@ -393,12 +396,13 @@
           "id": "perf-1791991838060",
           "date": "2026-08-16",
           "time": "14:00",
-          "perfType": "",
+          "perfType": "Staged Reading",
           "discounts": "",
           "ticketsUrl": ""
         }
       ],
-      "description": "New Works Weekend is Mountain Community Theater’s celebration of local storytelling. This year, we are thrilled to share eight brand-new, original plays crafted entirely by talented authors from our own community. These performances showcase local talented playwrights’ scripts as they work to bring these stories from the page to the stage. After each performance there will be a talkback with the writers, directors, and readers."
+      "description": "New Works Weekend is Mountain Community Theater’s celebration of local storytelling. This year, we are thrilled to share eight brand-new, original plays crafted entirely by talented authors from our own community. These performances showcase local talented playwrights’ scripts as they work to bring these stories from the page to the stage. After each performance there will be a talkback with the writers, directors, and readers.",
+      "updatedAt": "2026-10-31T23:51:15.357Z"
     },
     {
       "id": "run-1779617466366",

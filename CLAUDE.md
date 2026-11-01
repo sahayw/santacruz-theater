@@ -21,13 +21,13 @@ The site is a hub (`/`) linking to four sections: **Calendar** (`/calendar`), **
 
 ## Key commands
 
-| Command           | Action                                                                                                      |
-| ----------------- | ----------------------------------------------------------------------------------------------------------- |
-| `npm run dev`     | `netlify dev` at localhost:8888 — the whole system: public pages, functions, and the `/admin` editor        |
-| `npm run check`   | Validate all data JSON (syntax + show, activity, service schemas), then run the vitest unit tests           |
-| `npm run build`   | `npm run check`, Astro build to `dist/`, then validate the generated `.ics` feeds — Netlify's build command |
-| `npm run sync`    | Pull live `/admin` data edits into local `main` + `dev`. Run at the start of a feature branch.              |
-| `npm run release` | Sync, then promote `dev` → `main` (deploy) and back-merge. Prompts, listing the commits it will ship.       |
+| Command           | Action                                                                                                                                     |
+| ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| `npm run dev`     | `netlify dev` at localhost:8888 — the whole system: public pages, functions, and the `/admin` editor                                       |
+| `npm run check`   | Validate all data JSON (syntax + show, activity, service schemas), render the sample emails and check them, then run the vitest unit tests |
+| `npm run build`   | `npm run check`, Astro build to `dist/`, then validate the generated `.ics` feeds — Netlify's build command                                |
+| `npm run sync`    | Pull live `/admin` data edits into local `main` + `dev`. Run at the start of a feature branch.                                             |
+| `npm run release` | Sync, then promote `dev` → `main` (deploy) and back-merge. Prompts, listing the commits it will ship.                                      |
 
 There is no bare `astro dev` / `astro preview` script — `npm run dev` (netlify dev) covers both. Use `npx astro dev` directly if you ever want the lighter server without functions (the `/admin` editor won't load data there).
 

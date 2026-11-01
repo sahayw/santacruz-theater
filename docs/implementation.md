@@ -78,6 +78,7 @@ public/
 netlify/functions/  serverless functions (§9)
 scripts/          check-json.ts, check-reference.ts, check-shows.ts,
                   check-activities.ts, check-services.ts, check-markdown.ts,
+                  check-emails.ts, email-samples.ts,
                   check-feeds.ts (post-build),
                   migrate-occurrence-ids.ts, migrate-organizers-venues.ts,
                   migrate-subscribers.ts (one-off),
@@ -958,6 +959,15 @@ missing ping always means a problem.
   rules below plus structural checks. `check-activities.ts` also lists
   one-off session locations, so regulars can be added to the venue list.
 - `check-markdown.ts` — `renderMd` regression cases.
+- `check-emails.ts` — renders every email from the live data
+  (`email-samples.ts`: all upcoming records as new, update cards carrying each
+  change kind, and synthetic edge cases — long title, long description, 30 dates,
+  empty welcome). It fails on leftover values ("undefined", "NaN"), `<style>` or
+  `<script>`, unbalanced tags, a body not capped at 580px, a link that isn't
+  absolute or a Buttondown token, an unknown `{{ }}` token, or a size over
+  ~100 KB (Gmail clips it). It doesn't check how an email looks:
+  `npx tsx scripts/email-samples.ts <dir>` writes each as an HTML file to open
+  at 580px.
 - `vitest run` — unit tests in `tests/`. They run against fixture data in
   `tests/fixtures/`, never live `data/`, so an editor save can't break them.
 

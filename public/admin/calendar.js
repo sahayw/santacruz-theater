@@ -1,8 +1,14 @@
 import { IS_DEV, apiFetch, apiPut, buildCompanyOptions, deleteRecordFromFile } from './api.js'
-import { fmt12, fmtAudDateRange, fmtFullDate, renderMd } from '/admin/audition-format.js'
+import { fmtAudDateRange } from '/admin/audition-format.js'
 import { MAX_GENRES, isDateNearYear, isValidTime, runIssues } from '/admin/data-rules.js'
 import { createIdGenerator, ensurePerformanceIds } from '/admin/occurrence-ids.js'
 import { organizerLabel, organizerName, recordOrganizerIds } from '/admin/organizers.js'
+import {
+  PRODUCTION_VIEW_CSS,
+  genrePipHtml,
+  recordDetailHtml,
+  sortPerformances
+} from '/admin/production-view.js'
 import { runPlace, venueByCode } from '/admin/venues.js'
 import { markdownToolbar } from './markdown-editor.js'
 import { genreBoxesHtml, getGenres, limitGenres, setGenres } from './genre-boxes.js'
@@ -64,7 +70,7 @@ function injectStyles() {
   if (document.getElementById(STYLES_ID)) return
   const s = document.createElement('style')
   s.id = STYLES_ID
-  s.textContent = CAL_CSS
+  s.textContent = CAL_CSS + PRODUCTION_VIEW_CSS
   document.head.appendChild(s)
 }
 
@@ -476,25 +482,8 @@ tbody td { padding: 2px 4px; vertical-align: middle; }
 .cp-main { display: flex; flex-direction: column; gap: 4px; }
 .cp-title-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 .cp-title { font-family: 'Playfair Display', Georgia, serif; font-size: 16px; font-weight: 600; color: #1a1612; line-height: 1.25; }
-.cp-genre-badge { font-size: 11px; font-weight: 500; padding: 2px 8px; border-radius: 10px; flex-shrink: 0; letter-spacing: 0.02em; }
 .cp-meta-row { font-size: 12px; color: #6b6259; }
 .cp-detail { background: #f7f4ef; border-top: 1px solid #e0d9d0; padding: 20px 16px 16px; font-family: 'DM Sans', system-ui, sans-serif; }
-.cp-section { margin-bottom: 16px; }
-.cp-section:last-child { margin-bottom: 0; }
-.cp-section-head { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: #6b6259; margin-bottom: 8px; }
-.cp-sub { font-size: 12px; color: #6b6259; line-height: 1.5; }
-.cp-perf-row { display: flex; align-items: baseline; flex-wrap: wrap; gap: 8px; margin-bottom: 6px; font-size: 13px; padding-bottom: 6px; border-bottom: 1px solid #e0d9d0; }
-.cp-perf-row:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
-.cp-perf-date { font-weight: 500; color: #1a1612; white-space: nowrap; }
-.cp-perf-time { color: #6b6259; white-space: nowrap; }
-.cp-perf-type { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; padding: 2px 7px; border-radius: 8px; }
-.cp-perf-discounts { font-size: 11px; color: #9c9189; font-style: italic; }
-.cp-link-inline { font-size: 12px; color: #4f5ce0; text-decoration: none; }
-.cp-link-inline:hover { text-decoration: underline; }
-.cp-discounts-default { font-size: 12px; color: #6b6259; padding-top: 8px; border-top: 1px solid #e0d9d0; margin-top: 4px; }
-.cp-links-row { display: flex; gap: 16px; flex-wrap: wrap; padding-top: 12px; border-top: 1px solid #e0d9d0; margin-top: 4px; }
-.cp-action-link { font-size: 13px; font-weight: 500; color: #4f5ce0; text-decoration: none; }
-.cp-action-link:hover { color: #2c3e9a; text-decoration: underline; }
 `
 
 // ── HTML TEMPLATE ──
@@ -1796,25 +1785,6 @@ function venueKeyDown(event, inputEl) {
 function esc(v) {
   return (v || '').replace(/&/g, '&amp;').replace(/"/g, '&quot;')
 }
-const CAL_GENRE_STYLES = {
-  Musical: 'background:#dce4fb;color:#2c3e9a',
-  Drama: 'background:#fbe5e1;color:#8c3a2e',
-  Comedy: 'background:#dff4d6;color:#2d6020',
-  Other: 'background:#f0ece6;color:#6b6259'
-}
-const CAL_PERF_TYPE_STYLES = {
-  Preview: 'background:#fff0cc;color:#7a5200',
-  Opening: 'background:#c8f0da;color:#1a5c35',
-  Closing: 'background:#ffd4d4;color:#8c1e1e',
-  'Talk-back': 'background:#d4ddff;color:#2035a0'
-}
-
-function fmtPerfTime(t) {
-  if (!t) return ''
-  const h = Number(t.split(':')[0])
-  return `${fmt12(t)}${h < 12 ? 'am' : 'pm'}`
-}
-
 function openPreview() {
   if (activeRunIdx < 0) return
   const r = runs[activeRunIdx]
@@ -1822,29 +1792,7 @@ function openPreview() {
   const venueName = runPlace(r, venuesList)?.name || r.venue
   const genreArr = Array.isArray(r.genre) ? r.genre : r.genre ? [r.genre] : []
 
-  const sortedPerfs = [...r.performances].sort((a, b) =>
-    (a.date + a.time).localeCompare(b.date + b.time)
-  )
-  const perfsHtml =
-    sortedPerfs
-      .map((p) => {
-        return `<div class="cp-perf-row">
-      <span class="cp-perf-date">${fmtFullDate(p.date)}</span>
-      <span class="cp-perf-time">${fmtPerfTime(p.time)}</span>
-      ${p.perfType ? `<span class="cp-perf-type" style="${CAL_PERF_TYPE_STYLES[p.perfType] || ''}">${esc(p.perfType)}</span>` : ''}
-      ${p.discounts ? `<span class="cp-perf-discounts">Discounts: ${esc(p.discounts)}</span>` : ''}
-      ${p.ticketsUrl ? `<a href="${esc(p.ticketsUrl)}" class="cp-link-inline" target="_blank" rel="noopener">Tickets →</a>` : ''}
-    </div>`
-      })
-      .join('') || '<div class="cp-sub">No performances scheduled</div>'
-
-  const linksHtml =
-    r.infoUrl || r.ticketsUrl
-      ? `<div class="cp-links-row">
-    ${r.infoUrl ? `<a href="${esc(r.infoUrl)}" class="cp-action-link" target="_blank" rel="noopener">More info →</a>` : ''}
-    ${r.ticketsUrl ? `<a href="${esc(r.ticketsUrl)}" class="cp-action-link" target="_blank" rel="noopener">Get tickets →</a>` : ''}
-  </div>`
-      : ''
+  const sortedPerfs = sortPerformances(r.performances)
 
   document.getElementById('calPreviewBody').innerHTML = `
     <div class="cp-card">
@@ -1852,18 +1800,13 @@ function openPreview() {
         <div class="cp-main">
           <div class="cp-title-row">
             <span class="cp-title">${esc(r.show || r.showAbv || 'Untitled')}</span>
-            ${genreArr.map((g) => `<span class="cp-genre-badge" style="${CAL_GENRE_STYLES[g] || ''}">${esc(g)}</span>`).join('')}
+            ${genreArr.map(genrePipHtml).join('')}
           </div>
           <div class="cp-meta-row">${esc(companyName)}${venueName ? ` · ${esc(venueName)}` : ''}${r.price ? ` · ${esc(r.price)}` : ''}</div>
         </div>
         <span class="cp-date-range">${fmtAudDateRange(sortedPerfs)}</span>
       </div>
-      <div class="cp-detail">
-        ${r.description ? `<section class="cp-section"><h4 class="cp-section-head">About</h4><div class="cp-sub" style="font-size:13px;line-height:1.55;white-space:pre-wrap">${renderMd(r.description)}</div></section>` : ''}
-        <section class="cp-section"><h4 class="cp-section-head">${r.performances.length === 1 ? 'Performance' : `${r.performances.length} performances`}</h4>${perfsHtml}</section>
-        ${r.discounts ? `<div class="cp-discounts-default">${r.performances.some((p) => p.discounts || p.ticketsUrl) ? 'Default discounts' : 'Discounts'}: ${esc(r.discounts)}</div>` : ''}
-        ${linksHtml}
-      </div>
+      <div class="cp-detail">${recordDetailHtml(r)}</div>
     </div>`
   document.getElementById('calPreviewOverlay').style.display = ''
 }

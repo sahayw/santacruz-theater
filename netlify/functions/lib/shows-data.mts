@@ -44,6 +44,7 @@ export interface DigestProduction {
   organizerName: string
   venueName: string
   price: string
+  description: string // Markdown; only new-production emails carry it
   ticketsUrl: string // the run's, else the first upcoming performance's
   perfs: { id: string; date: string; time: string; perfType: string }[]
   url: string // its /productions page
@@ -68,6 +69,7 @@ export function digestProduction(
     organizerName: organizerName(organizerIds, companies),
     venueName: runPlace(run, venues)?.name ?? run.venue,
     price: run.price,
+    description: run.description?.trim() ?? '',
     ticketsUrl: run.ticketsUrl?.trim() || perfs.find((p) => p.ticketsUrl?.trim())?.ticketsUrl || '',
     perfs: perfs.map(({ id, date, time, perfType }) => ({ id, date, time, perfType })),
     url: `${siteUrl}/productions?id=${bareId(run.id)}`

@@ -8,8 +8,16 @@ import {
   fmtAudDateRange,
   fmtFullDate,
   fmtShortDate,
-  fmtTimeRange
+  fmtTimeRange,
+  renderMd
 } from '../../../src/lib/audition-format.ts'
+import {
+  CHANGE_COLOURS,
+  GENRE_COLOURS,
+  cutDescription,
+  pipStyle,
+  type Colour
+} from '../../../src/lib/production-view.ts'
 import {
   activityChangeLabel,
   productionChangeLabel,
@@ -37,9 +45,19 @@ const LINK =
 const BUTTON =
   'display:inline-block;font-size:13px;font-weight:600;color:#ffffff;background:#1a1612;text-decoration:none;padding:7px 14px;border-radius:4px;margin-right:14px'
 
-// Blue for a change; amber when something can now be booked
-const pill = (label: string, booking = false) =>
-  `<span style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:${booking ? '#7a4f0b' : '#2c3e9a'};background:${booking ? '#fbe9c9' : '#dce4fb'};display:inline-block;padding:2px 8px;border-radius:8px;margin:0 6px 8px 0">${esc(label)}</span>`
+// Change pips: blue for a change, amber when something can now be booked, red when cancelled
+const pill = (label: string, colour: Colour = CHANGE_COLOURS.info) =>
+  `<span style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;${pipStyle(colour)};display:inline-block;padding:2px 8px;border-radius:8px;margin:0 6px 8px 0">${esc(label)}</span>`
+
+// Genre pip, same colours as the site
+const genrePill = (g: string) =>
+  `<span style="font-family:'DM Sans',Arial,sans-serif;font-size:11px;font-weight:500;${pipStyle(GENRE_COLOURS[g])};display:inline-block;padding:2px 8px;border-radius:10px;margin-left:6px;vertical-align:middle">${esc(g)}</span>`
+
+function changeColour(c: ProductionChange) {
+  if (c.kind === 'tickets') return CHANGE_COLOURS.onSale
+  if (c.kind === 'dates-removed' && c.all) return CHANGE_COLOURS.cancelled
+  return CHANGE_COLOURS.info
+}
 
 const heading = (text: string, top = true) =>
   `<h2 style="font-family:${SERIF};font-size:19px;font-weight:600;color:#1a1612;margin:${top ? '24px' : '0'} 0 12px 0">${text}</h2>`
@@ -94,55 +112,38 @@ function page(title: string, subtitle: string, body: string) {
 
 // ── Performance cards ────────────────────────────────────────────────────────
 
-const PERF_ROWS = 4
-
-function perfRows(perfs: DigestProduction['perfs'], more: number) {
-  const rows = perfs
-    .map(
-      (p) => `<tr>
-      <td style="padding:3px 14px 3px 0;color:#1a1612;font-weight:500;white-space:nowrap">${esc(fmtFullDate(p.date))}</td>
-      <td style="padding:3px 14px 3px 0;color:#6b6259;white-space:nowrap">${esc(fmtTimeRange(p.time, ''))}</td>
-      <td style="padding:3px 0;color:#6b6259">${esc(p.perfType)}</td>
-    </tr>`
-    )
-    .join('')
-  const moreRow = more
-    ? `<tr><td colspan="3" style="padding:2px 0;font-size:12px;color:#9c9189">+ ${more} more date${more > 1 ? 's' : ''}</td></tr>`
-    : ''
-  return `<table style="border-collapse:collapse;font-size:13px;margin-bottom:10px">${rows}${moreRow}</table>`
-}
-
 /**
- * A production card, as on /productions. A new production shows its first few
- * performances; an update shows its labels and, for added dates, only the new ones.
+ * A production card — fields as in docs/feature-guide.md ("How a production is displayed").
+ * No performance rows and one link to the record. A new production carries its description;
+ * an update carries its change pips instead.
  */
 export function productionCard(p: DigestProduction, changes: ProductionChange[] = []) {
-  const added = changes.find((c) => c.kind === 'dates-added')
-  const shown = added ? p.perfs.filter((x) => added.perfIds.includes(x.id)) : p.perfs
-  const onSale = changes.some((c) => c.kind === 'tickets') && p.ticketsUrl
+  const cancelled = changes.some((c) => c.kind === 'dates-removed' && c.all)
   const meta = [p.organizerName, p.venueName, p.price].filter(Boolean).map(esc).join(' &middot; ')
-  const genre = p.genre.length
-    ? ` <span style="font-family:'DM Sans',Arial,sans-serif;font-size:12px;font-weight:400;color:#9c9189">${esc(p.genre.join(', '))}</span>`
-    : ''
+  const description = changes.length ? '' : cutDescription(p.description)
   return `<div style="${CARD}">
-    ${changes.map((c) => pill(productionChangeLabel(c), c.kind === 'tickets')).join('')}
-    <div style="${TITLE}">${esc(p.title)}${genre}</div>
+    ${changes.map((c) => pill(productionChangeLabel(c), changeColour(c))).join('')}
+    <div style="${TITLE}">${esc(p.title)}${p.genre.map(genrePill).join('')}</div>
     <div style="font-size:13px;color:#6b6259;margin-bottom:2px">${meta}</div>
     <div style="${META}">${
       p.perfs.length // none left when it's cancelled
         ? `${esc(fmtAudDateRange(p.perfs))} &middot; ${p.perfs.length === 1 ? '1 performance' : `${p.perfs.length} performances`}`
         : 'No upcoming performances'
     }</div>
-    ${shown.length ? perfRows(shown.slice(0, PERF_ROWS), Math.max(0, shown.length - PERF_ROWS)) : ''}
-    ${onSale ? `<a href="${esc(p.ticketsUrl)}" style="${BUTTON}">Get tickets</a>` : ''}
-    <a href="${esc(p.url)}" style="${LINK}">All dates &rarr;</a>
+    ${
+      description && description.text
+        ? `<div style="font-size:13px;color:#1a1612;line-height:1.55;margin-bottom:12px;white-space:pre-wrap">${renderMd(description.text)}${description.cut ? ` <a href="${esc(p.url)}" style="color:#4f5ce0;text-decoration:none">&hellip; Read more</a>` : ''}</div>`
+        : ''
+    }
+    <a href="${esc(p.url)}" style="${LINK}">${cancelled ? 'Details' : 'Details &amp; tickets'} &rarr;</a>
   </div>`
 }
 
-/** One line per production, for the welcome email. */
+/** One row per production, for the welcome email: title (the link), genre, organizer, venue, dates. */
 function productionLine(p: DigestProduction) {
+  const meta = [p.organizerName, p.venueName].filter(Boolean).map(esc).join(' &middot; ')
   return `<tr>
-    <td style="padding:6px 12px 6px 0;vertical-align:top"><a href="${esc(p.url)}" style="color:#1a1612;font-weight:600;text-decoration:none">${esc(p.title)}</a><br><span style="color:#6b6259">${esc(p.organizerName)}</span></td>
+    <td style="padding:6px 12px 6px 0;vertical-align:top"><a href="${esc(p.url)}" style="color:#1a1612;font-weight:600;text-decoration:none">${esc(p.title)}</a>${p.genre.map(genrePill).join('')}<br><span style="color:#6b6259">${meta}</span></td>
     <td style="padding:6px 0;vertical-align:top;color:#6b6259;white-space:nowrap;text-align:right">${esc(fmtAudDateRange(p.perfs))}</td>
   </tr>`
 }
@@ -189,7 +190,7 @@ export function activityCard(a: DigestActivity, siteUrl: string, changes: Activi
   const registering = changes.some((c) => c.kind === 'registration') && a.registerUrl
 
   return `<div style="${CARD}">
-    ${changes.map((c) => pill(activityChangeLabel(c), c.kind === 'registration')).join('')}
+    ${changes.map((c) => pill(activityChangeLabel(c), c.kind === 'registration' ? CHANGE_COLOURS.onSale : CHANGE_COLOURS.info)).join('')}
     <div style="${TITLE}">${esc(a.title)}</div>
     <div style="${META}">${esc(a.companyName)}${subLine ? ` &middot; ${esc(subLine)}` : ''}</div>
     ${datesHtml}

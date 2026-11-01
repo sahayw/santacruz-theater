@@ -179,9 +179,9 @@ Rules:
   - `- item` becomes `• item`.
 - **Description contents**
   - Performances, in order:
-    1. the perf type (e.g. "Opening performance");
-    2. the production's full title, only when it differs from the summary's
+    1. the production's full title, only when it differs from the summary's
        short title;
+    2. the perf type (e.g. "Opening performance");
     3. the run description;
     4. price and discounts (per-performance discounts override the run's);
     5. `Details & tickets: https://santacruz.theater/productions?id={id}`, or just

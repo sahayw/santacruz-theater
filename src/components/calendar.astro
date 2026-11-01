@@ -3,6 +3,7 @@ import type { PerformanceEvent } from '../types.ts'
 import AddToCalendar from './AddToCalendar.astro'
 import { companies } from '../lib/data.ts'
 import { majors as majorsOf } from '../lib/organizers.ts'
+import { PRODUCTION_VIEW_CSS } from '../lib/production-view.ts'
 
 interface Props {
   performances: PerformanceEvent[]
@@ -459,30 +460,8 @@ const icsMajors = JSON.stringify(majors.map(({ code, label, name }) => ({ code, 
     letter-spacing: 0.06em;
     color: var(--ink-muted);
   }
-  .perf-type-tag {
-    font-size: 11px;
-    font-weight: 600;
-    padding: 2px 8px;
-    border-radius: 10px;
-    background: #f0ece6;
-    color: var(--ink-muted);
+  .perf-type-slot {
     margin-left: auto;
-  }
-  .perf-type-tag[data-type='Preview'] {
-    background: #fff0cc;
-    color: #7a5200;
-  }
-  .perf-type-tag[data-type='Opening'] {
-    background: #c8f0da;
-    color: #1a5c35;
-  }
-  .perf-type-tag[data-type='Closing'] {
-    background: #ffd4d4;
-    color: #8c1e1e;
-  }
-  .perf-type-tag[data-type='Talk-back'] {
-    background: #d4ddff;
-    color: #2035a0;
   }
   .card-show-title {
     font-family: 'Playfair Display', serif;
@@ -873,6 +852,7 @@ const icsMajors = JSON.stringify(majors.map(({ code, label, name }) => ({ code, 
     text-align: center;
   }
 </style>
+<style is:inline set:html={PRODUCTION_VIEW_CSS}></style>
 
 <script define:vars={{ performances, majors }} is:inline>
   // Year view: each day shows one square per major performing (in majorCode order), then
@@ -881,6 +861,7 @@ const icsMajors = JSON.stringify(majors.map(({ code, label, name }) => ({ code, 
   // colour (grey for non-majors). See docs/notifications-spec.md.
   const PERFORMANCES = performances
   const renderMdPromise = import('/admin/audition-format.js').then((module) => module.renderMd)
+  const pillsPromise = import('/admin/production-view.js')
   const CARD_DESCRIPTION_LINES = 4
   const OTHER_COLOUR = '#b9b0a4'
   const MAJOR_IDS = new Set(majors.map((m) => m.id))
@@ -1205,6 +1186,7 @@ const icsMajors = JSON.stringify(majors.map(({ code, label, name }) => ({ code, 
 
   async function openSheet(dateStr, runId = null) {
     const renderMd = await renderMdPromise
+    const pills = await pillsPromise
     let perfs = byDate[dateStr] || []
     if (runId) perfs = perfs.filter((p) => p.runId === runId)
     if (!perfs.length) return
@@ -1225,15 +1207,15 @@ const icsMajors = JSON.stringify(majors.map(({ code, label, name }) => ({ code, 
       <div class="perf-card-company">
         <div class="company-badge" style="background:${entryColour(p)}"></div>
         <span class="company-name">${esc(p.organizerName)}</span>
-        ${p.perfType ? `<span class="perf-type-tag" data-type="${p.perfType}">${p.perfType}</span>` : ''}
+        ${p.perfType ? `<span class="perf-type-slot">${pills.perfTypePipHtml(p.perfType)}</span>` : ''}
       </div>
-      <div class="card-show-title">${esc(p.show)}</div>
+      <div class="card-show-title">${esc(p.show)} ${p.genre.map(pills.genrePipHtml).join('')}</div>
       ${showDescription ? `<div class="card-description-wrap"><div class="card-description">${renderMd(description)}</div><button type="button" class="card-description-more"><span class="card-description-more-ellipsis">...</span><span class="card-description-more-label">More</span></button></div>` : ''}
       <div class="card-meta">
+        <div class="card-meta-item"><span class="card-meta-label">Date&nbsp;</span>${parseDate(dateStr).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}</div>
         <div class="card-meta-item"><span class="card-meta-label">Time&nbsp;</span>${fmtTime(p.time)}</div>
         <div class="card-meta-item"><span class="card-meta-label">Venue&nbsp;</span>${esc(p.venue)}</div>
         ${p.price ? `<div class="card-meta-item"><span class="card-meta-label">Price&nbsp;</span>${esc(p.price)}</div>` : ''}
-        ${p.genre.length ? `<div class="card-meta-item"><span class="card-meta-label">Genre&nbsp;</span>${p.genre.join(' / ')}</div>` : ''}
       </div>
       ${p.discounts ? `<div class="card-discounts">Discounts: ${esc(p.discounts)}</div>` : ''}
       <div class="card-buttons">

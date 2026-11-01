@@ -54,6 +54,7 @@ src/
   lib/
     data.ts             build-time data loading (import.meta.glob)
     audition-format.ts  shared formatting — Astro, functions, browser
+    production-view.ts  production display pieces: pip colours, record body, email description cut (§6)
     data-rules.ts       shared validation rules + missing-details gaps — editors + check scripts
     file-checks.ts      per-file checks — check scripts + the save function (§4)
     organizers.ts       who organizes a record; organizer rules (§6)
@@ -508,6 +509,15 @@ text (calendar apps would show raw URLs in full), and writes bullets as
 | `events.astro`, `services.astro`, `calendar.astro` (client script) | direct import                                                                  |
 | email functions (`netlify/functions/`)                             | esbuild bundle                                                                 |
 | `activities.js`, `calendar.js`, `services.js` (Preview)            | `/admin/audition-format.js`, served by `src/pages/admin/audition-format.js.ts` |
+
+### Production display — `src/lib/production-view.ts`
+
+The shared pieces of [How a production is displayed](feature-guide.md#how-a-production-is-displayed):
+
+- **Pips**: `GENRE_COLOURS`, `PERF_TYPE_COLOURS` and `CHANGE_COLOURS` are the only colour definitions; `genrePipHtml()` / `perfTypePipHtml()` (and the email template's inline-styled equivalents) read them.
+- **Record body**: `recordDetailHtml(run, { withAdd })` renders the description, performances, discounts and links. `/productions` passes `withAdd: true`; the editor Preview omits it. `PRODUCTION_VIEW_CSS` styles it (and `PILL_CSS` the pills) in both places.
+- **Email**: `cutDescription()` caps a Markdown description at about 600 characters at a line break or sentence end, never inside bold, italic or a link. `fmtPerfTime()` writes "7pm" / "7:30pm".
+- **Consumers**: `productions.astro`, `events.astro`, `calendar.astro` (card pills), the email template (direct imports); `calendar.js` and `activities.js` Previews (`/admin/production-view.js`, served by `src/pages/admin/production-view.js.ts`).
 
 ### The "upcoming" rule
 

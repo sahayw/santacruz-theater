@@ -24,6 +24,7 @@ import {
   organizerName,
   recordOrganizerIds
 } from '/admin/organizers.js'
+import { PILL_CSS, genrePipHtml } from '/admin/production-view.js'
 import { sessionPlace, venueByCode } from '/admin/venues.js'
 import { markdownToolbar } from './markdown-editor.js'
 import { genreBoxesHtml, getGenres, limitGenres, setGenres } from './genre-boxes.js'
@@ -59,7 +60,7 @@ function injectStyles() {
   if (document.getElementById(STYLES_ID)) return
   const s = document.createElement('style')
   s.id = STYLES_ID
-  s.textContent = ACT_CSS
+  s.textContent = ACT_CSS + PILL_CSS
   document.head.appendChild(s)
 }
 
@@ -420,7 +421,6 @@ const ACT_CSS = `
 .pv-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
 .pv-title-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 .pv-title { font-family: 'Playfair Display', Georgia, serif; font-size: 16px; font-weight: 600; color: #1a1612; line-height: 1.25; }
-.pv-genre-badge { font-size: 11px; font-weight: 500; padding: 2px 8px; border-radius: 10px; flex-shrink: 0; letter-spacing: 0.02em; }
 .pv-type-badge { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; padding: 2px 7px; border-radius: 8px; flex-shrink: 0; background: #e8f4f0; color: #1a6b50; }
 .pv-brief-row { font-size: 12px; color: #9c9189; }
 .pv-meta-row { font-size: 12px; color: #6b6259; }
@@ -2170,13 +2170,6 @@ function selectVenueItem(rowIdx, code) {
 }
 
 // ── PREVIEW ──
-const PV_GENRE_STYLES = {
-  Musical: 'background:#dce4fb;color:#2c3e9a',
-  Drama: 'background:#fbe5e1;color:#8c3a2e',
-  Comedy: 'background:#dff4d6;color:#2d6020',
-  Other: 'background:#f0ece6;color:#6b6259'
-}
-
 function openPreview() {
   if (activeActIdx < 0) return
   const a = activities[activeActIdx]
@@ -2336,7 +2329,7 @@ function openPreview() {
             <span class="pv-title">${esc(titleOf(a) || 'Untitled')}</span>
             ${isEvent ? '<span class="pv-type-badge">Event</span>' : ''}
             ${isVirtual ? '<span class="pv-virtual-badge">Virtual</span>' : ''}
-            ${!isEvent ? genreArr.map((g) => `<span class="pv-genre-badge" style="${PV_GENRE_STYLES[g] || ''}">${esc(g)}</span>`).join('') : ''}
+            ${!isEvent ? genreArr.map(genrePipHtml).join('') : ''}
           </div>
           ${isEvent && a.briefDescription ? `<div class="pv-brief-row">${esc(a.briefDescription)}</div>` : ''}
           <div class="pv-meta-row">${metaRow}</div>

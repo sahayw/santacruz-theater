@@ -7,6 +7,7 @@ import AddToCalendar from '../components/AddToCalendar.astro'
 import { FEED_NAMES, bareId } from '../lib/calendar-model.ts'
 import { companies, getActivities } from '../lib/data.ts'
 import { allOrganizers } from '../lib/organizers.ts'
+import { PILL_CSS, genrePipHtml } from '../lib/production-view.ts'
 import type { ActivityEvent } from '../lib/data.ts'
 import {
   fmtShortDate,
@@ -52,10 +53,6 @@ const feedChoices = JSON.stringify([
 /** "Download all dates" — only for an open activity with more than one scheduled session. */
 function hasMultipleSessions(act: ActivityEvent): boolean {
   return !act.closed && act.dates.filter((d) => d.date).length > 1
-}
-
-function genreClass(genre: string): string {
-  return `genre-${genre.toLowerCase()}`
 }
 
 function roleTypeLabel(type: string): string {
@@ -168,9 +165,7 @@ function roleTypeLabel(type: string): string {
                           <span class="type-badge type-virtual">Virtual</span>
                         )}
                         {act.type !== 'event' &&
-                          act.genre.map((g) => (
-                            <span class={`genre-badge ${genreClass(g)}`}>{g}</span>
-                          ))}
+                          act.genre.map((g) => <Fragment set:html={genrePipHtml(g)} />)}
                       </div>
                       {act.type === 'event' && act.briefDescription && (
                         <div class="aud-brief-row">{act.briefDescription}</div>
@@ -619,6 +614,8 @@ function roleTypeLabel(type: string): string {
   </body>
 </html>
 
+<style is:inline set:html={PILL_CSS}></style>
+
 <style>
   *,
   *::before,
@@ -855,32 +852,6 @@ function roleTypeLabel(type: string): string {
     font-weight: 600;
     color: var(--ink);
     line-height: 1.25;
-  }
-
-  .genre-badge {
-    font-size: 11px;
-    font-weight: 500;
-    padding: 2px 8px;
-    border-radius: 10px;
-    flex-shrink: 0;
-    letter-spacing: 0.02em;
-  }
-
-  .genre-musical {
-    background: #dce4fb;
-    color: #2c3e9a;
-  }
-  .genre-drama {
-    background: #fbe5e1;
-    color: #8c3a2e;
-  }
-  .genre-comedy {
-    background: #dff4d6;
-    color: #2d6020;
-  }
-  .genre-other {
-    background: #f0ece6;
-    color: var(--ink-muted);
   }
 
   .type-badge {

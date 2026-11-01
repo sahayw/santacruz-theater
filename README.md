@@ -38,7 +38,7 @@ npm run dev       # netlify dev → http://localhost:8888, editor included
 | `npm run sync`    | Pull live `/admin` data edits into local `main` + `dev`                            |
 | `npm run release` | Promote `dev` → `main` (deploy) and back-merge                                     |
 
-See `docs/implementation.md` §10–12 for local-dev details and the full branch/release workflow.
+See `docs/implementation.md` §12–14 for local-dev details and the full branch/release workflow.
 
 ## License / contact
 

@@ -321,7 +321,7 @@ Terminology: the **year view** and the **month view** (larger screens) or
   (`scripts/migrate-subscribers.ts --apply`), so they keep what they get
   today.
 - **Timing**: release just after the 02:00 UTC run, then run the digest once
-  by hand to record the snapshots (`implementation.md` §8, Go-live).
+  by hand to record the snapshots (`implementation.md` §10, Go-live).
 
 ## History
 

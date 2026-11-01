@@ -5,46 +5,74 @@ What the site does, for visitors and for editors. For how it's built, see
 
 ## Contents
 
+**What visitors see**
+
 1. [Overview](#1-overview)
-2. [Calendar](#2-calendar)
-3. [Auditions & Events](#3-auditions--events)
-4. [Companies](#4-companies)
-5. [Services](#5-services)
-6. [About & contact](#6-about--contact)
-7. [Editing conventions](#7-editing-conventions)
-8. [Email updates](#8-email-updates)
-9. [Publishing & access](#9-publishing--access)
+2. [Productions](#2-productions)
+3. [Auditions & events](#3-auditions--events)
+4. [Companies & services](#4-companies--services)
+5. [About & contact](#5-about--contact)
+6. [Calendar feeds](#6-calendar-feeds)
+7. [Email updates](#7-email-updates)
+
+**How editors work**
+
+8. [Editor basics](#8-editor-basics)
+9. [Editing conventions](#9-editing-conventions)
+10. [Calendar editor](#10-calendar-editor)
+11. [Activities editor](#11-activities-editor)
 
 ---
 
 ## 1. Overview
 
-- **Public site**: a hub (`/`) linking to **Calendar**, **Companies**,
-  **Events**, and **Services**, plus **About**. Every inner page shares a top
-  nav. On `/calendar`, `/events` and `/productions` the nav also has
-  **Subscribe for updates** ([Email
-  updates](#8-email-updates)), on Calendar pages.
-- **Calendar feeds**: visitors can subscribe to all performances (or
-  leave out some of the major companies), or to all auditions and events, in Apple Calendar, Google
-  Calendar, Outlook or any other calendar app. A subscription stays up to
-  date. They can also add a single performance or session as a one-off
-  event. See [Add to my calendar](#add-to-my-calendar).
-- **Editor** (`/admin`): one tile per dataset — Calendar, Activities,
-  Services. Saving publishes; the change is live within a few minutes. The
-  companies/organizers and venue lists are edited by hand
-  ([§4](#4-companies)).
-- **Organizers**: every production, audition and event names who puts it on.
-  Smaller organizers are grouped as "Other" for data management, but their
-  own names appear everywhere a company name would.
-- **Access**: editors sign in with Netlify Identity and see only the datasets
-  they're granted — usually their own company's calendar and/or activities.
-  Admins can edit everything. See [§9](#9-publishing--access).
+- **Public site**: a hub (`/`) linking to **Calendar**, **Companies**, **Events**, **Services** and **About**, with a shared top nav. Calendar, Events and Productions pages add **Subscribe for updates** ([§7](#7-email-updates)).
+- **Calendar feeds**: subscribe to all performances (optionally without some majors) or to all auditions and events, in any calendar app; or add one performance or session as a one-off ([§6](#6-calendar-feeds)).
+- **Editor** (`/admin`): one tile per dataset (Calendar, Activities, Services). Saving publishes within a few minutes. Companies and venues are hand-edited ([§4](#4-companies--services)).
+- **Organizers**: every production, audition and event names who puts it on. Smaller organizers are filed under "Other" but appear by their own names.
+- **Access**: Netlify Identity; editors see only the datasets they're granted (usually their company's). Admins edit everything ([§8](#8-editor-basics)).
+- **Consistency**: a field uses the same wording, pips and colours in every view. Views with room link to the record, the single source for everything else.
 
 ---
 
-## 2. Calendar
+## 2. Productions
 
-### Visitors — `/calendar`
+### How a production is displayed
+
+One content model for eight views (the record and editor Preview share a column). A change to what a production shows is a change to this table and to every view in it.
+
+| Field            | Grid, year hover | Calendar card                                         | Record / Preview                                          | Email: new          | Email: update       | Welcome row | Feed event                          |
+| ---------------- | ---------------- | ----------------------------------------------------- | --------------------------------------------------------- | ------------------- | ------------------- | ----------- | ----------------------------------- |
+| Title            | short            | full                                                  | full                                                      | full                | full                | full        | short; full title opens description |
+| Organizer        | short label      | full                                                  | full                                                      | full                | full                | full        | full                                |
+| Genre pip        | –                | ✓                                                     | ✓                                                         | ✓                   | ✓                   | ✓           | –                                   |
+| Venue (and room) | hover only       | ✓                                                     | ✓                                                         | ✓                   | ✓                   | ✓           | ✓ (location)                        |
+| Price            | –                | ✓                                                     | ✓                                                         | ✓                   | ✓                   | –           | ✓                                   |
+| Dates            | that one         | that performance's date, then time                    | range, count, every performance                           | range, count        | range, count        | range       | that one                            |
+| Description      | –                | ✓                                                     | ✓                                                         | ✓, capped           | –                   | –           | ✓                                   |
+| Discounts        | –                | ✓                                                     | production's, and per row                                 | –                   | –                   | –           | ✓                                   |
+| Performance type | –                | pip                                                   | pip on each row                                           | –                   | –                   | –           | text line                           |
+| Change pip       | –                | –                                                     | –                                                         | –                   | ✓                   | –           | –                                   |
+| Links            | –                | More info, Get tickets, All dates, Add to my calendar | More info, Get tickets, row Tickets, Add to my calendar\* | Details & tickets → | Details & tickets → | The title   | Details & tickets →                 |
+
+\* Preview shows everything in the data but no **Add to my calendar**.
+
+**Pips**
+
+| Pip              | Where                                            | Style                                                                                                        |
+| ---------------- | ------------------------------------------------ | ------------------------------------------------------------------------------------------------------------ |
+| Genre            | Every view with a full title; one per genre      | Coloured pill, one shared definition                                                                         |
+| Performance type | Individual performances only, never a production | Uppercase pill: Preview, Opening, Closing, Talk-back                                                         |
+| Past             | Record list only                                 | Grey pill                                                                                                    |
+| Change           | Update emails only                               | Blue: "2 dates added / cancelled / changed", "Venue changed"; amber: "Tickets now on sale"; red: "Cancelled" |
+
+**Notes**
+
+- Times read "7pm" / "7:30pm" in every view.
+- A new-production email's description is cut at about 600 characters, at a sentence or line break, with a link to the rest. Update emails omit it.
+- Emails list no performances and have no ticket or info buttons.
+
+### Calendar — `/calendar`
 
 - **Year view** (default): every month at a glance. Each performance day
   shows one small coloured square per **major** company performing (SCS,
@@ -60,272 +88,105 @@ What the site does, for visitors and for editors. For how it's built, see
     majors). Days from the neighbouring months fill out the month grid; their day-number strips are tinted.
   - ‹ › step a month (or a week) — on a touch screen, so does swiping left
     or right; **← Year** goes back.
-  - Clicking a performance opens its card: organizer, title, the production's
-    description, time, venue, price, genre, discounts, and info/ticket links.
-    Clicking a day's number shows all of that day's performances. The card
-    slides up from the bottom; × or tapping outside closes it, and on a touch
-    screen so does dragging it down.
-- There are no filters: the calendar always shows everything. A footer
-  legend maps the colours to the majors, plus grey for Other.
-- **Add to my calendar** (top bar, every view): subscribe to
-  performances, with a checkbox per major — all ticked; untick the ones you
-  don't want. Everyone else's performances are always included.
-- Each performance card links to **All dates**, the production's page, and
-  to **Add to my calendar** for that one performance.
+  - Clicking a performance opens its card ([fields](#how-a-production-is-displayed));
+    clicking a day's number lists that day's performances. The card slides
+    up; × , tapping outside, or dragging down closes it.
+- No filters: the calendar always shows everything. A footer legend maps
+  colours to the majors, plus grey for Other.
+- **Add to my calendar** (top bar, every view): subscribe, with a checkbox
+  per major (all ticked). Everyone else is always included.
 
 ### Productions — `/productions`
 
-Every production with its complete performance schedule. Each performance
-shows its type, plus any discounts or ticket link that differ from the
-production's. Every card names its organizers.
+Every production with its full schedule ([fields](#how-a-production-is-displayed)).
 
-- Upcoming productions only, by default. A **Show past productions** link
-  under the list adds the past ones (`?show=all`; **Hide past productions**
-  undoes it).
-- `?company=<organizer id>` shows one organizer's productions, for any
-  organizer; `?company=other` shows everyone who isn't one of the four majors.
-  A co-production shows under each of its organizers. The company cards on
-  `/companies` link here.
-- With one organizer selected the intro shows its logo (its name if it has
-  none), which links to the company's own website. The logo is shown as on its
-  `/companies` card (its own background, or dark for a light logo) with a small
-  link mark on its corner. If there is nothing to list, a box beside the logo
-  says so: "No upcoming productions" with **Show past productions**, or "No
-  productions recorded".
-- Each upcoming performance has its own **Add to my calendar** link.
-- `?id=` shows one production, expanded, on its own.
-- It isn't in the nav. Visitors reach it from a company card on
-  `/companies`, a performance card's **All dates** link, from the link on every performance in a subscribed
-  calendar, and from Performance updates emails.
-
-### Add to my calendar
-
-What the dialog offers depends on what's being added:
-
-- **Whole calendars** are offered only as a **subscription**, under the
-  title **Subscribe to this calendar**: **Apple
-  Calendar / Outlook** (a `webcal:` link), **Google Calendar**, or **Copy
-  link** for any other app. Edits, new dates and removals show up when the
-  app next refreshes. Each app chooses how often to refresh; Google can take
-  up to a day.
-- **Single items** are added as a **one-off copy**, which won't change if the
-  listing does. The dialog shows the event's name, date, time and place
-  first, then offers:
-  - **Apple Calendar / Outlook**: downloads an `.ics` file for that one
-    event;
-  - **Google Calendar**: opens Google's add-event page, already filled in.
-
-| What                                                       | Offered as                       | Where                                                    |
-| ---------------------------------------------------------- | -------------------------------- | -------------------------------------------------------- |
-| All performances ("Santa Cruz Theater — All Performances") | Subscription                     | `/calendar` (top bar, any view)                          |
-| Performances without some majors                           | Subscription                     | the same, majors unticked                                |
-| All auditions & events                                     | Subscription                     | `/events` filter row                                     |
-| Auditions only                                             | Subscription                     | `/events` filter row, Include picker                     |
-| One performance                                            | One-off event                    | performance card; each upcoming row on `/productions`    |
-| One audition or event session                              | One-off event                    | each upcoming date row of an open activity on `/events`  |
-| All of an activity's dates                                 | One-off download (Apple/Outlook) | **Download all dates**, on open activities with 2+ dates |
-
-**Download all dates** saves every date in one file. Google can't add
-several events from a link, so Google users import that file under Settings
-→ Import & export.
-
-Each subscribe, add-event or download click is recorded in the site's
-Plausible analytics as a custom event, with the calendar or event name and
-the app chosen. This shows interest. It can't show how many people remain
-subscribed, because Google and Outlook.com fetch each feed once for all
-their users.
-
-Subscriptions cover the last 12 months onward. Closed activities are left
-out of everything.
-
-### Editors
-
-A **run** is one production:
-
-| Field                        | Notes                                                                       |
-| ---------------------------- | --------------------------------------------------------------------------- |
-| Title, abbreviation          | Required. Abbreviation (≤ 20 chars) is the show's name in calendar entries. |
-| Venue                        | Required. Pick from the venue list (type to search).                        |
-| Location                     | Optional space within the venue, e.g. "Second Stage".                       |
-| Organizer / Co-producers     | See below.                                                                  |
-| Genre                        | Up to two.                                                                  |
-| Price, info URL, description | Recommended. Description is [rich text](#rich-text).                        |
-| Discounts, tickets URL       | Defaults for every performance.                                             |
-
-**Organizers**: a run in a company's file is that company's, so the list of
-**Shows** doesn't repeat the company name (except under Other). Add
-**co-producers** (last field; "None" by default) if others share the run. A
-run filed under **Other** must pick its **Organizer** from the list (and may
-add co-producers). Editors can't create organizers — ask an admin to add one
-to the companies file.
-
-A run can be saved before its dates are known (with a warning); it stays off
-the calendar until it has performances, and its title shows in red in the
-**Shows** list and the editor until then. That lets an audition link to it
-early. The warnings also flag a missing tickets link.
-
-Each run has an ordered list of **performances**: date, time, optional type
-(Preview / Opening / Closing / Talk-back / Staged Reading), and optional per-performance
-discounts or ticket link that override the run's defaults.
-
-Editing a performance's date or time **moves** it in subscribers' calendars
-rather than adding a duplicate. Each performance (and each audition or event
-session) has a hidden permanent id that the editor assigns automatically.
-
-Two shortcuts fill in performances:
-
-- **Pattern generator** — date range + weekdays + time → every matching slot.
-- **Paste parser** — turns text like `Friday, June 5 at 7:30pm` into rows;
-  lines it can't read are listed, not dropped.
-
-Admins pick a company first; company editors go straight to a year (skipped
-if there's only one).
+- Upcoming only by default; **Show past productions** adds the rest (`?show=all`), **Hide past productions** undoes it.
+- `?company=<organizer id>`: one organizer's productions (`other` = everyone but the four majors). A co-production shows under each organizer. `/companies` cards link here.
+- With one organizer selected, the intro shows its logo (or name), linked to the company's website. If nothing is listed, a box says "No upcoming productions" (with **Show past productions**) or "No productions recorded".
+- `?id=`: one production, expanded, alone.
+- Not in the nav. Reached from `/companies`, a card's **All dates** link, subscribed-calendar events, and Performance updates emails.
 
 ---
 
-## 3. Auditions & Events
+## 3. Auditions & events
 
-### Visitors — `/events`
+### How an audition or event is displayed
 
-A filterable list of collapsed cards; click to expand.
+One content model for six views (the expanded card, deep link and editor Preview share a column). One shared renderer produces the card body for `/events` and the Preview.
 
-| Card     | Collapsed                                                      | Expanded adds                                                              |
-| -------- | -------------------------------------------------------------- | -------------------------------------------------------------------------- |
-| Audition | title, genre, company, opening date, roles summary, date range | every session, locations, what to prepare, roles table, organizer, contact |
-| Event    | title, blurb, company, date range (or "On request")            | sessions, description, cost, register link, contact, organizer             |
+| Field                         | Collapsed card         | Expanded card / deep link / Preview                                              | Email (new and update)                    | Welcome row | Feed session                        |
+| ----------------------------- | ---------------------- | -------------------------------------------------------------------------------- | ----------------------------------------- | ----------- | ----------------------------------- |
+| Type pip (Audition/Event)     | ✓                      | ✓                                                                                | ✓                                         | ✓           | "Audition:" / "Event:" in the title |
+| Virtual pip                   | ✓                      | ✓                                                                                | ✓                                         | ✓           | –                                   |
+| Closed, Past pips             | ✓                      | ✓                                                                                | – (never listed)                          | –           | –                                   |
+| Genre pip (auditions)         | ✓                      | ✓                                                                                | ✓                                         | ✓           | –                                   |
+| Title, organizer              | ✓                      | ✓                                                                                | ✓                                         | ✓           | ✓                                   |
+| Dates                         | range, or "On request" | every session                                                                    | range, up to 3 session rows, "+ N more"   | range       | that session                        |
+| Blurb (events)                | ✓                      | –                                                                                | ✓                                         | –           | –                                   |
+| Opening date (auditions)      | ✓                      | ✓                                                                                | ✓                                         | –           | –                                   |
+| Description (events)          | –                      | ✓, no heading                                                                    | –                                         | –           | ✓                                   |
+| Roles                         | summary                | table: Role, Type, Age (and Voice); descriptions full-width rows under each role | –                                         | –           | ✓                                   |
+| Prepare, Notes, Cost          | –                      | ✓                                                                                | –                                         | –           | ✓                                   |
+| Locations, Organizer, Contact | –                      | ✓                                                                                | –                                         | –           | location                            |
+| Register link                 | –                      | ✓                                                                                | – (see Links)                             | –           | ✓                                   |
+| Change pip                    | –                      | –                                                                                | update emails only                        | –           | –                                   |
+| Links                         | –                      | all; each date's Add to my calendar\*; Download all dates\*                      | one: Details → / Details & registration → | The title   | Details (& registration) →          |
+
+\* Public cards only; the Preview shows everything in the data but no calendar links.
+
+**Pips**
+
+| Pip          | Where                                  | Style                                                                            |
+| ------------ | -------------------------------------- | -------------------------------------------------------------------------------- |
+| Type         | Every view                             | Audition / Event                                                                 |
+| Virtual      | Virtual-submission auditions           | Pill                                                                             |
+| Closed, Past | Public cards and Preview; never emails | Grey pills                                                                       |
+| Genre        | Auditions                              | The same coloured pills as productions                                           |
+| Change       | Update emails only                     | Blue for dates and locations; amber for "Registration open"; red for "Cancelled" |
+
+- No email carries a Register button. "Registration open" is a change pip, and the single link goes to the record.
+- Closed records appear in no email. Reopening one announces it as a change, since it is open again by then.
+- Virtual-submission wording is the same in every view that shows it.
+
+### Events — `/events`
+
+A filterable list of collapsed cards; click to expand ([fields](#how-an-audition-or-event-is-displayed)).
 
 - A location shared by every session is shown once.
-- **Status pills**: "Virtual", "Closed", "Past".
-- **Filters** (a row under the heading, with the count and **Add to my
-  calendar** on the right): All Upcoming (default) / Upcoming Auditions /
-  Upcoming Events / All, and Company — every organizer with a listing.
-- `?company=<organizer id>` shows one organizer's auditions and events, for
-  any organizer. Changing the Company filter updates the address, so it can
-  be shared.
-- **Deep link**: `?id=` shows one record, expanded, alone — used for sharing,
-  in email digests, and from subscribed calendars.
-- **Add to my calendar**: the filter row's button subscribes to every audition and
-  event, or to auditions only. Each upcoming date of an open activity has its
-  own **Add to my calendar** link. An activity with two or more dates also
-  has **Download all dates** ([details](#add-to-my-calendar)).
-
-**What counts as upcoming**
-
-| Record                                    | Upcoming?                  |
-| ----------------------------------------- | -------------------------- |
-| Closed                                    | Never                      |
-| Virtual-submission audition with no dates | Always (until closed)      |
-| "Dates by request" event with no dates    | Always (until closed)      |
-| Anything else                             | Until its last date passes |
-
-**Closing** keeps a record on file but removes it from the upcoming list —
-the way to retire anything with no end date. **Reopen** reverses it.
-
-### Editors
-
-A new record is an **Audition** or an **Event**; this can't change later.
-
-**Both types**
-
-- Title (required). For an audition this is its **Production** — see below.
-- **Dates table**: date, start time (optional, but saving warns, and the
-  gap is listed in the missing details; a session without one appears as an
-  all-day entry in calendar feeds), optional end time (only with a start time; clearing the start clears it), venue, address,
-  location (a space within the venue), session notes. Typing a listed venue's
-  name (or picking it from the suggestions) links the session to that venue,
-  and its address comes from the venue list. Any other name — or **Other
-  venue…** at the bottom of the suggestions, which unlinks a listed venue — is
-  a one-off venue whose name and address you type. A new row copies the
-  previous row's time, venue and location.
-- Contact: name, email, phone.
-- **Organizer** (records filed under **Other** only): picked from the list;
-  its name replaces the company on the card and in the email digest. An
-  expanded card shows it under **Organizer**, with its website spelled out in
-  full. Auditions and events have no co-producers.
-- Header buttons: Preview / Restore / Delete, plus **Close** / **Reopen**.
-- A new audition or event that you leave before entering anything is
-  discarded, so it doesn't linger as "Untitled" (the same goes for a new
-  show in the Calendar editor). Save does nothing when nothing has been
-  entered.
-
-**Audition only**
-
-- **Production**: the run this audition casts, picked from the company's runs
-  (or, under Other, the organizer's), listed by short title (full title on
-  hover); the hint reads "Select". Picking one gives the audition the
-  production's title, which follows the show if it's renamed. If the
-  production isn't on file yet, choose **Add production…**: it opens the
-  Calendar editor with a new show. Save the show (dates can come later) and
-  you're offered a way back to the audition, now linked to it, with everything
-  you'd entered. Only unsaved changes to _other_ activities would be lost, and
-  you're asked first.
-- An audition is expected to be for one production. One covering several
-  shows (e.g. a season audition) chooses **Several productions…** and gets
-  its own title; saving then warns "not linked to a production", and you can
-  save anyway.
-- Rehearsal start; notice URL. Genre (up to two), opening date and
-  production-info URL only for an audition not linked to a production — a
-  linked one shows its production's genre, opening (the performance marked
-  Opening, else the first) and info link, and follows them if they change.
-- **Roles table**: name, type, gender, age range, casting note, and voice
-  part (Musical only). Omitted from the public card if empty.
-- **Prepare**: acting and what to bring (multi-line — each line displays
-  separately); singing and dance (Musical only).
-- **Notes**: [rich text](#rich-text).
-- **Virtual submission**: no scheduled date needed. An optional deadline row
-  can still be added.
-
-**Event only**
-
-- One-line blurb (collapsed card) and long description ([rich
-  text](#rich-text), expanded card).
-- Cost; registration link.
-- **Dates by request**: no dates needed; shows "On request".
-- Needs at least one contact route — email, phone, or a link.
+- **Filters** (row under the heading, with the count and **Add to my calendar**): All Upcoming (default) / Upcoming Auditions / Upcoming Events / All; and Company (every organizer with a listing). "Upcoming" is defined in [§7](#what-counts-as-upcoming).
+- `?company=<organizer id>` filters by organizer; the Company filter updates the address so it can be shared.
+- `?id=` shows one record, expanded, alone (sharing, digests, subscribed calendars).
+- **Add to my calendar**: the filter row's button subscribes to everything or auditions only; each upcoming date has its own link; two or more dates add **Download all dates** ([§6](#6-calendar-feeds)).
+- **Closing** keeps a record on file but removes it from the upcoming list — the way to retire anything with no end date. **Reopen** reverses it.
 
 ---
 
-## 4. Companies
+## 4. Companies & services
 
-**Visitors** — `/companies`: a card grid of county theater companies with
-logos. A card opens that company's productions (`/productions?company=<id>`);
-a company with none shows "No productions recorded."
+### Companies — `/companies`
 
-**Admins** edit the companies file by hand (not through a form). It lists
-every organizer — companies with their own data, and smaller organizers
-whose records are filed under Other:
+A card grid of county companies with logos. A card opens that company's productions (`/productions?company=<id>`); none shows "No productions recorded."
 
-- Name, short label (≤ 12 characters; shown in calendar entries), primary
-  venue, website.
-- Logo, stored locally (light logos get a dark card; a logo with its own background colour fills the whole card with it).
-- **Access grants**: each company lists editor emails and the datasets each
-  may edit.
-- **Majors** — the companies with the most productions (SCS, AT, MCT,
-  Renegade) — each with a calendar colour. Subscribers will be able to
-  untick majors; everyone else is always included.
-- **On /companies**: set case by case.
-- **Filed under Other**: an organizer without its own data files. To add a
-  new small organizer, add an entry marked this way; editors then see it in
-  their Organizer list.
-- Two special entries, not shown publicly: **admin** (emails with full
-  access) and **other** (the data files for organizers filed under Other;
-  admins only).
+**Admins** edit the companies file by hand (no form). Each organizer entry has:
 
-The **venue list** is also hand-edited: name, address and website per venue.
-Sessions at places not in the list are allowed; the build lists them so
-regulars can be added.
+| Item              | Notes                                                                                                             |
+| ----------------- | ----------------------------------------------------------------------------------------------------------------- |
+| Name, label       | Short label ≤ 12 characters, shown in calendar entries; primary venue; website.                                   |
+| Logo              | Stored locally. Light logos get a dark card; a logo with its own background fills the card.                       |
+| Access grants     | Editor emails and the datasets each may edit.                                                                     |
+| Major             | SCS, AT, MCT, Renegade: a calendar colour; subscribers can untick them. Others always included.                   |
+| `/companies`      | Whether shown: set case by case.                                                                                  |
+| Filed under Other | An organizer without its own data files. Add an entry marked this way and editors see it in their Organizer list. |
 
-A build also publishes `/missing-details.json`: every upcoming production or
-open audition/event that lacks dates, a tickets link, a price, an info link,
-a description, a location or a start time on every date. An external alerting agent reads it to chase
-the missing details.
+Two entries are never shown publicly: **admin** (full-access emails) and **other** (data files for organizers filed under Other; admins only).
 
----
+The **venue list** is hand-edited too (name, address, website). Sessions at unlisted places are allowed; the build lists them so regulars can be added.
 
-## 5. Services
+`/missing-details.json` (built with the site) lists upcoming productions and open auditions/events lacking dates, tickets link, price, info link, description, location or start time; an external agent chases them.
 
-**Visitors** — `/services`: production resources (photographers, rentals,
-spaces, crew, coaching) by category.
+### Services — `/services`
+
+Production resources (photographers, rentals, spaces, crew, coaching) by category.
 
 - Default view is a category grid. Clicking a category or subcategory
   filters the list; a two-level checkbox control widens or narrows it.
@@ -346,14 +207,93 @@ spaces, crew, coaching) by category.
 
 ---
 
-## 6. About & contact
+## 5. About & contact
 
 `/about` describes the site and has a contact form. Submissions email the
 site owner; the visitor sees a confirmation. Nothing to edit.
 
 ---
 
-## 7. Editing conventions
+## 6. Calendar feeds
+
+- **Whole calendars** are subscriptions only (**Subscribe to this calendar**): Apple Calendar / Outlook (`webcal:` link), Google Calendar, or Copy link. Changes arrive when the app next refreshes (Google: up to a day).
+- **Single items** are one-off copies that don't follow later edits. The dialog shows name, date, time and place, then offers an `.ics` download (Apple / Outlook) or a prefilled Google page.
+- Subscriptions cover the last 12 months onward. Closed activities are left out.
+
+| What                                                       | Offered as                       | Where                                                    |
+| ---------------------------------------------------------- | -------------------------------- | -------------------------------------------------------- |
+| All performances ("Santa Cruz Theater — All Performances") | Subscription                     | `/calendar` (top bar, any view)                          |
+| Performances without some majors                           | Subscription                     | the same, majors unticked                                |
+| All auditions & events                                     | Subscription                     | `/events` filter row                                     |
+| Auditions only                                             | Subscription                     | `/events` filter row, Include picker                     |
+| One performance                                            | One-off event                    | performance card; each upcoming row on `/productions`    |
+| One audition or event session                              | One-off event                    | each upcoming date row of an open activity on `/events`  |
+| All of an activity's dates                                 | One-off download (Apple/Outlook) | **Download all dates**, on open activities with 2+ dates |
+
+**Download all dates** saves every date in one file. Google can't add several events from a link; Google users import it under Settings → Import & export.
+
+---
+
+## 7. Email updates
+
+Two lists; visitors pick either or both on `/subscribe`:
+
+- **Performance updates**: new productions, added or cancelled dates, venue changes, tickets on sale. **Select companies** lists SCS, AT, MCT and Renegade; untick any. Every other organizer is always included, and a co-production is included if any organizer is.
+  - Company ticks follow Performance updates: ticking it ticks all four (unless saved choices say otherwise); unticking it clears them but remembers the choice.
+  - Ticking a company also ticks Performance updates (alone, if no choice was made).
+- **Audition & event notices**: new auditions and events, added or cancelled sessions, location changes, registration opening, reopened notices. All companies.
+
+`/subscribe` is reached from **Subscribe for updates** in the nav on `/calendar`, `/events` and `/productions`, pre-ticking the list that suits the page, with a link back.
+
+| Email          | When                         | Content                                                                                                                                                                                                                                                                                                                                                                                                     |
+| -------------- | ---------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Welcome        | Immediately                  | What's coming up for each list chosen                                                                                                                                                                                                                                                                                                                                                                       |
+| Nightly digest | One per list, only with news | **New**: records just become upcoming (a production saved before its dates is announced when dates are added). **Updates**: labelled changes, e.g. "2 dates added", "Tickets now on sale", "Venue changed", "Registration open". Cards are described in [How a production is displayed](#how-a-production-is-displayed) and [How an audition or event is displayed](#how-an-audition-or-event-is-displayed) |
+
+- A production or activity with all remaining dates removed is **Cancelled**. Closing an audition sends nothing. Description, price, contact and wording edits never send email. A performance that has happened just drops off.
+- Every email ends with **Change your choices** and **Unsubscribe from everything**.
+
+### What counts as upcoming
+
+An activity is listed in emails, and on `/events` by default, only while it is upcoming:
+
+| Record                                    | Upcoming?                  |
+| ----------------------------------------- | -------------------------- |
+| Closed                                    | Never                      |
+| Virtual-submission audition with no dates | Always (until closed)      |
+| "Dates by request" event with no dates    | Always (until closed)      |
+| Anything else                             | Until its last date passes |
+
+### Changing choices
+
+- **Change your choices** opens `/subscribe/manage` with the subscriber's lists and companies. Unticking both lists and saving asks whether to unsubscribe; an unsubscribed visitor can tick a list to return.
+- Without the link, `/subscribe/manage` asks for the address and emails a fresh link (as does subscribing an address already on file). It never says whether an address is subscribed.
+
+Nothing for editors to configure.
+
+---
+
+## 8. Editor basics
+
+- **Publishing**: every Save in `/admin` rebuilds the site; live in a few minutes. That includes the calendar feeds. Subscribers see the change when their calendar app next refreshes, which can take up to a day for Google.
+- **Access**: per email, per dataset, set in the companies file ([§4](#4-companies--services)). Companies and Services are admin-only.
+- **Accounts**: Netlify Identity, by invitation, to an email listed in that file.
+- Admins pick a company first; company editors go straight to a year (skipped if there's only one).
+
+### Preview, Restore, Save
+
+- **Preview**: the record as the public site shows it, without publishing. It shows everything in the data but no **Add to my calendar**.
+- **Restore**: only with unsaved changes; reverts to the last save.
+- **Save**: publishes the whole file (every record for that company and year).
+- **Delete**: once confirmed, removes the record immediately (no Save step). A show an audition links to can't be deleted until that's changed.
+- Leaving with unsaved changes asks first.
+- **Editor updated while open**: a red bar asks you to reload, and Save is refused until you do (unsaved changes in that tab are lost).
+- **A save that would break the site is refused**, with reasons; other editors' saves still publish.
+- A new record left empty is discarded; Save does nothing when nothing is entered.
+
+---
+
+## 9. Editing conventions
 
 These apply in every editor.
 
@@ -421,87 +361,59 @@ so you confirm rather than fix. It isn't checked for finished records.
   date in the wrong year, naming the file it belongs in.
 - The site build runs the same checks: anything the editor saves will build.
 
-### Preview, Restore, Save
+---
 
-- **Preview** — shows the record as the public site will (collapsed and
-  expanded) without publishing.
-- **Restore** — appears only with unsaved changes; reverts to the last save.
-- **Save** — publishes the whole file (every record for that company and
-  year).
-- **Delete** — once confirmed, deletes the record from the file straight
-  away; there's no Save step. Other unsaved edits stay unsaved. A show that
-  an audition is linked to can't be deleted until the audition is linked
-  elsewhere or deleted.
-- Leaving an editor (Home, another editor, or closing the tab) with unsaved
-  changes asks before discarding them.
-- **If the editor is updated while it's open**, a red bar asks you to reload
-  when you come back to the tab, and Save is refused until you do (unsaved
-  changes in that tab are lost, so reload before starting new edits).
-- **A save that would break the site is refused**, with the reasons, and
-  nothing is saved. The site keeps publishing everyone else's edits.
+## 10. Calendar editor
+
+A **run** is one production:
+
+| Field                        | Notes                                                                       |
+| ---------------------------- | --------------------------------------------------------------------------- |
+| Title, abbreviation          | Required. Abbreviation (≤ 20 chars) is the show's name in calendar entries. |
+| Venue                        | Required. Pick from the venue list (type to search).                        |
+| Location                     | Optional space within the venue, e.g. "Second Stage".                       |
+| Organizer / Co-producers     | See below.                                                                  |
+| Genre                        | Up to two.                                                                  |
+| Price, info URL, description | Recommended. Description is [rich text](#rich-text).                        |
+| Discounts, tickets URL       | Defaults for every performance.                                             |
+
+- **Organizers**: a run in a company's file is that company's (the Shows list omits the name, except under Other). Add **co-producers** if others share it. A run under **Other** must pick an **Organizer**. Editors can't create organizers; ask an admin.
+- **Performances**: an ordered list of date, time, optional type (Preview / Opening / Closing / Talk-back), and optional discounts or tickets link overriding the run's.
+- **No dates yet**: saves with a warning; stays off the calendar, shown red in the Shows list, so an audition can link to it early.
+- **Moving a performance** (editing date or time) moves it in subscribers' calendars; each performance has a hidden permanent id.
+- **Shortcuts**: pattern generator (date range + weekdays + time → slots); paste parser (`Friday, June 5 at 7:30pm` → rows; unreadable lines are listed).
 
 ---
 
-## 8. Email updates
+## 11. Activities editor
 
-Two lists, for two audiences. Visitors pick either or both on `/subscribe`:
+A new record is an **Audition** or an **Event** (fixed once created).
 
-- **Performance updates** — new productions, added or cancelled dates,
-  venue changes, and when tickets go on sale. Under it, **Select companies**
-  lists Santa Cruz Shakespeare, Actors' Theatre, Mountain Community Theater
-  and Renegade Theater; untick any you don't want. Productions by every other
-  company and organizer are always included. A co-production is included if
-  any of its organizers is. The company ticks follow Performance updates:
-  - Performance updates ticked: all four companies are ticked, unless the
-    visitor (or their saved choices) has said otherwise.
-  - Not ticked: no companies are ticked. The visitor's own company choice is
-    kept, and comes back when they tick Performance updates again.
-  - Ticking or unticking a company also ticks Performance updates. If no
-    company choice was made yet, only that company is ticked.
-- **Audition & event notices** — new auditions and events, added or
-  cancelled sessions, location changes, registration opening, and reopened
-  notices. All companies.
+**Both types**
 
-Visitors reach `/subscribe` from **Subscribe for updates** in the nav on
-`/calendar`, `/events` and `/productions`. It pre-ticks the list that suits
-the page (Performance updates from the calendar and productions, Audition &
-event notices from events) and gives a link back.
+- **Title** (required; for an audition, its **Production**).
+- **Dates table**: date, start time, end time, venue, address, location, session notes.
+  - No start time: saving warns, it's listed in missing details, and feeds show an all-day entry. End time needs a start time.
+  - A listed venue's name (or suggestion) links the session and supplies its address. **Other venue…** or any other name is a one-off you type.
+  - A new row copies the previous row's time, venue and location.
+- **Contact**: name, email, phone.
+- **Organizer** (records under **Other** only): picked from the list; replaces the company on the card and digest, with its website spelled out in the expanded card. No co-producers.
+- **Header buttons**: Preview, Restore, Delete, **Close** / **Reopen**.
 
-What gets emailed:
+**Audition only**
 
-- **Welcome email**, sent immediately: one email with what's coming up for
-  each list chosen.
-- **Nightly digest**, one per list, only when there's news. **New** covers
-  records that have just become upcoming — a production saved before its
-  dates is announced when the dates are added. **Updates** carry labels
-  saying what changed ("2 dates added", "Tickets on sale", "Venue changed",
-  "Registration open"…). A production or activity whose remaining dates are
-  all removed is reported as **Cancelled**. Closing an audition sends
-  nothing. Description, price, contact and wording edits never
-  send email, so fixing a typo is safe. A performance that has happened just
-  drops off.
-- Every email ends with **Change your choices** and **Unsubscribe from
-  everything**.
+- **Production**: picked from the company's (or organizer's) runs, by short title. It gives the audition the production's title and follows renames, genre, opening (the performance marked Opening, else the first) and info link.
+  - Not on file: **Add production…** opens the Calendar editor with a new show; after saving you return to the audition, now linked, with everything entered. Unsaved changes to _other_ activities would be lost (you're asked first).
+  - Covering several shows: **Several productions…** and its own title; saving warns "not linked to a production" and allows it.
+- Not linked: genre (up to two), opening date and production-info URL are entered here. Always: rehearsal start, notice URL.
+- **Roles table**: name, type, gender, age range, casting note, voice part (Musical only). Hidden publicly if empty.
+- **Prepare**: acting and what to bring (one line per item); singing and dance (Musical only).
+- **Notes**: [rich text](#rich-text).
+- **Virtual submission**: no date needed; an optional deadline row.
 
-Changing choices:
+**Event only**
 
-- **Change your choices** opens `/subscribe/manage` with the subscriber's
-  lists and companies. Unticking both lists and saving asks whether to
-  unsubscribe. An unsubscribed visitor can tick a list and save to come back.
-- Without the link, `/subscribe/manage` asks for the address and emails it a
-  fresh link. Subscribing an address that's already on file does the same.
-  Neither ever says whether an address is subscribed.
-
-Nothing for editors to configure — it all follows from their edits.
-
----
-
-## 9. Publishing & access
-
-- **Publishing**: every Save in `/admin` rebuilds the site; live in a few
-  minutes. That includes the calendar feeds. Subscribers see the change when
-  their calendar app next refreshes, which can take up to a day for Google.
-- **Access**: per email, per dataset, set in the companies file
-  ([§4](#4-companies)). Companies and Services are admin-only.
-- **Accounts**: Netlify Identity, by invitation, to an email listed in that
-  file.
+- Blurb (one line, collapsed card) and description ([rich text](#rich-text), expanded card).
+- Cost; registration link.
+- **Dates by request**: no dates; shows "On request".
+- At least one contact route: email, phone or a link.

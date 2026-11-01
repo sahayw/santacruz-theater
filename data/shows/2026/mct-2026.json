@@ -380,7 +380,7 @@
           "id": "perf-1791991838058",
           "date": "2026-08-14",
           "time": "20:00",
-          "perfType": "Staged Reading",
+          "perfType": "",
           "discounts": "",
           "ticketsUrl": ""
         },
@@ -388,7 +388,7 @@
           "id": "perf-1791991838059",
           "date": "2026-08-15",
           "time": "20:00",
-          "perfType": "Staged Reading",
+          "perfType": "",
           "discounts": "",
           "ticketsUrl": ""
         },
@@ -396,7 +396,7 @@
           "id": "perf-1791991838060",
           "date": "2026-08-16",
           "time": "14:00",
-          "perfType": "Staged Reading",
+          "perfType": "",
           "discounts": "",
           "ticketsUrl": ""
         }

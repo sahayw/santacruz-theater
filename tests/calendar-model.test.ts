@@ -54,15 +54,21 @@ describe('performanceEvents', () => {
 
   it('writes a plain-text description ending in one short link to our page', () => {
     expect(opening.description).toBe(
-      'Opening performance\n\nShakespeare in the park.\n• Bring a blanket\n\n' +
+      'Much Ado About Nothing\n\nOpening performance\n\nShakespeare in the park.\n• Bring a blanket\n\n' +
         'Price: $20\nDiscounts: Students $10\n\n' +
         'Details & tickets: https://santacruz.theater/productions?id=1700000000000'
     )
     expect(matinee.description).toContain('Discounts: Pay what you can')
     expect(matinee.description).not.toContain('performance\n')
+    expect(matinee.description.startsWith('Much Ado About Nothing\n\n')).toBe(true)
     // No raw third-party URLs — the runs page carries the ticket and info links
     expect(opening.description).not.toContain('example.com')
     expect(matinee.description).not.toContain('example.com')
+  })
+
+  it('leaves out the full title when it is the same as the short one', () => {
+    const [e] = performanceEvents(run({ showAbv: '' }), ctx)
+    expect(e.description.startsWith('Opening performance')).toBe(true)
   })
 
   it('says just "Details" when a run has no ticket link', () => {

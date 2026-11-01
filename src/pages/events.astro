@@ -7,15 +7,16 @@ import AddToCalendar from '../components/AddToCalendar.astro'
 import { FEED_NAMES, bareId } from '../lib/calendar-model.ts'
 import { companies, getActivities } from '../lib/data.ts'
 import { allOrganizers } from '../lib/organizers.ts'
-import type { ActivityEvent } from '../lib/data.ts'
+import { PILL_CSS } from '../lib/production-view.ts'
 import {
-  fmtShortDate,
-  fmtAudDateRange,
-  fmtFullDate,
-  fmtTimeRange,
-  rolesSum,
-  renderMd
-} from '../lib/audition-format.ts'
+  ACTIVITY_VIEW_CSS,
+  activityDetailHtml,
+  activityMetaText,
+  activityPipsHtml,
+  activityRangeText
+} from '../lib/activity-view.ts'
+import type { ActivityEvent } from '../lib/data.ts'
+import { rolesSum } from '../lib/audition-format.ts'
 
 const activities = getActivities()
 
@@ -48,21 +49,6 @@ const feedChoices = JSON.stringify([
   { label: 'All auditions & events', feed: 'activities', name: FEED_NAMES.activities },
   { label: 'Auditions only', feed: 'auditions', name: FEED_NAMES.auditions }
 ])
-
-/** "Download all dates" — only for an open activity with more than one scheduled session. */
-function hasMultipleSessions(act: ActivityEvent): boolean {
-  return !act.closed && act.dates.filter((d) => d.date).length > 1
-}
-
-function genreClass(genre: string): string {
-  return `genre-${genre.toLowerCase()}`
-}
-
-function roleTypeLabel(type: string): string {
-  if (type === 'lead') return 'Lead'
-  if (type === 'supporting') return 'Supp.'
-  return 'Ensemble'
-}
 ---
 
 <!doctype html>
@@ -136,7 +122,6 @@ function roleTypeLabel(type: string): string {
         ) : (
           <div class="aud-list" id="aud-list">
             {activities.map((act) => {
-              const showVoice = act.genre.includes('Musical')
               const name = displayName(act)
               const latest = latestDate(act)
               return (
@@ -160,30 +145,12 @@ function roleTypeLabel(type: string): string {
                     <div class="aud-main">
                       <div class="aud-title-row">
                         <span class="aud-title">{act.title}</span>
-                        {act.type === 'event' && <span class="type-badge type-event">Event</span>}
-                        {act.type === 'audition' && (
-                          <span class="type-badge type-audition">Audition</span>
-                        )}
-                        {act.type === 'audition' && act.virtualSubmission && (
-                          <span class="type-badge type-virtual">Virtual</span>
-                        )}
-                        {act.type !== 'event' &&
-                          act.genre.map((g) => (
-                            <span class={`genre-badge ${genreClass(g)}`}>{g}</span>
-                          ))}
+                        <Fragment set:html={activityPipsHtml(act)} />
                       </div>
                       {act.type === 'event' && act.briefDescription && (
                         <div class="aud-brief-row">{act.briefDescription}</div>
                       )}
-                      <div class="aud-meta-row">
-                        {name}
-                        {act.type === 'audition' &&
-                          act.openingDate &&
-                          ` · Opens ${fmtShortDate(act.openingDate)}`}
-                        {act.type === 'audition' &&
-                          act.rehearsalStart &&
-                          ` · Rehearsals start ${fmtShortDate(act.rehearsalStart)}`}
-                      </div>
+                      <div class="aud-meta-row">{activityMetaText(act, name)}</div>
                       {act.type === 'audition' && (
                         <div class="aud-roles-row">{rolesSum(act.rolesAvailable ?? [])}</div>
                       )}
@@ -195,412 +162,21 @@ function roleTypeLabel(type: string): string {
                       <span class="aud-past-pip" aria-hidden="true">
                         Past
                       </span>
-                      <span class="aud-date-range">
-                        {act.type === 'event' &&
-                        act.datesByRequest &&
-                        !act.dates.some((d) => d.date)
-                          ? 'On request'
-                          : act.type === 'audition' &&
-                              act.virtualSubmission &&
-                              !act.dates.some((d) => d.date)
-                            ? 'Virtual submission'
-                            : fmtAudDateRange(act.dates)}
-                      </span>
+                      <span class="aud-date-range">{activityRangeText(act)}</span>
                       <span class="aud-chevron" aria-hidden="true" />
                     </div>
                   </button>
 
-                  {/* ── Expanded detail ── */}
-                  <div class="aud-detail" hidden>
-                    {act.type === 'audition' ? (
-                      <div class="detail-grid">
-                        {/* Left column */}
-                        <div class="detail-left">
-                          <section class="detail-section">
-                            <h4 class="detail-section-head">Audition dates</h4>
-                            {act.virtualSubmission && !act.dates.some((d) => d.date) && (
-                              <p class="detail-virtual-note">
-                                Virtual submission — no scheduled audition dates. See the audition
-                                notice for how to apply.
-                              </p>
-                            )}
-                            {(() => {
-                              const _locs = act.dates.map((d) => d.place?.name).filter(Boolean)
-                              const _shared =
-                                _locs.length > 0 && _locs.every((n) => n === _locs[0])
-                                  ? act.dates.find((d) => d.place)?.place
-                                  : null
-                              return act.dates.map((ad, i) => {
-                                const locationSeenBefore =
-                                  !_shared &&
-                                  i > 0 &&
-                                  act.dates
-                                    .slice(0, i)
-                                    .some((prev) => prev.place?.name === ad.place?.name)
-                                return (
-                                  <div class="detail-date-row" data-date={ad.date}>
-                                    <span class="detail-date-label">{fmtFullDate(ad.date)}</span>
-                                    <span class="detail-time-label">
-                                      {fmtTimeRange(ad.startTime, ad.endTime ?? '')}
-                                    </span>
-                                    {ad.notes && <span class="detail-date-note">{ad.notes}</span>}
-                                    {!act.closed && ad.date && (
-                                      <button
-                                        type="button"
-                                        class="session-add"
-                                        data-ics-event={`sessions/${bareId(ad.id)}`}
-                                      >
-                                        Add to my calendar
-                                      </button>
-                                    )}
-                                    {!_shared && ad.place && (
-                                      <div class="detail-date-location">
-                                        <span class="detail-location-name">{ad.place.name}</span>
-                                        {!locationSeenBefore && ad.place.address && (
-                                          <span class="detail-sub"> · {ad.place.address}</span>
-                                        )}
-                                      </div>
-                                    )}
-                                  </div>
-                                )
-                              })
-                            })()}
-                            {(() => {
-                              const _locs = act.dates.map((d) => d.place?.name).filter(Boolean)
-                              if (_locs.length > 0 && _locs.every((n) => n === _locs[0])) {
-                                const _loc = act.dates.find((d) => d.place)?.place
-                                if (_loc)
-                                  return (
-                                    <div class="detail-date-location" style="margin-top:4px">
-                                      <span class="detail-location-name">{_loc.name}</span>
-                                      {_loc.address && (
-                                        <span class="detail-sub"> · {_loc.address}</span>
-                                      )}
-                                    </div>
-                                  )
-                              }
-                              return null
-                            })()}
-                          </section>
-
-                          {act.prep && (
-                            <section class="detail-section">
-                              <h4 class="detail-section-head">Prepare</h4>
-                              {act.prep.acting && (
-                                <div class="detail-prep-row">
-                                  <span class="prep-label">Acting</span>
-                                  <span class="prep-value">{act.prep.acting}</span>
-                                </div>
-                              )}
-                              {act.prep.singing && (
-                                <div class="detail-prep-row">
-                                  <span class="prep-label">Singing</span>
-                                  <span>{act.prep.singing}</span>
-                                </div>
-                              )}
-                              {act.prep.dance && (
-                                <div class="detail-prep-row">
-                                  <span class="prep-label">Dance</span>
-                                  <span>{act.prep.dance}</span>
-                                </div>
-                              )}
-                              {act.prep.bring && act.prep.bring.length > 0 && (
-                                <div class="detail-prep-row">
-                                  <span class="prep-label">Bring</span>
-                                  <span class="prep-value">{act.prep.bring.join('\n')}</span>
-                                </div>
-                              )}
-                            </section>
-                          )}
-
-                          {namedOrganizers(act).length > 0 && (
-                            <section class="detail-section">
-                              <h4 class="detail-section-head">Organizer</h4>
-                              {namedOrganizers(act).map((o) => (
-                                <>
-                                  <div class="detail-sub" style="font-size:13px;color:var(--ink)">
-                                    {o.name}
-                                  </div>
-                                  {o.website && (
-                                    <div class="detail-sub" style="overflow-wrap:anywhere">
-                                      <a
-                                        href={o.website}
-                                        class="detail-link-inline"
-                                        target="_blank"
-                                        rel="noopener"
-                                      >
-                                        {o.website}
-                                      </a>
-                                    </div>
-                                  )}
-                                </>
-                              ))}
-                            </section>
-                          )}
-
-                          {act.contact &&
-                            (act.contact.name || act.contact.email || act.contact.phone) && (
-                              <section class="detail-section contact-section">
-                                <h4 class="detail-section-head">Contact</h4>
-                                {act.contact.name && (
-                                  <div class="detail-contact-name">{act.contact.name}</div>
-                                )}
-                                {act.contact.email && (
-                                  <div>
-                                    <a
-                                      href={`mailto:${act.contact.email}`}
-                                      class="detail-link-inline"
-                                    >
-                                      {act.contact.email}
-                                    </a>
-                                  </div>
-                                )}
-                                {act.contact.phone && (
-                                  <div class="detail-sub">{act.contact.phone}</div>
-                                )}
-                              </section>
-                            )}
-                        </div>
-
-                        {/* Right column — roles table */}
-                        {act.rolesAvailable && act.rolesAvailable.length > 0 && (
-                          <div class="detail-right">
-                            <section class="detail-section">
-                              <h4 class="detail-section-head">Roles available</h4>
-                              <table class="roles-table">
-                                <thead>
-                                  <tr>
-                                    <th>Role</th>
-                                    <th>Type</th>
-                                    <th>Age</th>
-                                    {showVoice && <th>Voice</th>}
-                                  </tr>
-                                </thead>
-                                <tbody>
-                                  {act.rolesAvailable.map((role) => (
-                                    <>
-                                      <tr class={role.description ? 'has-desc' : undefined}>
-                                        <td class="role-name-cell">{role.role}</td>
-                                        <td class={`role-type role-${role.type}`}>
-                                          {roleTypeLabel(role.type)}
-                                        </td>
-                                        <td class="role-age">{role.ageRange ?? ''}</td>
-                                        {showVoice && (
-                                          <td class="role-voice">{role.voicePart ?? ''}</td>
-                                        )}
-                                      </tr>
-                                      {role.description && (
-                                        <tr class="role-desc-row">
-                                          <td class="role-desc-cell" colspan={showVoice ? 4 : 3}>
-                                            <span class="role-desc">{role.description}</span>
-                                          </td>
-                                        </tr>
-                                      )}
-                                    </>
-                                  ))}
-                                </tbody>
-                              </table>
-                            </section>
-                          </div>
-                        )}
-                      </div>
-                    ) : (
-                      /* ── Event expanded detail ── */
-                      <div class="detail-grid">
-                        <div class="detail-left">
-                          <section class="detail-section">
-                            <h4 class="detail-section-head">Dates</h4>
-                            {act.datesByRequest && !act.dates.some((d) => d.date) && (
-                              <p class="detail-virtual-note">On request</p>
-                            )}
-                            {(() => {
-                              const _locs = act.dates.map((d) => d.place?.name).filter(Boolean)
-                              const _shared =
-                                _locs.length > 0 && _locs.every((n) => n === _locs[0])
-                                  ? act.dates.find((d) => d.place)?.place
-                                  : null
-                              return act.dates.map((ad, i) => {
-                                const locationSeenBefore =
-                                  !_shared &&
-                                  i > 0 &&
-                                  act.dates
-                                    .slice(0, i)
-                                    .some((prev) => prev.place?.name === ad.place?.name)
-                                return (
-                                  <div class="detail-date-row" data-date={ad.date}>
-                                    <span class="detail-date-label">{fmtFullDate(ad.date)}</span>
-                                    <span class="detail-time-label">
-                                      {fmtTimeRange(ad.startTime, ad.endTime ?? '')}
-                                    </span>
-                                    {ad.notes && <span class="detail-date-note">{ad.notes}</span>}
-                                    {!act.closed && ad.date && (
-                                      <button
-                                        type="button"
-                                        class="session-add"
-                                        data-ics-event={`sessions/${bareId(ad.id)}`}
-                                      >
-                                        Add to my calendar
-                                      </button>
-                                    )}
-                                    {!_shared && ad.place && (
-                                      <div class="detail-date-location">
-                                        <span class="detail-location-name">{ad.place.name}</span>
-                                        {!locationSeenBefore && ad.place.address && (
-                                          <span class="detail-sub"> · {ad.place.address}</span>
-                                        )}
-                                      </div>
-                                    )}
-                                  </div>
-                                )
-                              })
-                            })()}
-                            {(() => {
-                              const _locs = act.dates.map((d) => d.place?.name).filter(Boolean)
-                              if (_locs.length > 0 && _locs.every((n) => n === _locs[0])) {
-                                const _loc = act.dates.find((d) => d.place)?.place
-                                if (_loc)
-                                  return (
-                                    <div class="detail-date-location" style="margin-top:4px">
-                                      <span class="detail-location-name">{_loc.name}</span>
-                                      {_loc.address && (
-                                        <span class="detail-sub"> · {_loc.address}</span>
-                                      )}
-                                    </div>
-                                  )
-                              }
-                              return null
-                            })()}
-                          </section>
-
-                          {act.cost && (
-                            <section class="detail-section">
-                              <h4 class="detail-section-head">Cost</h4>
-                              <div class="detail-sub" style="font-size:13px;color:var(--ink)">
-                                {act.cost}
-                              </div>
-                            </section>
-                          )}
-
-                          {act.registerUrl && (
-                            <section class="detail-section">
-                              <h4 class="detail-section-head">Register</h4>
-                              <div>
-                                <a
-                                  href={act.registerUrl}
-                                  class="detail-link-inline"
-                                  target="_blank"
-                                  rel="noopener"
-                                >
-                                  Register here →
-                                </a>
-                              </div>
-                            </section>
-                          )}
-
-                          {act.contact &&
-                            (act.contact.name || act.contact.email || act.contact.phone) && (
-                              <section class="detail-section contact-section">
-                                <h4 class="detail-section-head">Contact</h4>
-                                {act.contact.name && (
-                                  <div class="detail-contact-name">{act.contact.name}</div>
-                                )}
-                                {act.contact.email && (
-                                  <div>
-                                    <a
-                                      href={`mailto:${act.contact.email}`}
-                                      class="detail-link-inline"
-                                    >
-                                      {act.contact.email}
-                                    </a>
-                                  </div>
-                                )}
-                                {act.contact.phone && (
-                                  <div class="detail-sub">{act.contact.phone}</div>
-                                )}
-                              </section>
-                            )}
-                        </div>
-
-                        {(act.description || namedOrganizers(act).length > 0) && (
-                          <div class="detail-right">
-                            {namedOrganizers(act).length > 0 && (
-                              <section class="detail-section">
-                                <h4 class="detail-section-head">Organizer</h4>
-                                {namedOrganizers(act).map((o) => (
-                                  <>
-                                    <div class="detail-sub" style="font-size:13px;color:var(--ink)">
-                                      {o.name}
-                                    </div>
-                                    {o.website && (
-                                      <div class="detail-sub" style="overflow-wrap:anywhere">
-                                        <a
-                                          href={o.website}
-                                          class="detail-link-inline"
-                                          target="_blank"
-                                          rel="noopener"
-                                        >
-                                          {o.website}
-                                        </a>
-                                      </div>
-                                    )}
-                                  </>
-                                ))}
-                              </section>
-                            )}
-                            {act.description && (
-                              <section class="detail-section">
-                                <h4 class="detail-section-head">About</h4>
-                                <div
-                                  class="detail-sub"
-                                  style="font-size:13px;color:var(--ink);line-height:1.55;white-space:pre-wrap"
-                                  set:html={renderMd(act.description)}
-                                />
-                              </section>
-                            )}
-                          </div>
-                        )}
-                      </div>
-                    )}
-
-                    {act.notes && <div class="detail-notes-full" set:html={renderMd(act.notes)} />}
-
-                    {(act.noticeUrl ||
-                      (act.type === 'audition' && act.productionUrl) ||
-                      hasMultipleSessions(act)) && (
-                      <div class="detail-links-row">
-                        {act.noticeUrl && (
-                          <a
-                            href={act.noticeUrl}
-                            class="detail-action-link"
-                            target="_blank"
-                            rel="noopener"
-                          >
-                            {act.type === 'audition' ? 'Audition notice →' : 'More info →'}
-                          </a>
-                        )}
-                        {act.type === 'audition' && act.productionUrl && (
-                          <a
-                            href={act.productionUrl}
-                            class="detail-action-link"
-                            target="_blank"
-                            rel="noopener"
-                          >
-                            Production info →
-                          </a>
-                        )}
-                        {hasMultipleSessions(act) && (
-                          <button
-                            type="button"
-                            class="detail-action-link detail-cal-btn"
-                            data-ics-download={`activities/${bareId(act.id)}`}
-                            data-ics-name={act.title.trim()}
-                          >
-                            Download all dates
-                          </button>
-                        )}
-                      </div>
-                    )}
-                  </div>
+                  {/* ── Expanded detail (shared with the editor Preview) ── */}
+                  <div
+                    class="aud-detail"
+                    hidden
+                    set:html={activityDetailHtml(act, {
+                      withAdd: true,
+                      eventId: bareId,
+                      organizers: namedOrganizers(act)
+                    })}
+                  />
                 </div>
               )
             })}
@@ -618,6 +194,8 @@ function roleTypeLabel(type: string): string {
     <AddToCalendar />
   </body>
 </html>
+
+<style is:inline set:html={PILL_CSS + ACTIVITY_VIEW_CSS}></style>
 
 <style>
   *,
@@ -857,63 +435,12 @@ function roleTypeLabel(type: string): string {
     line-height: 1.25;
   }
 
-  .genre-badge {
-    font-size: 11px;
-    font-weight: 500;
-    padding: 2px 8px;
-    border-radius: 10px;
-    flex-shrink: 0;
-    letter-spacing: 0.02em;
-  }
-
-  .genre-musical {
-    background: #dce4fb;
-    color: #2c3e9a;
-  }
-  .genre-drama {
-    background: #fbe5e1;
-    color: #8c3a2e;
-  }
-  .genre-comedy {
-    background: #dff4d6;
-    color: #2d6020;
-  }
-  .genre-other {
-    background: #f0ece6;
-    color: var(--ink-muted);
-  }
-
-  .type-badge {
-    font-size: 10px;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-    padding: 2px 7px;
-    border-radius: 8px;
-    flex-shrink: 0;
-  }
-
-  .type-event {
-    background: #e8f4f0;
-    color: #1a6b50;
-  }
-
-  .type-audition {
-    background: #fbefd9;
-    color: #8a5a12;
-  }
-
   .aud-card[data-type='event'] {
     background: #f6fbf9;
   }
 
   .aud-card[data-type='audition'] {
     background: #fffaf0;
-  }
-
-  .type-virtual {
-    background: #eef0f7;
-    color: #4a4f80;
   }
 
   .aud-past-pip,
@@ -995,292 +522,6 @@ function roleTypeLabel(type: string): string {
     padding: 20px 16px 16px;
   }
 
-  .detail-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 24px 32px;
-    margin-bottom: 16px;
-  }
-
-  /* No right column (no roles / no description) → left column spans full width */
-  .detail-grid:not(:has(.detail-right)) {
-    grid-template-columns: 1fr;
-  }
-
-  .detail-left,
-  .detail-right {
-    min-width: 0;
-  }
-
-  .detail-section {
-    margin-bottom: 16px;
-  }
-
-  .detail-section:last-child {
-    margin-bottom: 0;
-  }
-
-  .detail-section-head {
-    font-size: 11px;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    color: var(--ink-muted);
-    margin-bottom: 8px;
-  }
-
-  .contact-section .detail-section-head {
-    margin-bottom: 4px;
-  }
-
-  /* Date rows */
-  .detail-date-row {
-    display: flex;
-    align-items: baseline;
-    flex-wrap: wrap;
-    gap: 6px;
-    margin-bottom: 5px;
-    font-size: 13px;
-  }
-
-  .session-add {
-    margin-left: auto;
-    font-family: inherit;
-    font-size: 12px;
-    color: #4f5ce0;
-    background: none;
-    border: none;
-    padding: 0;
-    cursor: pointer;
-  }
-
-  .session-add:hover {
-    text-decoration: underline;
-  }
-
-  .detail-date-row.past .session-add,
-  .aud-card.past .detail-cal-btn {
-    display: none;
-  }
-
-  .detail-date-label {
-    font-weight: 500;
-    color: var(--ink);
-    white-space: nowrap;
-  }
-
-  .detail-time-label {
-    color: var(--ink-muted);
-    white-space: nowrap;
-  }
-
-  .detail-date-note {
-    font-size: 11px;
-    color: var(--ink-subtle);
-    font-style: italic;
-  }
-
-  /* Per-date location */
-  .detail-date-location {
-    width: 100%;
-    font-size: 12px;
-    color: var(--ink-muted);
-    margin-top: 1px;
-  }
-
-  .detail-location-name {
-    font-weight: 500;
-    color: var(--ink-muted);
-  }
-
-  .detail-sub {
-    font-size: 12px;
-    color: var(--ink-muted);
-    line-height: 1.5;
-  }
-
-  /* Prep */
-  .detail-prep-row {
-    display: flex;
-    gap: 6px;
-    font-size: 13px;
-    margin-bottom: 5px;
-    line-height: 1.45;
-  }
-
-  .detail-prep-row:last-child {
-    margin-bottom: 0;
-  }
-
-  .prep-label {
-    font-size: 11px;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-    color: var(--ink-muted);
-    white-space: nowrap;
-    padding-top: 2px;
-    flex-shrink: 0;
-    min-width: 48px;
-  }
-
-  .prep-value {
-    white-space: pre-line;
-  }
-
-  .detail-virtual-note {
-    font-size: 13px;
-    line-height: 1.5;
-    color: var(--ink-muted);
-    margin: 0;
-  }
-
-  /* Contact */
-  .detail-contact-name {
-    font-size: 13px;
-    color: var(--ink);
-    margin-bottom: 2px;
-  }
-
-  .detail-link-inline {
-    font-size: 12px;
-    color: #4f5ce0;
-    text-decoration: none;
-  }
-  .detail-link-inline:hover {
-    text-decoration: underline;
-  }
-
-  /* ── ROLES TABLE ── */
-  .roles-table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 13px;
-  }
-
-  .roles-table th {
-    text-align: left;
-    font-size: 11px;
-    font-weight: 600;
-    color: var(--ink-muted);
-    padding: 0 10px 5px 0;
-    border-bottom: 1px solid var(--border);
-    white-space: nowrap;
-  }
-
-  .roles-table td {
-    padding: 6px 10px 6px 0;
-    border-bottom: 1px solid var(--border);
-    vertical-align: top;
-    line-height: 1.4;
-  }
-
-  .roles-table tr:last-child td {
-    border-bottom: none;
-  }
-
-  .role-name-cell {
-    font-weight: 500;
-    color: var(--ink);
-  }
-
-  .roles-table tr.has-desc td {
-    border-bottom: none;
-    padding-bottom: 2px;
-  }
-
-  .role-desc-cell {
-    padding-top: 0;
-  }
-
-  .role-desc {
-    display: block;
-    font-size: 11px;
-    font-weight: 400;
-    color: var(--ink-muted);
-    font-style: italic;
-    line-height: 1.4;
-    max-width: 80%;
-  }
-
-  .role-type {
-    white-space: nowrap;
-  }
-
-  .role-lead {
-    color: #6c3bb5;
-    font-weight: 500;
-  }
-  .role-supporting {
-    color: var(--ink-muted);
-  }
-  .role-ensemble {
-    color: var(--ink-subtle);
-    font-style: italic;
-  }
-
-  .role-age {
-    color: var(--ink-muted);
-    white-space: nowrap;
-  }
-
-  .role-voice {
-    color: var(--ink-muted);
-  }
-
-  /* ── DETAIL FOOTER ── */
-  .detail-notes-full {
-    font-size: 13px;
-    color: var(--ink-muted);
-    line-height: 1.6;
-    padding: 12px 0 8px;
-    border-top: 1px solid var(--border);
-    margin-top: 4px;
-    font-style: italic;
-    white-space: pre-wrap;
-  }
-
-  .detail-links-row {
-    display: flex;
-    gap: 16px;
-    flex-wrap: wrap;
-    padding-top: 12px;
-    border-top: 1px solid var(--border);
-    margin-top: 4px;
-  }
-
-  .aud-detail .detail-notes-full + .detail-links-row,
-  .aud-detail .detail-grid + .detail-links-row {
-    margin-top: 0;
-  }
-
-  .detail-cal-btn {
-    margin-left: auto;
-    background: none;
-    border: none;
-    padding: 0;
-    font-family: inherit;
-    cursor: pointer;
-  }
-
-  @media (max-width: 600px) {
-    .detail-cal-btn {
-      margin-left: 0;
-    }
-  }
-
-  .detail-action-link {
-    font-size: 13px;
-    font-weight: 500;
-    color: #4f5ce0;
-    text-decoration: none;
-    transition: color 0.14s;
-  }
-  .detail-action-link:hover {
-    color: #2c3e9a;
-    text-decoration: underline;
-  }
-
   /* ── RESPONSIVE ── */
   @media (max-width: 860px) {
     .aud-page {
@@ -1304,9 +545,6 @@ function roleTypeLabel(type: string): string {
     }
     .filter-controls {
       gap: 8px;
-    }
-    .detail-grid {
-      grid-template-columns: 1fr;
     }
     .aud-aside {
       min-width: 72px;

@@ -1,6 +1,6 @@
 export type Genre = 'Drama' | 'Musical' | 'Comedy' | 'Other'
 
-export type PerfType = '' | 'Preview' | 'Opening' | 'Closing' | 'Talk-back' | 'Staged Reading'
+export type PerfType = '' | 'Preview' | 'Opening' | 'Closing' | 'Talk-back'
 
 /** One date/time slot within a run. */
 export interface Performance {

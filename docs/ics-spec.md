@@ -179,10 +179,12 @@ Rules:
   - `- item` becomes `• item`.
 - **Description contents**
   - Performances, in order:
-    1. the perf type (e.g. "Opening performance");
-    2. the run description;
-    3. price and discounts (per-performance discounts override the run's);
-    4. `Details & tickets: https://santacruz.theater/productions?id={id}`, or just
+    1. the production's full title, only when it differs from the summary's
+       short title;
+    2. the perf type (e.g. "Opening performance");
+    3. the run description;
+    4. price and discounts (per-performance discounts override the run's);
+    5. `Details & tickets: https://santacruz.theater/productions?id={id}`, or just
        `Details: …` when there's no ticket link.
   - Auditions: a summary of the roles, the session notes, then
     `Details: https://santacruz.theater/events?id={id}`.
@@ -314,7 +316,10 @@ Placements:
   link.
 
 **Calendar editor Preview** shows the run's full schedule, with
-per-performance overrides, in the same card layout as `/productions`.
+per-performance overrides, laid out as `/productions`. It shows everything in
+the run's data but not the calendar actions (Add to my calendar), which only
+work on published performances. See the feature guide's [How a production is
+displayed](feature-guide.md#how-a-production-is-displayed).
 
 **Usage tracking**: the dialog sends Plausible custom events (`Calendar
 subscribe`, `Calendar add event`, `Calendar download all dates`), with the

@@ -48,7 +48,7 @@ One content model for eight views (the record and editor Preview share a column)
 | Genre pip        | –                | –                                                     | ✓                                                         | ✓                   | ✓                   | ✓           | –                                   |
 | Venue (and room) | hover only       | ✓                                                     | ✓                                                         | ✓                   | ✓                   | ✓           | ✓ (location)                        |
 | Price            | –                | ✓                                                     | ✓                                                         | ✓                   | ✓                   | –           | ✓                                   |
-| Dates            | that one         | time in the card header (the date is the sheet's)     | range, count, every performance                           | range, count        | range, count        | range       | that one                            |
+| Dates            | that one         | date and time in the card's heading                   | range, count, every performance                           | range, count        | range, count        | range       | that one                            |
 | Description      | –                | ✓                                                     | ✓                                                         | ✓, capped           | –                   | –           | ✓                                   |
 | Discounts        | –                | ✓                                                     | production's, and per row                                 | –                   | –                   | –           | ✓                                   |
 | Performance type | –                | pip                                                   | pip on each row                                           | –                   | –                   | –           | text line                           |
@@ -88,8 +88,8 @@ One content model for eight views (the record and editor Preview share a column)
     majors). Days from the neighbouring months fill out the month grid; their day-number strips are tinted.
   - ‹ › step a month (or a week) — on a touch screen, so does swiping left
     or right; **← Year** goes back.
-  - Clicking a performance opens its card ([fields](#how-a-production-is-displayed));
-    clicking a day's number lists that day's performances. The card slides
+  - Clicking a performance opens its card ([fields](#how-a-production-is-displayed)),
+    headed by its date and time; day numbers aren't clickable. The card slides
     up; × , tapping outside, or dragging down closes it.
 - No filters: the calendar always shows everything. A footer legend maps
   colours to the majors, plus grey for Other.

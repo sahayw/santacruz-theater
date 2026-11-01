@@ -460,11 +460,8 @@ const icsMajors = JSON.stringify(majors.map(({ code, label, name }) => ({ code, 
     letter-spacing: 0.06em;
     color: var(--ink-muted);
   }
-  .card-time {
+  .perf-type-slot {
     margin-left: auto;
-    font-size: 12px;
-    font-weight: 600;
-    white-space: nowrap;
   }
   .card-show-title {
     font-family: 'Playfair Display', serif;
@@ -792,21 +789,14 @@ const icsMajors = JSON.stringify(majors.map(({ code, label, name }) => ({ code, 
     background: #faf4e6;
     border-bottom: 1px solid #f1ece5;
   }
-  .day-num-btn {
-    align-self: flex-start;
-    font: inherit;
+  .day-num {
+    display: inline-block;
     font-size: 11px;
     color: var(--ink-muted);
-    background: none;
-    border: 0;
     border-radius: 3px;
     padding: 0 3px;
-    cursor: pointer;
   }
-  .day-num-btn:disabled {
-    cursor: default;
-  }
-  .day-num-btn.today {
+  .day-num.today {
     background: var(--ink);
     color: #fff;
   }
@@ -837,9 +827,6 @@ const icsMajors = JSON.stringify(majors.map(({ code, label, name }) => ({ code, 
   @media (hover: hover) {
     .cal-entry:hover {
       background: #f1ebe0;
-    }
-    .day-num-btn:not(:disabled):hover {
-      background: rgba(180, 120, 40, 0.18);
     }
   }
   .wv-grid .cal-entry {
@@ -1082,7 +1069,7 @@ const icsMajors = JSON.stringify(majors.map(({ code, label, name }) => ({ code, 
 
   // ── Drill-down ──
   function entryHtml(p) {
-    return `<button type="button" class="cal-entry" style="border-left-color:${entryColour(p)}" data-date="${p.date}" data-run="${esc(p.runId)}" title="${esc(p.show)} — ${esc(p.organizerName)}">
+    return `<button type="button" class="cal-entry" style="border-left-color:${entryColour(p)}" data-perf="${esc(p.id)}" title="${esc(p.show)} — ${esc(p.organizerName)}">
       <b>${fmtTime(p.time)}</b> ${esc(p.showAbv)} <span class="org">· ${esc(p.organizerLabel)}</span>
     </button>`
   }
@@ -1093,7 +1080,7 @@ const icsMajors = JSON.stringify(majors.map(({ code, label, name }) => ({ code, 
     const classes = [cls]
     if (ds === focusDate) classes.push('focus')
     if (perfs.length) classes.push('has-perf')
-    const num = `<div class="day-strip"><button type="button" class="day-num-btn${ds === TODAY ? ' today' : ''}" data-day="${ds}" ${perfs.length ? '' : 'disabled'}>${label}</button></div>`
+    const num = `<div class="day-strip"><span class="day-num${ds === TODAY ? ' today' : ''}">${label}</span></div>`
     return `<div class="${classes.join(' ')}">${num}${perfs.map(entryHtml).join('')}</div>`
   }
 
@@ -1187,31 +1174,29 @@ const icsMajors = JSON.stringify(majors.map(({ code, label, name }) => ({ code, 
     })
   }
 
-  async function openSheet(dateStr, runId = null) {
+  async function openSheet(perfId) {
     const renderMd = await renderMdPromise
     const pills = await pillsPromise
-    let perfs = byDate[dateStr] || []
-    if (runId) perfs = perfs.filter((p) => p.runId === runId)
-    if (!perfs.length) return
-    document.getElementById('sheetDateHeader').textContent = parseDate(dateStr).toLocaleDateString(
-      'en-US',
-      { weekday: 'long', month: 'long', day: 'numeric' }
-    )
+    const perf = PERFORMANCES.find((p) => p.id === perfId)
+    if (!perf) return
+    document.getElementById('sheetDateHeader').textContent =
+      parseDate(perf.date).toLocaleDateString('en-US', {
+        weekday: 'long',
+        month: 'long',
+        day: 'numeric'
+      }) + ` · ${fmtTime(perf.time)}`
     const cards = document.getElementById('sheetCards')
     cards.innerHTML = ''
-    let previousRunId = null
-    perfs.forEach((p) => {
+    ;[perf].forEach((p) => {
       const card = document.createElement('div')
       card.className = 'perf-card'
-      // The production's description lives here (once per production in the list)
       const description = (p.description || '').trimEnd()
-      const showDescription = description && previousRunId !== p.runId
+      const showDescription = !!description
       card.innerHTML = `
       <div class="perf-card-company">
         <div class="company-badge" style="background:${entryColour(p)}"></div>
         <span class="company-name">${esc(p.organizerName)}</span>
-        ${p.perfType ? pills.perfTypePipHtml(p.perfType) : ''}
-        <span class="card-time">${fmtTime(p.time)}</span>
+        ${p.perfType ? `<span class="perf-type-slot">${pills.perfTypePipHtml(p.perfType)}</span>` : ''}
       </div>
       <div class="card-show-title">${esc(p.show)}</div>
       ${showDescription ? `<div class="card-description-wrap"><div class="card-description">${renderMd(description)}</div><button type="button" class="card-description-more"><span class="card-description-more-ellipsis">...</span><span class="card-description-more-label">More</span></button></div>` : ''}
@@ -1246,7 +1231,6 @@ const icsMajors = JSON.stringify(majors.map(({ code, label, name }) => ({ code, 
           moreBtn.remove()
         })
       }
-      previousRunId = p.runId
     })
     document.getElementById('overlay').classList.add('open')
     document.getElementById('bottomSheet').classList.add('open')
@@ -1273,9 +1257,7 @@ const icsMajors = JSON.stringify(majors.map(({ code, label, name }) => ({ code, 
   document.getElementById('overlay').addEventListener('click', closeSheet)
   document.getElementById('drill-view').addEventListener('click', (e) => {
     const entry = e.target.closest('.cal-entry')
-    if (entry) return openSheet(entry.dataset.date, entry.dataset.run)
-    const num = e.target.closest('.day-num-btn')
-    if (num && !num.disabled) openSheet(num.dataset.day)
+    if (entry) openSheet(entry.dataset.perf)
   })
   // Crossing the phone/desktop width switches between the week and month drill-downs
   PHONE.addEventListener('change', () => {

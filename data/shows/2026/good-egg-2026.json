@@ -73,9 +73,7 @@
       "showAbv": "Local Readings",
       "show": "Local Playwrights’ Staged Reading Series",
       "description": "- *Destiny’s Birthright* by Isaac Ludington - Nov 21, 2026\n- *Harvester* by Andrea L. Hart - Jan 23, 2027\n- Play TBA by Kathy Chetkovich - May 16, 2027",
-      "genre": [
-        "Drama"
-      ],
+      "genre": [],
       "venue": "Scratch",
       "price": "Donations",
       "discounts": "",
@@ -107,7 +105,7 @@
           "ticketsUrl": ""
         }
       ],
-      "updatedAt": "2026-10-31T18:37:14.661Z"
+      "updatedAt": "2026-11-01T23:06:25.780Z"
     }
   ]
 }

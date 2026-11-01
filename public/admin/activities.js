@@ -1125,16 +1125,16 @@ async function saveFile() {
     updateSaveBtn()
   }
   if (!computeIsDirty()) return // nothing entered — nothing to save
-  const { errors, warnings } = collectIssues()
+  const { errors, warnings, checks } = collectIssues()
   if (errors.length) {
     alert('Cannot save — fix these issues:\n\n' + errors.join('\n'))
     return
   }
-  if (
-    warnings.length &&
-    !confirm('Missing details:\n\n' + warnings.join('\n') + '\n\nSave anyway?')
-  )
-    return
+  const sections = [
+    warnings.length && 'Missing details:\n\n' + warnings.join('\n'),
+    checks.length && 'Check multiple sessions on same day:\n\n' + checks.join('\n')
+  ].filter(Boolean)
+  if (sections.length && !confirm(sections.join('\n\n') + '\n\nSave anyway?')) return
   const btn = document.getElementById('actSaveBtn')
   btn.disabled = true
   btn.textContent = 'Saving…'
@@ -1677,6 +1677,7 @@ function isEmptyDateRow(d) {
 function collectIssues() {
   const errors = []
   const warnings = []
+  const checks = []
   activities.forEach((a, ai) => {
     const label = titleOf(a) || `Activity ${ai + 1}`
     const saved = { ...a, dates: (a.dates || []).filter((d) => !isEmptyDateRow(d)) }
@@ -1686,16 +1687,15 @@ function collectIssues() {
       runIds: companyRunIds
     })
     issues.errors.forEach((m) => errors.push(`"${label}": ${m}`))
-    if (actSnapshots.get(a.id) !== makeActivitySnapshot(a))
-      [
-        ...issues.warnings,
-        ...sameDayWarnings(
-          saved.dates.map((d) => ({ date: d.date, time: d.startTime })),
-          'session'
-        )
-      ].forEach((m) => warnings.push(`"${label}": ${m}`))
+    if (actSnapshots.get(a.id) !== makeActivitySnapshot(a)) {
+      issues.warnings.forEach((m) => warnings.push(`"${label}": ${m}`))
+      sameDayWarnings(
+        saved.dates.map((d) => ({ date: d.date, time: d.startTime })),
+        'session'
+      ).forEach((m) => checks.push(`"${label}": ${m}`))
+    }
   })
-  return { errors, warnings }
+  return { errors, warnings, checks }
 }
 
 // ── DATES TABLE ──

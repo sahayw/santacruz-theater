@@ -948,7 +948,7 @@
           "id": "perf-1791991838291",
           "date": "2026-12-10",
           "time": "19:00",
-          "perfType": "",
+          "perfType": "Talk-back",
           "discounts": "",
           "ticketsUrl": ""
         },
@@ -988,7 +988,7 @@
           "id": "perf-1791991838296",
           "date": "2026-12-17",
           "time": "19:00",
-          "perfType": "",
+          "perfType": "Talk-back",
           "discounts": "",
           "ticketsUrl": ""
         },
@@ -1083,13 +1083,14 @@
         {
           "id": "perf-1791991838308",
           "date": "2026-12-24",
-          "time": "18:00",
+          "time": "19:00",
           "perfType": "Closing",
           "discounts": "",
           "ticketsUrl": ""
         }
       ],
-      "description": "Dickens' beloved tale returns as a theatrical and music-filled family tradition in the heart of Santa Cruz. A night of ghostly visits transforms the miserly Ebenezer Scrooge — and reminds audiences what the season is really about."
+      "description": "Dickens' beloved tale returns as a theatrical and music-filled family tradition in the heart of Santa Cruz. A night of ghostly visits transforms the miserly Ebenezer Scrooge — and reminds audiences what the season is really about.",
+      "updatedAt": "2026-11-01T22:27:52.213Z"
     }
   ]
 }

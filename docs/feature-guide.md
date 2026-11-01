@@ -349,8 +349,10 @@ Completely blank date rows are ignored.
 
 **Same-day check**: Save also asks "Save anyway?" when a run or activity you
 changed has more than one performance or session on a day (e.g. "2
-performances on 2027-02-07 (14:00, 19:00)"), so a Pattern or Paste that landed
-on a day already scheduled gets noticed. Matinee and evening pairs are normal,
+performances on 2027-02-07 (14:00, 19:00)"). The prompt lists these under their
+own heading, "Check multiple performances on same day:" ("sessions" for
+activities), apart from "Missing details:". It catches a Pattern or Paste that
+landed on a day already scheduled. Matinee and evening pairs are normal,
 so you confirm rather than fix. It isn't checked for finished records.
 
 ### Errors

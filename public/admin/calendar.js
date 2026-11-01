@@ -899,16 +899,16 @@ async function saveFile() {
   // Performances are always stored in date/time order
   runs.forEach((r) => r.performances.sort(sortPerformances))
   if (activeRunIdx >= 0) renderPerfTable()
-  const { errors, warnings } = collectIssues()
+  const { errors, warnings, checks } = collectIssues()
   if (errors.length) {
     alert('Cannot save — fix these issues:\n\n' + errors.join('\n'))
     return
   }
-  if (
-    warnings.length &&
-    !confirm('Missing details:\n\n' + warnings.join('\n') + '\n\nSave anyway?')
-  )
-    return
+  const sections = [
+    warnings.length && 'Missing details:\n\n' + warnings.join('\n'),
+    checks.length && 'Check multiple performances on same day:\n\n' + checks.join('\n')
+  ].filter(Boolean)
+  if (sections.length && !confirm(sections.join('\n\n') + '\n\nSave anyway?')) return
   const btn = document.getElementById('saveBtn')
   btn.disabled = true
   btn.textContent = 'Saving…'
@@ -1316,16 +1316,19 @@ function setInvalid(id, invalid) {
 function collectIssues() {
   const errors = []
   const warnings = []
+  const checks = []
   runs.forEach((run, ri) => {
     const label = run.showAbv || run.show || `Run ${ri + 1}`
     const issues = runIssues(run, currentYear, { companies: allCompanies, venues: venuesList })
     issues.errors.forEach((m) => errors.push(`"${label}": ${m}`))
-    if (runSnapshots.get(run.id) !== makeRunSnapshot(run))
-      [...issues.warnings, ...sameDayWarnings(run.performances, 'performance')].forEach((m) =>
-        warnings.push(`"${label}": ${m}`)
+    if (runSnapshots.get(run.id) !== makeRunSnapshot(run)) {
+      issues.warnings.forEach((m) => warnings.push(`"${label}": ${m}`))
+      sameDayWarnings(run.performances, 'performance').forEach((m) =>
+        checks.push(`"${label}": ${m}`)
       )
+    }
   })
-  return { errors, warnings }
+  return { errors, warnings, checks }
 }
 
 // ── PERFORMANCE TABLE ──

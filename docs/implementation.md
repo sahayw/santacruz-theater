@@ -167,7 +167,7 @@ One file per company per year: `{ company, year, runs: [<Run>] }`.
 #### `Performance`
 
 `{ id: "perf-<timestamp>", date: "YYYY-MM-DD", time: "HH:MM" (24h), perfType:
-"" | Preview | Opening | Closing | Talk-back | Staged Reading, discounts, ticketsUrl }` —
+"" | Preview | Opening | Closing | Talk-back, discounts, ticketsUrl }` —
 non-empty `discounts` / `ticketsUrl` override the run's. `id` is a stable
 [occurrence id](#occurrence-ids--srcliboccurrence-idsts).
 
@@ -728,11 +728,12 @@ emailed:
   and not listable or unknown before — so a production saved before its
   dates is announced when its dates arrive.
 - **Changed**: dates added / cancelled / moved (by occurrence id), venue or
-  location changed, tickets link appeared ("Tickets on sale"), registration
+  location changed, tickets link appeared ("Tickets now on sale"), registration
   link appeared ("Registration open"), reopened.
 - **Cancelled**: a record that was listable and has lost all its remaining
   dates is still reported, labelled "Cancelled" (`all: true` on the removal);
-  its email card reads "No upcoming performances" / "No upcoming sessions".
+  its email card reads "No upcoming performances" / "No upcoming sessions",
+  with a red "Cancelled" pip.
   An activity that closes isn't a cancellation and sends nothing.
 - A past date dropping off, and every other field (description, price,
   contact, wording), never sends email. `createdAt` / `updatedAt` aren't
@@ -744,7 +745,9 @@ The only places functions read data (via `fs` — [§4](#4-data-flow)).
 `loadAllActivities()` resolves titles, organizer names and places;
 `isUpcoming()` is `isUpcomingActivity()` from `src/lib/data-rules.ts`.
 `loadRuns()` reads every shows file; `digestProduction()` shapes a run for an
-email card (upcoming performances only); `includesProduction()` keeps a
+email card or welcome row — the fields in the feature guide's [How a
+production is displayed](feature-guide.md#how-a-production-is-displayed),
+over upcoming performances only; `includesProduction()` keeps a
 production for a subscriber when any of its organizers isn't excluded (as
 the selection feeds). Don't duplicate these or reintroduce GitHub API reads.
 
@@ -766,7 +769,7 @@ is retried after a pause.
 - New address: creates the subscriber with its tags and metadata, then
   `context.waitUntil()` sends the **welcome email** (`sendWelcome()` in
   `lib/subscriptions.mts`) — one email with a section per list chosen:
-  upcoming productions as a compact list (less any excluded majors), and
+  upcoming productions as a compact list of rows (less any excluded majors), and
   upcoming auditions and events as cards. Result pings
   `SUBSCRIBE_HEALTHCHECK_URL` (or `/fail`).
 - Existing address (subscribed or not): emails it a link to its choices.

@@ -89,7 +89,7 @@ const icsMajors = JSON.stringify(majors.map(({ code, label, name }) => ({ code, 
     --ink-muted: #6b6259;
     --border: #e0d9d0;
     --month-header-bg: #fffcf2;
-    --card-description-lines: 4;
+    --card-description-lines: 5;
     --radius: 6px;
     --bar-h: 32px;
     --footer-h: 48px;
@@ -460,8 +460,11 @@ const icsMajors = JSON.stringify(majors.map(({ code, label, name }) => ({ code, 
     letter-spacing: 0.06em;
     color: var(--ink-muted);
   }
-  .perf-type-slot {
+  .card-time {
     margin-left: auto;
+    font-size: 12px;
+    font-weight: 600;
+    white-space: nowrap;
   }
   .card-show-title {
     font-family: 'Playfair Display', serif;
@@ -1207,13 +1210,12 @@ const icsMajors = JSON.stringify(majors.map(({ code, label, name }) => ({ code, 
       <div class="perf-card-company">
         <div class="company-badge" style="background:${entryColour(p)}"></div>
         <span class="company-name">${esc(p.organizerName)}</span>
-        ${p.perfType ? `<span class="perf-type-slot">${pills.perfTypePipHtml(p.perfType)}</span>` : ''}
+        ${p.perfType ? pills.perfTypePipHtml(p.perfType) : ''}
+        <span class="card-time">${fmtTime(p.time)}</span>
       </div>
-      <div class="card-show-title">${esc(p.show)} ${p.genre.map(pills.genrePipHtml).join('')}</div>
+      <div class="card-show-title">${esc(p.show)}</div>
       ${showDescription ? `<div class="card-description-wrap"><div class="card-description">${renderMd(description)}</div><button type="button" class="card-description-more"><span class="card-description-more-ellipsis">...</span><span class="card-description-more-label">More</span></button></div>` : ''}
       <div class="card-meta">
-        <div class="card-meta-item"><span class="card-meta-label">Date&nbsp;</span>${parseDate(dateStr).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}</div>
-        <div class="card-meta-item"><span class="card-meta-label">Time&nbsp;</span>${fmtTime(p.time)}</div>
         <div class="card-meta-item"><span class="card-meta-label">Venue&nbsp;</span>${esc(p.venue)}</div>
         ${p.price ? `<div class="card-meta-item"><span class="card-meta-label">Price&nbsp;</span>${esc(p.price)}</div>` : ''}
       </div>

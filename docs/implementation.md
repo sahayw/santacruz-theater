@@ -519,13 +519,14 @@ The shared pieces of [How a production is displayed](feature-guide.md#how-a-prod
 - **Email**: `cutDescription()` caps a Markdown description at about 600 characters at a line break or sentence end, never inside bold, italic or a link. `fmtPerfTime()` writes "7pm" / "7:30pm".
 - **Consumers**: `productions.astro`, `events.astro`, `calendar.astro` (card pills), the email template (direct imports); `calendar.js` and `activities.js` Previews (`/admin/production-view.js`, served by `src/pages/admin/production-view.js.ts`).
 
-### Activity display — `src/lib/activity-view.ts` (planned)
+### Activity display — `src/lib/activity-view.ts`
 
 Shared pieces of [How an audition or event is displayed](feature-guide.md#how-an-audition-or-event-is-displayed), following the `production-view.ts` pattern:
 
-- **Pips**: type (Audition/Event), Virtual, Closed and Past pills defined once, beside the genre pills from `production-view.ts`; the email template uses inline-styled equivalents of the same colours.
-- **Card body**: one renderer for the expanded card, used by `events.astro` and the Activities Preview (`/admin/activity-view.js`, served by `src/pages/admin/activity-view.js.ts`). Roles render as Role, Type, Age (and Voice) with each description in a full-width row beneath, so the table never exceeds its column. No "About" heading.
-- **Email**: `activityCard()` and the welcome activity row use the shared pips and one link to `/events?id=`; no Register button.
+- **Pips**: `activityPipsHtml()` (type, Virtual, then genre for auditions) and `activityStatusPipHtml()` (Closed/Past, web and Preview only) read `ACTIVITY_COLOURS` and the genre colours in `production-view.ts`; the email template uses inline-styled equivalents. The email never shows Closed.
+- **Card body**: `activityDetailHtml(activity, { organizers, withAdd, eventId, noDatesNote })` renders the expanded card for `events.astro` (`withAdd: true`) and the Activities Preview (`/admin/activity-view.js`, served by `src/pages/admin/activity-view.js.ts`). The event description comes first, full width, with no heading. Roles render as Role, Type, Age (and Voice) with each description in a full-width row beneath, so the table never exceeds its column. `ACTIVITY_VIEW_CSS` styles it in both places; `VIRTUAL_NOTE` is the one wording for a virtual submission.
+- **Summary**: `activityMetaText()` and `activityRangeText()` build the collapsed card's meta line and date range, and the email's.
+- **Email**: `activityCard()` and the welcome email's `activityLine()` use the pips and one link to `/events?id=`; no Register button. Cancelled is red, registration open amber, the rest blue (`activityChangeColour()`).
 
 ### The "upcoming" rule
 
@@ -550,17 +551,17 @@ A change to what an activity card shows must be checked in all four:
 
 1. `events.astro` template
 2. the `?id=` deep-link view (same HTML — automatic)
-3. `buildPreviewHtml()` in `activities.js`
+3. `openPreview()` in `activities.js`
 4. `netlify/functions/lib/email-template.mts`
 
 Exception: the per-session **Add to my calendar** links and **Download all
 dates** exist only on the web paths (1–2). They open a dialog that the
 Preview and emails don't have.
 
-**Layout**: the public `.detail-grid` and Preview `.pv-detail-grid` are
-two-column grids with an optional right column (roles / description). Each
-has a `:not(:has(.detail-right))`-style rule that collapses to one column
-when it's absent (e.g. a virtual audition with no roles).
+**Layout**: `.detail-grid` is a two-column grid with an optional right column
+(roles for auditions, the organizer for events); it collapses to one column when
+that is absent (e.g. a virtual audition with no roles). The Preview uses the same
+markup and CSS.
 
 ### Calendar feeds
 

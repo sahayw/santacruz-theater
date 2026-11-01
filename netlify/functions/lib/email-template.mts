@@ -24,6 +24,11 @@ import {
   type ActivityChange,
   type ProductionChange
 } from '../../../src/lib/notice-rules.ts'
+import {
+  ACTIVITY_COLOURS,
+  VIRTUAL_NOTE,
+  activityRangeText
+} from '../../../src/lib/activity-view.ts'
 import type { DigestActivity } from './activities-data.mts'
 import type { DigestProduction } from './shows-data.mts'
 
@@ -57,6 +62,25 @@ function changeColour(c: ProductionChange) {
   if (c.kind === 'tickets') return CHANGE_COLOURS.onSale
   if (c.kind === 'dates-removed' && c.all) return CHANGE_COLOURS.cancelled
   return CHANGE_COLOURS.info
+}
+
+function activityChangeColour(c: ActivityChange) {
+  if (c.kind === 'registration') return CHANGE_COLOURS.onSale
+  if (c.kind === 'sessions-removed' && c.all) return CHANGE_COLOURS.cancelled
+  return CHANGE_COLOURS.info
+}
+
+// Type and Virtual pips, then genre — as on the site (activityPipsHtml)
+const typePill = (label: string, colour: Colour) =>
+  `<span style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;${pipStyle(colour)};display:inline-block;padding:2px 7px;border-radius:8px;margin-left:6px;vertical-align:middle">${esc(label)}</span>`
+
+function activityPills(a: DigestActivity) {
+  const audition = a.type === 'audition'
+  return [
+    typePill(audition ? 'Audition' : 'Event', ACTIVITY_COLOURS[a.type]),
+    audition && a.virtualSubmission ? typePill('Virtual', ACTIVITY_COLOURS.virtual) : '',
+    audition ? (a.genre ?? []).map(genrePill).join('') : ''
+  ].join('')
 }
 
 const heading = (text: string, top = true) =>
@@ -150,9 +174,24 @@ function productionLine(p: DigestProduction) {
 
 // ── Audition & event cards ───────────────────────────────────────────────────
 
-/** An audition or event card; an update carries its change labels. */
+/** One row per audition or event, for the welcome email: title (the link), pips, organizer, dates. */
+function activityLine(a: DigestActivity, siteUrl: string) {
+  return `<tr>
+    <td style="padding:6px 12px 6px 0;vertical-align:top"><a href="${esc(activityUrl(a, siteUrl))}" style="color:#1a1612;font-weight:600;text-decoration:none">${esc(a.title)}</a>${activityPills(a)}<br><span style="color:#6b6259">${esc(a.companyName)}</span></td>
+    <td style="padding:6px 0;vertical-align:top;color:#6b6259;white-space:nowrap;text-align:right">${esc(activityRangeText(a))}</td>
+  </tr>`
+}
+
+const activityUrl = (a: DigestActivity, siteUrl: string) =>
+  `${siteUrl}/events?id=${a.id.replace('activity-', '')}`
+
+/**
+ * An audition or event card — fields as in docs/feature-guide.md ("How an audition or event
+ * is displayed"). Keeps up to three session rows; one link to the record, no Register
+ * button. An update carries its change pips.
+ */
 export function activityCard(a: DigestActivity, siteUrl: string, changes: ActivityChange[] = []) {
-  const url = `${siteUrl}/events?id=${a.id.replace('activity-', '')}`
+  const url = activityUrl(a, siteUrl)
   const added = changes.find((c) => c.kind === 'sessions-added')
   const dates = added ? a.dates.filter((d) => added.sessionIds.includes(d.id)) : a.dates
 
@@ -176,7 +215,7 @@ export function activityCard(a: DigestActivity, siteUrl: string, changes: Activi
   const datesHtml = cancelled
     ? `<div style="${META}">No upcoming sessions</div>`
     : noScheduledDates && a.type === 'audition' && a.virtualSubmission
-      ? `<div style="${META}">Virtual submission &mdash; no scheduled dates. See the audition notice for how to apply.</div>`
+      ? `<div style="${META}">${esc(VIRTUAL_NOTE)}</div>`
       : noScheduledDates && a.type === 'event' && a.datesByRequest
         ? `<div style="${META}">On request</div>`
         : `<table style="border-collapse:collapse;font-size:13px;margin-bottom:10px">${dateRows}${moreDates}</table>`
@@ -187,15 +226,13 @@ export function activityCard(a: DigestActivity, siteUrl: string, changes: Activi
       : a.type === 'event' && a.briefDescription
         ? a.briefDescription
         : ''
-  const registering = changes.some((c) => c.kind === 'registration') && a.registerUrl
 
   return `<div style="${CARD}">
-    ${changes.map((c) => pill(activityChangeLabel(c), c.kind === 'registration' ? CHANGE_COLOURS.onSale : CHANGE_COLOURS.info)).join('')}
-    <div style="${TITLE}">${esc(a.title)}</div>
+    ${changes.map((c) => pill(activityChangeLabel(c), activityChangeColour(c))).join('')}
+    <div style="${TITLE}">${esc(a.title)}${activityPills(a)}</div>
     <div style="${META}">${esc(a.companyName)}${subLine ? ` &middot; ${esc(subLine)}` : ''}</div>
     ${datesHtml}
-    ${registering ? `<a href="${esc(a.registerUrl!)}" style="${BUTTON}">Register</a>` : ''}
-    <a href="${esc(url)}" style="${LINK}">${a.type === 'event' ? 'View event details' : 'View audition details'} &rarr;</a>
+    <a href="${esc(url)}" style="${LINK}">${a.type === 'event' && !cancelled ? 'Details &amp; registration' : 'Details'} &rarr;</a>
   </div>`
 }
 
@@ -326,13 +363,13 @@ export function buildWelcomeEmail(
     parts.push(
       heading('Upcoming auditions') +
         (auditions.length
-          ? auditions.map((a) => activityCard(a, siteUrl)).join('')
+          ? `<table style="border-collapse:collapse;font-size:13px;width:100%">${auditions.map((a) => activityLine(a, siteUrl)).join('')}</table>`
           : quiet(
               "No upcoming auditions right now &mdash; you'll be notified when new ones are posted."
             )),
       heading('Upcoming events') +
         (events.length
-          ? events.map((a) => activityCard(a, siteUrl)).join('')
+          ? `<table style="border-collapse:collapse;font-size:13px;width:100%">${events.map((a) => activityLine(a, siteUrl)).join('')}</table>`
           : quiet(
               "No upcoming events right now &mdash; you'll be notified when new ones are posted."
             ))

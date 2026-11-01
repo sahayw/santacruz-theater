@@ -1,15 +1,5 @@
 import { IS_DEV, apiFetch, apiPut, buildCompanyOptions, deleteRecordFromFile } from './api.js'
-import {
-  fmt12,
-  fmtTimeRange,
-  fmtFullDate,
-  fmtShortDate,
-  fmtAudDateRange,
-  rolesSum,
-  renderMd,
-  activityTitle,
-  auditionDetails
-} from '/admin/audition-format.js'
+import { fmt12, rolesSum, activityTitle, auditionDetails } from '/admin/audition-format.js'
 import {
   MAX_GENRES,
   activityIssues,
@@ -24,7 +14,15 @@ import {
   organizerName,
   recordOrganizerIds
 } from '/admin/organizers.js'
-import { PILL_CSS, genrePipHtml } from '/admin/production-view.js'
+import { PILL_CSS } from '/admin/production-view.js'
+import {
+  ACTIVITY_VIEW_CSS,
+  activityDetailHtml,
+  activityMetaText,
+  activityPipsHtml,
+  activityRangeText,
+  activityStatusPipHtml
+} from '/admin/activity-view.js'
 import { sessionPlace, venueByCode } from '/admin/venues.js'
 import { markdownToolbar } from './markdown-editor.js'
 import { genreBoxesHtml, getGenres, limitGenres, setGenres } from './genre-boxes.js'
@@ -60,7 +58,7 @@ function injectStyles() {
   if (document.getElementById(STYLES_ID)) return
   const s = document.createElement('style')
   s.id = STYLES_ID
-  s.textContent = ACT_CSS + PILL_CSS
+  s.textContent = ACT_CSS + PILL_CSS + ACTIVITY_VIEW_CSS
   document.head.appendChild(s)
 }
 
@@ -421,56 +419,12 @@ const ACT_CSS = `
 .pv-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
 .pv-title-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 .pv-title { font-family: 'Playfair Display', Georgia, serif; font-size: 16px; font-weight: 600; color: #1a1612; line-height: 1.25; }
-.pv-type-badge { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; padding: 2px 7px; border-radius: 8px; flex-shrink: 0; background: #e8f4f0; color: #1a6b50; }
 .pv-brief-row { font-size: 12px; color: #9c9189; }
 .pv-meta-row { font-size: 12px; color: #6b6259; }
 .pv-roles-row { font-size: 12px; color: #9c9189; }
 .pv-aside { flex-shrink: 0; display: flex; flex-direction: column; align-items: flex-end; gap: 3px; min-width: 80px; }
 .pv-date-range { font-size: 13px; font-weight: 500; color: #1a1612; white-space: nowrap; }
-.pv-past-pip {
-  font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em;
-  color: #9c9189; background: rgba(0,0,0,0.06); padding: 2px 7px; border-radius: 8px;
-}
-.pv-virtual-badge {
-  font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em;
-  padding: 2px 7px; border-radius: 8px; flex-shrink: 0; background: #eef0f7; color: #4a4f80;
-}
-.pv-detail { background: #f7f4ef; border-top: 1px solid #e0d9d0; padding: 20px 16px 16px; font-family: 'DM Sans', system-ui, sans-serif; }
-.pv-detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px 32px; margin-bottom: 16px; }
-.pv-detail-grid:not(:has(.pv-detail-right)) { grid-template-columns: 1fr; }
-.pv-detail-left, .pv-detail-right { min-width: 0; }
-.pv-section { margin-bottom: 16px; }
-.pv-section:last-child { margin-bottom: 0; }
-.pv-section-head { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: #6b6259; margin-bottom: 8px; }
-.pv-date-row { display: flex; align-items: baseline; flex-wrap: wrap; gap: 6px; margin-bottom: 5px; font-size: 13px; }
-.pv-date-label { font-weight: 500; color: #1a1612; white-space: nowrap; }
-.pv-time-label { color: #6b6259; white-space: nowrap; }
-.pv-date-note { font-size: 11px; color: #9c9189; font-style: italic; }
-.pv-date-location { width: 100%; font-size: 12px; color: #6b6259; margin-top: 1px; }
-.pv-location-name { font-weight: 500; }
-.pv-sub { font-size: 12px; color: #6b6259; line-height: 1.5; }
-.pv-prep-row { display: flex; gap: 6px; font-size: 13px; margin-bottom: 5px; line-height: 1.45; }
-.pv-prep-row:last-child { margin-bottom: 0; }
-.pv-prep-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: #6b6259; white-space: nowrap; padding-top: 2px; flex-shrink: 0; min-width: 48px; }
-.pv-contact-section .pv-section-head { margin-bottom: 4px; }
-.pv-contact-name { font-size: 13px; color: #1a1612; margin-bottom: 2px; }
-.pv-link-inline { font-size: 12px; color: #4f5ce0; text-decoration: none; }
-.pv-link-inline:hover { text-decoration: underline; }
-.pv-roles-table { width: 100%; border-collapse: collapse; font-size: 13px; }
-.pv-roles-table th { text-align: left; font-size: 11px; font-weight: 600; color: #6b6259; padding: 0 10px 5px 0; border-bottom: 1px solid #e0d9d0; white-space: nowrap; }
-.pv-roles-table td { padding: 6px 10px 6px 0; border-bottom: 1px solid #e0d9d0; vertical-align: top; line-height: 1.4; }
-.pv-roles-table tr:last-child td { border-bottom: none; }
-.pv-roles-table tr.has-desc td { border-bottom: none; padding-bottom: 2px; }
-.pv-role-name { font-weight: 500; color: #1a1612; }
-.pv-role-lead { color: #6c3bb5; font-weight: 500; }
-.pv-role-supporting { color: #6b6259; }
-.pv-role-ensemble { color: #9c9189; font-style: italic; }
-.pv-role-age, .pv-role-voice { color: #6b6259; white-space: nowrap; }
-.pv-role-desc { display: block; font-size: 11px; color: #6b6259; font-style: italic; line-height: 1.4; max-width: 80%; }
-.pv-notes-full { font-size: 13px; color: #6b6259; line-height: 1.6; padding: 12px 0 8px; border-top: 1px solid #e0d9d0; margin-top: 4px; font-style: italic; white-space: pre-wrap; }
-.pv-links-row { display: flex; gap: 16px; flex-wrap: wrap; padding-top: 12px; border-top: 1px solid #e0d9d0; margin-top: 4px; }
-.pv-action-link { font-size: 13px; font-weight: 500; color: #4f5ce0; text-decoration: none; }
-.pv-action-link:hover { color: #2c3e9a; text-decoration: underline; }
+.pv-detail { --ink: #1a1612; --ink-muted: #6b6259; --ink-subtle: #9c9189; --border: #e0d9d0; background: #f7f4ef; border-top: 1px solid #e0d9d0; padding: 20px 16px 16px; font-family: 'DM Sans', system-ui, sans-serif; }
 `
 
 // ── HTML TEMPLATE ──
@@ -2175,179 +2129,43 @@ function openPreview() {
   const a = activities[activeActIdx]
   const companyName = allCompanies.find((c) => c.id === currentCompanyId)?.name || currentCompanyAbv
   const details = detailsOf(a) // a linked audition's genre, opening and link are its production's
-  const genreArr = details.genre
   const TODAY = todayIso()
   const latestD = [...(a.dates || [])].sort((x, y) => y.date.localeCompare(x.date))[0]?.date ?? ''
-  const isEvent = a.type === 'event'
-  const isVirtual = !isEvent && !!a.virtualSubmission
-  const hasDates = (a.dates || []).some((d) => d.date)
-  const showDatesByRequest = isEvent && a.datesByRequest && !hasDates
+  const isVirtual = a.type === 'audition' && !!a.virtualSubmission
   const isPast = !a.closed && !isVirtual && latestD && latestD < TODAY
-  const showVoice = genreArr.includes('Musical')
   const organizerIds = recordOrganizerIds(currentCompanyId, a.organizers)
   const displayName = organizerName(organizerIds, allCompanies) || companyName
 
-  // Each session with its venue or one-off location resolved, as the public card shows it
-  const _filteredDates = (a.dates || [])
-    .filter((d) => d.date)
-    .map((d) => ({ ...d, location: sessionPlace(d, venuesList) }))
-  const _pvLocs = _filteredDates.map((d) => d.location?.name).filter(Boolean)
-  const _pvShared =
-    _pvLocs.length > 0 && _pvLocs.every((n) => n === _pvLocs[0])
-      ? _filteredDates.find((d) => d.location)?.location
-      : null
-  const datesHtml =
-    _filteredDates
-      .map((ad, i, arr) => {
-        const seenBefore =
-          !_pvShared && i > 0 && arr.slice(0, i).some((p) => p.location?.name === ad.location?.name)
-        return `<div class="pv-date-row">
-      <span class="pv-date-label">${fmtFullDate(ad.date)}</span>
-      <span class="pv-time-label">${fmtTimeRange(ad.startTime, ad.endTime || '')}</span>
-      ${ad.notes ? `<span class="pv-date-note">${esc(ad.notes)}</span>` : ''}
-      ${
-        !_pvShared && ad.location
-          ? `<div class="pv-date-location">
-        <span class="pv-location-name">${esc(ad.location.name)}</span>
-        ${!seenBefore && ad.location.address ? `<span class="pv-sub"> · ${esc(ad.location.address)}</span>` : ''}
-      </div>`
-          : ''
-      }
-    </div>`
-      })
-      .join('') +
-      (_pvShared
-        ? `<div class="pv-date-location" style="margin-top:4px">
-    <span class="pv-location-name">${esc(_pvShared.name)}</span>
-    ${_pvShared.address ? `<span class="pv-sub"> · ${esc(_pvShared.address)}</span>` : ''}
-  </div>`
-        : '') ||
-    `<div class="pv-sub">${showDatesByRequest ? 'On request' : isVirtual ? 'Virtual submission — see the notice for how to apply' : 'No dates set'}</div>`
-
-  let leftColHtml = `<section class="pv-section"><h4 class="pv-section-head">${isEvent ? 'Dates' : 'Audition dates'}</h4>${datesHtml}</section>`
-
-  if (!isEvent && a.prep) {
-    const rows = []
-    if (a.prep.acting)
-      rows.push(
-        `<div class="pv-prep-row"><span class="pv-prep-label">Acting</span><span>${esc(a.prep.acting).replace(/\n/g, '<br>')}</span></div>`
-      )
-    if (a.prep.singing)
-      rows.push(
-        `<div class="pv-prep-row"><span class="pv-prep-label">Singing</span><span>${esc(a.prep.singing)}</span></div>`
-      )
-    if (a.prep.dance)
-      rows.push(
-        `<div class="pv-prep-row"><span class="pv-prep-label">Dance</span><span>${esc(a.prep.dance)}</span></div>`
-      )
-    if (a.prep.bring?.length)
-      rows.push(
-        `<div class="pv-prep-row"><span class="pv-prep-label">Bring</span><span>${a.prep.bring.map(esc).join('<br>')}</span></div>`
-      )
-    if (rows.length)
-      leftColHtml += `<section class="pv-section"><h4 class="pv-section-head">Prepare</h4>${rows.join('')}</section>`
+  // The record as the public card renders it: sessions with their venue resolved, and the
+  // title, genre, opening date and production link a linked audition takes from its production
+  const view = {
+    ...a,
+    title: titleOf(a) || 'Untitled',
+    genre: details.genre,
+    openingDate: details.openingDate,
+    productionUrl: details.productionUrl,
+    dates: (a.dates || []).map((d) => ({ ...d, place: sessionPlace(d, venuesList) }))
   }
-
-  if (isEvent && a.cost) {
-    leftColHtml += `<section class="pv-section"><h4 class="pv-section-head">Cost</h4><div class="pv-sub">${esc(a.cost)}</div></section>`
-  }
-
-  if (isEvent && a.registerUrl) {
-    leftColHtml += `<section class="pv-section"><h4 class="pv-section-head">Register</h4><div><a href="${esc(a.registerUrl)}" class="pv-link-inline" target="_blank" rel="noopener">Register here →</a></div></section>`
-  }
-
-  // Events show the organizer in the right column; auditions keep it here, above Contact
-  // Listed when the record names organizers (filed under Other, or co-producers)
   const named = a.organizers?.length ? organizerEntries(organizerIds, allCompanies) : []
-  const organizerHtml = named.length
-    ? `<section class="pv-section"><h4 class="pv-section-head">Organizer</h4>
-      ${named
-        .map(
-          (o) => `<div class="pv-sub" style="font-size:13px">${esc(o.name)}</div>
-      ${o.website ? `<div class="pv-sub" style="overflow-wrap:anywhere"><a href="${esc(o.website)}" class="pv-link-inline" target="_blank" rel="noopener">${esc(o.website)}</a></div>` : ''}`
-        )
-        .join('')}
-    </section>`
-    : ''
-  if (!isEvent) leftColHtml += organizerHtml
-
-  if (a.contact && (a.contact.name || a.contact.email || a.contact.phone)) {
-    leftColHtml += `<section class="pv-section pv-contact-section"><h4 class="pv-section-head">Contact</h4>
-      ${a.contact.name ? `<div class="pv-contact-name">${esc(a.contact.name)}</div>` : ''}
-      ${a.contact.email ? `<div><a href="mailto:${esc(a.contact.email)}" class="pv-link-inline">${esc(a.contact.email)}</a></div>` : ''}
-      ${a.contact.phone ? `<div class="pv-sub">${esc(a.contact.phone)}</div>` : ''}
-    </section>`
-  }
-
-  let rightColHtml = ''
-  if (!isEvent && a.rolesAvailable?.length) {
-    const typeLabel = (t) => (t === 'lead' ? 'Lead' : t === 'supporting' ? 'Supp.' : 'Ensemble')
-    const rows = a.rolesAvailable
-      .map(
-        (r) => `
-      <tr class="${r.description ? 'has-desc' : ''}">
-        <td class="pv-role-name">${esc(r.role)}</td>
-        <td class="pv-role-${r.type}">${typeLabel(r.type)}</td>
-        <td class="pv-role-age">${esc(r.ageRange || '')}</td>
-        ${showVoice ? `<td class="pv-role-voice">${esc(r.voicePart || '')}</td>` : ''}
-        <td>${r.description ? `<span class="pv-role-desc">${esc(r.description)}</span>` : ''}</td>
-      </tr>`
-      )
-      .join('')
-    rightColHtml = `<section class="pv-section"><h4 class="pv-section-head">Roles available</h4>
-      <table class="pv-roles-table"><thead><tr>
-        <th>Role</th><th>Type</th><th>Age</th>${showVoice ? '<th>Voice</th>' : ''}<th>Description</th>
-      </tr></thead><tbody>${rows}</tbody></table></section>`
-  }
-
-  if (isEvent && organizerHtml) rightColHtml = organizerHtml
-
-  if (isEvent && a.description) {
-    rightColHtml += `<section class="pv-section"><h4 class="pv-section-head">About</h4><div class="pv-sub" style="font-size:13px;line-height:1.55;white-space:pre-wrap">${renderMd(a.description)}</div></section>`
-  }
-
-  const metaRow = `${esc(displayName)}${!isEvent && details.openingDate ? ` · Opens ${fmtShortDate(details.openingDate)}` : ''}${!isEvent && a.rehearsalStart ? ` · Rehearsals start ${fmtShortDate(a.rehearsalStart)}` : ''}`
-  const rolesRow = isEvent
-    ? a.briefDescription
-      ? esc(a.briefDescription)
-      : ''
-    : rolesSum(a.rolesAvailable)
-
-  const linksHtml =
-    a.noticeUrl || details.productionUrl
-      ? `<div class="pv-links-row">
-    ${a.noticeUrl ? `<a href="${esc(a.noticeUrl)}" class="pv-action-link" target="_blank" rel="noopener">${isEvent ? 'More info →' : 'Audition notice →'}</a>` : ''}
-    ${!isEvent && details.productionUrl ? `<a href="${esc(details.productionUrl)}" class="pv-action-link" target="_blank" rel="noopener">Production info →</a>` : ''}
-  </div>`
-      : ''
 
   document.getElementById('actPreviewBody').innerHTML = `
     <div class="pv-card">
       <div class="pv-summary">
         <div class="pv-main">
           <div class="pv-title-row">
-            <span class="pv-title">${esc(titleOf(a) || 'Untitled')}</span>
-            ${isEvent ? '<span class="pv-type-badge">Event</span>' : ''}
-            ${isVirtual ? '<span class="pv-virtual-badge">Virtual</span>' : ''}
-            ${!isEvent ? genreArr.map(genrePipHtml).join('') : ''}
+            <span class="pv-title">${esc(view.title)}</span>
+            ${activityPipsHtml(view)}
           </div>
-          ${isEvent && a.briefDescription ? `<div class="pv-brief-row">${esc(a.briefDescription)}</div>` : ''}
-          <div class="pv-meta-row">${metaRow}</div>
-          ${!isEvent ? `<div class="pv-roles-row">${rolesRow}</div>` : ''}
+          ${a.type === 'event' && a.briefDescription ? `<div class="pv-brief-row">${esc(a.briefDescription)}</div>` : ''}
+          <div class="pv-meta-row">${esc(activityMetaText(view, displayName))}</div>
+          ${a.type === 'audition' ? `<div class="pv-roles-row">${rolesSum(a.rolesAvailable)}</div>` : ''}
         </div>
         <div class="pv-aside">
-          ${a.closed ? '<span class="pv-past-pip">Closed</span>' : isPast ? '<span class="pv-past-pip">Past</span>' : ''}
-          <span class="pv-date-range">${showDatesByRequest ? 'On request' : isVirtual && !hasDates ? 'Virtual submission' : fmtAudDateRange(a.dates)}</span>
+          ${a.closed ? activityStatusPipHtml('closed') : isPast ? activityStatusPipHtml('past') : ''}
+          <span class="pv-date-range">${activityRangeText(view)}</span>
         </div>
       </div>
-      <div class="pv-detail">
-        <div class="pv-detail-grid">
-          <div class="pv-detail-left">${leftColHtml}</div>
-          ${rightColHtml ? `<div class="pv-detail-right">${rightColHtml}</div>` : ''}
-        </div>
-        ${a.notes ? `<div class="pv-notes-full">${renderMd(a.notes)}</div>` : ''}
-        ${linksHtml}
-      </div>
+      <div class="pv-detail">${activityDetailHtml(view, { organizers: named, noDatesNote: 'No dates set' })}</div>
     </div>`
   document.getElementById('actPreviewOverlay').style.display = ''
 }

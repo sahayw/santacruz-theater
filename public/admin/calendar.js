@@ -1,6 +1,12 @@
 import { IS_DEV, apiFetch, apiPut, buildCompanyOptions, deleteRecordFromFile } from './api.js'
 import { fmt12, fmtAudDateRange, fmtFullDate, renderMd } from '/admin/audition-format.js'
-import { MAX_GENRES, isDateNearYear, isValidTime, runIssues } from '/admin/data-rules.js'
+import {
+  MAX_GENRES,
+  isDateNearYear,
+  isValidTime,
+  runIssues,
+  sameDayWarnings
+} from '/admin/data-rules.js'
 import { createIdGenerator, ensurePerformanceIds } from '/admin/occurrence-ids.js'
 import { organizerLabel, organizerName, recordOrganizerIds } from '/admin/organizers.js'
 import { runPlace, venueByCode } from '/admin/venues.js'
@@ -1326,7 +1332,9 @@ function collectIssues() {
     const issues = runIssues(run, currentYear, { companies: allCompanies, venues: venuesList })
     issues.errors.forEach((m) => errors.push(`"${label}": ${m}`))
     if (runSnapshots.get(run.id) !== makeRunSnapshot(run))
-      issues.warnings.forEach((m) => warnings.push(`"${label}": ${m}`))
+      [...issues.warnings, ...sameDayWarnings(run.performances, 'performance')].forEach((m) =>
+        warnings.push(`"${label}": ${m}`)
+      )
   })
   return { errors, warnings }
 }

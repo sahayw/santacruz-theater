@@ -407,6 +407,12 @@ lists, via toolbar buttons or Ctrl/Cmd+B / Ctrl/Cmd+I.
 
 Completely blank date rows are ignored.
 
+**Same-day check**: Save also asks "Save anyway?" when a run or activity you
+changed has more than one performance or session on a day (e.g. "2
+performances on 2027-02-07 (14:00, 19:00)"), so a Pattern or Paste that landed
+on a day already scheduled gets noticed. Matinee and evening pairs are normal,
+so you confirm rather than fix. It isn't checked for finished records.
+
 ### Errors
 
 - Impossible dates and out-of-range times turn red immediately, as do dates

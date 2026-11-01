@@ -929,31 +929,34 @@ Errors fail the build; warnings print.
 
 **Shared rules** (`src/lib/data-rules.ts`), identical in editor and build.
 _Error_: blocks Save / fails build. _Warning_: "Save anyway?" (changed
-records only) / printed.
+records only) / printed. The one exception is `sameDayWarnings()`: an editor-only
+warning, so the build doesn't repeat it for every legitimate matinee and evening
+pair.
 
-| Record   | Rule                                                                                                                                                                                                    | Level   |
-| -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------- |
-| Run      | `show` non-blank                                                                                                                                                                                        | error   |
-| Run      | `showAbv` non-blank, ≤ 20 chars (`SHOW_ABV_MAX`)                                                                                                                                                        | error   |
-| Run      | `venue` non-blank and a listed venue code                                                                                                                                                               | error   |
-| Both     | organizers listed exist (not sentinels), no repeats; `other` records name ≥ 1, main `filedUnderOther`; own-file records don't repeat their company; auditions/events name at most one, only under Other | error   |
-| Run      | each performance: real `YYYY-MM-DD` within file year ± 1; `time` `HH:MM` 00:00–23:59                                                                                                                    | error   |
-| Run      | earliest performance in the file's year                                                                                                                                                                 | error   |
-| Run      | `price`, `infoUrl`, `description` non-blank; a tickets link (run or performance)                                                                                                                        | warning |
-| Run      | at least one performance                                                                                                                                                                                | warning |
-| Activity | `title` non-blank, unless an audition with a `productionId` (which must not store one, nor `genre`, `openingDate` or `productionUrl`)                                                                   | error   |
-| Activity | at least one date, unless audition + `virtualSubmission` or event + `datesByRequest`                                                                                                                    | error   |
-| Activity | each date row: `date` as above; `startTime` valid if present; `endTime` valid if present, and only with a `startTime`                                                                                   | error   |
-| Activity | each date row's `venue`, if set, is a listed venue code                                                                                                                                                 | error   |
-| Activity | earliest date in the file's year                                                                                                                                                                        | error   |
-| Activity | every date row has a `startTime` (blank → warning; also the `time` gap)                                                                                                                                 | warning |
-| Audition | `rehearsalStart` / `openingDate` real `YYYY-MM-DD` if present                                                                                                                                           | error   |
-| Audition | `productionId`, if set, is an existing run id                                                                                                                                                           | error   |
-| Audition | has a `productionId` (a season-wide audition may not)                                                                                                                                                   | warning |
-| Event    | one of `contact.email`, `contact.phone`, `noticeUrl`, `registerUrl`, or a named organizer's `website`                                                                                                   | error   |
-| Listing  | `name` non-blank                                                                                                                                                                                        | error   |
-| Listing  | at least one category                                                                                                                                                                                   | error   |
-| Listing  | `contact.tel` or `contact.email`                                                                                                                                                                        | error   |
+| Record          | Rule                                                                                                                                                                                                    | Level   |
+| --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------- |
+| Run or activity | more than one performance or session on a day (editors only; not for finished records) — lists the day and times                                                                                        | warning |
+| Run             | `show` non-blank                                                                                                                                                                                        | error   |
+| Run             | `showAbv` non-blank, ≤ 20 chars (`SHOW_ABV_MAX`)                                                                                                                                                        | error   |
+| Run             | `venue` non-blank and a listed venue code                                                                                                                                                               | error   |
+| Both            | organizers listed exist (not sentinels), no repeats; `other` records name ≥ 1, main `filedUnderOther`; own-file records don't repeat their company; auditions/events name at most one, only under Other | error   |
+| Run             | each performance: real `YYYY-MM-DD` within file year ± 1; `time` `HH:MM` 00:00–23:59                                                                                                                    | error   |
+| Run             | earliest performance in the file's year                                                                                                                                                                 | error   |
+| Run             | `price`, `infoUrl`, `description` non-blank; a tickets link (run or performance)                                                                                                                        | warning |
+| Run             | at least one performance                                                                                                                                                                                | warning |
+| Activity        | `title` non-blank, unless an audition with a `productionId` (which must not store one, nor `genre`, `openingDate` or `productionUrl`)                                                                   | error   |
+| Activity        | at least one date, unless audition + `virtualSubmission` or event + `datesByRequest`                                                                                                                    | error   |
+| Activity        | each date row: `date` as above; `startTime` valid if present; `endTime` valid if present, and only with a `startTime`                                                                                   | error   |
+| Activity        | each date row's `venue`, if set, is a listed venue code                                                                                                                                                 | error   |
+| Activity        | earliest date in the file's year                                                                                                                                                                        | error   |
+| Activity        | every date row has a `startTime` (blank → warning; also the `time` gap)                                                                                                                                 | warning |
+| Audition        | `rehearsalStart` / `openingDate` real `YYYY-MM-DD` if present                                                                                                                                           | error   |
+| Audition        | `productionId`, if set, is an existing run id                                                                                                                                                           | error   |
+| Audition        | has a `productionId` (a season-wide audition may not)                                                                                                                                                   | warning |
+| Event           | one of `contact.email`, `contact.phone`, `noticeUrl`, `registerUrl`, or a named organizer's `website`                                                                                                   | error   |
+| Listing         | `name` non-blank                                                                                                                                                                                        | error   |
+| Listing         | at least one category                                                                                                                                                                                   | error   |
+| Listing         | `contact.tel` or `contact.email`                                                                                                                                                                        | error   |
 
 - The editor drops blank activity date rows (no date, no start time) before
   checking, matching what it saves.

@@ -15,6 +15,7 @@ import {
   activityIssues,
   isDateNearYear,
   isValidTime,
+  sameDayWarnings,
   todayIso
 } from '/admin/data-rules.js'
 import { createIdGenerator, ensureSessionIds } from '/admin/occurrence-ids.js'
@@ -1724,15 +1725,21 @@ function collectIssues() {
   const warnings = []
   activities.forEach((a, ai) => {
     const label = titleOf(a) || `Activity ${ai + 1}`
-    const issues = activityIssues(
-      { ...a, dates: (a.dates || []).filter((d) => !isEmptyDateRow(d)) },
-      currentYear,
-      currentCompanyId,
-      { companies: allCompanies, venues: venuesList, runIds: companyRunIds }
-    )
+    const saved = { ...a, dates: (a.dates || []).filter((d) => !isEmptyDateRow(d)) }
+    const issues = activityIssues(saved, currentYear, currentCompanyId, {
+      companies: allCompanies,
+      venues: venuesList,
+      runIds: companyRunIds
+    })
     issues.errors.forEach((m) => errors.push(`"${label}": ${m}`))
     if (actSnapshots.get(a.id) !== makeActivitySnapshot(a))
-      issues.warnings.forEach((m) => warnings.push(`"${label}": ${m}`))
+      [
+        ...issues.warnings,
+        ...sameDayWarnings(
+          saved.dates.map((d) => ({ date: d.date, time: d.startTime })),
+          'session'
+        )
+      ].forEach((m) => warnings.push(`"${label}": ${m}`))
   })
   return { errors, warnings }
 }

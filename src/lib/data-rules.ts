@@ -80,6 +80,30 @@ function firstDateYearIssue(dates: string[], fileYear: number, what: string) {
 }
 
 /**
+ * One warning per day that has more than one performance or session, so a pattern or
+ * paste that landed on a day already scheduled is noticed. Two on a day can be right
+ * (matinee and evening), so this is only a warning, and only the editors ask for it —
+ * the build would repeat it for every legitimate pair on every run.
+ */
+export function sameDayWarnings(
+  rows: { date?: string; time?: string }[],
+  what: 'performance' | 'session',
+  today = todayIso()
+) {
+  // Nothing to fix once the last date has passed
+  if (!rows.some((r) => (r.date ?? '') >= today)) return []
+  const byDate = new Map<string, string[]>()
+  for (const r of rows) {
+    if (!r.date || !/^\d{4}-\d{2}-\d{2}$/.test(r.date)) continue
+    byDate.set(r.date, [...(byDate.get(r.date) ?? []), r.time || 'no time'])
+  }
+  return [...byDate]
+    .filter(([, times]) => times.length > 1)
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([date, times]) => `${times.length} ${what}s on ${date} (${times.join(', ')})`)
+}
+
+/**
  * Today as `YYYY-MM-DD` in Santa Cruz — the one definition of "today" for upcoming,
  * listings, feeds and emails, wherever the code runs (builds and functions run in UTC).
  * The /events and /productions page scripts and the calendar compute the same date inline.

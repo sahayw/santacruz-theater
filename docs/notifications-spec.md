@@ -37,9 +37,14 @@ alerting agent).
     changed", "Cancelled"…).
   - A card lists no performances. It gives the date range and count, and one
     link to the production's record on the site.
-- **Audition & event notices digest**: its cards are unchanged by the
-  production display rules. "Registration open" is a change pip and gets a
-  solid button.
+- **Audition & event notices digest**: cards follow the content matrix in
+  the feature guide ("How an audition or event is displayed"). They carry
+  type, Virtual and genre pips, keep up to 3 session rows with "+ N more",
+  and have one link to the record (`/events?id=`). No Register button:
+  "Registration open" is a change pip only. A closed record never appears,
+  so there is no Closed pip; a reopened one is shown as open.
+- **Welcome email, activities**: the same single-line row as productions,
+  with date range, pips and one link.
 - **Footer**: names the list and any excluded companies. It has **Change your
   choices** (to `/subscribe/manage?s=<subscriber id>`) and **Unsubscribe from
   everything** (Buttondown's link, which covers both lists).

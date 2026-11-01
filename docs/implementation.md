@@ -519,6 +519,14 @@ The shared pieces of [How a production is displayed](feature-guide.md#how-a-prod
 - **Email**: `cutDescription()` caps a Markdown description at about 600 characters at a line break or sentence end, never inside bold, italic or a link. `fmtPerfTime()` writes "7pm" / "7:30pm".
 - **Consumers**: `productions.astro`, `events.astro`, `calendar.astro` (card pills), the email template (direct imports); `calendar.js` and `activities.js` Previews (`/admin/production-view.js`, served by `src/pages/admin/production-view.js.ts`).
 
+### Activity display — `src/lib/activity-view.ts` (planned)
+
+Shared pieces of [How an audition or event is displayed](feature-guide.md#how-an-audition-or-event-is-displayed), following the `production-view.ts` pattern:
+
+- **Pips**: type (Audition/Event), Virtual, Closed and Past pills defined once, beside the genre pills from `production-view.ts`; the email template uses inline-styled equivalents of the same colours.
+- **Card body**: one renderer for the expanded card, used by `events.astro` and the Activities Preview (`/admin/activity-view.js`, served by `src/pages/admin/activity-view.js.ts`). Roles render as Role, Type, Age (and Voice) with each description in a full-width row beneath, so the table never exceeds its column. No "About" heading.
+- **Email**: `activityCard()` and the welcome activity row use the shared pips and one link to `/events?id=`; no Register button.
+
 ### The "upcoming" rule
 
 - `closed` → never upcoming.

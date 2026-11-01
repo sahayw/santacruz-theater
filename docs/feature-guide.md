@@ -156,6 +156,34 @@ A filterable list of collapsed cards; click to expand.
 - `?id=` shows one record, expanded, alone (sharing, digests, subscribed calendars).
 - **Add to my calendar**: the filter row's button subscribes to everything or auditions only; each upcoming date has its own link; two or more dates add **Download all dates** ([details](#add-to-my-calendar)).
 
+### How an audition or event is displayed
+
+One content model for six views (the expanded card, deep link and editor Preview share a column). Same field, same wording, pips and colours everywhere; one shared renderer produces the card body for `/events` and the Preview.
+
+| Field                         | Collapsed card         | Expanded card / deep link / Preview                                              | Email (new and update)                    | Welcome row | Feed session                        |
+| ----------------------------- | ---------------------- | -------------------------------------------------------------------------------- | ----------------------------------------- | ----------- | ----------------------------------- |
+| Type pip (Audition/Event)     | ✓                      | ✓                                                                                | ✓                                         | ✓           | "Audition:" / "Event:" in the title |
+| Virtual pip                   | ✓                      | ✓                                                                                | ✓                                         | ✓           | –                                   |
+| Closed, Past pips             | ✓                      | ✓                                                                                | – (never listed)                          | –           | –                                   |
+| Genre pip (auditions)         | ✓                      | ✓                                                                                | ✓                                         | ✓           | –                                   |
+| Title, organizer              | ✓                      | ✓                                                                                | ✓                                         | ✓           | ✓                                   |
+| Dates                         | range, or "On request" | every session                                                                    | range, up to 3 session rows, "+ N more"   | range       | that session                        |
+| Blurb (events)                | ✓                      | –                                                                                | ✓                                         | –           | –                                   |
+| Opening date (auditions)      | ✓                      | ✓                                                                                | ✓                                         | –           | –                                   |
+| Description (events)          | –                      | ✓, no heading                                                                    | –                                         | –           | ✓                                   |
+| Roles                         | summary                | table: Role, Type, Age (and Voice); descriptions full-width rows under each role | –                                         | –           | ✓                                   |
+| Prepare, Notes, Cost          | –                      | ✓                                                                                | –                                         | –           | ✓                                   |
+| Locations, Organizer, Contact | –                      | ✓                                                                                | –                                         | –           | location                            |
+| Register link                 | –                      | ✓                                                                                | – (see Links)                             | –           | ✓                                   |
+| Change pip                    | –                      | –                                                                                | update emails only                        | –           | –                                   |
+| Links                         | –                      | all; each date's Add to my calendar\*; Download all dates\*                      | one: Details → / Details & registration → | The title   | Details (& registration) →          |
+
+\* Public cards only; the Preview shows everything in the data but no calendar links.
+
+- No email carries a Register button. "Registration open" is a change pip, and the single link goes to the record.
+- Closed records appear in no email. Reopening one announces it as a change, since it is open again by then.
+- Virtual-submission wording is the same in every view that shows it.
+
 **What counts as upcoming**
 
 | Record                                    | Upcoming?                  |
@@ -343,10 +371,10 @@ Two lists; visitors pick either or both on `/subscribe`:
 
 `/subscribe` is reached from **Subscribe for updates** in the nav on `/calendar`, `/events` and `/productions`, pre-ticking the list that suits the page, with a link back.
 
-| Email          | When                         | Content                                                                                                                                                                                                                                                                                                                 |
-| -------------- | ---------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Welcome        | Immediately                  | What's coming up for each list chosen                                                                                                                                                                                                                                                                                   |
-| Nightly digest | One per list, only with news | **New**: records just become upcoming (a production saved before its dates is announced when dates are added). **Updates**: labelled changes, e.g. "2 dates added", "Tickets now on sale", "Venue changed", "Registration open". Cards are described in [How a production is displayed](#how-a-production-is-displayed) |
+| Email          | When                         | Content                                                                                                                                                                                                                                                                                                                                                                                                     |
+| -------------- | ---------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Welcome        | Immediately                  | What's coming up for each list chosen                                                                                                                                                                                                                                                                                                                                                                       |
+| Nightly digest | One per list, only with news | **New**: records just become upcoming (a production saved before its dates is announced when dates are added). **Updates**: labelled changes, e.g. "2 dates added", "Tickets now on sale", "Venue changed", "Registration open". Cards are described in [How a production is displayed](#how-a-production-is-displayed) and [How an audition or event is displayed](#how-an-audition-or-event-is-displayed) |
 
 - A production or activity with all remaining dates removed is **Cancelled**. Closing an audition sends nothing. Description, price, contact and wording edits never send email. A performance that has happened just drops off.
 - Every email ends with **Change your choices** and **Unsubscribe from everything**.

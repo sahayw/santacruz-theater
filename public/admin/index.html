@@ -37,6 +37,7 @@ body {
   color: var(--ink);
   font-size: 13px;
   height: 100vh;
+  height: 100dvh; /* iPad Safari's 100vh includes the area behind its toolbars, hiding the bottom */
   overflow: hidden;
 }
 
@@ -77,6 +78,7 @@ body {
 /* ── APP SHELL ── */
 #app {
   height: 100vh;
+  height: 100dvh;
   display: flex;
   flex-direction: column;
   overflow: hidden;

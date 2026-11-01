@@ -176,7 +176,8 @@ const CAL_CSS = `
 .empty-state-icon { font-size: 40px; opacity: 0.2; }
 .empty-state h2 { font-family: 'Libre Baskerville', serif; font-size: 18px; color: var(--ink); }
 .empty-state p { font-size: 13px; color: var(--ink-mid); }
-.run-editor { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+/* The run's fields scroll with the page when the screen is short, so the performances table keeps a usable height */
+.run-editor { flex: 1; display: flex; flex-direction: column; overflow-y: auto; }
 .run-header {
   padding: 10px 16px 8px;
   border-bottom: 1px solid var(--border);
@@ -276,7 +277,7 @@ const CAL_CSS = `
 }
 .desc-textarea:focus { outline: none; border-color: var(--accent2); }
 .desc-textarea.expanded { height: 220px; resize: vertical; }
-.perf-section { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+.perf-section { flex: 1 0 320px; display: flex; flex-direction: column; overflow: hidden; }
 .perf-toolbar {
   padding: 7px 16px;
   background: var(--surface);

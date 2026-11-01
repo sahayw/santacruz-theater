@@ -243,6 +243,12 @@ const ACT_CSS = `
 .act-table tbody tr { border-bottom: 1px solid var(--border); }
 .act-table tbody tr:hover { background: #faf8f5; }
 .act-table tbody td { padding: 2px 4px; vertical-align: middle; }
+@media (pointer: coarse) {
+  .act-table thead th.col-date { width: 128px; }
+  .act-table thead th.col-stime, .act-table thead th.col-etime { width: 72px; }
+  .act-table thead th { padding-left: 5px; padding-right: 5px; }
+  .act-table tbody td { padding-left: 2px; padding-right: 2px; }
+}
 .act-cell-input {
   font-family: 'IBM Plex Mono', monospace; font-size: 11px;
   padding: 3px 5px; border: 1px solid transparent; border-radius: 2px;

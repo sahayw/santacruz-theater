@@ -208,6 +208,11 @@ input[type='date']::-webkit-datetime-edit { flex: none; }
 input[type='date']::-webkit-calendar-picker-indicator { margin-left: -5px; }
 html.date-safari input[type='date'] { width: 95px !important; }
 html.date-safari input[type='date'].cell-input, html.date-safari input[type='date'].act-cell-input { width: 85px !important; }
+/* iPad Safari spells the month ("Nov 14, 2026"), which needs more room than desktop Safari's numeric date */
+@media (pointer: coarse) {
+  html.date-safari input[type='date'] { width: 125px !important; }
+  html.date-safari input[type='date'].cell-input, html.date-safari input[type='date'].act-cell-input { width: 112px !important; }
+}
 /* Tint the focused field as one unit */
 input[type='date']:focus { background: #b9d6fb; color: var(--ink); }
 input[type='date']:focus::-webkit-datetime-edit-month-field,

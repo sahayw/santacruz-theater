@@ -364,6 +364,13 @@ thead th.col-url  { min-width: 200px; }
 tbody tr { border-bottom: 1px solid var(--border); }
 tbody tr:hover { background: #faf8f5; }
 tbody td { padding: 2px 4px; vertical-align: middle; }
+@media (pointer: coarse) {
+  thead th.col-date { width: 128px; }
+  thead th.col-time { width: 72px; }
+  thead th.col-type { width: 130px; }
+  thead th { padding-left: 5px; padding-right: 5px; }
+  tbody td { padding-left: 2px; padding-right: 2px; }
+}
 .cell-input {
   font-family: 'IBM Plex Mono', monospace;
   font-size: 11px;

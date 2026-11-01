@@ -30,10 +30,8 @@ const venueNames = Object.fromEntries(venuesData.venues.map((v) => [v.code, v.na
         {
           companies.map((company) => (
             <a
-              href={company.website}
+              href={`/productions?company=${company.id}`}
               class={`company-card${company.logoDark ? ' card--dark-logo' : ''}${company.logoFill ? ' card--fill-logo' : ''}`}
-              target="_blank"
-              rel="noopener noreferrer"
               aria-label={company.name}
             >
               <div

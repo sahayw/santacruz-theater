@@ -291,8 +291,8 @@ Placements:
 - **The calendar's per-date show card**: one event, that performance
   (`/performances/{id}.ics`). The card also gets an **All dates →** link to
   `/productions?id={id}`.
-- **`/productions`**: subscribe, from the bar (the same majors checkboxes as
-  `/calendar`); one event, on each upcoming performance row.
+- **`/productions`**: no subscribe button (that's `/calendar`); one event, on
+  each upcoming performance row.
 - **`/events`**:
   - **Filter row**: subscribe, with two choices: All auditions & events
     (`/activities.ics`) or Auditions only (`/auditions.ics`).

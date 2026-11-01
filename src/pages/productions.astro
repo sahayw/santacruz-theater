@@ -134,9 +134,7 @@ function summaryMeta(r: Run) {
                         <span class="perf-date">{fmtFullDate(p.date)}</span>
                         <span class="perf-time">{fmtPerfTime(p.time)}</span>
                         {p.perfType && (
-                          <span
-                            class={`perf-type perf-type--${p.perfType.toLowerCase().replace(/ /g, '-')}`}
-                          >
+                          <span class={`perf-type perf-type--${p.perfType.toLowerCase()}`}>
                             {p.perfType}
                           </span>
                         )}
@@ -633,10 +631,6 @@ function summaryMeta(r: Run) {
   .perf-type--talk-back {
     background: #d4ddff;
     color: #2035a0;
-  }
-  .perf-type--staged-reading {
-    background: #ead9f7;
-    color: #5a2a82;
   }
   .perf-discounts {
     font-size: 11px;

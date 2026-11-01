@@ -204,7 +204,7 @@ export function productionChangeLabel(c: ProductionChange) {
     case 'venue':
       return 'Venue changed'
     case 'tickets':
-      return 'Tickets on sale'
+      return 'Tickets now on sale'
   }
 }
 

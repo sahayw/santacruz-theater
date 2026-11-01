@@ -5,6 +5,7 @@ import {
   activityIssues,
   runGaps,
   runIssues,
+  sameDayWarnings,
   type RuleRefs
 } from '../src/lib/data-rules.ts'
 import {
@@ -153,6 +154,19 @@ describe('record rules', () => {
     expect(activityIssues(a, 2026, 'tst', refs).errors).toEqual([
       'date row 1 has venue "XX", which isn\'t in the venue list'
     ])
+  })
+
+  it('warns about a day with more than one performance or session', () => {
+    const rows = (...times: string[]) => times.map((time) => ({ date: '2026-11-07', time }))
+    expect(sameDayWarnings(rows('14:00', '19:00'), 'performance', TODAY)).toEqual([
+      '2 performances on 2026-11-07 (14:00, 19:00)'
+    ])
+    expect(sameDayWarnings(rows('14:00'), 'performance', TODAY)).toEqual([])
+    expect(sameDayWarnings(rows('18:00', '18:00'), 'session', TODAY)).toEqual([
+      '2 sessions on 2026-11-07 (18:00, 18:00)'
+    ])
+    // A finished record is left alone
+    expect(sameDayWarnings(rows('14:00', '19:00'), 'performance', '2027-01-01')).toEqual([])
   })
 
   it('checks that an audition’s production exists', () => {

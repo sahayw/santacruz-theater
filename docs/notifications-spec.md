@@ -23,6 +23,35 @@ problems that would have undermined it:
 The data model also leaves room for planned work (company pages, an
 alerting agent).
 
+## Emails
+
+- **Production content** — what a production's card and welcome row show, the
+  pips, the description cap and the single link — is defined once, for every
+  view, in the feature guide's [How a production is
+  displayed](feature-guide.md#how-a-production-is-displayed). Emails follow
+  it; nothing about a production's content is decided here.
+- **Performance updates digest**:
+  - **Sections**: New, then Updates.
+  - A **new** production's card carries its description. An **update** card
+    doesn't: it carries one change pip per change ("2 dates added", "Venue
+    changed", "Cancelled"…).
+  - A card lists no performances. It gives the date range and count, and one
+    link to the production's record on the site.
+- **Audition & event notices digest**: cards follow the content matrix in
+  the feature guide ("How an audition or event is displayed"). They carry
+  type, Virtual and genre pips, keep up to 3 session rows with "+ N more",
+  and have one link to the record (`/events?id=`). No Register button:
+  "Registration open" is a change pip only. A closed record never appears,
+  so there is no Closed pip; a reopened one is shown as open.
+- **Welcome email, activities**: the same single-line row as productions,
+  with date range, pips and one link.
+- **Footer**: names the list and any excluded companies. It has **Change your
+  choices** (to `/subscribe/manage?s=<subscriber id>`) and **Unsubscribe from
+  everything** (Buttondown's link, which covers both lists).
+- **Welcome email**: one email, with a section for each list chosen.
+  Productions appear as a compact list, one row each, as defined in the
+  feature guide.
+
 ## Decisions
 
 | Decision         | Choice                                                                                                                                |
@@ -175,14 +204,14 @@ every record it has notified about. Each nightly run:
 - **Changed**: a significant field differs. The email says what changed.
 - Everything else is ignored, so typo fixes never send email.
 
-| Triggers an email                                                                 | Productions | Auditions & events |
-| --------------------------------------------------------------------------------- | ----------- | ------------------ |
-| New                                                                               | ✓           | ✓                  |
-| Dates added, removed or moved (all remaining removed — "Cancelled")               | ✓           | ✓                  |
-| Venue / location changed (by code)                                                | ✓           | ✓                  |
-| Tickets link appears (production or any upcoming performance) — "Tickets on sale" | ✓           |                    |
-| Registration link appears — "Registration open"                                   |             | ✓                  |
-| Reopened after being closed                                                       |             | ✓                  |
+| Triggers an email                                                                     | Productions | Auditions & events |
+| ------------------------------------------------------------------------------------- | ----------- | ------------------ |
+| New                                                                                   | ✓           | ✓                  |
+| Dates added, removed or moved (all remaining removed — "Cancelled")                   | ✓           | ✓                  |
+| Venue / location changed (by code)                                                    | ✓           | ✓                  |
+| Tickets link appears (production or any upcoming performance) — "Tickets now on sale" | ✓           |                    |
+| Registration link appears — "Registration open"                                       |             | ✓                  |
+| Reopened after being closed                                                           |             | ✓                  |
 
 **Ignored**: price, description, title, discounts, genre, info link, one
 tickets link replacing another, notes, contact, prep.
@@ -208,19 +237,6 @@ doesn't announce everything.
     hour), so individual sends just retry after a pause if throttled.
 - Scale: low hundreds of subscribers, under 1,000. The Buttondown archive
   doesn't matter.
-
-## Emails
-
-- **Performance cards** follow `/productions`: title and genre, then
-  organizer · venue · price, date range, the first few performances, and "All
-  dates →". "2 dates added" lists only the new dates.
-- **Sections**: New, then Updates. Labels say what changed. "Tickets on sale"
-  and "Registration open" get a solid button.
-- **Footer**: names the list and any excluded companies. It has **Change your
-  choices** (to `/subscribe/manage?s=<subscriber id>`) and **Unsubscribe from
-  everything** (Buttondown's link, which covers both lists).
-- **Welcome email**: one email, with a section for each list chosen.
-  Productions appear as a compact list.
 
 ## Subscribe and manage
 
@@ -305,7 +321,7 @@ Terminology: the **year view** and the **month view** (larger screens) or
   (`scripts/migrate-subscribers.ts --apply`), so they keep what they get
   today.
 - **Timing**: release just after the 02:00 UTC run, then run the digest once
-  by hand to record the snapshots (`implementation.md` §8, Go-live).
+  by hand to record the snapshots (`implementation.md` §10, Go-live).
 
 ## History
 

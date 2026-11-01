@@ -27,14 +27,6 @@
           "ticketsUrl": ""
         },
         {
-          "id": "perf-1791991838322",
-          "date": "2027-01-16",
-          "time": "14:00",
-          "perfType": "",
-          "discounts": "",
-          "ticketsUrl": ""
-        },
-        {
           "id": "perf-1791991838323",
           "date": "2027-01-16",
           "time": "20:00",
@@ -46,14 +38,6 @@
           "id": "perf-1791991838324",
           "date": "2027-01-17",
           "time": "14:00",
-          "perfType": "",
-          "discounts": "",
-          "ticketsUrl": ""
-        },
-        {
-          "id": "perf-1791991838325",
-          "date": "2027-01-17",
-          "time": "20:00",
           "perfType": "",
           "discounts": "",
           "ticketsUrl": ""
@@ -75,14 +59,6 @@
           "ticketsUrl": ""
         },
         {
-          "id": "perf-1791991838328",
-          "date": "2027-01-23",
-          "time": "14:00",
-          "perfType": "",
-          "discounts": "",
-          "ticketsUrl": ""
-        },
-        {
           "id": "perf-1791991838329",
           "date": "2027-01-23",
           "time": "20:00",
@@ -94,14 +70,6 @@
           "id": "perf-1791991838330",
           "date": "2027-01-24",
           "time": "14:00",
-          "perfType": "",
-          "discounts": "",
-          "ticketsUrl": ""
-        },
-        {
-          "id": "perf-1791991838331",
-          "date": "2027-01-24",
-          "time": "20:00",
           "perfType": "",
           "discounts": "",
           "ticketsUrl": ""
@@ -123,14 +91,6 @@
           "ticketsUrl": ""
         },
         {
-          "id": "perf-1791991838334",
-          "date": "2027-01-30",
-          "time": "14:00",
-          "perfType": "",
-          "discounts": "",
-          "ticketsUrl": ""
-        },
-        {
           "id": "perf-1791991838335",
           "date": "2027-01-30",
           "time": "20:00",
@@ -142,14 +102,6 @@
           "id": "perf-1791991838336",
           "date": "2027-01-31",
           "time": "14:00",
-          "perfType": "",
-          "discounts": "",
-          "ticketsUrl": ""
-        },
-        {
-          "id": "perf-1791991838337",
-          "date": "2027-01-31",
-          "time": "20:00",
           "perfType": "",
           "discounts": "",
           "ticketsUrl": ""
@@ -171,14 +123,6 @@
           "ticketsUrl": ""
         },
         {
-          "id": "perf-1791991838340",
-          "date": "2027-02-06",
-          "time": "14:00",
-          "perfType": "",
-          "discounts": "",
-          "ticketsUrl": ""
-        },
-        {
           "id": "perf-1791991838341",
           "date": "2027-02-06",
           "time": "20:00",
@@ -190,14 +134,6 @@
           "id": "perf-1791991838342",
           "date": "2027-02-07",
           "time": "14:00",
-          "perfType": "",
-          "discounts": "",
-          "ticketsUrl": ""
-        },
-        {
-          "id": "perf-1791991838343",
-          "date": "2027-02-07",
-          "time": "20:00",
           "perfType": "",
           "discounts": "",
           "ticketsUrl": ""
@@ -219,14 +155,6 @@
           "ticketsUrl": ""
         },
         {
-          "id": "perf-1791991838346",
-          "date": "2027-02-13",
-          "time": "14:00",
-          "perfType": "",
-          "discounts": "",
-          "ticketsUrl": ""
-        },
-        {
           "id": "perf-1791991838347",
           "date": "2027-02-13",
           "time": "20:00",
@@ -238,14 +166,6 @@
           "id": "perf-1791991838348",
           "date": "2027-02-14",
           "time": "14:00",
-          "perfType": "",
-          "discounts": "",
-          "ticketsUrl": ""
-        },
-        {
-          "id": "perf-1791991838349",
-          "date": "2027-02-14",
-          "time": "20:00",
           "perfType": "",
           "discounts": "",
           "ticketsUrl": ""
@@ -271,7 +191,7 @@
           "id": "perf-1791991838350",
           "date": "2027-03-05",
           "time": "20:00",
-          "perfType": "Staged Reading",
+          "perfType": "",
           "discounts": "",
           "ticketsUrl": ""
         },
@@ -279,7 +199,7 @@
           "id": "perf-1791991838351",
           "date": "2027-03-06",
           "time": "20:00",
-          "perfType": "Staged Reading",
+          "perfType": "",
           "discounts": "",
           "ticketsUrl": ""
         },
@@ -287,7 +207,7 @@
           "id": "perf-1791991838352",
           "date": "2027-03-07",
           "time": "14:00",
-          "perfType": "Staged Reading",
+          "perfType": "",
           "discounts": "",
           "ticketsUrl": ""
         },
@@ -295,7 +215,7 @@
           "id": "perf-1791991838353",
           "date": "2027-03-12",
           "time": "20:00",
-          "perfType": "Staged Reading",
+          "perfType": "",
           "discounts": "",
           "ticketsUrl": ""
         },
@@ -303,7 +223,7 @@
           "id": "perf-1791991838354",
           "date": "2027-03-13",
           "time": "20:00",
-          "perfType": "Staged Reading",
+          "perfType": "",
           "discounts": "",
           "ticketsUrl": ""
         },
@@ -311,7 +231,7 @@
           "id": "perf-1791991838355",
           "date": "2027-03-14",
           "time": "14:00",
-          "perfType": "Staged Reading",
+          "perfType": "",
           "discounts": "",
           "ticketsUrl": ""
         }

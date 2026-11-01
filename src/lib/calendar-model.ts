@@ -112,6 +112,8 @@ export function performanceEvents(run: Run, ctx: CalendarContext): CalendarEvent
   const org = organizerName(recordOrganizerIds(run.company, run.organizers), ctx.companies)
   const title = (run.showAbv || run.show).trim()
   const summary = org ? `${title} — ${org}` : title
+  // The summary uses the short title, so the full one opens the description when it differs
+  const fullTitle = run.show.trim() !== title && run.show.trim()
   const place = runPlace(run, ctx.venues)
   const location = place ? formatLocation(place) : run.venue
   const url = runUrl(run)
@@ -129,6 +131,7 @@ export function performanceEvents(run: Run, ctx: CalendarContext): CalendarEvent
       company: run.company,
       summary,
       description: paragraphs(
+        fullTitle,
         p.perfType && `${p.perfType} performance`,
         run.description && mdToPlain(run.description),
         lines(run.price && `Price: ${run.price}`, discounts && `Discounts: ${discounts}`),

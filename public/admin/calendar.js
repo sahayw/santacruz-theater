@@ -7,7 +7,7 @@ import {
   PRODUCTION_VIEW_CSS,
   genrePipHtml,
   recordDetailHtml,
-  sortPerformances
+  sortPerformances as sortedCopy
 } from '/admin/production-view.js'
 import { runPlace, venueByCode } from '/admin/venues.js'
 import { markdownToolbar } from './markdown-editor.js'
@@ -1792,7 +1792,7 @@ function openPreview() {
   const venueName = runPlace(r, venuesList)?.name || r.venue
   const genreArr = Array.isArray(r.genre) ? r.genre : r.genre ? [r.genre] : []
 
-  const sortedPerfs = sortPerformances(r.performances)
+  const sortedPerfs = sortedCopy(r.performances)
 
   document.getElementById('calPreviewBody').innerHTML = `
     <div class="cp-card">

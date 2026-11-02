@@ -71,12 +71,12 @@ export function buildSamples(today = todayIso()): Sample[] {
   const actChanges: ActivityChange[][] = [
     [{ kind: 'sessions-added', sessionIds: ['a'] }],
     [{ kind: 'sessions-removed', when: ['2099-01-01 19:00'], all: false }],
-    [{ kind: 'sessions-removed', when: ['2099-01-01 19:00'], all: true }],
-    [{ kind: 'location' }, { kind: 'registration' }, { kind: 'reopened' }]
+    [{ kind: 'sessions-removed', when: ['2099-01-01 19:00'], all: true }]
   ]
   // Session pips only go on records that have dates; a virtual audition has none
   const allActivities = [...auditions, ...events]
   const dated = allActivities.filter((a) => a.dates.some((d) => d.date))
+  const virtual = auditions.find((a) => a.virtualSubmission)
   const activityUpdates = [
     ...(dated[0]
       ? [
@@ -90,7 +90,15 @@ export function buildSamples(today = todayIso()): Sample[] {
           }
         ]
       : []),
-    ...(allActivities[0] ? [{ item: allActivities[0], changes: actChanges[3] }] : [])
+    ...(dated[1]
+      ? [
+          {
+            item: dated[1],
+            changes: [{ kind: 'location' }, { kind: 'registration' }] as ActivityChange[]
+          }
+        ]
+      : []),
+    ...(virtual ? [{ item: virtual, changes: [{ kind: 'reopened' }] as ActivityChange[] }] : [])
   ]
   const withChanges = <T, C>(list: T[], changes: C[][]) =>
     list.length ? changes.map((c, i) => ({ item: list[i % list.length], changes: c })) : []

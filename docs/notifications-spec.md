@@ -221,7 +221,7 @@ tickets link replacing another, notes, contact, prep.
 performance count. Added and cancelled dates are announced. A date moved is
 announced ("Dates changed") only if the range changes and no add or cancel pip
 reports it; a time-only change is never announced. Auditions and events show
-their sessions, so any date or time change is announced ("N sessions updated").
+their sessions, so any session added, cancelled or changed is announced ("N sessions modified").
 
 **Corrections vs cancellations.** Deleting a saved, upcoming row or record asks:
 **Notify cancellation**, **Delete without notification** or **Keep**. A silent

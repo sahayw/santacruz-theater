@@ -19,7 +19,7 @@ import {
   type Colour
 } from '../../../src/lib/production-view.ts'
 import {
-  activityChangeLabel,
+  activityChangeLabels,
   productionChangeLabel,
   type ActivityChange,
   type ProductionChange
@@ -259,7 +259,9 @@ export function activityCard(a: DigestActivity, siteUrl: string, changes: Activi
         : ''
 
   return `<div style="${CARD}">
-    ${changes.map((c) => pill(activityChangeLabel(c), activityChangeColour(c))).join('')}
+    ${activityChangeLabels(changes)
+      .map((p) => pill(p.label, activityChangeColour(p.change)))
+      .join('')}
     <div style="${TITLE}">${esc(a.title)}${activityPills(a)}</div>
     <div style="${META}">${esc(a.companyName)}${subLine ? ` &middot; ${esc(subLine)}` : ''}</div>
     ${datesHtml}

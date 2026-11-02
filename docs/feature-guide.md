@@ -136,13 +136,13 @@ One content model for six views (the expanded card, deep link and editor Preview
 
 **Pips**
 
-| Pip          | Where                                  | Style                                                                                                               |
-| ------------ | -------------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
-| Type         | Every view                             | Audition / Event                                                                                                    |
-| Virtual      | Virtual-submission auditions           | Pill                                                                                                                |
-| Closed, Past | Public cards and Preview; never emails | Grey pills                                                                                                          |
-| Genre        | Auditions                              | The same coloured pills as productions                                                                              |
-| Change       | Update emails only                     | Blue for "2 sessions added / cancelled / updated" and locations; amber for "Registration open"; red for "Cancelled" |
+| Pip          | Where                                  | Style                                                                                            |
+| ------------ | -------------------------------------- | ------------------------------------------------------------------------------------------------ |
+| Type         | Every view                             | Audition / Event                                                                                 |
+| Virtual      | Virtual-submission auditions           | Pill                                                                                             |
+| Closed, Past | Public cards and Preview; never emails | Grey pills                                                                                       |
+| Genre        | Auditions                              | The same coloured pills as productions                                                           |
+| Change       | Update emails only                     | Blue for "N sessions modified" and locations; amber for "Registration open"; red for "Cancelled" |
 
 - No email carries a Register button. "Registration open" is a change pip, and the single link goes to the record.
 - Closed records appear in no email. Reopening one announces it as a change, since it is open again by then.
@@ -252,7 +252,7 @@ Two lists; visitors pick either or both on `/subscribe`:
 
 - A production or activity with all remaining dates removed, or deleted with **Notify cancellation** (see [Removing dates and records](#removing-dates-and-records)), is **Cancelled**: a card with the pip and title only, and no link. It is announced as new again if dates are added back. Closing an audition sends nothing. Description, price, contact and wording edits never send email. A performance that has happened just drops off.
 - **Production dates**: the email shows the first-to-last range and the performance count. Time changes and dates moved within the range are never announced; a date moved so the range changes sends "Dates changed". Added dates send "N dates added"; cancelled dates send "N dates cancelled".
-- **Audition and event sessions**: any date or time change sends "N sessions updated". The card lists the affected sessions under **Added**, **Cancelled** (struck through) and **Updated**.
+- **Audition and event sessions**: any session added, cancelled, or changed in date or time sends one "N sessions modified" pip. The card lists them under **Added**, **Cancelled** (struck through) and **Updated**.
 - **Delete without notification** never sends email.
 - Every email ends with **Change your choices** and **Unsubscribe from everything**.
 

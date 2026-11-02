@@ -263,3 +263,30 @@ export function activityChangeLabel(c: ActivityChange) {
       return 'Reopened'
   }
 }
+
+const sessionCount = (c: ActivityChange) =>
+  c.kind === 'sessions-added' || c.kind === 'sessions-moved'
+    ? c.sessionIds.length
+    : c.kind === 'sessions-removed' && !c.all
+      ? c.when.length
+      : 0
+
+/**
+ * The pips for an activity's changes: added, cancelled and updated sessions share one
+ * "N sessions modified" pip (the card lists which). A cancelled activity stays "Cancelled".
+ */
+export function activityChangeLabels(changes: ActivityChange[]) {
+  const modified = changes.reduce((n, c) => n + sessionCount(c), 0)
+  const pips: { label: string; change: ActivityChange }[] = []
+  let merged = false
+  for (const c of changes) {
+    if (!sessionCount(c)) pips.push({ label: activityChangeLabel(c), change: c })
+    else if (!merged) {
+      merged = true
+      pips.push({ label: modifiedLabel(modified), change: c })
+    }
+  }
+  return pips
+}
+
+const modifiedLabel = (n: number) => `${plural(n, 'session')} modified`

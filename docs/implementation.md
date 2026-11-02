@@ -808,12 +808,15 @@ emailed:
   appeared ("Tickets now on sale"), registration link appeared ("Registration
   open"), reopened, and dates:
 
-  |                                  | Productions                                                                                 | Auditions & events     |
-  | -------------------------------- | ------------------------------------------------------------------------------------------- | ---------------------- |
-  | Added                            | "N dates added"                                                                             | "N sessions added"     |
-  | Removed, not in `silentRemovals` | "N dates cancelled"                                                                         | "N sessions cancelled" |
-  | Time changed only                | silent — the card shows no times                                                            | "N sessions updated"   |
-  | Date changed                     | "Dates changed" if the first or last upcoming date changed and no add/cancel pip reports it | "N sessions updated"   |
+  |                                  | Productions                                                                                 | Auditions & events    |
+  | -------------------------------- | ------------------------------------------------------------------------------------------- | --------------------- |
+  | Added                            | "N dates added"                                                                             | "N sessions modified" |
+  | Removed, not in `silentRemovals` | "N dates cancelled"                                                                         | "N sessions modified" |
+  | Time changed only                | silent — the card shows no times                                                            | "N sessions modified" |
+  | Date changed                     | "Dates changed" if the first or last upcoming date changed and no add/cancel pip reports it | "N sessions modified" |
+
+  For activities, `activityChangeLabels()` merges all session changes into one
+  pip, N being the total of added, cancelled and changed sessions.
 
   Ids in the record's `silentRemovals` are skipped (including for "Cancelled"),
   and a production's old range excludes them.

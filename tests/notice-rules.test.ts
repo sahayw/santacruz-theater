@@ -1,7 +1,7 @@
 // Change detection for the email digests — fixture data only.
 import { describe, expect, it } from 'vitest'
 import {
-  activityChangeLabel,
+  activityChangeLabels,
   classifyActivities,
   classifyProductions,
   productionChangeLabel,
@@ -10,6 +10,8 @@ import {
 import { activity, run } from './fixtures/calendar.ts'
 
 const TODAY = '2026-10-15'
+const activityLabels = (changes: Parameters<typeof activityChangeLabels>[0]) =>
+  activityChangeLabels(changes).map((p) => p.label)
 // The fixture run: performances on Oct 30 (opening) and Nov 1 (own tickets link)
 const snap = (runs: ReturnType<typeof run>[]) => classifyProductions(runs, {}, TODAY).next
 
@@ -188,7 +190,7 @@ describe('auditions & events', () => {
       ]
     })
     const [n] = classifyActivities([changed], prevOf(a), TODAY).notices
-    expect(n.changes.map(activityChangeLabel)).toEqual(['1 session added', 'Location changed'])
+    expect(activityLabels(n.changes)).toEqual(['1 session modified', 'Location changed'])
   })
 
   it('reports registration opening', () => {
@@ -208,7 +210,7 @@ describe('auditions & events', () => {
 
   it('reports an activity that loses all its remaining sessions as cancelled', () => {
     const [n] = classifyActivities([activity({ dates: [] })], prevOf(activity()), TODAY).notices
-    expect(n.changes.map(activityChangeLabel)).toEqual(['Cancelled'])
+    expect(activityLabels(n.changes)).toEqual(['Cancelled'])
   })
 
   it('sends nothing when a listed activity closes', () => {
@@ -222,18 +224,30 @@ describe('auditions & events', () => {
     expect(classifyActivities([virtual], {}, TODAY).notices[0].isNew).toBe(true)
   })
 
-  it('announces a changed session date or time as sessions updated', () => {
+  it('announces a changed session date or time as sessions modified', () => {
     const a = activity()
     const labels = (after: ReturnType<typeof activity>) =>
       classifyActivities([after], prevOf(a), TODAY).notices.flatMap((n) =>
-        n.changes.map(activityChangeLabel)
+        activityLabels(n.changes)
       )
     expect(
       labels(activity({ dates: [{ ...a.dates[0], startTime: '19:00' }, a.dates[1]] }))
-    ).toEqual(['1 session updated'])
+    ).toEqual(['1 session modified'])
     expect(
       labels(activity({ dates: [{ ...a.dates[0], date: '2026-11-09' }, a.dates[1]] }))
-    ).toEqual(['1 session updated'])
+    ).toEqual(['1 session modified'])
+  })
+
+  it('counts added, cancelled and updated sessions in one pip', () => {
+    const a = activity()
+    const after = activity({
+      dates: [
+        { ...a.dates[0], startTime: '19:00' },
+        { id: 'session-9', date: '2026-11-07', startTime: '10:00' }
+      ]
+    })
+    const [n] = classifyActivities([after], prevOf(a), TODAY).notices
+    expect(activityLabels(n.changes)).toEqual(['3 sessions modified'])
   })
 
   it('does not announce a session deleted as a correction', () => {
@@ -242,9 +256,9 @@ describe('auditions & events', () => {
     const silent = [{ id: a.dates[0].id, date: a.dates[0].date }]
     const labels = (after: ReturnType<typeof activity>) =>
       classifyActivities([after], prevOf(a), TODAY).notices.flatMap((n) =>
-        n.changes.map(activityChangeLabel)
+        activityLabels(n.changes)
       )
-    expect(labels(activity({ dates: kept }))).toEqual(['1 session cancelled'])
+    expect(labels(activity({ dates: kept }))).toEqual(['1 session modified'])
     expect(labels(activity({ dates: kept, silentRemovals: silent }))).toEqual([])
     expect(
       labels(
@@ -260,7 +274,7 @@ describe('auditions & events', () => {
     const virtual = activity({ virtualSubmission: true, dates: [] })
     const gone = activity({ virtualSubmission: false, dates: [] })
     const { notices, next } = classifyActivities([gone], prevOf(virtual), TODAY, new Set([gone.id]))
-    expect(notices[0].changes.map(activityChangeLabel)).toEqual(['Cancelled'])
+    expect(activityLabels(notices[0].changes)).toEqual(['Cancelled'])
     // announced once: the next night's snapshot no longer lists it
     expect(classifyActivities([gone], next, TODAY, new Set([gone.id])).notices).toEqual([])
   })
@@ -272,6 +286,6 @@ describe('auditions & events', () => {
       silentRemovals: [{ id: a.dates[0].id, date: a.dates[0].date }]
     })
     const [n] = classifyActivities([gone], prevOf(a), TODAY, new Set([gone.id])).notices
-    expect(n.changes.map(activityChangeLabel)).toEqual(['Cancelled'])
+    expect(activityLabels(n.changes)).toEqual(['Cancelled'])
   })
 })

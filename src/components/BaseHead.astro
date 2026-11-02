@@ -54,6 +54,13 @@ const ogImage = `${siteUrl}/og-image.jpg`
 
 {
   import.meta.env.PROD && (
-    <script defer data-domain="santacruz.theater" src="https://plausible.io/js/script.js" />
+    <>
+      <script is:inline async src="https://plausible.io/js/pa-cTSnKMwlhGSKAaPcpUT8J.js" />
+      <script is:inline>
+        window.plausible=window.plausible||function()
+        {(plausible.q = plausible.q || []).push(arguments)}
+        ,plausible.init=plausible.init||function(i){(plausible.o = i || {})}; plausible.init()
+      </script>
+    </>
   )
 }

@@ -149,17 +149,17 @@ export function productionCard(p: DigestProduction, changes: ProductionChange[] 
     ${changes.map((c) => pill(productionChangeLabel(c), changeColour(c))).join('')}
     <div style="${TITLE}">${esc(p.title)}${p.genre.map(genrePill).join('')}</div>
     <div style="font-size:13px;color:#6b6259;margin-bottom:2px">${meta}</div>
-    <div style="${META}">${
-      p.perfs.length // none left when it's cancelled
-        ? `${esc(fmtAudDateRange(p.perfs))} &middot; ${p.perfs.length === 1 ? '1 performance' : `${p.perfs.length} performances`}`
-        : 'No upcoming performances'
-    }</div>
+    ${
+      cancelled
+        ? ''
+        : `<div style="${META}">${esc(fmtAudDateRange(p.perfs))} &middot; ${p.perfs.length === 1 ? '1 performance' : `${p.perfs.length} performances`}</div>`
+    }
     ${
       description && description.text
         ? `<div style="font-size:13px;color:#1a1612;line-height:1.55;margin-bottom:12px;white-space:pre-wrap">${renderMd(description.text)}${description.cut ? ` <a href="${esc(p.url)}" style="color:#4f5ce0;text-decoration:none">&hellip; Read more</a>` : ''}</div>`
         : ''
     }
-    ${p.url ? `<a href="${esc(p.url)}" style="${LINK}">${cancelled ? 'Details' : 'Details &amp; tickets'} &rarr;</a>` : ''}
+    ${cancelled || !p.url ? '' : `<a href="${esc(p.url)}" style="${LINK}">Details &amp; tickets &rarr;</a>`}
   </div>`
 }
 
@@ -193,32 +193,63 @@ const activityUrl = (a: DigestActivity, siteUrl: string) =>
 export function activityCard(a: DigestActivity, siteUrl: string, changes: ActivityChange[] = []) {
   const url = activityUrl(a, siteUrl)
   const added = changes.find((c) => c.kind === 'sessions-added')
-  const dates = added ? a.dates.filter((d) => added.sessionIds.includes(d.id)) : a.dates
+  const removed = changes.find((c) => c.kind === 'sessions-removed')
+  const moved = changes.find((c) => c.kind === 'sessions-moved')
 
-  const dateRows = dates
-    .slice(0, 3)
-    .map(
-      (ad) => `<tr>
-      <td style="padding:3px 14px 3px 0;color:#1a1612;font-weight:500;white-space:nowrap">${esc(fmtFullDate(ad.date))}</td>
-      <td style="padding:3px 14px 3px 0;color:#6b6259;white-space:nowrap">${esc(fmtTimeRange(ad.startTime, ad.endTime ?? ''))}</td>
-      <td style="padding:3px 0;color:#6b6259">${ad.place ? esc(ad.place.name) : ''}</td>
+  interface Row {
+    date: string
+    start?: string
+    end?: string
+    place?: string
+    gone?: boolean
+  }
+  const toRow = (d: DigestActivity['dates'][number]): Row => ({
+    date: d.date,
+    start: d.startTime,
+    end: d.endTime,
+    place: d.place?.name
+  })
+  const rowsHtml = (rows: Row[]) => {
+    const body = rows
+      .slice(0, 3)
+      .map((r) => {
+        const strike = r.gone ? 'text-decoration:line-through;' : ''
+        return `<tr>
+      <td style="padding:3px 14px 3px 0;color:#1a1612;font-weight:500;white-space:nowrap;${strike}">${esc(fmtFullDate(r.date))}</td>
+      <td style="padding:3px 14px 3px 0;color:#6b6259;white-space:nowrap;${strike}">${esc(fmtTimeRange(r.start, r.end ?? ''))}</td>
+      <td style="padding:3px 0;color:#6b6259;${strike}">${r.place ? esc(r.place) : ''}</td>
     </tr>`
-    )
-    .join('')
-  const moreDates =
-    dates.length > 3
-      ? `<tr><td colspan="3" style="padding:2px 0;font-size:12px;color:#9c9189">+ ${dates.length - 3} more date${dates.length - 3 > 1 ? 's' : ''}</td></tr>`
+      })
+      .join('')
+    const more =
+      rows.length > 3
+        ? `<tr><td colspan="3" style="padding:2px 0;font-size:12px;color:#9c9189">+ ${rows.length - 3} more date${rows.length - 3 > 1 ? 's' : ''}</td></tr>`
+        : ''
+    return `<table style="border-collapse:collapse;font-size:13px;margin-bottom:10px">${body}${more}</table>`
+  }
+  const labelled = (label: string, rows: Row[]) =>
+    rows.length
+      ? `<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:#6b6259;margin:4px 0 2px">${label}</div>${rowsHtml(rows)}`
       : ''
+  const byId = (ids: string[]) => a.dates.filter((d) => ids.includes(d.id)).map(toRow)
+  const goneRows = (removed?.kind === 'sessions-removed' ? removed.when : []).map(
+    (w): Row => ({ date: w.slice(0, 10), start: w.slice(11) || undefined, gone: true })
+  )
 
   const noScheduledDates = !a.dates.some((d) => d.date)
   const cancelled = changes.some((c) => c.kind === 'sessions-removed' && c.all)
+  const sessionChange = !!(added || moved || goneRows.length)
   const datesHtml = cancelled
-    ? `<div style="${META}">No upcoming sessions</div>`
-    : noScheduledDates && a.type === 'audition' && a.virtualSubmission
-      ? `<div style="${META}">${esc(VIRTUAL_NOTE)}</div>`
-      : noScheduledDates && a.type === 'event' && a.datesByRequest
-        ? `<div style="${META}">On request</div>`
-        : `<table style="border-collapse:collapse;font-size:13px;margin-bottom:10px">${dateRows}${moreDates}</table>`
+    ? ''
+    : sessionChange
+      ? labelled('Added', added?.kind === 'sessions-added' ? byId(added.sessionIds) : []) +
+        labelled('Cancelled', goneRows) +
+        labelled('Updated', moved?.kind === 'sessions-moved' ? byId(moved.sessionIds) : [])
+      : noScheduledDates && a.type === 'audition' && a.virtualSubmission
+        ? `<div style="${META}">${esc(VIRTUAL_NOTE)}</div>`
+        : noScheduledDates && a.type === 'event' && a.datesByRequest
+          ? `<div style="${META}">On request</div>`
+          : rowsHtml(a.dates.map(toRow))
 
   const subLine =
     a.type === 'audition' && a.openingDate
@@ -232,7 +263,7 @@ export function activityCard(a: DigestActivity, siteUrl: string, changes: Activi
     <div style="${TITLE}">${esc(a.title)}${activityPills(a)}</div>
     <div style="${META}">${esc(a.companyName)}${subLine ? ` &middot; ${esc(subLine)}` : ''}</div>
     ${datesHtml}
-    ${a.deleted ? '' : `<a href="${esc(url)}" style="${LINK}">${a.type === 'event' && !cancelled ? 'Details &amp; registration' : 'Details'} &rarr;</a>`}
+    ${cancelled ? '' : `<a href="${esc(url)}" style="${LINK}">${a.type === 'event' ? 'Details &amp; registration' : 'Details'} &rarr;</a>`}
   </div>`
 }
 

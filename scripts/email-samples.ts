@@ -74,7 +74,24 @@ export function buildSamples(today = todayIso()): Sample[] {
     [{ kind: 'sessions-removed', when: ['2099-01-01 19:00'], all: true }],
     [{ kind: 'location' }, { kind: 'registration' }, { kind: 'reopened' }]
   ]
-  // With nothing upcoming, there are no records to carry the changes
+  // Session pips only go on records that have dates; a virtual audition has none
+  const allActivities = [...auditions, ...events]
+  const dated = allActivities.filter((a) => a.dates.some((d) => d.date))
+  const activityUpdates = [
+    ...(dated[0]
+      ? [
+          {
+            item: dated[0],
+            changes: [
+              { kind: 'sessions-added', sessionIds: [dated[0].dates[0].id] },
+              { kind: 'sessions-removed', when: ['2099-01-01 19:00'], all: false },
+              { kind: 'sessions-moved', sessionIds: [dated[0].dates[dated[0].dates.length - 1].id] }
+            ] as ActivityChange[]
+          }
+        ]
+      : []),
+    ...(allActivities[0] ? [{ item: allActivities[0], changes: actChanges[3] }] : [])
+  ]
   const withChanges = <T, C>(list: T[], changes: C[][]) =>
     list.length ? changes.map((c, i) => ({ item: list[i % list.length], changes: c })) : []
 
@@ -119,12 +136,7 @@ export function buildSamples(today = todayIso()): Sample[] {
       : []),
     {
       name: 'activity-digest',
-      html: buildActivityDigest(
-        [...auditions, ...events],
-        withChanges([...auditions, ...events], actChanges),
-        SITE,
-        links
-      ).html
+      html: buildActivityDigest(allActivities, activityUpdates, SITE, links).html
     },
     ...(auditions[0]
       ? [

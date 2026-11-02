@@ -156,6 +156,12 @@ describe('productions', () => {
     expect(n.changes.map(productionChangeLabel)).toEqual(['Cancelled'])
   })
 
+  it('announces a cancelled production as new again when dates are added back', () => {
+    const cancelled = classifyProductions([run({ performances: [] })], snap([run()]), TODAY)
+    const [n] = classifyProductions([run()], cancelled.next, TODAY).notices
+    expect(n).toMatchObject({ isNew: true })
+  })
+
   it('keeps only upcoming performances in a print', () => {
     expect(Object.keys(productionPrint(run(), '2026-10-31').perfs)).toEqual(['perf-1700000000002'])
   })

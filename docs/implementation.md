@@ -819,11 +819,14 @@ emailed:
   and a production's old range excludes them.
 
 - **Cancelled**: a record that was listable and has lost all its remaining
-  dates, labelled "Cancelled" (`all: true` on the removal); its card reads
-  "No upcoming performances" / "No upcoming sessions" with a red pip. A record
-  deleted with Notify cancellation comes from `data/cancellations.json`
-  ([§3](#silent-removals-and-cancellations)); its card has no link.
-  An activity that closes sends nothing.
+  dates, labelled "Cancelled" (`all: true` on the removal). Its card is the
+  red pip, title and organizer only, with no link. A record deleted with
+  Notify cancellation comes from `data/cancellations.json`
+  ([§3](#silent-removals-and-cancellations)). When dates are added back it is
+  announced as new. An activity that closes sends nothing.
+- **Session rows**: an activity card with session changes lists the affected
+  sessions under **Added**, **Cancelled** (date and time, struck through) and
+  **Updated** (as they now stand), up to 3 each. Other cards list all sessions.
 - A past date dropping off, and every other field (description, price,
   contact, wording), never sends email. `createdAt` / `updatedAt` aren't
   used.

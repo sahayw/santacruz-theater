@@ -90,12 +90,13 @@ describe('productionCard', () => {
     expect(html).not.toContain('Shakespeare in the park.')
   })
 
-  it('a cancelled production gets a red pip and a plain Details link', () => {
+  it('a cancelled production is a red pip and title only, with no link', () => {
     const html = productionCard({ ...p, perfs: [] }, [
       { kind: 'dates-removed', all: true, when: [] }
     ])
     expect(html).toContain('Cancelled')
     expect(html).toContain('#ffd4d4')
-    expect(html).toContain('>Details &rarr;')
+    expect(html).not.toContain('<a ')
+    expect(html).not.toContain('No upcoming')
   })
 })

@@ -159,7 +159,7 @@ export function productionCard(p: DigestProduction, changes: ProductionChange[] 
         ? `<div style="font-size:13px;color:#1a1612;line-height:1.55;margin-bottom:12px;white-space:pre-wrap">${renderMd(description.text)}${description.cut ? ` <a href="${esc(p.url)}" style="color:#4f5ce0;text-decoration:none">&hellip; Read more</a>` : ''}</div>`
         : ''
     }
-    <a href="${esc(p.url)}" style="${LINK}">${cancelled ? 'Details' : 'Details &amp; tickets'} &rarr;</a>
+    ${p.url ? `<a href="${esc(p.url)}" style="${LINK}">${cancelled ? 'Details' : 'Details &amp; tickets'} &rarr;</a>` : ''}
   </div>`
 }
 
@@ -232,7 +232,7 @@ export function activityCard(a: DigestActivity, siteUrl: string, changes: Activi
     <div style="${TITLE}">${esc(a.title)}${activityPills(a)}</div>
     <div style="${META}">${esc(a.companyName)}${subLine ? ` &middot; ${esc(subLine)}` : ''}</div>
     ${datesHtml}
-    <a href="${esc(url)}" style="${LINK}">${a.type === 'event' && !cancelled ? 'Details &amp; registration' : 'Details'} &rarr;</a>
+    ${a.deleted ? '' : `<a href="${esc(url)}" style="${LINK}">${a.type === 'event' && !cancelled ? 'Details &amp; registration' : 'Details'} &rarr;</a>`}
   </div>`
 }
 

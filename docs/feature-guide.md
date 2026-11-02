@@ -59,12 +59,12 @@ One content model for eight views (the record and editor Preview share a column)
 
 **Pips**
 
-| Pip              | Where                                            | Style                                                                                                        |
-| ---------------- | ------------------------------------------------ | ------------------------------------------------------------------------------------------------------------ |
-| Genre            | Every view with a full title; one per genre      | Coloured pill, one shared definition                                                                         |
-| Performance type | Individual performances only, never a production | Uppercase pill: Preview, Opening, Closing, Talk-back                                                         |
-| Past             | Record list only                                 | Grey pill                                                                                                    |
-| Change           | Update emails only                               | Blue: "2 dates added / cancelled / changed", "Venue changed"; amber: "Tickets now on sale"; red: "Cancelled" |
+| Pip              | Where                                            | Style                                                                                                               |
+| ---------------- | ------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------- |
+| Genre            | Every view with a full title; one per genre      | Coloured pill, one shared definition                                                                                |
+| Performance type | Individual performances only, never a production | Uppercase pill: Preview, Opening, Closing, Talk-back                                                                |
+| Past             | Record list only                                 | Grey pill                                                                                                           |
+| Change           | Update emails only                               | Blue: "2 dates added / cancelled", "Dates changed", "Venue changed"; amber: "Tickets now on sale"; red: "Cancelled" |
 
 **Notes**
 
@@ -136,13 +136,13 @@ One content model for six views (the expanded card, deep link and editor Preview
 
 **Pips**
 
-| Pip          | Where                                  | Style                                                                            |
-| ------------ | -------------------------------------- | -------------------------------------------------------------------------------- |
-| Type         | Every view                             | Audition / Event                                                                 |
-| Virtual      | Virtual-submission auditions           | Pill                                                                             |
-| Closed, Past | Public cards and Preview; never emails | Grey pills                                                                       |
-| Genre        | Auditions                              | The same coloured pills as productions                                           |
-| Change       | Update emails only                     | Blue for dates and locations; amber for "Registration open"; red for "Cancelled" |
+| Pip          | Where                                  | Style                                                                                                               |
+| ------------ | -------------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
+| Type         | Every view                             | Audition / Event                                                                                                    |
+| Virtual      | Virtual-submission auditions           | Pill                                                                                                                |
+| Closed, Past | Public cards and Preview; never emails | Grey pills                                                                                                          |
+| Genre        | Auditions                              | The same coloured pills as productions                                                                              |
+| Change       | Update emails only                     | Blue for "2 sessions added / cancelled / updated" and locations; amber for "Registration open"; red for "Cancelled" |
 
 - No email carries a Register button. "Registration open" is a change pip, and the single link goes to the record.
 - Closed records appear in no email. Reopening one announces it as a change, since it is open again by then.
@@ -241,7 +241,7 @@ Two lists; visitors pick either or both on `/subscribe`:
 - **Performance updates**: new productions, added or cancelled dates, venue changes, tickets on sale. **Select companies** lists SCS, AT, MCT and Renegade; untick any. Every other organizer is always included, and a co-production is included if any organizer is.
   - Company ticks follow Performance updates: ticking it ticks all four (unless saved choices say otherwise); unticking it clears them but remembers the choice.
   - Ticking a company also ticks Performance updates (alone, if no choice was made).
-- **Audition & event notices**: new auditions and events, added or cancelled sessions, location changes, registration opening, reopened notices. All companies.
+- **Audition & event notices**: new auditions and events, added, cancelled, or modified sessions, location changes, registration opening, reopened notices. All companies.
 
 `/subscribe` is reached from **Subscribe for updates** in the nav on `/calendar`, `/events` and `/productions`, pre-ticking the list that suits the page, with a link back.
 
@@ -250,7 +250,10 @@ Two lists; visitors pick either or both on `/subscribe`:
 | Welcome        | Immediately                  | What's coming up for each list chosen                                                                                                                                                                                                                                                                                                                                                                       |
 | Nightly digest | One per list, only with news | **New**: records just become upcoming (a production saved before its dates is announced when dates are added). **Updates**: labelled changes, e.g. "2 dates added", "Tickets now on sale", "Venue changed", "Registration open". Cards are described in [How a production is displayed](#how-a-production-is-displayed) and [How an audition or event is displayed](#how-an-audition-or-event-is-displayed) |
 
-- A production or activity with all remaining dates removed is **Cancelled**. Closing an audition sends nothing. Description, price, contact and wording edits never send email. A performance that has happened just drops off.
+- A production or activity with all remaining dates removed, or deleted with **Notify cancellation** (see [Removing dates and records](#removing-dates-and-records)), is **Cancelled**. Closing an audition sends nothing. Description, price, contact and wording edits never send email. A performance that has happened just drops off.
+- **Production dates**: the email shows the first-to-last range and the performance count. Time changes and dates moved within the range are never announced; a date moved so the range changes sends "Dates changed". Added dates send "N dates added"; cancelled dates send "N dates cancelled".
+- **Audition and event sessions**: any date or time change sends "N sessions updated".
+- **Delete without notification** never sends email.
 - Every email ends with **Change your choices** and **Unsubscribe from everything**.
 
 ### What counts as upcoming
@@ -285,11 +288,23 @@ Nothing for editors to configure.
 - **Preview**: the record as the public site shows it, without publishing. It shows everything in the data but no **Add to my calendar**.
 - **Restore**: only with unsaved changes; reverts to the last save.
 - **Save**: publishes the whole file (every record for that company and year).
-- **Delete**: once confirmed, removes the record immediately (no Save step). A show an audition links to can't be deleted until that's changed.
+- **Delete**: once confirmed, removes the record immediately (no Save step). A show an audition links to can't be deleted until that's changed. Deleting a saved record that still has upcoming dates asks whether to notify subscribers ([Removing dates and records](#removing-dates-and-records)).
 - Leaving with unsaved changes asks first.
 - **Editor updated while open**: a red bar asks you to reload, and Save is refused until you do (unsaved changes in that tab are lost).
 - **A save that would break the site is refused**, with reasons; other editors' saves still publish.
 - A new record left empty is discarded; Save does nothing when nothing is entered.
+
+### Removing dates and records
+
+Only saved, upcoming rows and records are asked about; new rows, unsaved rows
+and past dates delete without asking.
+
+- **Row (×)** — **Notify cancellation**, **Delete without notification** or
+  **Keep**. Notify: the next digest says "N dates cancelled" ("Cancelled" if none
+  are left). Delete without notification: no email. The choice is stored with the
+  record until the date passes; **Restore** undoes the row and the choice.
+- **Delete run / Delete (activity)** — the same three choices. Notify sends a
+  "Cancelled" card with no link; Delete without notification sends nothing.
 
 ---
 

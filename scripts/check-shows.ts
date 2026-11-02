@@ -11,7 +11,7 @@ import { resolve, join } from 'path'
 import { fileURLToPath } from 'url'
 import type { CompanyEntry, Run, Venue } from '../src/types.ts'
 import { todayIso, type RuleRefs } from '../src/lib/data-rules.ts'
-import { showsFileCheck } from '../src/lib/file-checks.ts'
+import { cancellationsFileCheck, showsFileCheck } from '../src/lib/file-checks.ts'
 
 const __dirname = resolve(fileURLToPath(import.meta.url), '..')
 const root = resolve(__dirname, '..')
@@ -65,6 +65,10 @@ for (const year of yearDirs) {
     fileCount++
   }
 }
+
+ruleErrors.push(
+  ...cancellationsFileCheck(readData('cancellations.json'), 'data/cancellations.json', refs).errors
+)
 
 if (ruleErrors.length) {
   console.error(`\nShows validation failed — ${ruleErrors.length} error(s):\n`)

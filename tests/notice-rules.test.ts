@@ -40,11 +40,11 @@ describe('productions', () => {
     expect(classifyProductions([changed], snap([run()]), TODAY).notices).toEqual([])
   })
 
-  it('reports dates added, cancelled and moved by performance id', () => {
+  it('reports dates added and cancelled by performance id, with no move pip for the same change', () => {
     const before = run()
     const after = run({
       performances: [
-        { ...before.performances[0], time: '20:00' }, // moved
+        { ...before.performances[0], time: '20:00' }, // time only: silent
         {
           id: 'perf-9',
           date: '2026-11-08',
@@ -57,11 +57,73 @@ describe('productions', () => {
       ]
     })
     const [n] = classifyProductions([after], snap([before]), TODAY).notices
-    expect(n.changes.map(productionChangeLabel)).toEqual([
-      '1 date added',
-      '1 date cancelled',
-      '1 date changed'
-    ])
+    expect(n.changes.map(productionChangeLabel)).toEqual(['1 date added', '1 date cancelled'])
+  })
+
+  describe('date and time edits (the email shows only the date range)', () => {
+    const perf = (id: string, date: string, time = '19:00') => ({
+      id,
+      date,
+      time,
+      perfType: '' as const,
+      discounts: '',
+      ticketsUrl: ''
+    })
+    const three = [
+      perf('perf-a', '2026-10-30'),
+      perf('perf-b', '2026-11-01'),
+      perf('perf-c', '2026-11-05')
+    ]
+    const labels = (after: ReturnType<typeof run>) =>
+      classifyProductions([after], snap([run({ performances: three })]), TODAY).notices.flatMap(
+        (n) => n.changes.map(productionChangeLabel)
+      )
+
+    it('ignores a time-only change', () => {
+      expect(
+        labels(run({ performances: [perf('perf-a', '2026-10-30', '20:00'), ...three.slice(1)] }))
+      ).toEqual([])
+    })
+
+    it('ignores a date moved inside the range', () => {
+      expect(
+        labels(run({ performances: [three[0], perf('perf-b', '2026-11-03'), three[2]] }))
+      ).toEqual([])
+    })
+
+    it('announces a date moved so the range changes', () => {
+      expect(
+        labels(run({ performances: [three[0], three[1], perf('perf-c', '2026-11-12')] }))
+      ).toEqual(['Dates changed'])
+      expect(
+        labels(run({ performances: [perf('perf-a', '2026-10-20'), ...three.slice(1)] }))
+      ).toEqual(['Dates changed'])
+    })
+
+    it('does not announce a deletion marked as a correction', () => {
+      const silent = [{ id: 'perf-b', date: '2026-11-01' }]
+      expect(labels(run({ performances: [three[0], three[2]] }))).toEqual(['1 date cancelled'])
+      expect(labels(run({ performances: [three[0], three[2]], silentRemovals: silent }))).toEqual(
+        []
+      )
+    })
+
+    it('does not count a silently removed date towards the old range', () => {
+      // perf-c removed silently; the old range is then 10-30..11-01, so a time-only edit stays silent
+      const after = run({
+        performances: [three[0], perf('perf-b', '2026-11-01', '20:00')],
+        silentRemovals: [{ id: 'perf-c', date: '2026-11-05' }]
+      })
+      expect(labels(after)).toEqual([])
+    })
+
+    it('sends nothing when every remaining date is removed as a correction', () => {
+      const after = run({
+        performances: [],
+        silentRemovals: three.map(({ id, date }) => ({ id, date }))
+      })
+      expect(labels(after)).toEqual([])
+    })
   })
 
   it('reports tickets going on sale, not one link replacing another', () => {
@@ -152,5 +214,58 @@ describe('auditions & events', () => {
   it('keeps a virtual audition with no dates listable', () => {
     const virtual = activity({ virtualSubmission: true, dates: [] })
     expect(classifyActivities([virtual], {}, TODAY).notices[0].isNew).toBe(true)
+  })
+
+  it('announces a changed session date or time as sessions updated', () => {
+    const a = activity()
+    const labels = (after: ReturnType<typeof activity>) =>
+      classifyActivities([after], prevOf(a), TODAY).notices.flatMap((n) =>
+        n.changes.map(activityChangeLabel)
+      )
+    expect(
+      labels(activity({ dates: [{ ...a.dates[0], startTime: '19:00' }, a.dates[1]] }))
+    ).toEqual(['1 session updated'])
+    expect(
+      labels(activity({ dates: [{ ...a.dates[0], date: '2026-11-09' }, a.dates[1]] }))
+    ).toEqual(['1 session updated'])
+  })
+
+  it('does not announce a session deleted as a correction', () => {
+    const a = activity()
+    const kept = [a.dates[1]]
+    const silent = [{ id: a.dates[0].id, date: a.dates[0].date }]
+    const labels = (after: ReturnType<typeof activity>) =>
+      classifyActivities([after], prevOf(a), TODAY).notices.flatMap((n) =>
+        n.changes.map(activityChangeLabel)
+      )
+    expect(labels(activity({ dates: kept }))).toEqual(['1 session cancelled'])
+    expect(labels(activity({ dates: kept, silentRemovals: silent }))).toEqual([])
+    expect(
+      labels(
+        activity({
+          dates: [],
+          silentRemovals: silent.concat({ id: a.dates[1].id, date: a.dates[1].date })
+        })
+      )
+    ).toEqual([])
+  })
+
+  it('announces a deleted activity as cancelled, even one with no sessions', () => {
+    const virtual = activity({ virtualSubmission: true, dates: [] })
+    const gone = activity({ virtualSubmission: false, dates: [] })
+    const { notices, next } = classifyActivities([gone], prevOf(virtual), TODAY, new Set([gone.id]))
+    expect(notices[0].changes.map(activityChangeLabel)).toEqual(['Cancelled'])
+    // announced once: the next night's snapshot no longer lists it
+    expect(classifyActivities([gone], next, TODAY, new Set([gone.id])).notices).toEqual([])
+  })
+
+  it("announces a deleted activity's sessions even if its record carried silent removals", () => {
+    const a = activity()
+    const gone = activity({
+      dates: [],
+      silentRemovals: [{ id: a.dates[0].id, date: a.dates[0].date }]
+    })
+    const [n] = classifyActivities([gone], prevOf(a), TODAY, new Set([gone.id])).notices
+    expect(n.changes.map(activityChangeLabel)).toEqual(['Cancelled'])
   })
 })

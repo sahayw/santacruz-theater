@@ -151,23 +151,24 @@ One file per company per year: `{ company, year, runs: [<Run>] }`.
 
 #### `Run`
 
-| Field          | Type            | Notes                                                                                                          |
-| -------------- | --------------- | -------------------------------------------------------------------------------------------------------------- |
-| `id`           | `string`        | `"run-<timestamp>"`, editor-assigned                                                                           |
-| `company`      | `string`        | the file's company id (`"other"` for the catch-all file)                                                       |
-| `showAbv`      | `string`        | chip label; required, ≤ 20 chars                                                                               |
-| `show`         | `string`        | full title; required                                                                                           |
-| `description`  | `string?`       | Markdown ([`renderMd`](#formatting--srclibaudition-formatts))                                                  |
-| `genre`        | `Genre[]`       | see [Genre](#genre); older runs store one genre as a string — read it with `toGenres()` (`audition-format.ts`) |
-| `organizers`   | `string[]?`     | organizer ids, main first — see below                                                                          |
-| `venue`        | `string`        | venue code; required, must be listed                                                                           |
-| `room`         | `string?`       | space within the venue                                                                                         |
-| `price`        | `string`        | e.g. `"$72-$92"`; empty → warning                                                                              |
-| `discounts`    | `string`        | default; overridable per performance                                                                           |
-| `infoUrl`      | `string`        | empty → warning                                                                                                |
-| `ticketsUrl`   | `string`        | default; overridable per performance                                                                           |
-| `performances` | `Performance[]` | kept in date, then time order (the editor sorts on save); empty → warning (run never appears on the calendar)  |
-| `updatedAt`    | `string?`       | ISO 8601; set by the editor on Save when the run changed                                                       |
+| Field            | Type               | Notes                                                                                                                                        |
+| ---------------- | ------------------ | -------------------------------------------------------------------------------------------------------------------------------------------- |
+| `id`             | `string`           | `"run-<timestamp>"`, editor-assigned                                                                                                         |
+| `company`        | `string`           | the file's company id (`"other"` for the catch-all file)                                                                                     |
+| `showAbv`        | `string`           | chip label; required, ≤ 20 chars                                                                                                             |
+| `show`           | `string`           | full title; required                                                                                                                         |
+| `description`    | `string?`          | Markdown ([`renderMd`](#formatting--srclibaudition-formatts))                                                                                |
+| `genre`          | `Genre[]`          | see [Genre](#genre); older runs store one genre as a string — read it with `toGenres()` (`audition-format.ts`)                               |
+| `organizers`     | `string[]?`        | organizer ids, main first — see below                                                                                                        |
+| `venue`          | `string`           | venue code; required, must be listed                                                                                                         |
+| `room`           | `string?`          | space within the venue                                                                                                                       |
+| `price`          | `string`           | e.g. `"$72-$92"`; empty → warning                                                                                                            |
+| `discounts`      | `string`           | default; overridable per performance                                                                                                         |
+| `infoUrl`        | `string`           | empty → warning                                                                                                                              |
+| `ticketsUrl`     | `string`           | default; overridable per performance                                                                                                         |
+| `performances`   | `Performance[]`    | kept in date, then time order (the editor sorts on save); empty → warning (run never appears on the calendar)                                |
+| `updatedAt`      | `string?`          | ISO 8601; set by the editor on Save when the run changed                                                                                     |
+| `silentRemovals` | `SilentRemoval[]?` | performances deleted as data-entry corrections — the digest doesn't announce them; see [Silent removals](#silent-removals-and-cancellations) |
 
 #### `Performance`
 
@@ -197,30 +198,31 @@ Auditions and events share one schema.
 
 #### `Activity`
 
-| Field                            | Type                    | Applies to | Notes                                                                                                                                 |
-| -------------------------------- | ----------------------- | ---------- | ------------------------------------------------------------------------------------------------------------------------------------- |
-| `id`                             | `string`                | both       | `"activity-<timestamp>"`, editor-assigned                                                                                             |
-| `type`                           | `'audition' \| 'event'` | both       | set at creation; immutable                                                                                                            |
-| `title`                          | `string?`               | both       | required, except a linked audition: its title is looked up from `productionId` (`activityTitle()`), never stored                      |
-| `dates`                          | `ActivityDate[]`        | both       | ordered sessions                                                                                                                      |
-| `contact`                        | `ActivityContact?`      | both       | `{ name?, email?, phone? }`                                                                                                           |
-| `noticeUrl`                      | `string?`               | both       | primary info link                                                                                                                     |
-| `organizers`                     | `string[]?`             | both       | organizer ids, main first — see [Organizers](#run)                                                                                    |
-| `closed`                         | `boolean?`              | both       | excluded from upcoming; reversible                                                                                                    |
-| `createdAt` / `updatedAt`        | `string`                | both       | ISO 8601 — record history; the digests don't use them ([§10](#10-email-notifications))                                                |
-| `genre`                          | `Genre[]?`              | audition   | not stored when linked: taken from the production (`auditionDetails()`)                                                               |
-| `rehearsalStart` / `openingDate` | `string?`               | audition   | `YYYY-MM-DD`; when linked, `openingDate` isn't stored: it's the production's Opening performance, else its first (`runOpeningDate()`) |
-| `productionUrl`                  | `string?`               | audition   | not stored when linked: the production's `infoUrl`                                                                                    |
-| `rolesAvailable`                 | `AuditionRole[]?`       | audition   | hidden publicly when empty                                                                                                            |
-| `prep`                           | `AuditionPrep?`         | audition   | `{ acting?, singing?, dance?, bring? }`                                                                                               |
-| `notes`                          | `string?`               | audition   | Markdown                                                                                                                              |
-| `virtualSubmission`              | `boolean?`              | audition   | dates optional; always upcoming until closed                                                                                          |
-| `productionId`                   | `string?`               | audition   | a `Run.id` (any year); validated; Production picker                                                                                   |
-| `briefDescription`               | `string?`               | event      | collapsed-card blurb                                                                                                                  |
-| `description`                    | `string?`               | event      | Markdown, expanded card                                                                                                               |
-| `cost`                           | `string?`               | event      |                                                                                                                                       |
-| `registerUrl`                    | `string?`               | event      |                                                                                                                                       |
-| `datesByRequest`                 | `boolean?`              | event      | dates optional; shows "On request"; upcoming until closed                                                                             |
+| Field                            | Type                    | Applies to | Notes                                                                                                                                    |
+| -------------------------------- | ----------------------- | ---------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| `id`                             | `string`                | both       | `"activity-<timestamp>"`, editor-assigned                                                                                                |
+| `type`                           | `'audition' \| 'event'` | both       | set at creation; immutable                                                                                                               |
+| `title`                          | `string?`               | both       | required, except a linked audition: its title is looked up from `productionId` (`activityTitle()`), never stored                         |
+| `dates`                          | `ActivityDate[]`        | both       | ordered sessions                                                                                                                         |
+| `contact`                        | `ActivityContact?`      | both       | `{ name?, email?, phone? }`                                                                                                              |
+| `noticeUrl`                      | `string?`               | both       | primary info link                                                                                                                        |
+| `organizers`                     | `string[]?`             | both       | organizer ids, main first — see [Organizers](#run)                                                                                       |
+| `closed`                         | `boolean?`              | both       | excluded from upcoming; reversible                                                                                                       |
+| `createdAt` / `updatedAt`        | `string`                | both       | ISO 8601 — record history; the digests don't use them ([§10](#10-email-notifications))                                                   |
+| `genre`                          | `Genre[]?`              | audition   | not stored when linked: taken from the production (`auditionDetails()`)                                                                  |
+| `rehearsalStart` / `openingDate` | `string?`               | audition   | `YYYY-MM-DD`; when linked, `openingDate` isn't stored: it's the production's Opening performance, else its first (`runOpeningDate()`)    |
+| `productionUrl`                  | `string?`               | audition   | not stored when linked: the production's `infoUrl`                                                                                       |
+| `rolesAvailable`                 | `AuditionRole[]?`       | audition   | hidden publicly when empty                                                                                                               |
+| `prep`                           | `AuditionPrep?`         | audition   | `{ acting?, singing?, dance?, bring? }`                                                                                                  |
+| `notes`                          | `string?`               | audition   | Markdown                                                                                                                                 |
+| `virtualSubmission`              | `boolean?`              | audition   | dates optional; always upcoming until closed                                                                                             |
+| `productionId`                   | `string?`               | audition   | a `Run.id` (any year); validated; Production picker                                                                                      |
+| `briefDescription`               | `string?`               | event      | collapsed-card blurb                                                                                                                     |
+| `description`                    | `string?`               | event      | Markdown, expanded card                                                                                                                  |
+| `cost`                           | `string?`               | event      |                                                                                                                                          |
+| `registerUrl`                    | `string?`               | event      |                                                                                                                                          |
+| `datesByRequest`                 | `boolean?`              | event      | dates optional; shows "On request"; upcoming until closed                                                                                |
+| `silentRemovals`                 | `SilentRemoval[]?`      | both       | sessions deleted as data-entry corrections — the digest doesn't announce them; see [Silent removals](#silent-removals-and-cancellations) |
 
 Validation rules (required dates, event contact route, etc.) are in the
 [rule reference](#rule-reference); the upcoming rule is in
@@ -239,6 +241,21 @@ organizer's `primaryVenue`. `id` is a stable
 
 `{ role, type: 'lead'|'supporting'|'ensemble', gender: 'female'|'male'|'any',
 ageRange?, voicePart? (Musical only), description? }`
+
+#### Silent removals and cancellations
+
+The digest compares ids, so a deletion that must not be announced is recorded
+in the data in the same commit ([feature guide](feature-guide.md#removing-dates-and-records)).
+
+- **`silentRemovals`** (on a run or activity) — `SilentRemoval[]`, `{ id, date }`:
+  performances or sessions deleted as corrections. The digest skips them
+  ([§10](#10-email-notifications)). Save drops entries whose date has passed.
+- **`data/cancellations.json`** — `{ cancelled: Cancellation[] }`, one per whole
+  record deleted with Notify cancellation: `{ kind: 'run' | 'activity', company,
+year?, deletedOn, record }`, `record` being the record as last saved. The digest
+  treats it as the record with no dates, so it reports "Cancelled" once. Ignored
+  if a record with that id exists. Entries are written before the record is
+  deleted, replace one with the same id, and are dropped after 30 days.
 
 `getActivities()` (`src/lib/data.ts`) globs every activities file into a
 sorted `ActivityEvent[]`: activity + `company` (the file's) + `year` +
@@ -343,7 +360,12 @@ whether there are unsaved changes, and discard it when you move away.
 **Delete** is immediate: `deleteRecordFromFile()` (`api.js`) re-reads the file
 as saved, removes that one record, and writes it back, so other unsaved edits
 aren't published with it. The Calendar editor first refuses to delete a show
-that a saved audition's `productionId` points at. Each editor exports
+that a saved audition's `productionId` points at. For a saved, upcoming record,
+`askRemoval()` (`removal-dialog.js`) asks Notify cancellation / Delete without
+notification / Keep; Notify first writes the record to `data/cancellations.json`
+(`recordCancellation()`, `api.js`). The × on a saved, upcoming performance or
+session row asks the same; Delete without notification appends to
+`silentRemovals` (`withSilentRemoval()`, `data-rules.ts`), written by Save. Each editor exports
 `hasUnsavedChanges()`; `index.html` asks before Home, switching editors, or
 closing the tab would discard them.
 
@@ -355,6 +377,7 @@ closing the tab would discard them.
 | `organizer-picker.js`                         | organizer select (records filed under Other) and co-producer chips (shows only)            |
 | `genre-boxes.js`                              | the genre checkbox row (at most `MAX_GENRES`)                                              |
 | `markdown-editor.js`                          | shared rich-text toolbar and shortcuts                                                     |
+| `removal-dialog.js`                           | `askRemoval()`: Notify cancellation / Delete without notification / Keep                   |
 
 **Auth**
 
@@ -781,14 +804,26 @@ emailed:
 - **New**: listable now (upcoming; for activities, `isUpcomingActivity()`)
   and not listable or unknown before — so a production saved before its
   dates is announced when its dates arrive.
-- **Changed**: dates added / cancelled / moved (by occurrence id), venue or
-  location changed, tickets link appeared ("Tickets now on sale"), registration
-  link appeared ("Registration open"), reopened.
+- **Changed**, by occurrence id: venue or location changed, tickets link
+  appeared ("Tickets now on sale"), registration link appeared ("Registration
+  open"), reopened, and dates:
+
+  |                                  | Productions                                                                                 | Auditions & events     |
+  | -------------------------------- | ------------------------------------------------------------------------------------------- | ---------------------- |
+  | Added                            | "N dates added"                                                                             | "N sessions added"     |
+  | Removed, not in `silentRemovals` | "N dates cancelled"                                                                         | "N sessions cancelled" |
+  | Time changed only                | silent — the card shows no times                                                            | "N sessions updated"   |
+  | Date changed                     | "Dates changed" if the first or last upcoming date changed and no add/cancel pip reports it | "N sessions updated"   |
+
+  Ids in the record's `silentRemovals` are skipped (including for "Cancelled"),
+  and a production's old range excludes them.
+
 - **Cancelled**: a record that was listable and has lost all its remaining
-  dates is still reported, labelled "Cancelled" (`all: true` on the removal);
-  its email card reads "No upcoming performances" / "No upcoming sessions",
-  with a red "Cancelled" pip.
-  An activity that closes isn't a cancellation and sends nothing.
+  dates, labelled "Cancelled" (`all: true` on the removal); its card reads
+  "No upcoming performances" / "No upcoming sessions" with a red pip. A record
+  deleted with Notify cancellation comes from `data/cancellations.json`
+  ([§3](#silent-removals-and-cancellations)); its card has no link.
+  An activity that closes sends nothing.
 - A past date dropping off, and every other field (description, price,
   contact, wording), never sends email. `createdAt` / `updatedAt` aren't
   used.
@@ -958,6 +993,7 @@ missing ping always means a problem.
 - `check-shows.ts`, `check-activities.ts`, `check-services.ts` — the shared
   rules below plus structural checks. `check-activities.ts` also lists
   one-off session locations, so regulars can be added to the venue list.
+  `check-shows.ts` also checks `data/cancellations.json` (`cancellationsFileCheck()`).
 - `check-markdown.ts` — `renderMd` regression cases.
 - `check-emails.ts` — renders every email from the live data
   (`email-samples.ts`: all upcoming records as new, update cards carrying each

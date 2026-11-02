@@ -103,6 +103,20 @@ export function buildSamples(today = todayIso()): Sample[] {
           }
         ]
       : []),
+    ...(base
+      ? [
+          {
+            name: 'performance-digest-deleted',
+            html: buildPerformanceDigest(
+              [],
+              [{ item: { ...base, perfs: [], url: '' }, changes: [prodChanges[2][0]] }],
+              [],
+              SITE,
+              links
+            ).html
+          }
+        ]
+      : []),
     {
       name: 'activity-digest',
       html: buildActivityDigest(
@@ -112,6 +126,24 @@ export function buildSamples(today = todayIso()): Sample[] {
         links
       ).html
     },
+    ...(auditions[0]
+      ? [
+          {
+            name: 'activity-digest-deleted',
+            html: buildActivityDigest(
+              [],
+              [
+                {
+                  item: { ...auditions[0], dates: [], deleted: true },
+                  changes: [actChanges[2][0]]
+                }
+              ],
+              SITE,
+              links
+            ).html
+          }
+        ]
+      : []),
     {
       name: 'welcome-both-lists',
       html: buildWelcomeEmail({ productions, excludedNames: [], auditions, events }, SITE, links)

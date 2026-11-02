@@ -55,6 +55,24 @@ function expectString(value: unknown, label: string): string {
   return value
 }
 
+/** An error message if `value` isn't a valid silentRemovals list (absent is fine). */
+function silentRemovalsError(value: unknown, idRe: RegExp, idLabel: string) {
+  if (value === undefined) return null
+  const ok =
+    Array.isArray(value) &&
+    value.every(
+      (s) =>
+        isRecord(s) &&
+        typeof s.id === 'string' &&
+        idRe.test(s.id) &&
+        typeof s.date === 'string' &&
+        DATE_RE.test(s.date)
+    )
+  return ok
+    ? null
+    : `silentRemovals must be a list of { id: "${idLabel}-<timestamp>", date: YYYY-MM-DD }`
+}
+
 // ── Shows: data/shows/<year>/<company>-<year>.json ──────────────────────────
 
 export function showsFileCheck(
@@ -126,6 +144,8 @@ export function showsFileCheck(
           `${loc}.updatedAt must be an ISO 8601 timestamp`
         )
       assert(Array.isArray(runValue.performances), `${loc}.performances must be an array`)
+      const removalError = silentRemovalsError(runValue.silentRemovals, PERF_ID_RE, 'perf')
+      assert(!removalError, `${loc}.${removalError}`)
 
       let previousSortKey = ''
       // Historic runs (last performance before today) don't get warnings
@@ -249,6 +269,8 @@ export function activitiesFileCheck(
 
     if (a.closed !== undefined && typeof a.closed !== 'boolean')
       err(al, 'closed must be a boolean if present')
+    const removalError = silentRemovalsError(a.silentRemovals, SESSION_ID_RE, 'session')
+    if (removalError) err(al, removalError)
     if (a.datesByRequest !== undefined && typeof a.datesByRequest !== 'boolean')
       err(al, 'datesByRequest must be a boolean if present')
 
@@ -352,11 +374,43 @@ export function serviceSubcategories(categoriesFile: unknown) {
   return new Set((cats ?? []).flatMap((c) => c.subcategories.map((s) => s.id)))
 }
 
+// ── Cancellations: data/cancellations.json ──────────────────────────────────
+
+/**
+ * The deleted runs and activities the next digest announces as Cancelled. Only the
+ * wrapper is checked closely; the record inside is whatever the editor last saved.
+ */
+export function cancellationsFileCheck(value: unknown, label: string, refs: RuleRefs) {
+  const errors: string[] = []
+  if (!isRecord(value) || !Array.isArray(value.cancelled)) {
+    errors.push(`${label}: must be { "cancelled": [...] }`)
+    return { errors }
+  }
+  const companies = new Set(refs.companies.map((c) => c.id))
+  value.cancelled.forEach((c: unknown, i: number) => {
+    const where = `${label}: cancelled[${i}]`
+    if (!isRecord(c)) return errors.push(`${where} must be an object`)
+    if (c.kind !== 'run' && c.kind !== 'activity')
+      errors.push(`${where}.kind must be "run" or "activity"`)
+    if (typeof c.company !== 'string' || !companies.has(c.company))
+      errors.push(`${where}.company is not a known company`)
+    if (typeof c.deletedOn !== 'string' || !DATE_RE.test(c.deletedOn))
+      errors.push(`${where}.deletedOn must be YYYY-MM-DD`)
+    if (c.kind === 'activity' && typeof c.year !== 'number')
+      errors.push(`${where}.year must be a number`)
+    const prefix = c.kind === 'run' ? 'run-' : 'activity-'
+    if (!isRecord(c.record) || typeof c.record.id !== 'string' || !c.record.id.startsWith(prefix))
+      errors.push(`${where}.record must be a ${c.kind} with an id starting "${prefix}"`)
+  })
+  return { errors }
+}
+
 // ── A file the editors save, by its path under data/ ────────────────────────
 
 const SHOWS_PATH = /^shows\/(\d{4})\/[\w-]+-\d{4}\.json$/
 const ACTIVITIES_PATH = /^activities\/(\d{4})\/[\w-]+-activities-\d{4}\.json$/
 const SERVICES_PATH = 'sc-theater-services.json'
+const CANCELLATIONS_PATH = 'cancellations.json'
 
 /**
  * Errors that would fail the build if `value` were saved at `path` (relative to data/).
@@ -377,5 +431,6 @@ export function saveErrors(
   m = path.match(ACTIVITIES_PATH)
   if (m) return activitiesFileCheck(value, label, Number(m[1]), singleFile).errors
   if (path === SERVICES_PATH) return servicesFileCheck(value, label, refs.subcategories).errors
+  if (path === CANCELLATIONS_PATH) return cancellationsFileCheck(value, label, singleFile).errors
   return []
 }

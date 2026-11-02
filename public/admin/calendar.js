@@ -1,11 +1,22 @@
-import { IS_DEV, apiFetch, apiPut, buildCompanyOptions, deleteRecordFromFile } from './api.js'
+import {
+  IS_DEV,
+  apiFetch,
+  apiPut,
+  buildCompanyOptions,
+  deleteRecordFromFile,
+  recordCancellation
+} from './api.js'
+import { askRemoval } from './removal-dialog.js'
 import { fmtAudDateRange } from '/admin/audition-format.js'
 import {
   MAX_GENRES,
   isDateNearYear,
   isValidTime,
+  liveSilentRemovals,
   runIssues,
-  sameDayWarnings
+  sameDayWarnings,
+  todayIso,
+  withSilentRemoval
 } from '/admin/data-rules.js'
 import { createIdGenerator, ensurePerformanceIds } from '/admin/occurrence-ids.js'
 import { organizerLabel, organizerName, recordOrganizerIds } from '/admin/organizers.js'
@@ -922,9 +933,12 @@ async function saveFile() {
   btn.textContent = 'Saving…'
   try {
     const now = new Date().toISOString()
-    const savedRuns = runs.map((r) =>
-      runSnapshots.get(r.id) === makeRunSnapshot(r) ? r : { ...r, updatedAt: now }
-    )
+    const savedRuns = runs.map((r) => {
+      if (runSnapshots.get(r.id) === makeRunSnapshot(r)) return r
+      const { silentRemovals, ...rest } = r
+      const live = liveSilentRemovals(silentRemovals)
+      return { ...rest, ...(live.length ? { silentRemovals: live } : {}), updatedAt: now }
+    })
     await apiPut(`shows/${currentYear}/${currentCompanyId}-${currentYear}.json`, {
       company: currentCompanyId,
       year: currentYear,
@@ -1226,9 +1240,27 @@ async function deleteRun() {
       return
     }
   }
-  if (!confirm(`Delete "${r.showAbv || r.show || 'this show'}"? This can't be undone.`)) return
+  const upcoming =
+    runSnapshots.has(r.id) &&
+    JSON.parse(runSnapshots.get(r.id)).performances.some((p) => p.date >= todayIso())
+  const name = r.showAbv || r.show || 'this show'
+  let choice = 'silent'
+  if (upcoming) {
+    choice = await askRemoval(
+      `Delete "${name}"? This can't be undone.\n\nSubscribers may have been told about it.`
+    )
+    if (choice === 'keep') return
+  } else if (!confirm(`Delete "${name}"? This can't be undone.`)) return
   if (runSnapshots.has(r.id)) {
     try {
+      if (choice === 'notify')
+        await recordCancellation(
+          'run',
+          currentCompanyId,
+          currentYear,
+          JSON.parse(runSnapshots.get(r.id)),
+          todayIso()
+        )
       await deleteRecordFromFile(
         `shows/${currentYear}/${currentCompanyId}-${currentYear}.json`,
         'runs',
@@ -1454,8 +1486,23 @@ function addRow() {
   }, 30)
 }
 
-function deleteRow(idx) {
-  runs[activeRunIdx].performances.splice(idx, 1)
+async function deleteRow(idx) {
+  const r = runs[activeRunIdx]
+  const perf = r.performances[idx]
+  const saved = runSnapshots.has(r.id)
+    ? JSON.parse(runSnapshots.get(r.id)).performances.find((p) => p.id === perf.id)
+    : null
+  if (saved && saved.date >= todayIso()) {
+    const choice = await askRemoval(
+      `Delete the ${saved.date} performance?\n\nSubscribers may have been told about it.`
+    )
+    if (choice === 'keep') return
+    if (choice === 'silent')
+      r.silentRemovals = withSilentRemoval(r.silentRemovals, perf.id, saved.date)
+  }
+  const at = r.performances.indexOf(perf)
+  if (at < 0) return
+  r.performances.splice(at, 1)
   renderPerfTable()
   markDirty()
 }

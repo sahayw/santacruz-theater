@@ -71,10 +71,35 @@ export function buildSamples(today = todayIso()): Sample[] {
   const actChanges: ActivityChange[][] = [
     [{ kind: 'sessions-added', sessionIds: ['a'] }],
     [{ kind: 'sessions-removed', when: ['2099-01-01 19:00'], all: false }],
-    [{ kind: 'sessions-removed', when: ['2099-01-01 19:00'], all: true }],
-    [{ kind: 'location' }, { kind: 'registration' }, { kind: 'reopened' }]
+    [{ kind: 'sessions-removed', when: ['2099-01-01 19:00'], all: true }]
   ]
-  // With nothing upcoming, there are no records to carry the changes
+  // Session pips only go on records that have dates; a virtual audition has none
+  const allActivities = [...auditions, ...events]
+  const dated = allActivities.filter((a) => a.dates.some((d) => d.date))
+  const virtual = auditions.find((a) => a.virtualSubmission)
+  const activityUpdates = [
+    ...(dated[0]
+      ? [
+          {
+            item: dated[0],
+            changes: [
+              { kind: 'sessions-added', sessionIds: [dated[0].dates[0].id] },
+              { kind: 'sessions-removed', when: ['2099-01-01 19:00'], all: false },
+              { kind: 'sessions-moved', sessionIds: [dated[0].dates[dated[0].dates.length - 1].id] }
+            ] as ActivityChange[]
+          }
+        ]
+      : []),
+    ...(dated[1]
+      ? [
+          {
+            item: dated[1],
+            changes: [{ kind: 'location' }, { kind: 'registration' }] as ActivityChange[]
+          }
+        ]
+      : []),
+    ...(virtual ? [{ item: virtual, changes: [{ kind: 'reopened' }] as ActivityChange[] }] : [])
+  ]
   const withChanges = <T, C>(list: T[], changes: C[][]) =>
     list.length ? changes.map((c, i) => ({ item: list[i % list.length], changes: c })) : []
 
@@ -103,15 +128,42 @@ export function buildSamples(today = todayIso()): Sample[] {
           }
         ]
       : []),
+    ...(base
+      ? [
+          {
+            name: 'performance-digest-deleted',
+            html: buildPerformanceDigest(
+              [],
+              [{ item: { ...base, perfs: [], url: '' }, changes: [prodChanges[2][0]] }],
+              [],
+              SITE,
+              links
+            ).html
+          }
+        ]
+      : []),
     {
       name: 'activity-digest',
-      html: buildActivityDigest(
-        [...auditions, ...events],
-        withChanges([...auditions, ...events], actChanges),
-        SITE,
-        links
-      ).html
+      html: buildActivityDigest(allActivities, activityUpdates, SITE, links).html
     },
+    ...(auditions[0]
+      ? [
+          {
+            name: 'activity-digest-deleted',
+            html: buildActivityDigest(
+              [],
+              [
+                {
+                  item: { ...auditions[0], dates: [], deleted: true },
+                  changes: [actChanges[2][0]]
+                }
+              ],
+              SITE,
+              links
+            ).html
+          }
+        ]
+      : []),
     {
       name: 'welcome-both-lists',
       html: buildWelcomeEmail({ productions, excludedNames: [], auditions, events }, SITE, links)

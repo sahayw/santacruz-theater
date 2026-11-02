@@ -80,6 +80,27 @@ function firstDateYearIssue(dates: string[], fileYear: number, what: string) {
 }
 
 /**
+ * The silent removals still worth keeping — dates not yet past (the digest ignores a
+ * removed date that has passed, so older entries can go).
+ */
+export function liveSilentRemovals(
+  list: { id: string; date: string }[] | undefined,
+  today = todayIso()
+) {
+  return (list ?? []).filter((s) => s.date >= today)
+}
+
+/** `list` plus one more entry for `id` (replacing any earlier one), with past entries dropped. */
+export function withSilentRemoval(
+  list: { id: string; date: string }[] | undefined,
+  id: string,
+  date: string,
+  today = todayIso()
+) {
+  return [...liveSilentRemovals(list, today).filter((s) => s.id !== id), { id, date }]
+}
+
+/**
  * One warning per day that has more than one performance or session, so a pattern or
  * paste that landed on a day already scheduled is noticed. Two on a day can be right
  * (matinee and evening), so this is only a warning, and only the editors ask for it —

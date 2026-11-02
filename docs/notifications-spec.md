@@ -208,6 +208,7 @@ every record it has notified about. Each nightly run:
 | ------------------------------------------------------------------------------------- | ----------- | ------------------ |
 | New                                                                                   | ✓           | ✓                  |
 | Dates added, removed or moved (all remaining removed — "Cancelled")                   | ✓           | ✓                  |
+| Deleted with Notify cancellation — "Cancelled", no link                               | ✓           | ✓                  |
 | Venue / location changed (by code)                                                    | ✓           | ✓                  |
 | Tickets link appears (production or any upcoming performance) — "Tickets now on sale" | ✓           |                    |
 | Registration link appears — "Registration open"                                       |             | ✓                  |
@@ -215,6 +216,18 @@ every record it has notified about. Each nightly run:
 
 **Ignored**: price, description, title, discounts, genre, info link, one
 tickets link replacing another, notes, contact, prep.
+
+**Dates.** A production email shows the first-to-last date range and the
+performance count. Added and cancelled dates are announced. A date moved is
+announced ("Dates changed") only if the range changes and no add or cancel pip
+reports it; a time-only change is never announced. Auditions and events show
+their sessions, so any session added, cancelled or changed is announced ("N sessions modified").
+
+**Corrections vs cancellations.** Deleting a saved, upcoming row or record asks:
+**Notify cancellation**, **Delete without notification** or **Keep**. A silent
+row removal is stored in `silentRemovals` and skipped by the digest. A whole
+record deleted with Notify cancellation is copied to `data/cancellations.json`
+and reported "Cancelled" once, with no link.
 
 The rules live in one module, `src/lib/notice-rules.ts`, with unit tests. A
 list's first run only records its snapshot and sends nothing, so going live

@@ -29,6 +29,27 @@ export interface Run {
   performances: Performance[]
   organizers?: string[] // organizer ids, main first; see recordOrganizerIds() in src/lib/organizers.ts
   updatedAt?: string // ISO 8601; set by the editor when the run changes (calendar feed LAST-MODIFIED)
+  silentRemovals?: SilentRemoval[] // performances deleted as data-entry corrections; never announced
+}
+
+/** A performance or session deleted with "Delete without notification". */
+export interface SilentRemoval {
+  id: string // "perf-…" / "session-…"
+  date: string // YYYY-MM-DD, so the editor can drop it once it's past
+}
+
+/** One deleted run or activity to announce as Cancelled (data/cancellations.json). */
+export interface Cancellation {
+  kind: 'run' | 'activity'
+  company: string // the data file's company id
+  year?: number // activities only: the file's year
+  deletedOn: string // YYYY-MM-DD
+  record: Run | Activity // as last saved
+}
+
+/** Shape of data/cancellations.json. */
+export interface CancellationsFile {
+  cancelled: Cancellation[]
 }
 
 /** Shape of each data/shows/<year>/<company>-<year>.json file. */
@@ -140,6 +161,7 @@ export interface Activity {
   notes?: string
   createdAt: string
   updatedAt: string
+  silentRemovals?: SilentRemoval[] // sessions deleted as data-entry corrections; never announced
 }
 
 export interface ActivitiesFile {

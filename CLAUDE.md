@@ -19,6 +19,8 @@ The site is a hub (`/`) linking to four sections: **Calendar** (`/calendar`), **
 
 **When you change a feature or its data shape, update `docs/implementation.md` (schema/mechanics) and `docs/feature-guide.md` (user-visible behavior) in the same change — don't let them drift from the code or each other.**
 
+**Documentation style: state facts concisely.** Docs are reference, not narrative. No rationale, history, restating of what a table or neighbouring sentence already says, or hedging. One statement per fact, in one place only (other docs link to it). Say what the system does, not why it was designed so — design records belong in `ics-spec.md` / `notifications-spec.md`, and even there stay brief. Re-read every doc addition and cut it before presenting.
+
 ## Key commands
 
 | Command           | Action                                                                                                                                     |

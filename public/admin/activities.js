@@ -1,12 +1,23 @@
-import { IS_DEV, apiFetch, apiPut, buildCompanyOptions, deleteRecordFromFile } from './api.js'
+import {
+  IS_DEV,
+  apiFetch,
+  apiPut,
+  buildCompanyOptions,
+  deleteRecordFromFile,
+  recordCancellation
+} from './api.js'
+import { askRemoval } from './removal-dialog.js'
 import { fmt12, rolesSum, activityTitle, auditionDetails } from '/admin/audition-format.js'
 import {
   MAX_GENRES,
   activityIssues,
   isDateNearYear,
+  isUpcomingActivity,
   isValidTime,
+  liveSilentRemovals,
   sameDayWarnings,
-  todayIso
+  todayIso,
+  withSilentRemoval
 } from '/admin/data-rules.js'
 import { createIdGenerator, ensureSessionIds } from '/admin/occurrence-ids.js'
 import {
@@ -1148,10 +1159,11 @@ async function saveFile() {
     const now = new Date().toISOString()
     const cleanActivities = activities.map((a) => {
       const cleaned = { ...a, dates: (a.dates || []).filter((d) => !isEmptyDateRow(d)) }
-      const { updatedAt, ...rest } = cleaned
-      const snap = actSnapshots.get(a.id)
-      const changed = !snap || snap !== JSON.stringify(rest)
-      return { ...cleaned, updatedAt: changed ? now : a.updatedAt }
+      const changed = actSnapshots.get(a.id) !== makeActivitySnapshot(a)
+      if (!changed) return cleaned
+      const { silentRemovals, ...rest } = cleaned
+      const live = liveSilentRemovals(silentRemovals)
+      return { ...rest, ...(live.length ? { silentRemovals: live } : {}), updatedAt: now }
     })
     await apiPut(`activities/${currentYear}/${currentCompanyId}-activities-${currentYear}.json`, {
       company: currentCompanyId,
@@ -1607,9 +1619,25 @@ function restoreActivity() {
 async function deleteActivity() {
   if (activeActIdx < 0) return
   const a = activities[activeActIdx]
-  if (!confirm(`Delete "${titleOf(a) || 'this activity'}"? This can't be undone.`)) return
-  if (actSnapshots.has(a.id)) {
+  const name = titleOf(a) || 'this activity'
+  const saved = actSnapshots.has(a.id) ? JSON.parse(actSnapshots.get(a.id)) : null
+  let choice = 'silent'
+  if (saved && isUpcomingActivity(saved)) {
+    choice = await askRemoval(
+      `Delete "${name}"? This can't be undone.\n\nSubscribers may have been told about it.`
+    )
+    if (choice === 'keep') return
+  } else if (!confirm(`Delete "${name}"? This can't be undone.`)) return
+  if (saved) {
     try {
+      if (choice === 'notify')
+        await recordCancellation(
+          'activity',
+          currentCompanyId,
+          Number(currentYear),
+          saved,
+          todayIso()
+        )
       await deleteRecordFromFile(
         `activities/${currentYear}/${currentCompanyId}-activities-${currentYear}.json`,
         'activities',
@@ -1958,8 +1986,23 @@ function addDateRow() {
   setTimeout(() => document.getElementById(`dc-${idx}-date`)?.focus(), 30)
 }
 
-function deleteDateRow(idx) {
-  activities[activeActIdx].dates.splice(idx, 1)
+async function deleteDateRow(idx) {
+  const a = activities[activeActIdx]
+  const row = a.dates[idx]
+  const saved = actSnapshots.has(a.id)
+    ? JSON.parse(actSnapshots.get(a.id)).dates.find((d) => d.id === row.id)
+    : null
+  if (saved && saved.date >= todayIso()) {
+    const choice = await askRemoval(
+      `Delete the ${saved.date} session?\n\nSubscribers may have been told about it.`
+    )
+    if (choice === 'keep') return
+    if (choice === 'silent')
+      a.silentRemovals = withSilentRemoval(a.silentRemovals, row.id, saved.date)
+  }
+  const at = a.dates.indexOf(row)
+  if (at < 0) return
+  a.dates.splice(at, 1)
   renderDatesTable()
   markDirty()
 }

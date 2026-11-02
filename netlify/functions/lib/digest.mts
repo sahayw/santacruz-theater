@@ -29,7 +29,7 @@ import {
   type ProductionPrint
 } from '../../../src/lib/notice-rules.ts'
 import { EMAIL_LISTS, EXCLUDED_KEY, SELECTED_TAG } from '../../../src/lib/email-lists.ts'
-import { loadAllActivities } from './activities-data.mts'
+import { loadAllActivities, loadCancelledActivities } from './activities-data.mts'
 import { allOf, buttondown, type Buttondown, type Subscriber } from './buttondown.mts'
 import { loadCompanies, loadVenues } from './company-data.mts'
 import {
@@ -37,7 +37,7 @@ import {
   buildPerformanceDigest,
   templateFooterLinks
 } from './email-template.mts'
-import { digestProduction, includesProduction, loadRuns } from './shows-data.mts'
+import { digestProduction, includesProduction, loadCancelledRuns, loadRuns } from './shows-data.mts'
 import { todayIso } from '../../../src/lib/data-rules.ts'
 
 const snapshotKey = (list: string) => `snapshot/${list}`
@@ -118,7 +118,10 @@ async function performancesDigest(ctx: Ctx) {
   if (ctx.record[list]?.done) return ctx.log(`${list}: already sent today`)
   const companies = loadCompanies()
   const venues = loadVenues()
-  const runs = loadRuns()
+  const current = loadRuns()
+  const gone = loadCancelledRuns(current)
+  const goneIds = new Set(gone.map((r) => r.id))
+  const runs = [...current, ...gone]
   const seed = classifyProductions(runs, {}, ctx.today).next
   const prev = await snapshot<ProductionPrint>(ctx, list, seed)
   if (!prev) return
@@ -126,7 +129,7 @@ async function performancesDigest(ctx: Ctx) {
 
   const byId = new Map(runs.map((r) => [r.id, r]))
   const prod = (id: string) =>
-    digestProduction(byId.get(id)!, companies, venues, ctx.today, ctx.siteUrl)
+    digestProduction(byId.get(id)!, companies, venues, ctx.today, ctx.siteUrl, goneIds.has(id))
   const byFirstDate = (a: { perfs: { date: string }[] }, b: { perfs: { date: string }[] }) =>
     (a.perfs[0]?.date ?? '').localeCompare(b.perfs[0]?.date ?? '')
   const fresh = result.notices
@@ -227,11 +230,14 @@ async function performancesDigest(ctx: Ctx) {
 async function activitiesDigest(ctx: Ctx) {
   const list = 'auditions-events'
   if (ctx.record[list]?.done) return ctx.log(`${list}: already sent today`)
-  const activities = loadAllActivities()
-  const seed = classifyActivities(activities, {}, ctx.today).next
+  const current = loadAllActivities()
+  const gone = loadCancelledActivities(current)
+  const goneIds = new Set(gone.map((a) => a.id))
+  const activities = [...current, ...gone]
+  const seed = classifyActivities(activities, {}, ctx.today, goneIds).next
   const prev = await snapshot<ActivityPrint>(ctx, list, seed)
   if (!prev) return
-  const { notices, next } = classifyActivities(activities, prev, ctx.today)
+  const { notices, next } = classifyActivities(activities, prev, ctx.today, goneIds)
 
   const byId = new Map(activities.map((a) => [a.id, a]))
   const byFirstDate = (a: { dates: { date: string }[] }, b: { dates: { date: string }[] }) =>

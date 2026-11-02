@@ -125,12 +125,25 @@ describe('emails', () => {
     expect(html).toContain('Details &amp; registration')
   })
 
-  it('colours a cancelled activity red and links to plain Details', () => {
+  it('shows a cancelled activity as a red pip and title only, with no link', () => {
     const html = activityCard(digestOf(audition), 'https://x.test', [
       { kind: 'sessions-removed', when: [], all: true } as never
     ])
     expect(html).toContain('#ffd4d4')
-    expect(html).toContain('>Details &rarr;')
+    expect(html).not.toContain('<a ')
+    expect(html).not.toContain('No upcoming')
+  })
+
+  it('labels the sessions that were added, cancelled and updated', () => {
+    const d = digestOf(event)
+    const html = activityCard(d, 'https://x.test', [
+      { kind: 'sessions-added', sessionIds: [d.dates[0].id] },
+      { kind: 'sessions-removed', when: ['2026-12-31 19:00'], all: false },
+      { kind: 'sessions-moved', sessionIds: [d.dates[0].id] }
+    ])
+    expect(html).toMatch(/>Added<[\s\S]*>Cancelled<[\s\S]*>Updated</)
+    expect(html).toContain('text-decoration:line-through')
+    expect(html).toContain('Dec 31')
   })
 
   it('welcomes with one row each: pips, organizer, range, one link', () => {

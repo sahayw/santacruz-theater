@@ -80,3 +80,43 @@ describe('saveErrors', () => {
     expect(saveErrors('sc-theater-companies.json', { anything: true }, refs, TODAY)).toEqual([])
   })
 })
+
+describe('silent removals and cancellations', () => {
+  const removal = { id: 'perf-1700000000009', date: '2026-11-08' }
+
+  it('accepts silentRemovals on runs and activities', () => {
+    const r = run({ silentRemovals: [removal] })
+    expect(saveErrors('shows/2026/tst-2026.json', showsFile([r]), refs, TODAY)).toEqual([])
+    const a = activity({ silentRemovals: [{ id: 'session-1700000000009', date: '2026-11-08' }] })
+    expect(
+      saveErrors('activities/2026/tst-activities-2026.json', activitiesFile([a]), refs, TODAY)
+    ).toEqual([])
+  })
+
+  it('refuses malformed silentRemovals', () => {
+    const bad = run({ silentRemovals: [{ id: 'session-1', date: '2026-11-08' }] })
+    expect(saveErrors('shows/2026/tst-2026.json', showsFile([bad]), refs, TODAY)[0]).toMatch(
+      /silentRemovals must be a list/
+    )
+  })
+
+  it('checks cancellations.json', () => {
+    const entry = {
+      kind: 'run',
+      company: 'tst',
+      deletedOn: '2026-10-15',
+      record: run()
+    }
+    expect(saveErrors('cancellations.json', { cancelled: [entry] }, refs, TODAY)).toEqual([])
+    expect(saveErrors('cancellations.json', { cancelled: [] }, refs, TODAY)).toEqual([])
+    expect(saveErrors('cancellations.json', {}, refs, TODAY)[0]).toMatch(/must be \{ "cancelled"/)
+    expect(
+      saveErrors(
+        'cancellations.json',
+        { cancelled: [{ ...entry, deletedOn: 'x' }] },
+        refs,
+        TODAY
+      )[0]
+    ).toMatch(/deletedOn/)
+  })
+})

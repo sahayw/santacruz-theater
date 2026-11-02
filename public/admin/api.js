@@ -100,6 +100,25 @@ export async function deleteRecordFromFile(file, key, id) {
   await apiPut(file, { ...data, [key]: kept })
 }
 
+const CANCELLATION_DAYS = 30
+
+/**
+ * Records a whole run or activity as cancelled so the next digest announces it.
+ * Call before deleting the record; `record` is the record as last saved.
+ */
+export async function recordCancellation(kind, company, year, record, today) {
+  const data = await apiFetch('cancellations.json')
+  const cutoff = new Date(Date.parse(today) - CANCELLATION_DAYS * 86400000)
+    .toISOString()
+    .slice(0, 10)
+  const cancelled = (data.cancelled || []).filter(
+    (c) => c.deletedOn >= cutoff && c.record?.id !== record.id
+  )
+  const entry = { kind, company, deletedOn: today, record }
+  if (kind === 'activity') entry.year = year
+  await apiPut('cancellations.json', { ...data, cancelled: [...cancelled, entry] })
+}
+
 export async function apiUploadImage(filename, base64) {
   const hdrs = { 'Content-Type': 'application/json' }
   if (_identityUser) {

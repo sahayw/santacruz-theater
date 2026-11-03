@@ -81,7 +81,7 @@
         {
           "id": "perf-1791991838099",
           "date": "2026-11-01",
-          "time": "19:30",
+          "time": "14:00",
           "perfType": "",
           "discounts": "",
           "ticketsUrl": ""
@@ -95,14 +95,6 @@
           "ticketsUrl": ""
         },
         {
-          "id": "perf-1791991838106",
-          "date": "2026-11-07",
-          "time": "14:00",
-          "perfType": "",
-          "discounts": "",
-          "ticketsUrl": ""
-        },
-        {
           "id": "perf-1791991838101",
           "date": "2026-11-07",
           "time": "19:30",
@@ -111,9 +103,9 @@
           "ticketsUrl": ""
         },
         {
-          "id": "perf-1791991838102",
+          "id": "perf-1791991838106",
           "date": "2026-11-08",
-          "time": "19:30",
+          "time": "14:00",
           "perfType": "",
           "discounts": "",
           "ticketsUrl": ""
@@ -127,30 +119,33 @@
           "ticketsUrl": ""
         },
         {
-          "id": "perf-1791991838107",
+          "id": "perf-1791991838105",
           "date": "2026-11-14",
+          "time": "19:30",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "id": "perf-1791991838107",
+          "date": "2026-11-15",
           "time": "14:00",
           "perfType": "",
           "discounts": "",
           "ticketsUrl": ""
+        }
+      ],
+      "silentRemovals": [
+        {
+          "id": "perf-1791991838102",
+          "date": "2026-11-08"
         },
         {
           "id": "perf-1791991838104",
-          "date": "2026-11-14",
-          "time": "19:30",
-          "perfType": "",
-          "discounts": "",
-          "ticketsUrl": ""
-        },
-        {
-          "id": "perf-1791991838105",
-          "date": "2026-11-15",
-          "time": "19:30",
-          "perfType": "",
-          "discounts": "",
-          "ticketsUrl": ""
+          "date": "2026-11-14"
         }
-      ]
+      ],
+      "updatedAt": "2026-11-03T18:06:18.581Z"
     },
     {
       "id": "run-1782741993666",

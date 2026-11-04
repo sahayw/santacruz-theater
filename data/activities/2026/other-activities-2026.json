@@ -83,31 +83,47 @@
       }
     },
     {
-      "id": "activity-1793817023575",
-      "type": "event",
-      "title": "Winter Retreat: Relax and Rejuvenate with Dor",
-      "genre": [],
+      "id": "activity-1793816723248",
+      "type": "audition",
       "dates": [
         {
-          "id": "session-1793817023575",
-          "date": "2026-11-30",
+          "id": "session-1793816723248",
+          "date": "2026-12-06",
+          "startTime": "11:00",
+          "endTime": "16:30",
+          "venue": "Scratch",
+          "notes": "Individual vocal auditions by appointment. Must fill out online audition form and sign up for a time slot https://docs.google.com/forms/d/e/1FAIpQLSdoSIGfsyNdAj_wT78kOYI5SIyn48vimzzFIxZ2McOP3lkLeQ/viewform"
+        },
+        {
+          "id": "session-1793817638299",
+          "date": "2026-12-08",
           "startTime": "18:00",
-          "endTime": "20:00",
-          "venue": "Scratch"
+          "venue": "LN",
+          "notes": "Dance callbacks by invitation",
+          "endTime": "21:00"
+        },
+        {
+          "id": "session-1793818645773",
+          "date": "2026-12-13",
+          "startTime": "17:00",
+          "endTime": "21:00",
+          "venue": "LN",
+          "notes": "Vocal/acting callbacks by invitation"
         }
       ],
-      "createdAt": "2026-11-04T18:30:23.575Z",
-      "updatedAt": "2026-11-04T18:37:48.750Z",
+      "rolesAvailable": [],
+      "createdAt": "2026-11-04T18:25:23.248Z",
+      "updatedAt": "2026-11-04T19:11:23.674Z",
       "organizers": [
-        "dor-atkinson"
+        "cct"
       ],
-      "description": "This 2-hour session is for actors, directors, writers, and other creative folk who would like to de-stress and reconnect for the holidays. It will include mind-body practices such as yoga, breath-work, a winter-focused guided mediation, and movement for performers approaches such as Viewpoints.",
-      "briefDescription": "Find ease as the holidays begin with gentle mind-body practices and movement approaches for performers",
-      "cost": "$25-35",
-      "registerUrl": "https://docs.google.com/forms/d/e/1FAIpQLSenMwQlnqMlisFiXEofYYi_JKT-V_3BDv7k5EgfysC12tcfmQ/viewform?pli=1",
-      "contact": {
-        "name": "Dor Atkinson",
-        "email": "dorcosbyatkinson@gmail.com"
+      "rehearsalStart": "2027-01-13",
+      "noticeUrl": "https://sites.google.com/view/shrekauditions?usp=sharing&pli=1&authuser=0",
+      "productionId": "run-1793809923259",
+      "prep": {
+        "bring": [
+          "32bar or 1 minute cut of an appropriate song. Submit karaoke track ahead of time."
+        ]
       }
     }
   ]

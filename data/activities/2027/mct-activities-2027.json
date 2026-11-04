@@ -1,0 +1,112 @@
+{
+  "company": "mct",
+  "year": 2027,
+  "activities": [
+    {
+      "id": "activity-1793739919526",
+      "type": "audition",
+      "dates": [
+        {
+          "id": "session-1793739919526",
+          "date": "2027-01-25",
+          "startTime": "18:30",
+          "venue": "LN",
+          "endTime": "20:30",
+          "room": "Room 1"
+        },
+        {
+          "id": "session-1793740028136",
+          "date": "2027-01-26",
+          "startTime": "18:30",
+          "endTime": "20:30",
+          "venue": "PH"
+        },
+        {
+          "id": "session-1793740077711",
+          "date": "2027-01-27",
+          "startTime": "18:30",
+          "endTime": "20:30",
+          "venue": "PH",
+          "notes": "Callbacks - by invitation"
+        }
+      ],
+      "rolesAvailable": [
+        {
+          "role": "Lloyd Dallas",
+          "type": "lead",
+          "gender": "male",
+          "description": "The Director of this ensemble",
+          "ageRange": "30-50"
+        },
+        {
+          "role": "Dotty Otley",
+          "type": "supporting",
+          "gender": "female",
+          "description": "An aging, forgetful actress",
+          "ageRange": "50ish"
+        },
+        {
+          "role": "Garry Lejeune",
+          "type": "supporting",
+          "gender": "male",
+          "description": "An energetic actor",
+          "ageRange": "30-50"
+        },
+        {
+          "role": "Brooke Ashton",
+          "type": "supporting",
+          "gender": "female",
+          "description": "A young, naive, and inexperienced actress",
+          "ageRange": "20s"
+        },
+        {
+          "role": "Belinda Blair",
+          "type": "supporting",
+          "gender": "female",
+          "description": "A cheerful, sensible, and gossipy actress",
+          "ageRange": "30-50s"
+        },
+        {
+          "role": "Frederick Fellowes",
+          "type": "supporting",
+          "gender": "male",
+          "description": "An insecure, dim-witted actor",
+          "ageRange": "25-35"
+        },
+        {
+          "role": "Selsdon Mowbray",
+          "type": "supporting",
+          "gender": "male",
+          "ageRange": "50+",
+          "description": "An elderly, hard-of-hearing, and alcoholic veteran actor"
+        },
+        {
+          "role": "Timothy (Tim) Allgood",
+          "type": "supporting",
+          "gender": "male",
+          "description": "The overworked, exhausted stage manager",
+          "ageRange": "20-35"
+        },
+        {
+          "role": "Poppy Norton-Taylor",
+          "type": "supporting",
+          "gender": "female",
+          "description": "The emotional assistant stage manager",
+          "ageRange": "20-35"
+        }
+      ],
+      "createdAt": "2026-11-03T21:05:19.526Z",
+      "updatedAt": "2026-11-03T22:04:07.600Z",
+      "notes": "Noises Off is a backstage farce featuring a touring company filled with eccentric egos and loaded with laughs.\nDirected by Brad Roades",
+      "noticeUrl": "https://mctshows.org/auditions/",
+      "productionId": "run-1793231340128",
+      "prep": {
+        "acting": "A short comic monologue"
+      },
+      "contact": {
+        "name": "Brad Roades",
+        "phone": "831-345-5111"
+      }
+    }
+  ]
+}

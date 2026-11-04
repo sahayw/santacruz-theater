@@ -81,7 +81,7 @@
         {
           "id": "perf-1791991838099",
           "date": "2026-11-01",
-          "time": "19:30",
+          "time": "14:00",
           "perfType": "",
           "discounts": "",
           "ticketsUrl": ""
@@ -95,14 +95,6 @@
           "ticketsUrl": ""
         },
         {
-          "id": "perf-1791991838106",
-          "date": "2026-11-07",
-          "time": "14:00",
-          "perfType": "",
-          "discounts": "",
-          "ticketsUrl": ""
-        },
-        {
           "id": "perf-1791991838101",
           "date": "2026-11-07",
           "time": "19:30",
@@ -111,9 +103,9 @@
           "ticketsUrl": ""
         },
         {
-          "id": "perf-1791991838102",
+          "id": "perf-1791991838106",
           "date": "2026-11-08",
-          "time": "19:30",
+          "time": "14:00",
           "perfType": "",
           "discounts": "",
           "ticketsUrl": ""
@@ -127,30 +119,33 @@
           "ticketsUrl": ""
         },
         {
-          "id": "perf-1791991838107",
+          "id": "perf-1791991838105",
           "date": "2026-11-14",
+          "time": "19:30",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "id": "perf-1791991838107",
+          "date": "2026-11-15",
           "time": "14:00",
           "perfType": "",
           "discounts": "",
           "ticketsUrl": ""
+        }
+      ],
+      "silentRemovals": [
+        {
+          "id": "perf-1791991838102",
+          "date": "2026-11-08"
         },
         {
           "id": "perf-1791991838104",
-          "date": "2026-11-14",
-          "time": "19:30",
-          "perfType": "",
-          "discounts": "",
-          "ticketsUrl": ""
-        },
-        {
-          "id": "perf-1791991838105",
-          "date": "2026-11-15",
-          "time": "19:30",
-          "perfType": "",
-          "discounts": "",
-          "ticketsUrl": ""
+          "date": "2026-11-14"
         }
-      ]
+      ],
+      "updatedAt": "2026-11-03T18:06:18.581Z"
     },
     {
       "id": "run-1782741993666",
@@ -383,6 +378,76 @@
         }
       ],
       "updatedAt": "2026-10-29T00:29:58.725Z"
+    },
+    {
+      "id": "run-1793733231670",
+      "company": "other",
+      "showAbv": "meet me",
+      "show": "meet me in the belly of the whale",
+      "description": "Directed by UCSC student Britney Johnson, Gillian O’Leary’s meet me in the belly of the whale is an original play about the end of the world, getting swallowed by a whale, and girls who maybe shouldn’t be friends anymore. With quick-witted dialogue and implausible storylines, this show navigates the inner workings of young adult friendships and the intestinal tract of a sperm whale’s stomach.",
+      "genre": [
+        "Drama"
+      ],
+      "venue": "UCSC-TA",
+      "price": "free-$20",
+      "discounts": "\"pay what you like\"",
+      "infoUrl": "https://events.ucsc.edu/event/barnstorm-mmitbotw/2026-11-22/",
+      "ticketsUrl": "https://www.eventbrite.com/cc/barnstorm-presents-26-27-4883814/?aff=odclsxcollection&utm-campaign=social&utm-content=attendeeshare&utm-medium=discovery&utm-source=cp&utm-term=odclsxcollection&utm_source=ig&utm_medium=social&utm_content=link_in_bio&fbclid=PAZXh0bgNhZW0CMTEAcGRvZgJzcnRjBmFwcF9pZA85MzY2MTk3NDMzOTI0NTkAAadIvJgsynzql99GTucZRWQabZDfXDIn8lR5_EBEcxHCY98g42XGOIAYFLh6jg_aem_0PWnb3m4pUvhOlldPvx6PQ",
+      "performances": [
+        {
+          "id": "perf-1793733566000",
+          "date": "2026-11-13",
+          "time": "19:30",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "id": "perf-1793733587576",
+          "date": "2026-11-14",
+          "time": "19:30",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "id": "perf-1793733601640",
+          "date": "2026-11-15",
+          "time": "14:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "id": "perf-1793733613440",
+          "date": "2026-11-20",
+          "time": "19:30",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "id": "perf-1793733624504",
+          "date": "2026-11-21",
+          "time": "19:30",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        },
+        {
+          "id": "perf-1793733635072",
+          "date": "2026-11-22",
+          "time": "14:00",
+          "perfType": "",
+          "discounts": "",
+          "ticketsUrl": ""
+        }
+      ],
+      "organizers": [
+        "ucsc-barnstorm"
+      ],
+      "room": "B100 Studio Theater",
+      "updatedAt": "2026-11-03T19:22:29.934Z"
     }
   ]
 }

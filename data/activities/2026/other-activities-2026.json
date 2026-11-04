@@ -81,6 +81,34 @@
       "contact": {
         "email": "dorcosbyatkinson@gmail.com"
       }
+    },
+    {
+      "id": "activity-1793817023575",
+      "type": "event",
+      "title": "Winter Retreat: Relax and Rejuvenate with Dor",
+      "genre": [],
+      "dates": [
+        {
+          "id": "session-1793817023575",
+          "date": "2026-11-30",
+          "startTime": "18:00",
+          "endTime": "20:00",
+          "venue": "Scratch"
+        }
+      ],
+      "createdAt": "2026-11-04T18:30:23.575Z",
+      "updatedAt": "2026-11-04T18:37:48.750Z",
+      "organizers": [
+        "dor-atkinson"
+      ],
+      "description": "This 2-hour session is for actors, directors, writers, and other creative folk who would like to de-stress and reconnect for the holidays. It will include mind-body practices such as yoga, breath-work, a winter-focused guided mediation, and movement for performers approaches such as Viewpoints.",
+      "briefDescription": "Find ease as the holidays begin with gentle mind-body practices and movement approaches for performers",
+      "cost": "$25-35",
+      "registerUrl": "https://docs.google.com/forms/d/e/1FAIpQLSenMwQlnqMlisFiXEofYYi_JKT-V_3BDv7k5EgfysC12tcfmQ/viewform?pli=1",
+      "contact": {
+        "name": "Dor Atkinson",
+        "email": "dorcosbyatkinson@gmail.com"
+      }
     }
   ]
 }

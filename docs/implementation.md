@@ -647,7 +647,8 @@ groups them into the feeds above.
   onward (`HISTORY_MONTHS`). Download files aren't windowed.
 - **`Feed.subscribable`**: true only for the subscriptions.
   `ics.ts` adds the refresh hints (`REFRESH-INTERVAL`, `X-PUBLISHED-TTL`)
-  only to those.
+  only to those. Download files use `<id>.copy@santacruz.theater` UIDs, so
+  iOS adds them instead of opening the subscribed event.
 - **Closed and undated activities**: a closed activity publishes no events.
   Its `activities/{id}.ics` exists but is empty, and it has no session
   files. Undated sessions are skipped.

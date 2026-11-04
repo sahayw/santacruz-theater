@@ -92,7 +92,7 @@
           "startTime": "11:00",
           "endTime": "16:30",
           "venue": "Scratch",
-          "notes": "Individual vocal auditions by appointment. Must fill out online audition form and sign up for a time slot https://docs.google.com/forms/d/e/1FAIpQLSdoSIGfsyNdAj_wT78kOYI5SIyn48vimzzFIxZ2McOP3lkLeQ/viewform"
+          "notes": "Individual vocal auditions by appointment. Must fill out online audition form and sign up for a time slot"
         },
         {
           "id": "session-1793817638299",
@@ -113,7 +113,7 @@
       ],
       "rolesAvailable": [],
       "createdAt": "2026-11-04T18:25:23.248Z",
-      "updatedAt": "2026-11-04T19:11:23.674Z",
+      "updatedAt": "2026-11-04T19:13:49.714Z",
       "organizers": [
         "cct"
       ],

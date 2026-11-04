@@ -226,6 +226,12 @@
       "filedUnderOther": true
     },
     {
+      "id": "ctc",
+      "abvName": "CTC",
+      "name": "Coastal Community Theater",
+      "filedUnderOther": true
+    },
+    {
       "id": "other",
       "abvName": "Other",
       "name": "Other Companies",

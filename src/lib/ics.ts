@@ -80,11 +80,13 @@ export function utcDateTime(iso: string) {
     .replace(/\.\d{3}/, '')
 }
 
-function eventLines(e: CalendarEvent) {
+function eventLines(e: CalendarEvent, copy: boolean) {
   const stamp = utcDateTime(e.lastModified)
   return [
     'BEGIN:VEVENT',
-    `UID:${e.uid}`,
+    // A downloaded copy gets its own UID: with the subscription's UID, iOS opens the
+    // subscribed (read-only) event instead of offering to add one
+    `UID:${copy ? e.uid.replace('@', '.copy@') : e.uid}`,
     // DTSTAMP is required; for a published (non-scheduling) feed it's the last change
     // to the source record, never the build time.
     `DTSTAMP:${stamp}`,
@@ -126,7 +128,7 @@ export function serializeFeed(feed: Feed) {
       ? [`REFRESH-INTERVAL;VALUE=DURATION:${REFRESH}`, `X-PUBLISHED-TTL:${REFRESH}`]
       : []),
     ...VTIMEZONE,
-    ...feed.events.flatMap(eventLines),
+    ...feed.events.flatMap((e) => eventLines(e, !feed.subscribable)),
     'END:VCALENDAR'
   ]
   return lines.map(foldLine).join('\r\n') + '\r\n'

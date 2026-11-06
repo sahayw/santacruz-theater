@@ -442,9 +442,10 @@ const SVC_HTML = `
 
         <!-- Description -->
         <div class="svc-desc-section">
+          <label class="svc-field-label" for="sf-desc">Profile${helpTip('richtext')}</label>
           <textarea class="svc-desc-textarea" id="sf-desc" rows="8"
             data-markdown-editor placeholder="Full description…" oninput="svcEd.fieldChanged()"></textarea>
-          <div>${markdownToolbar('sf-desc')}${helpTip('richtext')}</div>
+          <div>${markdownToolbar('sf-desc')}</div>
         </div>
 
       </div><!-- /.svc-scroll-body -->

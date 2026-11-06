@@ -39,6 +39,7 @@ import { sessionPlace, venueByCode } from '/admin/venues.js'
 import { markdownToolbar } from './markdown-editor.js'
 import { genreBoxesHtml, getGenres, limitGenres, setGenres } from './genre-boxes.js'
 import { renderOrganizerFields } from './organizer-picker.js'
+import { helpButton, helpTip } from './help.js'
 
 const ROLE_TYPES = ['lead', 'supporting', 'ensemble']
 const ROLE_GENDERS = ['any', 'female', 'male']
@@ -457,6 +458,7 @@ const ACT_HTML = `
   <div class="act-toolbar-spacer"></div>
   <button class="btn btn-sm" id="actSaveBtn" onclick="act.saveFile()"
     style="border:1px solid var(--border);color:rgba(28,26,23,0.4)" disabled>Save</button>
+  ${helpButton('activities')}
 </div>
 
 <div class="act-wrap">
@@ -505,11 +507,11 @@ const ACT_HTML = `
              title is its production: pick the run, or type a title if it isn't on file yet. -->
         <div class="act-hdr-row">
           <div class="act-field-group" id="afOrganizerGroup" style="flex:0 0 150px">
-            <label class="act-field-label">Organizer</label>
+            <label class="act-field-label">Organizer${helpTip('organizer')}</label>
             <div id="af-organizer"></div>
           </div>
           <div class="act-field-group" style="flex:1 1 320px">
-            <label class="act-field-label" id="afTitleLabel">Production</label>
+            <label class="act-field-label"><span id="afTitleLabel">Production</span><span id="afProdTip">${helpTip('production')}</span></label>
             <div class="act-title-row">
               <select class="act-field-select" id="af-production" onchange="act.productionChanged()"></select>
               <input class="act-field-input" id="af-title" placeholder="Production or event title" oninput="act.fieldChanged()">
@@ -585,7 +587,7 @@ const ACT_HTML = `
             </label>
             <label class="act-virtual-toggle" id="actDatesByRequestToggle" style="display:none">
               <input type="checkbox" id="af-dates-by-request" onchange="act.fieldChanged()">
-              Dates by request
+              Dates by request${helpTip('datesByRequest')}
             </label>
             <button class="btn btn-sm" style="background:var(--bg);border:1px solid var(--border)"
               onclick="act.addDateRow()">+ Add row</button>
@@ -595,9 +597,9 @@ const ACT_HTML = `
               <thead>
                 <tr>
                   <th class="col-del"></th>
-                  <th class="col-date">Date</th>
-                  <th class="col-stime">Start</th>
-                  <th class="col-etime">End</th>
+                  <th class="col-date">Date${helpTip('date')}</th>
+                  <th class="col-stime">Start${helpTip('time')}</th>
+                  <th class="col-etime">End${helpTip('time')}</th>
                   <th class="col-locn">Venue</th>
                   <th class="col-loca">Address</th>
                   <th class="col-room">Location</th>
@@ -670,7 +672,7 @@ const ACT_HTML = `
         <!-- 4. Description (events only) -->
         <div class="act-section act-desc-section" id="actDescSection">
           <div class="act-desc-toolbar">
-            <label class="act-field-label" style="margin-bottom:0">Description</label>
+            <label class="act-field-label" style="margin-bottom:0">Description${helpTip('richtext')}</label>
             ${markdownToolbar('af-description')}
             <button class="act-expand-btn" id="actDescExpandBtn" onclick="act.toggleDescExpand()" title="Expand">↕</button>
           </div>
@@ -682,7 +684,7 @@ const ACT_HTML = `
         <!-- 5. Notes (auditions only) -->
         <div class="act-section act-notes-section" id="actNotesSection">
           <div class="act-notes-toolbar">
-            <label class="act-field-label" style="margin-bottom:0">Notes</label>
+            <label class="act-field-label" style="margin-bottom:0">Notes${helpTip('richtext')}</label>
             ${markdownToolbar('af-notes')}
             <button class="act-expand-btn" id="actNotesExpandBtn" onclick="act.toggleNotesExpand()" title="Expand">↕</button>
           </div>
@@ -1399,6 +1401,7 @@ function updateTypeLayout() {
     if (datesLabel) datesLabel.textContent = 'Dates'
     if (productionSel) productionSel.style.display = 'none'
     if (titleLabel) titleLabel.textContent = 'Title'
+    document.getElementById('afProdTip').style.display = 'none'
     if (descSection) descSection.style.display = ''
     if (notesSection) notesSection.style.display = 'none'
   } else {
@@ -1412,6 +1415,7 @@ function updateTypeLayout() {
     if (datesLabel) datesLabel.textContent = 'Audition Dates'
     if (productionSel) productionSel.style.display = ''
     if (titleLabel) titleLabel.textContent = 'Production'
+    document.getElementById('afProdTip').style.display = ''
     if (descSection) descSection.style.display = 'none'
     if (notesSection) notesSection.style.display = ''
   }
@@ -1830,7 +1834,8 @@ function normalizeTime(v) {
     }
     return `${String(h).padStart(2, '0')}:${mins}`
   }
-  const norm = s.replace('.', ':')
+  // A bare hour ("7", "12") is that hour on the hour
+  const norm = /^\d{1,2}$/.test(s) ? `${s}:00` : s.replace('.', ':')
   if (!/^\d{1,2}:\d{2}$/.test(norm)) return v
   let [hStr, mins] = norm.split(':')
   let h = parseInt(hStr, 10)

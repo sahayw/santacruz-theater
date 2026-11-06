@@ -28,6 +28,7 @@ import {
 } from '/admin/production-view.js'
 import { runPlace, venueByCode } from '/admin/venues.js'
 import { markdownToolbar } from './markdown-editor.js'
+import { helpButton, helpTip } from './help.js'
 import { genreBoxesHtml, getGenres, limitGenres, setGenres } from './genre-boxes.js'
 import { renderOrganizerFields } from './organizer-picker.js'
 
@@ -522,6 +523,7 @@ const CAL_HTML = `
   </select>
   <div class="cal-toolbar-spacer"></div>
   <button class="btn btn-sm" id="saveBtn" onclick="cal.saveFile()" style="border:1px solid var(--border);color:rgba(28,26,23,0.4)" disabled>Save</button>
+  ${helpButton('calendar')}
 </div>
 
 <div class="cal-wrap">
@@ -557,7 +559,7 @@ const CAL_HTML = `
       <div class="run-fields">
         <div class="hdr-row">
           <div class="field-group" id="f-organizer-group" style="flex:0 0 150px">
-            <label class="field-label">Organizer</label>
+            <label class="field-label">Organizer${helpTip('organizer')}</label>
             <div id="f-organizer"></div>
           </div>
           <div class="field-group" style="flex:1 1 280px">
@@ -565,13 +567,13 @@ const CAL_HTML = `
             <input class="field-input" id="f-show" placeholder="Full title" oninput="cal.runFieldChanged()">
           </div>
           <div class="field-group" style="flex:0 0 170px">
-            <label class="field-label">Abbrev</label>
+            <label class="field-label">Abbrev${helpTip('abbrev')}</label>
             <input class="field-input" id="f-showAbv" placeholder="Brief title" maxlength="20" oninput="cal.runFieldChanged()">
           </div>
         </div>
         <div class="hdr-row">
           <div class="field-group" style="flex:0 1 200px">
-            <label class="field-label">Venue</label>
+            <label class="field-label">Venue${helpTip('venue')}</label>
             <input class="field-input" id="f-venue" placeholder="Venue name" autocomplete="off"
               oninput="cal.onVenueInput(this); cal.runFieldChanged()" onfocus="cal.onVenueInput(this)"
               onblur="setTimeout(()=>cal.hideCalVenueDropdown(),150)"
@@ -590,7 +592,7 @@ const CAL_HTML = `
             <input class="field-input" id="f-discounts" placeholder="e.g. Senior $aa, Student $bb" oninput="cal.runFieldChanged()">
           </div>
           <div class="field-group" style="flex:0 1 auto">
-            <label class="field-label">Co-producers</label>
+            <label class="field-label">Co-producers${helpTip('coproducers')}</label>
             <div id="f-coproducers"></div>
           </div>
         </div>
@@ -612,7 +614,7 @@ const CAL_HTML = `
 
       <div class="desc-section">
         <div class="desc-toolbar">
-          <label class="field-label" style="margin-bottom:0">Description</label>
+          <label class="field-label" style="margin-bottom:0">Description${helpTip('richtext')}</label>
           ${markdownToolbar('f-description')}
           <button class="desc-expand-btn" id="descExpandBtn" onclick="cal.toggleDescExpand()" title="Expand / collapse">↕</button>
         </div>
@@ -624,7 +626,7 @@ const CAL_HTML = `
       <div class="perf-section">
         <div class="perf-toolbar">
           <span class="perf-toolbar-label">Performances <span id="perfCount" style="color:var(--ink-faint);font-family:'IBM Plex Mono',monospace;font-size:10px"></span></span>
-          <button class="btn btn-sm btn-green" onclick="cal.togglePattern()">⚡ Pattern</button>
+          <button class="btn btn-sm btn-green" onclick="cal.togglePattern()">⚡ Pattern</button>${helpTip('pattern')}
           <button class="btn btn-sm btn-blue"  onclick="cal.togglePaste()">📋 Paste dates</button>
           <button class="btn btn-sm" style="background:var(--bg);border:1px solid var(--border)" onclick="cal.addRow()">+ Add row</button>
         </div>
@@ -668,8 +670,8 @@ const CAL_HTML = `
             <thead>
               <tr>
                 <th class="col-del"></th>
-                <th class="col-date">Date</th>
-                <th class="col-time">Time</th>
+                <th class="col-date">Date${helpTip('date')}</th>
+                <th class="col-time">Time${helpTip('time')}</th>
                 <th class="col-type">Perf Type</th>
                 <th class="col-disc">Discount override</th>
                 <th class="col-url">Tickets URL override</th>
@@ -1341,7 +1343,8 @@ function normalizeTime(v) {
     return `${String(h).padStart(2, '0')}:${mins}`
   }
   // No suffix: normalise separator then assume PM for hours 1–11
-  const norm = s.replace('.', ':')
+  // A bare hour ("7", "12") is that hour on the hour
+  const norm = /^\d{1,2}$/.test(s) ? `${s}:00` : s.replace('.', ':')
   if (!/^\d{1,2}:\d{2}$/.test(norm)) return v
   let [hStr, mins] = norm.split(':')
   let h = parseInt(hStr, 10)

@@ -1,5 +1,6 @@
 import { IS_DEV, apiFetch, apiPut, apiUploadImage, deleteRecordFromFile } from './api.js'
 import { markdownToolbar } from './markdown-editor.js'
+import { helpButton, helpTip } from './help.js'
 import { renderMd } from '/admin/audition-format.js'
 import { listingIssues } from '/admin/data-rules.js'
 
@@ -348,6 +349,7 @@ const SVC_HTML = `
   <div class="svc-toolbar-spacer"></div>
   <button class="btn btn-sm" id="svcSaveBtn" onclick="svcEd.saveFile()"
     style="border:1px solid var(--border);color:rgba(28,26,23,0.4)" disabled>Save</button>
+  ${helpButton('service')}
 </div>
 
 <div class="svc-wrap">
@@ -440,7 +442,7 @@ const SVC_HTML = `
 
         <!-- Description -->
         <div class="svc-desc-section">
-          ${markdownToolbar('sf-desc')}
+          ${markdownToolbar('sf-desc')}${helpTip('richtext')}
           <textarea class="svc-desc-textarea" id="sf-desc" rows="8"
             data-markdown-editor placeholder="Full description…" oninput="svcEd.fieldChanged()"></textarea>
         </div>

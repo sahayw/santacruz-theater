@@ -615,12 +615,12 @@ const CAL_HTML = `
       <div class="desc-section">
         <div class="desc-toolbar">
           <label class="field-label" style="margin-bottom:0">Description${helpTip('richtext')}</label>
-          ${markdownToolbar('f-description')}
           <button class="desc-expand-btn" id="descExpandBtn" onclick="cal.toggleDescExpand()" title="Expand / collapse">↕</button>
         </div>
         <textarea class="field-input desc-textarea" id="f-description" rows="4"
           data-markdown-editor placeholder="Brief narrative"
           oninput="cal.runFieldChanged()"></textarea>
+        ${markdownToolbar('f-description')}
       </div>
 
       <div class="perf-section">

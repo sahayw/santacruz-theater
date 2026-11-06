@@ -673,24 +673,24 @@ const ACT_HTML = `
         <div class="act-section act-desc-section" id="actDescSection">
           <div class="act-desc-toolbar">
             <label class="act-field-label" style="margin-bottom:0">Description${helpTip('richtext')}</label>
-            ${markdownToolbar('af-description')}
             <button class="act-expand-btn" id="actDescExpandBtn" onclick="act.toggleDescExpand()" title="Expand">↕</button>
           </div>
           <textarea class="act-desc-textarea" id="af-description" rows="1"
             data-markdown-editor placeholder="Optional full description"
             oninput="act.autoResizeTextarea(this); act.fieldChanged()"></textarea>
+          ${markdownToolbar('af-description')}
         </div>
 
         <!-- 5. Notes (auditions only) -->
         <div class="act-section act-notes-section" id="actNotesSection">
           <div class="act-notes-toolbar">
             <label class="act-field-label" style="margin-bottom:0">Notes${helpTip('richtext')}</label>
-            ${markdownToolbar('af-notes')}
             <button class="act-expand-btn" id="actNotesExpandBtn" onclick="act.toggleNotesExpand()" title="Expand">↕</button>
           </div>
           <textarea class="act-notes-textarea" id="af-notes" rows="1"
             data-markdown-editor placeholder="Additional notes shown at bottom of card"
             oninput="act.autoResizeTextarea(this); act.fieldChanged()"></textarea>
+          ${markdownToolbar('af-notes')}
         </div>
 
       </div><!-- /.act-scroll-body -->

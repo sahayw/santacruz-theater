@@ -1,0 +1,24 @@
+{
+  "company": "other",
+  "year": 2027,
+  "runs": [
+    {
+      "id": "run-1793809923259",
+      "company": "other",
+      "showAbv": "Shrek",
+      "show": "Shrek: The Musical",
+      "description": "",
+      "genre": [],
+      "venue": "SV-Landing",
+      "price": "",
+      "discounts": "",
+      "infoUrl": "",
+      "ticketsUrl": "",
+      "performances": [],
+      "organizers": [
+        "cct"
+      ],
+      "updatedAt": "2026-11-04T16:32:45.571Z"
+    }
+  ]
+}

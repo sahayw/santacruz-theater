@@ -81,6 +81,50 @@
       "contact": {
         "email": "dorcosbyatkinson@gmail.com"
       }
+    },
+    {
+      "id": "activity-1793816723248",
+      "type": "audition",
+      "dates": [
+        {
+          "id": "session-1793816723248",
+          "date": "2026-12-06",
+          "startTime": "11:00",
+          "endTime": "16:30",
+          "venue": "Scratch",
+          "notes": "Individual vocal auditions by appointment. Must fill out online audition form and sign up for a time slot"
+        },
+        {
+          "id": "session-1793817638299",
+          "date": "2026-12-08",
+          "startTime": "18:00",
+          "venue": "LN",
+          "notes": "Dance callbacks by invitation",
+          "endTime": "21:00"
+        },
+        {
+          "id": "session-1793818645773",
+          "date": "2026-12-13",
+          "startTime": "17:00",
+          "endTime": "21:00",
+          "venue": "Scratch",
+          "notes": "Vocal/acting callbacks by invitation"
+        }
+      ],
+      "rolesAvailable": [],
+      "createdAt": "2026-11-04T18:25:23.248Z",
+      "updatedAt": "2026-11-05T17:29:56.374Z",
+      "organizers": [
+        "cct"
+      ],
+      "rehearsalStart": "2027-01-13",
+      "noticeUrl": "https://sites.google.com/view/shrekauditions?usp=sharing&pli=1&authuser=0",
+      "productionId": "run-1793809923259",
+      "prep": {
+        "bring": [
+          "32bar or 1 minute cut of an appropriate song. Submit karaoke track ahead of time."
+        ]
+      }
     }
   ]
 }

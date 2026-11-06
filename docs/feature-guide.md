@@ -216,7 +216,7 @@ site owner; the visitor sees a confirmation. Nothing to edit.
 
 ## 6. Calendar feeds
 
-- **Whole calendars** are subscriptions only (**Subscribe to this calendar**): Apple Calendar / Outlook (`webcal:` link), Google Calendar, or Copy link. Changes arrive when the app next refreshes (Google: up to a day).
+- **Whole calendars** are subscriptions only (**Subscribe to this calendar**): Apple Calendar / Outlook (`webcal:` link), Google Calendar, or Copy link. Changes arrive when the app next refreshes.
 - **Single items** are one-off copies that don't follow later edits. The dialog shows name, date, time and place, then offers an `.ics` download (Apple / Outlook) or a prefilled Google page.
 - Subscriptions cover the last 12 months onward. Closed activities are left out.
 
@@ -278,7 +278,8 @@ Nothing for editors to configure.
 
 ## 8. Editor basics
 
-- **Publishing**: every Save in `/admin` rebuilds the site; live in a few minutes. That includes the calendar feeds. Subscribers see the change when their calendar app next refreshes, which can take up to a day for Google.
+- **Publishing**: every Save in `/admin` rebuilds the site; live in a few minutes. That includes the calendar feeds. Subscribers see the change when their calendar app next refreshes.
+- **Help**: the **ⓘ Help** button after Save opens a small panel with the sections common to the editor, then those for its record types (run; audition, event and activity dates; service listing). Clicking away or pressing Esc closes it. A **?** beside a field (including the Date and Time column headers) shows a one-line tip on hover; clicking shows it for 3 seconds (touch).
 - **Access**: per email, per dataset, set in the companies file ([§4](#4-companies--services)). Companies and Services are admin-only.
 - **Accounts**: Netlify Identity, by invitation, to an email listed in that file.
 - Admins pick a company first; company editors go straight to a year (skipped if there's only one).
@@ -340,6 +341,7 @@ names assume the current year:
 | `12pm`, `12am`   | `12:00`, `00:00` | noon, midnight           |
 | `2.00`, `7.30`   | `14:00`, `19:30` | no suffix, 1–11 → **PM** |
 | `12.00`          | `12:00`          | no suffix, 12 → noon     |
+| `7`, `12`        | `19:00`, `12:00` | bare hour, as above      |
 | `19:30`, `21.30` | `19:30`, `21:30` | 24-hour passes through   |
 
 ### Rich text

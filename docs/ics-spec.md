@@ -88,9 +88,8 @@ combination of the `majorCode`s ever assigned is published. There is no
   No `STATUS:CANCELLED` is published, because we keep no deletion history.
 
 **Freshness**: feeds are rebuilt on every deploy, which includes every editor
-Save. Clients poll on their own schedule. Google polls roughly every 8–24
-hours and offers no way to speed that up. The UI must not promise faster
-updates.
+Save. Clients poll on their own schedule and cannot be sped up. The UI must not
+promise faster updates.
 
 ## Occurrence ids
 
@@ -266,8 +265,7 @@ what's being added.
   - **Google Calendar**: `https://calendar.google.com/calendar/r?cid=<encoded webcal URL>`.
     The webcal form is the one most widely reported to work with `cid`.
   - **Copy link**: the plain `https://…ics` URL, for any other client.
-  - A note that the app refreshes on its own schedule, and Google can take up
-    to a day.
+  - A note that the app refreshes on its own schedule.
 - **One event** (a performance or session):
   - The dialog fetches the event's own `.ics` file and shows its name, date,
     time and location.

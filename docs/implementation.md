@@ -369,15 +369,16 @@ session row asks the same; Delete without notification appends to
 `hasUnsavedChanges()`; `index.html` asks before Home, switching editors, or
 closing the tab would discard them.
 
-| File                                          | Role                                                                                       |
-| --------------------------------------------- | ------------------------------------------------------------------------------------------ |
-| `index.html`                                  | login overlay, dataset hub, routing. On `localhost`, auth is skipped: full admin access.   |
-| `api.js`                                      | `apiFetch` / `apiPut` / `apiUploadImage` / `resolveUserAccess()` / `buildCompanyOptions()` |
-| `calendar.js`, `activities.js`, `services.js` | one ES module per editor, exporting `mount(container, context)` / `unmount()`              |
-| `organizer-picker.js`                         | organizer select (records filed under Other) and co-producer chips (shows only)            |
-| `genre-boxes.js`                              | the genre checkbox row (at most `MAX_GENRES`)                                              |
-| `markdown-editor.js`                          | shared rich-text toolbar and shortcuts                                                     |
-| `removal-dialog.js`                           | `askRemoval()`: Notify cancellation / Delete without notification / Keep                   |
+| File                                          | Role                                                                                                     |
+| --------------------------------------------- | -------------------------------------------------------------------------------------------------------- |
+| `index.html`                                  | login overlay, dataset hub, routing. On `localhost`, auth is skipped: full admin access.                 |
+| `api.js`                                      | `apiFetch` / `apiPut` / `apiUploadImage` / `resolveUserAccess()` / `buildCompanyOptions()`               |
+| `calendar.js`, `activities.js`, `services.js` | one ES module per editor, exporting `mount(container, context)` / `unmount()`                            |
+| `organizer-picker.js`                         | organizer select (records filed under Other) and co-producer chips (shows only)                          |
+| `genre-boxes.js`                              | the genre checkbox row (at most `MAX_GENRES`)                                                            |
+| `markdown-editor.js`                          | shared rich-text toolbar and shortcuts                                                                   |
+| `help.js`                                     | toolbar Help panel (after Save) (`helpButton()`) and field "?" tips (`helpTip()`); all help text is here |
+| `removal-dialog.js`                           | `askRemoval()`: Notify cancellation / Delete without notification / Keep                                 |
 
 **Auth**
 

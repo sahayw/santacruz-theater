@@ -15,7 +15,7 @@
       "price": "$35",
       "discounts": "Same-day rush tickets may be available",
       "infoUrl": "https://www.goodeggsantacruz.com/currentseason",
-      "ticketsUrl": "",
+      "ticketsUrl": "https://www.eventbrite.com/e/constellations-tickets-2003491598303?aff=odcleoeventsincollection",
       "performances": [
         {
           "id": "perf-1791991838356",
@@ -137,7 +137,8 @@
           "discounts": "",
           "ticketsUrl": ""
         }
-      ]
+      ],
+      "updatedAt": "2026-11-23T17:04:46.057Z"
     },
     {
       "id": "run-1791849235929",

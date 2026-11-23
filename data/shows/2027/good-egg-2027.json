@@ -153,7 +153,7 @@
       "price": "$35",
       "discounts": "Same-day rush tickets may be available",
       "infoUrl": "https://www.goodeggsantacruz.com/currentseason",
-      "ticketsUrl": "",
+      "ticketsUrl": "https://www.eventbrite.com/e/the-totalitarians-tickets-2003492181046?aff=odcleoeventsincollection",
       "performances": [
         {
           "id": "perf-1791991838374",
@@ -275,7 +275,8 @@
           "discounts": "",
           "ticketsUrl": ""
         }
-      ]
+      ],
+      "updatedAt": "2026-11-23T18:34:30.046Z"
     }
   ]
 }
